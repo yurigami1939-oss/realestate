@@ -44,3 +44,4 @@ GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO realestate_app;
 REVOKE UPDATE, DELETE, TRUNCATE ON public.audit_log FROM realestate_app;
 REVOKE UPDATE, DELETE, TRUNCATE ON public.unit_status_history FROM realestate_app;
 REVOKE UPDATE, DELETE, TRUNCATE ON public.unit_price_history FROM realestate_app;
+REVOKE UPDATE, DELETE, TRUNCATE ON public.lead_activity FROM realestate_app;

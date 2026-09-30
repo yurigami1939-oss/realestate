@@ -4,7 +4,9 @@
  */
 import { z } from "zod";
 
+import { fromAlgiersDateTime } from "./dates";
 import { parseDZD } from "./money";
+import { normalizePhone } from "./phone";
 
 const blankToNull = (value: string) => (value.trim() === "" ? null : value.trim());
 
@@ -107,3 +109,80 @@ export const optionalEnum = <const T extends readonly [string, ...string[]]>(val
     .union([z.enum(values), z.literal("")])
     .optional()
     .transform((v) => (v === "" || v === undefined ? null : (v as T[number])));
+
+/** Phone as typed → E.164 (CLAUDE.md §8). */
+export const phoneText = () =>
+  z
+    .string()
+    .trim()
+    .min(1, "validation.required")
+    .transform((v, ctx) => {
+      const e164 = normalizePhone(v);
+      if (!e164) {
+        ctx.addIssue({ code: "custom", message: "validation.phone" });
+        return z.NEVER;
+      }
+      return e164;
+    });
+
+/** Optional phone: "" → null. */
+export const optionalPhoneText = () =>
+  z
+    .string()
+    .optional()
+    .transform((raw, ctx) => {
+      const v = raw?.trim() ?? "";
+      if (v === "") return null;
+      const e164 = normalizePhone(v);
+      if (!e164) {
+        ctx.addIssue({ code: "custom", message: "validation.phone" });
+        return z.NEVER;
+      }
+      return e164;
+    });
+
+/** Optional e-mail, lowercased: "" → null. */
+export const optionalEmailText = () =>
+  z
+    .string()
+    .optional()
+    .transform((raw, ctx) => {
+      const v = raw?.trim().toLowerCase() ?? "";
+      if (v === "") return null;
+      if (!z.email().safeParse(v).success) {
+        ctx.addIssue({ code: "custom", message: "validation.email" });
+        return z.NEVER;
+      }
+      return v;
+    });
+
+/** Optional amount in dinars: "" → null. */
+export const optionalMoneyText = () =>
+  z
+    .string()
+    .optional()
+    .transform((raw, ctx) => {
+      const v = raw?.trim() ?? "";
+      if (v === "") return null;
+      const parsed = parseDZD(v);
+      if (parsed === null) {
+        ctx.addIssue({ code: "custom", message: "validation.amount" });
+        return z.NEVER;
+      }
+      return parsed;
+    });
+
+/** datetime-local value typed in Algiers time → instant. */
+export const dateTimeText = () =>
+  z
+    .string()
+    .trim()
+    .min(1, "validation.required")
+    .transform((v, ctx) => {
+      const instant = fromAlgiersDateTime(v);
+      if (!instant) {
+        ctx.addIssue({ code: "custom", message: "validation.dateTime" });
+        return z.NEVER;
+      }
+      return instant;
+    });

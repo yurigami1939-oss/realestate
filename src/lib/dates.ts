@@ -57,3 +57,36 @@ export function formatDateTime(instant: Date): string {
   );
   return `${parts.day}/${parts.month}/${parts.year} ${parts.hour}:${parts.minute}`;
 }
+
+/** Algeria is UTC+1 all year (no DST since 1981). */
+const ALGIERS_OFFSET_MS = 60 * 60 * 1000;
+const LOCAL_DATE_TIME = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/;
+
+/** "YYYY-MM-DDTHH:mm" typed in Algiers time (a datetime-local input) → instant; null if invalid. */
+export function fromAlgiersDateTime(value: string): Date | null {
+  const match = LOCAL_DATE_TIME.exec(value.trim());
+  if (!match) return null;
+  const [, y, mo, d, h, mi] = match.map(Number) as [number, number, number, number, number, number];
+  const utc = Date.UTC(y, mo - 1, d, h, mi);
+  const check = new Date(utc);
+  if (check.getUTCMonth() !== mo - 1 || check.getUTCDate() !== d || h > 23 || mi > 59) return null;
+  return new Date(utc - ALGIERS_OFFSET_MS);
+}
+
+/** Instant → "YYYY-MM-DDTHH:mm" in Algiers time (datetime-local input value). */
+export function toAlgiersDateTimeInput(instant: Date): string {
+  return new Date(instant.getTime() + ALGIERS_OFFSET_MS).toISOString().slice(0, 16);
+}
+
+/** Adds whole months to a calendar date, clamped to the month's last day (31/01 + 1 → 28/02). */
+export function addMonths(date: CalendarDate, months: number): CalendarDate {
+  const match = CALENDAR_DATE.exec(date);
+  if (!match) throw new RangeError(`addMonths: invalid calendar date "${date}"`);
+  const [, y, m, d] = match.map(Number) as [number, number, number, number];
+  const monthIndex = m - 1 + months;
+  const year = y + Math.floor(monthIndex / 12);
+  const month = ((monthIndex % 12) + 12) % 12;
+  const lastDay = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
+  const day = Math.min(d, lastDay);
+  return `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+}

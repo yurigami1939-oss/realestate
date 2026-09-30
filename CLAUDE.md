@@ -474,6 +474,13 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 | 2026-09-30 | **Uploads go through our Route Handler** (not presigned PUT) so the server checks size and magic bytes before storing; downloads are a 302 to a 5-min presigned GET. Replaced/removed files are soft-deleted, objects kept. |
 | 2026-09-30 | Better Auth's production rate limit stays on (sign-in 3 per 10 s); forms show a "too many attempts" message; e2e signs in once per role through the API. |
 | 2026-09-30 | CI runs SeaweedFS as a `docker run` step (service containers cannot take a command); test setups create the bucket (`waitForBucket`). |
+| 2026-09-30 | **CRM duplicates (user)**: a lead whose phone matches another live lead is **allowed and flagged** as a possible duplicate (derived, not stored); managers merge duplicates later. |
+| 2026-09-30 | **Pipeline (user)**: one fixed stage list for every company: `new` → `contacted` → `visit_scheduled` → `visited` → `negotiation` → `won` / `lost` (lost needs a reason). |
+| 2026-09-30 | **Discounts (user)**: only the directeur commercial and the gérant can put a discount on a quotation (`quotation:discount`). |
+| 2026-09-30 | **Commissions (user)**: decided and built with module 3 (their triggers are reservation / VSP / payments). Module 2 sales targets count activity (visits, quotations). |
+| 2026-09-30 | **Lead assignment (user)**: a commercial owns the leads they create and sees only theirs; managers see all, assign/reassign by hand, and may leave leads unassigned. |
+| 2026-09-30 | **Simulator (user)**: payment plans are per-project templates (share per step: at signing, N months after signing, or at a construction milestone); the simulator and module 3 schedules use the same model. |
+| 2026-09-30 | **Quotations (user)**: bilingual FR + AR on one document; validity is a company setting, default 15 days. |
 
 ### Open items
 - **GitHub**: repo `yurigami1939-oss/realestate` is **public** — make it private before real client data or configuration lands. Work happens on branches merged through PRs; CI must be green.
@@ -486,6 +493,6 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 - Default option duration; max simultaneous options per agent/lead.
 - Receipt/contract language: bilingual FR/AR on one document (current receipt template), or per-buyer choice.
 - VSP payment tranches: enforce legal percentages per milestone or free schedule?
-- Commission rules (base, rate, trigger: reservation, VSP, or full payment).
+- Commission rules (base, rate, trigger: reservation, VSP, or full payment) — to decide when building module 3.
 - Hosting location (Loi 18-07 restricts cross-border transfer of personal data).
 - Are list prices **TTC** (TVA included) or HT? Quotations, reservation and VSP contracts will print the price; if TVA must be shown separately we need the rate(s) per unit type (housing vs. commercial).

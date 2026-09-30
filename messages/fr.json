@@ -65,7 +65,9 @@
     "code": "Lettres, chiffres et tirets uniquement.",
     "floorRange": "L'étage le plus haut doit être au-dessus du plus bas.",
     "tooManyUnits": "Trop de lots en une fois (500 maximum).",
-    "percent": "Pourcentage invalide (ex. 5 ou -2,5)."
+    "percent": "Pourcentage invalide (ex. 5 ou -2,5).",
+    "phone": "Numéro de téléphone invalide (ex. 0550 12 34 56).",
+    "dateTime": "Date et heure invalides."
   },
   "auth": {
     "fields": {
@@ -426,6 +428,14 @@
       "unitsOutsideFloors": "Des lots existent en dehors de ces niveaux.",
       "priceListNotDraft": "Cette grille n'est plus modifiable.",
       "unitNotInProject": "Un lot n'appartient pas à ce projet."
+    }
+  },
+  "crm": {
+    "errors": {
+      "notAssignable": "Ce membre ne suit pas de prospects (commercial ou direction commerciale uniquement).",
+      "projectNotFound": "Projet introuvable.",
+      "unitNotFound": "Lot introuvable dans ce projet.",
+      "mergeSelf": "Choisissez une autre fiche à fusionner."
     }
   }
 }

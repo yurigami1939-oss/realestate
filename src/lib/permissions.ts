@@ -16,6 +16,15 @@ export const statement = {
   unit: ["create", "update", "delete", "block"],
   /** Unit list prices and price lists. */
   price: ["update"],
+  /**
+   * Leads with their visits, follow-ups and timeline. `read` = the leads assigned to me,
+   * `read_all` = every lead (managers); services apply the scope.
+   */
+  lead: ["read", "read_all", "create", "update", "assign", "merge", "delete"],
+  /** Quotations (devis). Only managers may discount (CLAUDE.md §12). */
+  quotation: ["create", "discount", "cancel"],
+  /** Monthly activity targets of the commercials. */
+  target: ["update"],
 } as const;
 
 export const ac = createAccessControl(statement);
@@ -28,14 +37,24 @@ export const roles = {
     project: ["create", "update", "delete"],
     unit: ["create", "update", "delete", "block"],
     price: ["update"],
+    lead: ["read", "read_all", "create", "update", "assign", "merge", "delete"],
+    quotation: ["create", "discount", "cancel"],
+    target: ["update"],
   }),
   sales_manager: ac.newRole({
     inventory: ["read"],
     project: ["create", "update"],
     unit: ["create", "update", "delete", "block"],
     price: ["update"],
+    lead: ["read", "read_all", "create", "update", "assign", "merge", "delete"],
+    quotation: ["create", "discount", "cancel"],
+    target: ["update"],
   }),
-  sales_agent: ac.newRole({ inventory: ["read"] }),
+  sales_agent: ac.newRole({
+    inventory: ["read"],
+    lead: ["read", "create", "update"],
+    quotation: ["create"],
+  }),
   accountant: ac.newRole({ audit: ["read"], inventory: ["read"] }),
   cashier: ac.newRole({ inventory: ["read"] }),
   property_manager: ac.newRole({ inventory: ["read"] }),

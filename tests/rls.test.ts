@@ -141,3 +141,18 @@ describe("append-only audit log", () => {
     ).rejects.toThrow();
   });
 });
+
+describe("append-only tables", () => {
+  it.each(["audit_log", "unit_status_history", "unit_price_history", "lead_activity"])(
+    "%s: the app role may insert but not update, delete or truncate",
+    async (table) => {
+      const { rows } = await db.execute<Record<string, boolean>>(sql`
+        select
+          has_table_privilege('realestate_app', ${`public.${table}`}, 'INSERT') as "insert",
+          has_table_privilege('realestate_app', ${`public.${table}`}, 'UPDATE') as "update",
+          has_table_privilege('realestate_app', ${`public.${table}`}, 'DELETE') as "delete",
+          has_table_privilege('realestate_app', ${`public.${table}`}, 'TRUNCATE') as "truncate"`);
+      expect(rows[0]).toEqual({ insert: true, update: false, delete: false, truncate: false });
+    },
+  );
+});

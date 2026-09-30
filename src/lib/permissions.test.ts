@@ -31,4 +31,14 @@ describe("permissions", () => {
     expect(can(["cashier"], "audit:read")).toBe(false);
     expect(can(["cashier", "accountant"], "audit:read")).toBe(true);
   });
+
+  it("scopes CRM access: commercials work their leads, managers everything", () => {
+    expect(can(["sales_agent"], "lead:read")).toBe(true);
+    expect(can(["sales_agent"], "lead:read_all")).toBe(false);
+    expect(can(["sales_agent"], "lead:assign")).toBe(false);
+    expect(can(["sales_agent"], "quotation:discount")).toBe(false);
+    expect(can(["sales_manager"], "lead:merge")).toBe(true);
+    expect(can(["sales_manager"], "quotation:discount")).toBe(true);
+    expect(can(["cashier"], "lead:read")).toBe(false);
+  });
 });

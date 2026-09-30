@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 
 import { db } from "@/db/client";
-import { organization, user } from "@/db/schema";
+import { member, organization, user } from "@/db/schema";
 import type { Role } from "@/lib/permissions";
 import type { TenantCtx } from "@/server/auth/session";
 
@@ -33,4 +33,30 @@ export async function createTenantCtx(roles: Role[] = ["owner"]): Promise<Tenant
   const org = await createOrganization();
   const member = await createUser();
   return { orgId: org.id, userId: member.id, roles, locale: "fr" };
+}
+
+/** Adds a member with these roles to the organization and returns their TenantCtx. */
+export async function addMember(orgId: string, roles: Role[]): Promise<TenantCtx> {
+  const created = await createUser();
+  await db
+    .insert(member)
+    .values({
+      organizationId: orgId,
+      userId: created.id,
+      role: roles.join(","),
+      createdAt: new Date(),
+    });
+  return { orgId, userId: created.id, roles, locale: "fr" };
+}
+
+/** A fresh organization with a gérant, a directeur commercial and two commercials (all members). */
+export async function createSalesTeam() {
+  const org = await createOrganization();
+  const [owner, manager, agentA, agentB] = await Promise.all([
+    addMember(org.id, ["owner"]),
+    addMember(org.id, ["sales_manager"]),
+    addMember(org.id, ["sales_agent"]),
+    addMember(org.id, ["sales_agent"]),
+  ]);
+  return { orgId: org.id, owner, manager, agentA, agentB };
 }
