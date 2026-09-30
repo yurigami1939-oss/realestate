@@ -14,6 +14,7 @@ import {
   user,
 } from "@/db/schema";
 import { withTenant } from "@/db/tenant";
+import { isUuid } from "@/lib/ids";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
 
 /** Unit counts by commercial state, computed over live units joined as `unit`. */
@@ -69,6 +70,7 @@ export type ProjectListItem = Awaited<ReturnType<typeof listProjects>>[number];
 
 export async function getProject(ctx: TenantCtx, projectId: string) {
   assertCan(ctx, "inventory:read");
+  if (!isUuid(projectId)) return null;
   return withTenant(ctx, async (tx) => {
     const [row] = await tx
       .select()
@@ -129,6 +131,7 @@ export async function listBuildings(ctx: TenantCtx, projectId: string) {
 /** A building with its live units, top floor first (availability grid). */
 export async function getBuildingGrid(ctx: TenantCtx, buildingId: string) {
   assertCan(ctx, "inventory:read");
+  if (!isUuid(buildingId)) return null;
   return withTenant(ctx, async (tx) => {
     const [row] = await tx
       .select({
@@ -172,6 +175,7 @@ export type GridUnit = BuildingGrid["units"][number];
 /** Unit sheet with its status and price histories. */
 export async function getUnit(ctx: TenantCtx, unitId: string) {
   assertCan(ctx, "inventory:read");
+  if (!isUuid(unitId)) return null;
   return withTenant(ctx, async (tx) => {
     const [row] = await tx
       .select({
@@ -246,6 +250,7 @@ export type UnitDetail = NonNullable<Awaited<ReturnType<typeof getUnit>>>;
 
 export async function listPriceLists(ctx: TenantCtx, projectId: string) {
   assertCan(ctx, "inventory:read");
+  if (!isUuid(projectId)) return [];
   return withTenant(ctx, (tx) =>
     tx
       .select({
@@ -268,6 +273,7 @@ export async function listPriceLists(ctx: TenantCtx, projectId: string) {
 /** A price list with one row per live unit of its project (unpriced units included). */
 export async function getPriceList(ctx: TenantCtx, priceListId: string) {
   assertCan(ctx, "inventory:read");
+  if (!isUuid(priceListId)) return null;
   return withTenant(ctx, async (tx) => {
     const [list] = await tx
       .select({
@@ -312,3 +318,39 @@ export async function getPriceList(ctx: TenantCtx, priceListId: string) {
 }
 
 export type PriceListDetail = NonNullable<Awaited<ReturnType<typeof getPriceList>>>;
+
+/** Live projects for selects (CRM interest, visits, quotations). */
+export async function listProjectOptions(ctx: TenantCtx) {
+  assertCan(ctx, "inventory:read");
+  return withTenant(ctx, (tx) =>
+    tx
+      .select({ id: project.id, code: project.code, name: project.name })
+      .from(project)
+      .where(isNull(project.deletedAt))
+      .orderBy(asc(project.name)),
+  );
+}
+
+/** Live units that can still be shown or sold (not sold, delivered or rented), per project. */
+export async function listUnitOptions(ctx: TenantCtx) {
+  assertCan(ctx, "inventory:read");
+  return withTenant(ctx, (tx) =>
+    tx
+      .select({
+        id: unit.id,
+        projectId: unit.projectId,
+        code: unit.code,
+        typology: unit.typology,
+        type: unit.type,
+        status: unit.status,
+        listPrice: unit.listPrice,
+      })
+      .from(unit)
+      .where(
+        and(isNull(unit.deletedAt), sql`${unit.status} not in ('sold', 'delivered', 'rented')`),
+      )
+      .orderBy(asc(unit.code)),
+  );
+}
+
+export type UnitOption = Awaited<ReturnType<typeof listUnitOptions>>[number];

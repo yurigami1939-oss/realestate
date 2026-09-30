@@ -5,7 +5,8 @@ import { Separator } from "@/components/ui/separator";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { redirect } from "@/i18n/navigation";
 import { localeDirection, toLocale } from "@/i18n/locales";
-import { getSession } from "@/server/auth/session";
+import { can } from "@/lib/permissions";
+import { getSession, getTenantCtx } from "@/server/auth/session";
 import { listUserOrganizations } from "@/server/organizations/queries";
 
 /** Back-office shell. Every page below requires a session and an active organization. */
@@ -20,6 +21,7 @@ export default async function AppLayout({ children, params }: LayoutProps<"/[loc
   if (!activeOrgId || !active) return redirect({ href: "/onboarding", locale });
 
   const t = await getTranslations("shell");
+  const ctx = await getTenantCtx();
 
   return (
     <SidebarProvider>
@@ -28,8 +30,10 @@ export default async function AppLayout({ children, params }: LayoutProps<"/[loc
         organizations={organizations.map(({ id, name }) => ({ id, name }))}
         activeOrgId={activeOrgId}
         user={{ name: session.user.name, email: session.user.email }}
+        sales={can(ctx.roles, "lead:read")}
       />
-      <SidebarInset>
+      {/* min-w-0: wide tables scroll inside their own container, not the page. */}
+      <SidebarInset className="min-w-0">
         <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
           <SidebarTrigger className="-ms-1" label={t("toggleSidebar")} />
           <Separator orientation="vertical" className="me-2 data-[orientation=vertical]:h-4" />

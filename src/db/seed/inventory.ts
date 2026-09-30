@@ -299,7 +299,11 @@ const money = (amount: bigint) => toDecimalString(amount);
 
 type SeededUnit = { unitId: string; buildingCode: string; type: UnitType; price: bigint };
 
-export async function seedInventory(actors: { owner: TenantCtx; salesManager: TenantCtx }) {
+/** Returns the project ids by code (OLIV, CORN) for the next seed steps. */
+export async function seedInventory(actors: {
+  owner: TenantCtx;
+  salesManager: TenantCtx;
+}): Promise<Map<string, string>> {
   const { owner, salesManager } = actors;
   const projectIds = new Map<string, string>();
   /** Current list price of every seeded unit, by code, per project. */
@@ -415,4 +419,5 @@ export async function seedInventory(actors: { owner: TenantCtx; salesManager: Te
       })),
     }),
   );
+  return projectIds;
 }

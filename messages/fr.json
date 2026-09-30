@@ -20,7 +20,13 @@
     "actions": "Actions",
     "saved": "Modifications enregistrées.",
     "breadcrumb": "Fil d'Ariane",
-    "close": "Fermer"
+    "close": "Fermer",
+    "pagination": {
+      "label": "Pagination",
+      "page": "Page {page} sur {pages}",
+      "previous": "Précédent",
+      "next": "Suivant"
+    }
   },
   "locale": {
     "fr": "Français",
@@ -159,7 +165,13 @@
     "dashboard": "Tableau de bord",
     "settings": "Paramètres",
     "members": "Membres",
-    "projects": "Projets"
+    "projects": "Projets",
+    "sales": "Ventes",
+    "leads": "Prospects",
+    "pipeline": "Pipeline",
+    "followUps": "Relances",
+    "visits": "Visites",
+    "duplicates": "Doublons"
   },
   "shell": {
     "organizations": "Sociétés",
@@ -431,6 +443,200 @@
     }
   },
   "crm": {
+    "source": {
+      "facebook": "Facebook",
+      "instagram": "Instagram",
+      "whatsapp": "WhatsApp",
+      "ouedkniss": "Ouedkniss",
+      "walk_in": "Passage au bureau",
+      "referral": "Recommandation",
+      "phone": "Appel entrant",
+      "website": "Site web",
+      "other": "Autre"
+    },
+    "stage": {
+      "new": "Nouveau",
+      "contacted": "Contacté",
+      "visit_scheduled": "Visite planifiée",
+      "visited": "Visité",
+      "negotiation": "Négociation",
+      "won": "Gagné",
+      "lost": "Perdu"
+    },
+    "lostReason": {
+      "price": "Prix",
+      "financing": "Financement",
+      "location": "Emplacement",
+      "typology": "Typologie",
+      "delivery_date": "Date de livraison",
+      "competitor": "Concurrent",
+      "no_response": "Injoignable",
+      "other": "Autre"
+    },
+    "financing": {
+      "cash": "Comptant",
+      "bank_loan": "Crédit bancaire",
+      "mixed": "Mixte",
+      "unknown": "Non précisé"
+    },
+    "visitStatus": {
+      "planned": "Planifiée",
+      "done": "Effectuée",
+      "cancelled": "Annulée",
+      "no_show": "Absent"
+    },
+    "channel": {
+      "call": "Appel",
+      "whatsapp": "WhatsApp",
+      "sms": "SMS",
+      "email": "E-mail",
+      "meeting": "Rendez-vous",
+      "other": "Autre"
+    },
+    "leads": {
+      "title": "Prospects",
+      "description": "Vos contacts commerciaux et leur avancement.",
+      "new": "Nouveau prospect",
+      "editTitle": "Modifier le prospect",
+      "created": "Prospect créé.",
+      "createdDuplicate": "Prospect créé. Ce numéro existe déjà sur {count, plural, one {# autre fiche} other {# autres fiches}}.",
+      "deleted": "Prospect supprimé.",
+      "deleteTitle": "Supprimer {name} ?",
+      "deleteDescription": "La fiche disparaît des listes ; son historique est conservé.",
+      "empty": "Aucun prospect pour le moment.",
+      "emptyFiltered": "Aucun prospect ne correspond à ces filtres.",
+      "search": "Nom ou téléphone",
+      "allStages": "Toutes les étapes",
+      "allSources": "Toutes les sources",
+      "allAssignees": "Tous les commerciaux",
+      "unassigned": "Non assigné",
+      "duplicatesOnly": "Doublons possibles",
+      "duplicate": "Doublon possible",
+      "count": "{count, plural, =0 {Aucun prospect} one {# prospect} other {# prospects}}",
+      "columns": {
+        "name": "Prospect",
+        "phone": "Téléphone",
+        "stage": "Étape",
+        "source": "Source",
+        "project": "Projet",
+        "assignee": "Commercial",
+        "lastActivity": "Dernière activité",
+        "nextFollowUp": "Prochaine relance"
+      },
+      "fields": {
+        "fullName": "Nom complet",
+        "phone": "Téléphone",
+        "phone2": "Second téléphone",
+        "email": "E-mail",
+        "city": "Ville / wilaya",
+        "source": "Source",
+        "sourceDetail": "Précision (campagne, parrain…)",
+        "projectId": "Projet souhaité",
+        "typologies": "Typologies recherchées",
+        "budget": "Budget (DA)",
+        "financing": "Financement",
+        "notes": "Notes",
+        "assignedTo": "Commercial"
+      },
+      "sections": {
+        "contact": "Contact",
+        "interest": "Intérêt"
+      },
+      "call": "Appeler",
+      "whatsapp": "WhatsApp",
+      "changeStage": "Changer l'étape",
+      "stageTitle": "Étape de {name}",
+      "stageChanged": "Étape mise à jour.",
+      "lostReason": "Motif de perte",
+      "lostNote": "Précision",
+      "assign": "Attribuer",
+      "assignTitle": "Attribuer {name}",
+      "assigned": "Prospect attribué.",
+      "duplicatesAlert": "{count, plural, one {Ce numéro figure sur # autre fiche.} other {Ce numéro figure sur # autres fiches.}}",
+      "duplicatesAgentHint": "La direction commerciale peut les fusionner.",
+      "merge": "Fusionner ici",
+      "mergeTitle": "Fusionner « {source} » dans cette fiche ?",
+      "mergeDescription": "Ses visites et relances passent sur cette fiche, les champs vides sont complétés, puis elle disparaît des listes. Son historique reste visible ici.",
+      "merged": "Fiches fusionnées.",
+      "timeline": "Historique",
+      "addNote": "Ajouter une note",
+      "notePlaceholder": "Compte rendu d'appel, remarque…",
+      "noteAdded": "Note ajoutée.",
+      "activity": {
+        "created": "Fiche créée",
+        "updated": "Fiche modifiée",
+        "stage_changed": "Étape : {from} → {to}",
+        "assigned": "Attribution modifiée",
+        "note": "Note",
+        "visit_scheduled": "Visite planifiée le {date}",
+        "visit_updated": "Visite : {status}",
+        "follow_up_created": "Relance planifiée le {date}",
+        "follow_up_done": "Relance effectuée",
+        "quotation_issued": "Devis {number} émis",
+        "quotation_cancelled": "Devis {number} annulé",
+        "merged": "Fiche « {name} » fusionnée ici"
+      }
+    },
+    "pipeline": {
+      "title": "Pipeline",
+      "description": "Prospects en cours, par étape.",
+      "closed": "Clôturés : {won} gagnés · {lost} perdus",
+      "more": "+ {count} autres",
+      "empty": "Aucun prospect"
+    },
+    "followUps": {
+      "title": "Relances",
+      "description": "Les relances à faire, les plus urgentes d'abord.",
+      "new": "Planifier une relance",
+      "newTitle": "Nouvelle relance",
+      "created": "Relance planifiée.",
+      "fields": {
+        "dueAt": "Date et heure",
+        "channel": "Canal",
+        "note": "Objet",
+        "assignedTo": "Pour"
+      },
+      "overdue": "En retard",
+      "today": "Aujourd'hui",
+      "upcoming": "À venir",
+      "empty": "Aucune relance en attente.",
+      "complete": "Fait",
+      "completeTitle": "Relance effectuée",
+      "outcome": "Résultat",
+      "completed": "Relance effectuée.",
+      "doneOn": "Effectuée le {date}",
+      "none": "Aucune relance."
+    },
+    "visits": {
+      "title": "Visites",
+      "description": "Agenda des visites des 14 prochains jours.",
+      "new": "Planifier une visite",
+      "newTitle": "Nouvelle visite",
+      "created": "Visite planifiée.",
+      "fields": {
+        "scheduledAt": "Date et heure",
+        "projectId": "Projet",
+        "unitId": "Lot",
+        "agentUserId": "Accompagnée par",
+        "notes": "Notes",
+        "status": "Statut",
+        "outcome": "Compte rendu"
+      },
+      "record": "Compte rendu",
+      "recordTitle": "Visite du {date}",
+      "updated": "Visite mise à jour.",
+      "empty": "Aucune visite prévue.",
+      "none": "Aucune visite.",
+      "anyUnit": "Sans lot précis"
+    },
+    "duplicates": {
+      "title": "Doublons",
+      "description": "Fiches partageant un même numéro. Fusionnez-les dans la fiche à conserver.",
+      "empty": "Aucun doublon.",
+      "keep": "Conserver",
+      "keepTitle": "Conserver la fiche de {name} ?",
+      "keepDescription": "Les autres fiches de ce numéro y sont fusionnées (visites, relances et historique)."
+    },
     "errors": {
       "notAssignable": "Ce membre ne suit pas de prospects (commercial ou direction commerciale uniquement).",
       "projectNotFound": "Projet introuvable.",

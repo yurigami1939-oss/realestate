@@ -19,6 +19,7 @@ import { alias } from "drizzle-orm/pg-core";
 import { followUp, lead, leadActivity, member, project, unit, user, visit } from "@/db/schema";
 import { withTenant } from "@/db/tenant";
 import { leadStages, openLeadStages, type LeadStage } from "@/lib/crm";
+import { isUuid } from "@/lib/ids";
 import { can, parseRoles } from "@/lib/permissions";
 import { phoneSearchDigits } from "@/lib/phone";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
@@ -38,6 +39,13 @@ const isDuplicate = sql<boolean>`exists (
 const nextFollowUpAt = sql<Date | null>`(
   select min(f.due_at) from follow_up f where f.lead_id = ${lead.id} and f.done_at is null
 )`.mapWith((v: string | null) => (v === null ? null : new Date(v)));
+
+/** An open follow-up of this lead is past due (derived, CLAUDE.md §7). */
+const followUpOverdue = sql<boolean>`exists (
+  select 1 from follow_up f where f.lead_id = ${lead.id} and f.done_at is null and f.due_at < now()
+)`;
+
+const ALGIERS_TODAY = sql`(now() at time zone 'Africa/Algiers')::date`;
 
 function listConditions(ctx: TenantCtx, params: LeadListParams): SQL | undefined {
   const conditions: (SQL | undefined)[] = [isNull(lead.deletedAt), visibleLeads(ctx)];
@@ -81,6 +89,7 @@ export async function listLeads(ctx: TenantCtx, params: LeadListParams) {
         createdAt: lead.createdAt,
         duplicate: isDuplicate,
         nextFollowUpAt,
+        followUpOverdue,
       })
       .from(lead)
       .leftJoin(project, eq(project.id, lead.projectId))
@@ -102,6 +111,7 @@ export type LeadListRow = Awaited<ReturnType<typeof listLeads>>["rows"][number];
 /** Lead sheet: details, timeline (including merged duplicates), visits, follow-ups, duplicates. */
 export async function getLead(ctx: TenantCtx, leadId: string) {
   assertCan(ctx, "lead:read");
+  if (!isUuid(leadId)) return null;
   return withTenant(ctx, async (tx) => {
     const [row] = await tx
       .select({ lead, projectName: project.name, assigneeName: assignee.name })
@@ -154,6 +164,7 @@ export async function getLead(ctx: TenantCtx, leadId: string) {
         doneAt: followUp.doneAt,
         outcome: followUp.outcome,
         assigneeName: user.name,
+        overdue: sql<boolean>`${followUp.doneAt} is null and ${followUp.dueAt} < now()`,
       })
       .from(followUp)
       .leftJoin(user, eq(user.id, followUp.assignedTo))
@@ -203,7 +214,8 @@ export type LeadDetail = NonNullable<Awaited<ReturnType<typeof getLead>>>;
  */
 export async function listOpenFollowUps(ctx: TenantCtx, options: { assignee?: string } = {}) {
   assertCan(ctx, "lead:read");
-  const owner = seesAllLeads(ctx) ? options.assignee : ctx.userId;
+  const requested = options.assignee && isUuid(options.assignee) ? options.assignee : undefined;
+  const owner = seesAllLeads(ctx) ? requested : ctx.userId;
   return withTenant(ctx, (tx) =>
     tx
       .select({
@@ -216,6 +228,8 @@ export async function listOpenFollowUps(ctx: TenantCtx, options: { assignee?: st
         leadPhone: lead.phone,
         leadStage: lead.stage,
         assigneeName: assignee.name,
+        overdue: sql<boolean>`${followUp.dueAt} < now()`,
+        dueToday: sql<boolean>`(${followUp.dueAt} at time zone 'Africa/Algiers')::date = ${ALGIERS_TODAY}`,
       })
       .from(followUp)
       .innerJoin(lead, eq(lead.id, followUp.leadId))
@@ -271,7 +285,10 @@ export async function listVisits(ctx: TenantCtx, range: { from: Date; to: Date }
 /** Kanban: open leads per stage (most recent activity first, capped), plus closed counts. */
 export async function getPipeline(ctx: TenantCtx, options: { assignee?: string } = {}) {
   assertCan(ctx, "lead:read");
-  const owner = seesAllLeads(ctx) ? options.assignee : undefined;
+  const owner =
+    seesAllLeads(ctx) && options.assignee && isUuid(options.assignee)
+      ? options.assignee
+      : undefined;
   return withTenant(ctx, async (tx) => {
     const base = and(
       isNull(lead.deletedAt),

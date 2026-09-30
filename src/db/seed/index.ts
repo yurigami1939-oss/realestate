@@ -7,6 +7,7 @@ import { auth } from "@/server/auth/auth";
 import type { TenantCtx } from "@/server/auth/session";
 
 import { DEMO_PASSWORD, demoOrganizations, demoUsers } from "./demo";
+import { seedCrm } from "./crm";
 import { seedInventory } from "./inventory";
 
 /** Refuses anything but a local database: seeding wipes data. */
@@ -71,9 +72,15 @@ export async function seedDemo(): Promise<void> {
       roles,
       locale: "fr",
     });
-    await seedInventory({
-      owner: ctx("owner", ["owner"]),
-      salesManager: ctx("salesManager", ["sales_manager"]),
-    });
+    const salesManager = ctx("salesManager", ["sales_manager"]);
+    const projectIds = await seedInventory({ owner: ctx("owner", ["owner"]), salesManager });
+    await seedCrm(
+      {
+        manager: salesManager,
+        agentA: ctx("salesAgent", ["sales_agent"]),
+        agentB: ctx("salesAgent2", ["sales_agent"]),
+      },
+      projectIds,
+    );
   }
 }

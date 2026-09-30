@@ -1,6 +1,15 @@
 "use client";
 
-import { Building2, LayoutDashboard, type LucideIcon, Users } from "lucide-react";
+import {
+  Building2,
+  CalendarDays,
+  Contact,
+  Kanban,
+  LayoutDashboard,
+  type LucideIcon,
+  PhoneCall,
+  Users,
+} from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import {
@@ -21,7 +30,7 @@ import { Link, usePathname } from "@/i18n/navigation";
 import { NavUser } from "./nav-user";
 import { type OrgOption, OrgSwitcher } from "./org-switcher";
 
-type NavKey = "dashboard" | "projects" | "members";
+type NavKey = "dashboard" | "projects" | "members" | "leads" | "pipeline" | "followUps" | "visits";
 type NavItem = { href: string; key: NavKey; icon: LucideIcon };
 
 /** Each module adds its entries here as it lands (CLAUDE.md §11 Roadmap). */
@@ -29,21 +38,41 @@ const mainNav: NavItem[] = [
   { href: "/dashboard", key: "dashboard", icon: LayoutDashboard },
   { href: "/projects", key: "projects", icon: Building2 },
 ];
+const salesNav: NavItem[] = [
+  { href: "/leads", key: "leads", icon: Contact },
+  { href: "/leads/pipeline", key: "pipeline", icon: Kanban },
+  { href: "/follow-ups", key: "followUps", icon: PhoneCall },
+  { href: "/visits", key: "visits", icon: CalendarDays },
+];
 const settingsNav: NavItem[] = [{ href: "/settings/members", key: "members", icon: Users }];
+
+const allItems = [...mainNav, ...salesNav, ...settingsNav];
+
+/** The most specific entry matching the path ("/leads/pipeline" beats "/leads"). */
+function activeHref(pathname: string): string | undefined {
+  return allItems
+    .map((item) => item.href)
+    .filter((href) => pathname === href || pathname.startsWith(`${href}/`))
+    .sort((a, b) => b.length - a.length)[0];
+}
 
 export function AppSidebar({
   side,
   organizations,
   activeOrgId,
   user,
+  sales,
 }: {
   side: "left" | "right";
+  /** Shows the sales (CRM) entries: roles that work leads. */
+  sales: boolean;
   organizations: OrgOption[];
   activeOrgId: string;
   user: { name: string; email: string };
 }) {
   const t = useTranslations();
   const pathname = usePathname();
+  const active = activeHref(pathname);
 
   const renderGroup = (label: string, items: NavItem[]) => (
     <SidebarGroup>
@@ -54,7 +83,7 @@ export function AppSidebar({
             <SidebarMenuItem key={item.href}>
               <SidebarMenuButton
                 asChild
-                isActive={pathname === item.href || pathname.startsWith(`${item.href}/`)}
+                isActive={item.href === active}
                 tooltip={t(`nav.${item.key}`)}
               >
                 <Link href={item.href}>
@@ -76,6 +105,7 @@ export function AppSidebar({
       </SidebarHeader>
       <SidebarContent>
         {renderGroup(t("nav.main"), mainNav)}
+        {sales ? renderGroup(t("nav.sales"), salesNav) : null}
         {renderGroup(t("nav.settings"), settingsNav)}
       </SidebarContent>
       <SidebarFooter>

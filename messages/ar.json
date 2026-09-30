@@ -20,7 +20,13 @@
     "actions": "إجراءات",
     "saved": "تم حفظ التعديلات.",
     "breadcrumb": "مسار التنقل",
-    "close": "إغلاق"
+    "close": "إغلاق",
+    "pagination": {
+      "label": "ترقيم الصفحات",
+      "page": "الصفحة {page} من {pages}",
+      "previous": "السابق",
+      "next": "التالي"
+    }
   },
   "locale": {
     "fr": "Français",
@@ -159,7 +165,13 @@
     "dashboard": "لوحة القيادة",
     "settings": "الإعدادات",
     "members": "الأعضاء",
-    "projects": "المشاريع"
+    "projects": "المشاريع",
+    "sales": "المبيعات",
+    "leads": "الزبائن المحتملون",
+    "pipeline": "مسار البيع",
+    "followUps": "المتابعات",
+    "visits": "الزيارات",
+    "duplicates": "التكرارات"
   },
   "shell": {
     "organizations": "الشركات",
@@ -431,6 +443,200 @@
     }
   },
   "crm": {
+    "source": {
+      "facebook": "فيسبوك",
+      "instagram": "إنستغرام",
+      "whatsapp": "واتساب",
+      "ouedkniss": "واد كنيس",
+      "walk_in": "زيارة المكتب",
+      "referral": "توصية",
+      "phone": "مكالمة واردة",
+      "website": "الموقع الإلكتروني",
+      "other": "أخرى"
+    },
+    "stage": {
+      "new": "جديد",
+      "contacted": "تم الاتصال",
+      "visit_scheduled": "زيارة مبرمجة",
+      "visited": "تمت الزيارة",
+      "negotiation": "تفاوض",
+      "won": "ناجح",
+      "lost": "خاسر"
+    },
+    "lostReason": {
+      "price": "السعر",
+      "financing": "التمويل",
+      "location": "الموقع",
+      "typology": "نوع الشقة",
+      "delivery_date": "تاريخ التسليم",
+      "competitor": "منافس",
+      "no_response": "تعذر الاتصال",
+      "other": "أخرى"
+    },
+    "financing": {
+      "cash": "نقداً",
+      "bank_loan": "قرض بنكي",
+      "mixed": "مختلط",
+      "unknown": "غير محدد"
+    },
+    "visitStatus": {
+      "planned": "مبرمجة",
+      "done": "تمت",
+      "cancelled": "ملغاة",
+      "no_show": "غياب"
+    },
+    "channel": {
+      "call": "مكالمة",
+      "whatsapp": "واتساب",
+      "sms": "رسالة نصية",
+      "email": "بريد إلكتروني",
+      "meeting": "موعد",
+      "other": "أخرى"
+    },
+    "leads": {
+      "title": "الزبائن المحتملون",
+      "description": "جهات اتصالكم التجارية ومدى تقدمها.",
+      "new": "زبون محتمل جديد",
+      "editTitle": "تعديل الزبون المحتمل",
+      "created": "تم إنشاء الزبون المحتمل.",
+      "createdDuplicate": "تم إنشاء الزبون المحتمل. هذا الرقم موجود في {count, plural, one {بطاقة أخرى} two {بطاقتين أخريين} few {# بطاقات أخرى} many {# بطاقة أخرى} other {# بطاقة أخرى}}.",
+      "deleted": "تم حذف الزبون المحتمل.",
+      "deleteTitle": "حذف {name}؟",
+      "deleteDescription": "تختفي البطاقة من القوائم ويُحتفظ بسجلها.",
+      "empty": "لا يوجد زبائن محتملون حالياً.",
+      "emptyFiltered": "لا يوجد زبون محتمل يطابق هذه المرشحات.",
+      "search": "الاسم أو الهاتف",
+      "allStages": "كل المراحل",
+      "allSources": "كل المصادر",
+      "allAssignees": "كل المندوبين",
+      "unassigned": "غير مسند",
+      "duplicatesOnly": "تكرارات محتملة",
+      "duplicate": "تكرار محتمل",
+      "count": "{count, plural, =0 {لا يوجد زبون محتمل} one {زبون محتمل واحد} two {زبونان محتملان} few {# زبائن محتملين} many {# زبوناً محتملاً} other {# زبون محتمل}}",
+      "columns": {
+        "name": "الزبون المحتمل",
+        "phone": "الهاتف",
+        "stage": "المرحلة",
+        "source": "المصدر",
+        "project": "المشروع",
+        "assignee": "المندوب",
+        "lastActivity": "آخر نشاط",
+        "nextFollowUp": "المتابعة القادمة"
+      },
+      "fields": {
+        "fullName": "الاسم الكامل",
+        "phone": "الهاتف",
+        "phone2": "هاتف ثانٍ",
+        "email": "البريد الإلكتروني",
+        "city": "المدينة / الولاية",
+        "source": "المصدر",
+        "sourceDetail": "تفصيل (حملة، عرّاب…)",
+        "projectId": "المشروع المرغوب",
+        "typologies": "أنواع الشقق المطلوبة",
+        "budget": "الميزانية (دج)",
+        "financing": "التمويل",
+        "notes": "ملاحظات",
+        "assignedTo": "المندوب"
+      },
+      "sections": {
+        "contact": "الاتصال",
+        "interest": "الاهتمام"
+      },
+      "call": "اتصال",
+      "whatsapp": "واتساب",
+      "changeStage": "تغيير المرحلة",
+      "stageTitle": "مرحلة {name}",
+      "stageChanged": "تم تحديث المرحلة.",
+      "lostReason": "سبب الخسارة",
+      "lostNote": "تفصيل",
+      "assign": "إسناد",
+      "assignTitle": "إسناد {name}",
+      "assigned": "تم إسناد الزبون المحتمل.",
+      "duplicatesAlert": "{count, plural, one {هذا الرقم موجود في بطاقة أخرى.} two {هذا الرقم موجود في بطاقتين أخريين.} few {هذا الرقم موجود في # بطاقات أخرى.} many {هذا الرقم موجود في # بطاقة أخرى.} other {هذا الرقم موجود في # بطاقة أخرى.}}",
+      "duplicatesAgentHint": "يمكن للإدارة التجارية دمجها.",
+      "merge": "الدمج هنا",
+      "mergeTitle": "دمج «{source}» في هذه البطاقة؟",
+      "mergeDescription": "تنتقل زياراتها ومتابعاتها إلى هذه البطاقة، وتُستكمل الحقول الفارغة، ثم تختفي من القوائم. يبقى سجلها ظاهراً هنا.",
+      "merged": "تم دمج البطاقتين.",
+      "timeline": "السجل",
+      "addNote": "إضافة ملاحظة",
+      "notePlaceholder": "ملخص مكالمة، ملاحظة…",
+      "noteAdded": "تمت إضافة الملاحظة.",
+      "activity": {
+        "created": "إنشاء البطاقة",
+        "updated": "تعديل البطاقة",
+        "stage_changed": "المرحلة: {from} ← {to}",
+        "assigned": "تغيير الإسناد",
+        "note": "ملاحظة",
+        "visit_scheduled": "زيارة مبرمجة يوم {date}",
+        "visit_updated": "الزيارة: {status}",
+        "follow_up_created": "متابعة مبرمجة يوم {date}",
+        "follow_up_done": "تمت المتابعة",
+        "quotation_issued": "إصدار عرض السعر {number}",
+        "quotation_cancelled": "إلغاء عرض السعر {number}",
+        "merged": "دمج بطاقة «{name}» هنا"
+      }
+    },
+    "pipeline": {
+      "title": "مسار البيع",
+      "description": "الزبائن المحتملون الجارية متابعتهم، حسب المرحلة.",
+      "closed": "المغلقة: {won} ناجحة · {lost} خاسرة",
+      "more": "+ {count} أخرى",
+      "empty": "لا يوجد زبون محتمل"
+    },
+    "followUps": {
+      "title": "المتابعات",
+      "description": "المتابعات المطلوبة، الأكثر استعجالاً أولاً.",
+      "new": "برمجة متابعة",
+      "newTitle": "متابعة جديدة",
+      "created": "تمت برمجة المتابعة.",
+      "fields": {
+        "dueAt": "التاريخ والوقت",
+        "channel": "الوسيلة",
+        "note": "الموضوع",
+        "assignedTo": "لـ"
+      },
+      "overdue": "متأخرة",
+      "today": "اليوم",
+      "upcoming": "قادمة",
+      "empty": "لا توجد متابعات معلقة.",
+      "complete": "تمت",
+      "completeTitle": "تمت المتابعة",
+      "outcome": "النتيجة",
+      "completed": "تم تسجيل المتابعة.",
+      "doneOn": "تمت يوم {date}",
+      "none": "لا توجد متابعات."
+    },
+    "visits": {
+      "title": "الزيارات",
+      "description": "جدول الزيارات للأيام الأربعة عشر القادمة.",
+      "new": "برمجة زيارة",
+      "newTitle": "زيارة جديدة",
+      "created": "تمت برمجة الزيارة.",
+      "fields": {
+        "scheduledAt": "التاريخ والوقت",
+        "projectId": "المشروع",
+        "unitId": "الوحدة",
+        "agentUserId": "بمرافقة",
+        "notes": "ملاحظات",
+        "status": "الحالة",
+        "outcome": "التقرير"
+      },
+      "record": "التقرير",
+      "recordTitle": "زيارة يوم {date}",
+      "updated": "تم تحديث الزيارة.",
+      "empty": "لا توجد زيارات مبرمجة.",
+      "none": "لا توجد زيارات.",
+      "anyUnit": "بدون وحدة محددة"
+    },
+    "duplicates": {
+      "title": "التكرارات",
+      "description": "بطاقات تشترك في الرقم نفسه. ادمجوها في البطاقة التي تحتفظون بها.",
+      "empty": "لا توجد تكرارات.",
+      "keep": "الاحتفاظ",
+      "keepTitle": "الاحتفاظ ببطاقة {name}؟",
+      "keepDescription": "تُدمج فيها البطاقات الأخرى لهذا الرقم (الزيارات والمتابعات والسجل)."
+    },
     "errors": {
       "notAssignable": "هذا العضو لا يتابع الزبائن المحتملين (المندوبون التجاريون أو الإدارة التجارية فقط).",
       "projectNotFound": "المشروع غير موجود.",
