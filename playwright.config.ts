@@ -17,7 +17,10 @@ export default defineConfig({
     timezoneId: "Africa/Algiers",
     trace: "retain-on-failure",
   },
-  projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
+  projects: [
+    { name: "setup", testMatch: /auth\.setup\.ts/ },
+    { name: "chromium", use: { ...devices["Desktop Chrome"] }, dependencies: ["setup"] },
+  ],
   webServer: {
     command: `pnpm build && pnpm start --port ${E2E_PORT}`,
     // A static file: the readiness check must not depend on the database being migrated yet.

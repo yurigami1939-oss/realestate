@@ -1,17 +1,8 @@
-import { expect, type Page, test } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
-import { DEMO_PASSWORD, demoUsers } from "../src/db/seed/demo";
+import { demoUsers } from "../src/db/seed/demo";
 
-const email = (key: (typeof demoUsers)[number]["key"]) =>
-  demoUsers.find((u) => u.key === key)?.email ?? "";
-
-async function signIn(page: Page, userEmail: string) {
-  await page.goto("/fr/sign-in");
-  await page.getByLabel("E-mail").fill(userEmail);
-  await page.getByLabel("Mot de passe").fill(DEMO_PASSWORD);
-  await page.getByRole("button", { name: "Se connecter" }).click();
-  await expect(page).toHaveURL(/\/fr\/dashboard$/);
-}
+import { authFile, email, signIn } from "./helpers";
 
 test("anonymous visitors are sent to sign-in", async ({ page }) => {
   await page.goto("/fr/settings/members");
@@ -30,7 +21,7 @@ test("wrong password shows a translated error", async ({ page }) => {
 });
 
 test("the gérant manages members, switches organization and language", async ({ page }) => {
-  await signIn(page, email("owner"));
+  await signIn(page, "owner");
 
   await page.getByRole("link", { name: "Membres" }).click();
   await expect(page.getByTestId("members-table").getByRole("row")).toHaveCount(
@@ -50,9 +41,12 @@ test("the gérant manages members, switches organization and language", async ({
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("مرحباً");
 });
 
-test("a cashier sees members but cannot invite", async ({ page }) => {
-  await signIn(page, email("cashier"));
-  await page.goto("/fr/settings/members");
-  await expect(page.getByTestId("members-table")).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Inviter un membre" })).toHaveCount(0);
+test.describe("cashier", () => {
+  test.use({ storageState: authFile("cashier") });
+
+  test("sees members but cannot invite", async ({ page }) => {
+    await page.goto("/fr/settings/members");
+    await expect(page.getByTestId("members-table")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Inviter un membre" })).toHaveCount(0);
+  });
 });
