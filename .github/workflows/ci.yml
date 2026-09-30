@@ -10,6 +10,7 @@ concurrency:
   cancel-in-progress: true
 
 # Same host ports as docker-compose.yml, so tests use their default URLs.
+# SeaweedFS runs as a step: service containers cannot take a command. Test setups create the bucket.
 env:
   PGURL: postgres://postgres:postgres@localhost:5433/postgres
 
@@ -42,6 +43,12 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Create database roles and databases
         run: psql "$PGURL" -v ON_ERROR_STOP=1 -f docker/postgres/init/01-roles-and-databases.sql
+      - name: Start S3 storage (SeaweedFS, same config as docker-compose.yml)
+        run: >-
+          docker run -d --name s3 -p 8333:8333
+          -v "$PWD/docker/seaweedfs/s3.json:/etc/seaweedfs/s3.json:ro"
+          chrislusf/seaweedfs:4.48
+          server -dir=/data -ip.bind=0.0.0.0 -s3 -s3.port=8333 -s3.config=/etc/seaweedfs/s3.json
       - name: Install Chromium (PDF rendering)
         run: pnpm exec playwright install --with-deps chromium
       - run: pnpm check
@@ -75,6 +82,12 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Create database roles and databases
         run: psql "$PGURL" -v ON_ERROR_STOP=1 -f docker/postgres/init/01-roles-and-databases.sql
+      - name: Start S3 storage (SeaweedFS, same config as docker-compose.yml)
+        run: >-
+          docker run -d --name s3 -p 8333:8333
+          -v "$PWD/docker/seaweedfs/s3.json:/etc/seaweedfs/s3.json:ro"
+          chrislusf/seaweedfs:4.48
+          server -dir=/data -ip.bind=0.0.0.0 -s3 -s3.port=8333 -s3.config=/etc/seaweedfs/s3.json
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm e2e
       - uses: actions/upload-artifact@v4

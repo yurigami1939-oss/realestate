@@ -36,3 +36,16 @@ export async function ensureBucket(): Promise<"exists" | "created"> {
   await s3.send(new CreateBucketCommand({ Bucket: bucket }));
   return "created";
 }
+
+/** `ensureBucket`, retried while the storage service is still starting (setup scripts, CI). */
+export async function waitForBucket(timeoutMs = 30_000): Promise<"exists" | "created"> {
+  const deadline = Date.now() + timeoutMs;
+  for (;;) {
+    try {
+      return await ensureBucket();
+    } catch (error) {
+      if (Date.now() > deadline) throw error;
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+    }
+  }
+}
