@@ -36,7 +36,9 @@ export async function migrateDatabase(urls: { ownerUrl: string; appUrl: string }
     schema: JOBS_SCHEMA,
     createSchema: false,
     supervise: false,
-    schedule: false,
+    // Starting the scheduler installs pg-boss's internal cron queue now; otherwise the first
+    // worker creates it at startup and polls it before its queue cache knows it ("does not exist").
+    schedule: true,
   });
   boss.on("error", (error) => console.error("[pg-boss]", error));
   await boss.start();
