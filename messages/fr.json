@@ -6,7 +6,10 @@
   "common": {
     "appName": "PRODUCT_NAME",
     "language": "Langue",
-    "backHome": "Retour à l'accueil"
+    "backHome": "Retour à l'accueil",
+    "signOut": "Se déconnecter",
+    "or": "ou",
+    "continue": "Continuer"
   },
   "locale": {
     "fr": "Français",
@@ -21,10 +24,103 @@
     "INVALID_TRANSITION": "Ce changement de statut n'est pas autorisé.",
     "UNEXPECTED": "Une erreur inattendue est survenue. Veuillez réessayer.",
     "notFoundTitle": "Page introuvable",
-    "notFoundText": "La page demandée n'existe pas ou a été déplacée."
+    "notFoundText": "La page demandée n'existe pas ou a été déplacée.",
+    "noActiveOrganization": "Aucune société n'est sélectionnée."
   },
   "home": {
     "title": "Bienvenue",
     "subtitle": "Promotions immobilières, ventes et gestion des résidences."
+  },
+  "validation": {
+    "required": "Champ obligatoire.",
+    "email": "Adresse e-mail invalide.",
+    "passwordMin": "10 caractères minimum.",
+    "slug": "Lettres minuscules, chiffres et tirets uniquement.",
+    "tooLong": "Texte trop long."
+  },
+  "auth": {
+    "fields": {
+      "name": "Nom complet",
+      "email": "E-mail",
+      "password": "Mot de passe",
+      "newPassword": "Nouveau mot de passe"
+    },
+    "signIn": {
+      "title": "Connexion",
+      "description": "Accédez à votre espace.",
+      "submit": "Se connecter",
+      "noAccount": "Pas encore de compte ?",
+      "signUpLink": "Créer un compte",
+      "forgotPassword": "Mot de passe oublié ?",
+      "invalidCredentials": "E-mail ou mot de passe incorrect."
+    },
+    "signUp": {
+      "title": "Créer un compte",
+      "description": "Pour les promoteurs immobiliers et leurs équipes.",
+      "submit": "Créer mon compte",
+      "haveAccount": "Déjà un compte ?",
+      "signInLink": "Se connecter",
+      "emailTaken": "Un compte existe déjà avec cet e-mail."
+    },
+    "forgotPassword": {
+      "title": "Mot de passe oublié",
+      "description": "Recevez un lien de réinitialisation par e-mail.",
+      "submit": "Envoyer le lien",
+      "sent": "Si un compte existe pour cette adresse, un e-mail vient d'être envoyé.",
+      "backToSignIn": "Retour à la connexion"
+    },
+    "resetPassword": {
+      "title": "Nouveau mot de passe",
+      "description": "Choisissez un nouveau mot de passe.",
+      "submit": "Enregistrer",
+      "success": "Mot de passe modifié. Vous pouvez vous connecter.",
+      "invalidToken": "Ce lien est invalide ou a expiré."
+    }
+  },
+  "onboarding": {
+    "title": "Créer votre société",
+    "description": "Votre société de promotion immobilière. Les informations légales pourront être complétées plus tard.",
+    "name": "Nom commercial",
+    "legalName": "Raison sociale (optionnel)",
+    "slug": "Identifiant",
+    "slugHint": "Utilisé dans les liens, ex. : promo-el-bahdja",
+    "submit": "Créer la société",
+    "slugTaken": "Cet identifiant est déjà utilisé.",
+    "existing": "Vos sociétés",
+    "open": "Ouvrir",
+    "createNew": "Ou créez une nouvelle société"
+  },
+  "invitation": {
+    "title": "Invitation",
+    "description": "{inviter} vous invite à rejoindre {organization}.",
+    "roles": "Rôle(s) : {roles}",
+    "accept": "Accepter l'invitation",
+    "reject": "Refuser",
+    "signInToAccept": "Connectez-vous ou créez un compte avec {email} pour accepter.",
+    "invalid": "Cette invitation n'est plus valide.",
+    "wrongAccount": "Cette invitation est destinée à {email}. Connectez-vous avec ce compte."
+  },
+  "roles": {
+    "owner": "Gérant",
+    "sales_manager": "Directeur commercial",
+    "sales_agent": "Commercial",
+    "accountant": "Comptable",
+    "cashier": "Caissier",
+    "property_manager": "Gestionnaire de résidence",
+    "resident": "Acquéreur / résident"
+  },
+  "emails": {
+    "invitation": {
+      "subject": "Invitation à rejoindre {organization}",
+      "body": "{inviter} vous invite à rejoindre {organization} sur PRODUCT_NAME.",
+      "notice": "Ce lien est valable 7 jours.",
+      "cta": "Accepter l'invitation"
+    },
+    "resetPassword": {
+      "subject": "Réinitialisation du mot de passe",
+      "body": "Une réinitialisation du mot de passe a été demandée pour votre compte PRODUCT_NAME.",
+      "notice": "Si vous n'êtes pas à l'origine de cette demande, ignorez cet e-mail.",
+      "cta": "Choisir un nouveau mot de passe"
+    }
   }
 }
