@@ -2,9 +2,12 @@ import { sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 
+import type { Role } from "@/lib/permissions";
 import { auth } from "@/server/auth/auth";
+import type { TenantCtx } from "@/server/auth/session";
 
 import { DEMO_PASSWORD, demoOrganizations, demoUsers } from "./demo";
+import { seedInventory } from "./inventory";
 
 /** Refuses anything but a local database: seeding wipes data. */
 export function assertLocalDatabase(url: string): void {
@@ -31,7 +34,10 @@ export async function wipeData(ownerUrl: string): Promise<void> {
   }
 }
 
-/** Creates the demo promoter through Better Auth so passwords and memberships are real. */
+/**
+ * Creates the demo promoter through Better Auth so passwords and memberships are real,
+ * then its business data through the services (histories and audit included).
+ */
 export async function seedDemo(): Promise<void> {
   const userIds = new Map<string, string>();
   for (const user of demoUsers) {
@@ -58,5 +64,16 @@ export async function seedDemo(): Promise<void> {
         },
       });
     }
+
+    const ctx = (key: (typeof demoUsers)[number]["key"], roles: Role[]): TenantCtx => ({
+      userId: userIds.get(key) ?? "",
+      orgId: created.id,
+      roles,
+      locale: "fr",
+    });
+    await seedInventory({
+      owner: ctx("owner", ["owner"]),
+      salesManager: ctx("salesManager", ["sales_manager"]),
+    });
   }
 }
