@@ -30,10 +30,16 @@ export function toDecimalString(amount: Centimes): string {
   return `${negative ? "-" : ""}${dinars}.${cents}`;
 }
 
-/** `1 250 000,50 DA` (fr) · `1.250.000,50 د.ج` (ar). Latin digits in both locales. */
+/**
+ * `1 250 000,50 DA` (fr) · `1.250.000,50 د.ج` (ar). Latin digits in both locales.
+ * Groups and currency are separated by U+00A0: Intl's narrow no-break space (U+202F)
+ * is missing from many fonts, including the one embedded in PDFs.
+ */
 export function formatDZD(amount: Centimes, locale: MoneyLocale = "fr"): string {
-  const number = formatters[locale].format(toDecimalString(amount) as Intl.StringNumericLiteral);
-  return `${number} ${CURRENCY_SYMBOL[locale]}`;
+  const number = formatters[locale]
+    .format(toDecimalString(amount) as Intl.StringNumericLiteral)
+    .replace(/\u202f/g, "\u00a0");
+  return `${number}\u00a0${CURRENCY_SYMBOL[locale]}`;
 }
 
 /**
@@ -42,7 +48,7 @@ export function formatDZD(amount: Centimes, locale: MoneyLocale = "fr"): string 
  * Returns null for anything else (negative, more than 2 decimals, letters…).
  */
 export function parseDZD(input: string): Centimes | null {
-  const compact = input.replace(/[\s  ]/g, "").replace(",", ".");
+  const compact = input.replace(/[\s\u00a0\u202f]/g, "").replace(",", ".");
   const match = /^(\d+)(?:\.(\d{1,2}))?$/.exec(compact);
   if (!match) return null;
   const [, dinars = "0", cents = ""] = match;

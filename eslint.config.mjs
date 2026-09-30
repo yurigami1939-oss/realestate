@@ -43,6 +43,11 @@ export default defineConfig([
     rules: { "no-restricted-imports": "off" },
   },
   {
+    // Standalone HTML documents rendered to PDF, not Next.js pages.
+    files: ["src/pdf/**"],
+    rules: { "@next/next/no-head-element": "off" },
+  },
+  {
     files: ["**/*.test.ts", "tests/**", "e2e/**"],
     rules: { "@typescript-eslint/no-non-null-assertion": "off" },
   },

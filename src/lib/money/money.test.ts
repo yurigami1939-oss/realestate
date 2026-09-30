@@ -6,7 +6,7 @@ describe("parseDZD", () => {
   it.each([
     ["300", 30_000n],
     ["1 250 000,50", 125_000_050n],
-    ["1 250 000,5", 125_000_050n],
+    ["1\u202f250\u202f000,5", 125_000_050n],
     ["1250000.05", 125_000_005n],
     ["0,01", 1n],
     ["  42 ", 4_200n],
@@ -28,18 +28,18 @@ describe("parseDZD", () => {
 });
 
 describe("formatDZD", () => {
-  it("formats French with narrow no-break spaces and DA", () => {
-    expect(formatDZD(125_000_050n, "fr")).toBe("1 250 000,50 DA");
+  it("formats French with no-break spaces (U+00A0, present in every font) and DA", () => {
+    expect(formatDZD(125_000_050n, "fr")).toBe("1\u00a0250\u00a0000,50\u00a0DA");
   });
 
   it("formats Arabic with Latin digits and د.ج", () => {
     const out = formatDZD(125_000_050n, "ar");
-    expect(out).toMatch(/^[\d.,‎‏؜\s]+ د\.ج$/);
+    expect(out).toMatch(/^[\d.,\u200e\u200f\u061c]+\u00a0د\.ج$/);
     expect(out.replace(/[^\d]/g, "")).toBe("125000050");
   });
 
   it("keeps two decimals and handles zero", () => {
-    expect(formatDZD(0n, "fr")).toBe("0,00 DA");
+    expect(formatDZD(0n, "fr")).toBe("0,00\u00a0DA");
     expect(toDecimalString(5n)).toBe("0.05");
     expect(toDecimalString(-150n)).toBe("-1.50");
   });
