@@ -2,6 +2,8 @@ import { randomUUID } from "node:crypto";
 
 import { db } from "@/db/client";
 import { organization, user } from "@/db/schema";
+import type { Role } from "@/lib/permissions";
+import type { TenantCtx } from "@/server/auth/session";
 
 const suffix = () => randomUUID().slice(0, 8);
 
@@ -24,4 +26,11 @@ export async function createUser(values: Partial<typeof user.$inferInsert> = {})
     .returning();
   if (!row) throw new Error("createUser: no row returned");
   return row;
+}
+
+/** A fresh organization and user, as the TenantCtx a service receives. */
+export async function createTenantCtx(roles: Role[] = ["owner"]): Promise<TenantCtx> {
+  const org = await createOrganization();
+  const member = await createUser();
+  return { orgId: org.id, userId: member.id, roles, locale: "fr" };
 }

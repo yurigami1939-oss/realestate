@@ -9,17 +9,36 @@ import { defaultStatements, ownerAc } from "better-auth/plugins/organization/acc
 export const statement = {
   ...defaultStatements,
   audit: ["read"],
+  /** Read projects, buildings, units, prices and price lists. */
+  inventory: ["read"],
+  /** Projects and their buildings. */
+  project: ["create", "update", "delete"],
+  unit: ["create", "update", "delete", "block"],
+  /** Unit list prices and price lists. */
+  price: ["update"],
 } as const;
 
 export const ac = createAccessControl(statement);
 
 export const roles = {
-  owner: ac.newRole({ ...ownerAc.statements, audit: ["read"] }),
-  sales_manager: ac.newRole({}),
-  sales_agent: ac.newRole({}),
-  accountant: ac.newRole({ audit: ["read"] }),
-  cashier: ac.newRole({}),
-  property_manager: ac.newRole({}),
+  owner: ac.newRole({
+    ...ownerAc.statements,
+    audit: ["read"],
+    inventory: ["read"],
+    project: ["create", "update", "delete"],
+    unit: ["create", "update", "delete", "block"],
+    price: ["update"],
+  }),
+  sales_manager: ac.newRole({
+    inventory: ["read"],
+    project: ["create", "update"],
+    unit: ["create", "update", "delete", "block"],
+    price: ["update"],
+  }),
+  sales_agent: ac.newRole({ inventory: ["read"] }),
+  accountant: ac.newRole({ audit: ["read"], inventory: ["read"] }),
+  cashier: ac.newRole({ inventory: ["read"] }),
+  property_manager: ac.newRole({ inventory: ["read"] }),
   resident: ac.newRole({}),
 };
 
