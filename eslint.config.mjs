@@ -54,5 +54,6 @@ export default defineConfig([
     "src/db/migrations/**",
     "playwright-report/**",
     "test-results/**",
+    "tmp/**",
   ]),
 ]);

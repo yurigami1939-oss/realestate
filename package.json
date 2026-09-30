@@ -23,6 +23,7 @@
     "db:seed": "tsx --env-file-if-exists=.env --import ./scripts/shims/server-only.mjs scripts/db-seed.ts",
     "db:reset": "tsx --env-file-if-exists=.env --import ./scripts/shims/server-only.mjs scripts/db-reset.ts",
     "db:studio": "drizzle-kit studio",
+    "auth:generate": "pnpm dlx auth@1.7.6 generate --config scripts/auth-schema.config.ts --output src/db/schema/auth.ts --yes && tsx scripts/auth-schema-postprocess.ts && prettier --write src/db/schema/auth.ts",
     "docker:up": "docker compose up -d --wait && tsx --env-file-if-exists=.env --import ./scripts/shims/server-only.mjs scripts/storage-init.ts",
     "docker:down": "docker compose down",
     "check": "pnpm lint && pnpm typecheck && pnpm test"

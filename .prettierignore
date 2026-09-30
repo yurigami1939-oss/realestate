@@ -6,3 +6,4 @@ playwright-report
 test-results
 src/db/migrations
 *.md
+tmp
