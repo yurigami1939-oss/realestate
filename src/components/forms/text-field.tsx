@@ -6,8 +6,15 @@ import { type Control, Controller, type FieldPath, type FieldValues } from "reac
 import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 
+/**
+ * Control of a form whose resolver may transform values (zod: strings in, typed values out).
+ * Field components only read/write the input side, so the output type is irrelevant here.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- RHF generic slots (context, output)
+export type FormControl<T extends FieldValues> = Control<T, any, any>;
+
 type TextFieldProps<T extends FieldValues> = {
-  control: Control<T>;
+  control: FormControl<T>;
   name: FieldPath<T>;
   label: string;
   description?: string;

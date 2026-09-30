@@ -59,3 +59,22 @@ export function defaultUnitCode(buildingCode: string, floor: number, position: n
 }
 
 export const MAX_GENERATED_UNITS = 500;
+
+/**
+ * Price per m² in centimes, rounded half-up. `area` is the decimal string stored in
+ * `numeric(10,2)` ("85.50"). Null when the area is missing or zero.
+ */
+export function pricePerSquareMeter(price: bigint, area: string | null): bigint | null {
+  if (!area) return null;
+  const [whole = "0", fraction = ""] = area.split(".");
+  const hundredths = BigInt(whole) * 100n + BigInt(fraction.padEnd(2, "0").slice(0, 2) || "0");
+  if (hundredths <= 0n) return null;
+  return (price * 100n * 2n + hundredths) / (hundredths * 2n);
+}
+
+/** Price for an area at a price per m² (centimes), rounded half-up. `area` as in `numeric(10,2)`. */
+export function priceForArea(pricePerSqm: bigint, area: string): bigint {
+  const [whole = "0", fraction = ""] = area.split(".");
+  const hundredths = BigInt(whole) * 100n + BigInt(fraction.padEnd(2, "0").slice(0, 2) || "0");
+  return (pricePerSqm * hundredths + 50n) / 100n;
+}

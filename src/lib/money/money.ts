@@ -95,3 +95,51 @@ export function allocate(total: Centimes, weights: ReadonlyArray<bigint | number
   }
   return parts;
 }
+
+const compactFormatters: Record<MoneyLocale, Intl.NumberFormat> = {
+  fr: new Intl.NumberFormat("fr-DZ", {
+    notation: "compact",
+    maximumFractionDigits: 2,
+    numberingSystem: "latn",
+  }),
+  ar: new Intl.NumberFormat("ar-DZ", {
+    notation: "compact",
+    maximumFractionDigits: 2,
+    numberingSystem: "latn",
+  }),
+};
+
+/** Short display for dense views (grids): `12,5 M DA`. Never for documents. */
+export function formatCompactDZD(amount: Centimes, locale: MoneyLocale = "fr"): string {
+  const number = compactFormatters[locale]
+    .format(toDecimalString(amount) as Intl.StringNumericLiteral)
+    .replace(/\u202f/g, "\u00a0");
+  return `${number}\u00a0${CURRENCY_SYMBOL[locale]}`;
+}
+
+/**
+ * `amount × (1 + basisPoints / 10 000)`, rounded half-up (away from zero) to the centime;
+ * negative basis points lower the amount (never below zero). For price adjustments.
+ */
+export function adjustByBasisPoints(amount: Centimes, basisPoints: bigint | number): Centimes {
+  const bp = BigInt(basisPoints);
+  const scaled = amount * (10_000n + bp);
+  const rounded = scaled >= 0n ? (scaled + 5_000n) / 10_000n : (scaled - 5_000n) / 10_000n;
+  return rounded < 0n ? 0n : rounded;
+}
+
+/** "5" → 500, "-2,5" → -250, "0.25" → 25 basis points; null if not a percentage. */
+export function parsePercentToBasisPoints(input: string): bigint | null {
+  const match = /^(-?)(\d{1,4})(?:[.,](\d{1,2}))?$/.exec(input.replace(/\s/g, ""));
+  if (!match) return null;
+  const [, sign = "", whole = "0", fraction = ""] = match;
+  const bp = BigInt(whole) * 100n + BigInt(fraction.padEnd(2, "0") || "0");
+  return sign === "-" ? -bp : bp;
+}
+
+/** Amount as editable text, e.g. "12 500 000,00" (French grouping, no currency); parseDZD reads it back. */
+export function formatAmountInput(amount: Centimes): string {
+  return formatters.fr
+    .format(toDecimalString(amount) as Intl.StringNumericLiteral)
+    .replace(/\u202f/g, "\u00a0");
+}

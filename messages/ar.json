@@ -9,7 +9,18 @@
     "backHome": "العودة إلى الصفحة الرئيسية",
     "signOut": "تسجيل الخروج",
     "or": "أو",
-    "continue": "متابعة"
+    "continue": "متابعة",
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "edit": "تعديل",
+    "delete": "حذف",
+    "create": "إنشاء",
+    "back": "رجوع",
+    "confirm": "تأكيد",
+    "actions": "إجراءات",
+    "saved": "تم حفظ التعديلات.",
+    "breadcrumb": "مسار التنقل",
+    "close": "إغلاق"
   },
   "locale": {
     "fr": "Français",
@@ -37,7 +48,16 @@
     "passwordMin": "10 أحرف على الأقل.",
     "slug": "حروف لاتينية صغيرة وأرقام وشرطات فقط.",
     "tooLong": "النص طويل جداً.",
-    "rolesRequired": "اختر دوراً واحداً على الأقل."
+    "rolesRequired": "اختر دوراً واحداً على الأقل.",
+    "integer": "يجب إدخال عدد صحيح.",
+    "outOfRange": "القيمة خارج الحدود المسموح بها.",
+    "area": "مساحة غير صالحة (مثال: 85,50).",
+    "amount": "مبلغ غير صالح (مثال: 12 500 000,00).",
+    "date": "تاريخ غير صالح.",
+    "code": "حروف وأرقام وشرطات فقط.",
+    "floorRange": "يجب أن يكون الطابق الأعلى فوق الطابق الأدنى.",
+    "tooManyUnits": "عدد الوحدات كبير جداً دفعة واحدة (500 كحد أقصى).",
+    "percent": "نسبة غير صالحة (مثال: 5 أو -2,5)."
   },
   "auth": {
     "fields": {
@@ -128,7 +148,8 @@
     "main": "التنقل",
     "dashboard": "لوحة القيادة",
     "settings": "الإعدادات",
-    "members": "الأعضاء"
+    "members": "الأعضاء",
+    "projects": "المشاريع"
   },
   "shell": {
     "organizations": "الشركات",
@@ -173,6 +194,215 @@
       "expires": "تنتهي في {date}",
       "cancel": "إلغاء الدعوة",
       "cancelled": "تم إلغاء الدعوة."
+    }
+  },
+  "inventory": {
+    "projectStatus": {
+      "planning": "قيد الدراسة",
+      "under_construction": "قيد الإنجاز",
+      "delivered": "مُسلَّم"
+    },
+    "unitStatus": {
+      "available": "متوفرة",
+      "optioned": "محجوزة مبدئياً",
+      "reserved": "محجوزة",
+      "sold": "مباعة",
+      "delivered": "مُسلَّمة",
+      "rented": "مؤجَّرة",
+      "blocked": "مجمَّدة"
+    },
+    "unitType": {
+      "apartment": "شقة",
+      "commercial": "محل تجاري",
+      "office": "مكتب",
+      "parking": "موقف / مرآب",
+      "storage": "قبو",
+      "villa": "فيلا"
+    },
+    "orientation": {
+      "N": "شمال",
+      "NE": "شمال شرق",
+      "E": "شرق",
+      "SE": "جنوب شرق",
+      "S": "جنوب",
+      "SW": "جنوب غرب",
+      "W": "غرب",
+      "NW": "شمال غرب"
+    },
+    "stats": {
+      "units": "الوحدات",
+      "available": "متوفرة",
+      "engaged": "محجوزة",
+      "sold": "مباعة",
+      "unavailable": "مجمَّدة / مؤجَّرة"
+    },
+    "floor": {
+      "ground": "الطابق الأرضي",
+      "upper": "الطابق {floor}",
+      "basement": "الطابق السفلي {level}"
+    },
+    "projects": {
+      "title": "المشاريع",
+      "description": "مشاريعك العقارية ومخزون الوحدات.",
+      "new": "مشروع جديد",
+      "empty": "لا توجد مشاريع حالياً.",
+      "editTitle": "تعديل المشروع",
+      "created": "تم إنشاء المشروع.",
+      "deleted": "تم حذف المشروع.",
+      "deleteTitle": "حذف المشروع {name}؟",
+      "deleteDescription": "لا يمكن حذف مشروع إلا إذا كان خالياً من الوحدات.",
+      "information": "معلومات",
+      "fields": {
+        "code": "الرمز",
+        "codeHint": "قصير وفريد، مثال: OLIV",
+        "name": "الاسم",
+        "status": "الحالة",
+        "address": "العنوان",
+        "wilaya": "الولاية",
+        "commune": "البلدية",
+        "buildingPermitNumber": "رقم رخصة البناء",
+        "buildingPermitDate": "تاريخ الرخصة",
+        "launchedOn": "الانطلاق",
+        "plannedDeliveryOn": "التسليم المتوقع",
+        "description": "الوصف"
+      }
+    },
+    "buildings": {
+      "title": "العمارات",
+      "new": "إضافة عمارة",
+      "empty": "لا توجد عمارات. أضف عمارة لإنشاء وحداتها.",
+      "created": "تم إنشاء العمارة.",
+      "deleted": "تم حذف العمارة.",
+      "editTitle": "تعديل العمارة",
+      "deleteTitle": "حذف العمارة {name}؟",
+      "deleteDescription": "لا يمكن حذف عمارة إلا إذا كانت خالية من الوحدات.",
+      "floors": "{count, plural, one {مستوى واحد} two {مستويان} few {# مستويات} other {# مستوى}}",
+      "openGrid": "عرض الجدول",
+      "fields": {
+        "code": "الرمز",
+        "codeHint": "مثال: A — يُستعمل في رموز الوحدات",
+        "name": "الاسم",
+        "lowestFloor": "أدنى مستوى",
+        "lowestFloorHint": "0 = الطابق الأرضي، و-1 = أول طابق سفلي",
+        "topFloor": "آخر طابق"
+      }
+    },
+    "grid": {
+      "title": "جدول التوفر",
+      "legend": "مفتاح الألوان",
+      "empty": "لا توجد وحدات في هذه العمارة.",
+      "all": "الكل"
+    },
+    "generate": {
+      "title": "إنشاء الوحدات",
+      "description": "ينشئ الوحدات طابقاً بطابق برموز من نوع {example}. يتم تجاهل الرموز الموجودة.",
+      "fromFloor": "من المستوى",
+      "toFloor": "إلى المستوى",
+      "unitsPerFloor": "عدد الوحدات في كل طابق",
+      "submit": "إنشاء",
+      "result": "{created, plural, =0 {لم يتم إنشاء أي وحدة} one {تم إنشاء وحدة واحدة} two {تم إنشاء وحدتين} few {تم إنشاء # وحدات} other {تم إنشاء # وحدة}} · تم تجاهل {skipped}."
+    },
+    "units": {
+      "new": "وحدة جديدة",
+      "editTitle": "تعديل الوحدة {code}",
+      "created": "تم إنشاء الوحدة.",
+      "deleted": "تم حذف الوحدة.",
+      "deleteTitle": "حذف الوحدة {code}؟",
+      "deleteDescription": "لا يمكن حذف وحدة إلا إذا كانت متوفرة أو مجمَّدة.",
+      "details": "الخصائص",
+      "noPrice": "بدون سعر",
+      "pricePerSqm": "{price} / م²",
+      "fields": {
+        "building": "العمارة",
+        "code": "الرمز",
+        "floor": "المستوى",
+        "type": "النوع",
+        "typology": "الصنف",
+        "isDuplex": "دوبلكس",
+        "livingArea": "المساحة الصالحة للسكن (م²)",
+        "usableArea": "المساحة النافعة (م²)",
+        "outdoorArea": "شرفة / سطح (م²)",
+        "orientations": "الاتجاه",
+        "share": "الحصة (الأجزاء)",
+        "notes": "ملاحظات",
+        "listPrice": "سعر البيع",
+        "status": "الحالة"
+      },
+      "block": "تجميد",
+      "unblock": "إلغاء التجميد",
+      "blockTitle": "تجميد الوحدة {code}",
+      "unblockTitle": "إلغاء تجميد الوحدة {code}",
+      "reason": "السبب",
+      "blocked": "تم تجميد الوحدة.",
+      "unblocked": "تم إلغاء تجميد الوحدة.",
+      "changePrice": "تعديل السعر",
+      "changePriceTitle": "سعر بيع الوحدة {code}",
+      "newPrice": "السعر الجديد (دج)",
+      "priceChanged": "تم تحديث السعر.",
+      "statusHistory": "سجل الحالات",
+      "priceHistory": "سجل الأسعار",
+      "noHistory": "لا توجد تغييرات.",
+      "historyColumns": {
+        "date": "التاريخ",
+        "change": "التغيير",
+        "reason": "السبب",
+        "by": "بواسطة"
+      },
+      "createdEvent": "الإنشاء",
+      "priceListRef": "جدول الأسعار V{version}"
+    },
+    "priceLists": {
+      "title": "جداول الأسعار",
+      "description": "حضّر جدول أسعار جديداً، راجعه، ثم طبّقه دفعة واحدة.",
+      "new": "جدول جديد",
+      "newTitle": "جدول أسعار جديد",
+      "name": "الاسم",
+      "nameHint": "مثال: أسعار 2027",
+      "empty": "لا توجد جداول أسعار لهذا المشروع.",
+      "version": "V{version}",
+      "status": {
+        "draft": "مسودة",
+        "applied": "مطبَّق",
+        "discarded": "ملغى"
+      },
+      "columns": {
+        "unit": "الوحدة",
+        "floor": "المستوى",
+        "typology": "الصنف",
+        "area": "المساحة",
+        "current": "السعر الحالي",
+        "new": "السعر الجديد",
+        "change": "التغيّر"
+      },
+      "items": "{count, plural, =0 {لا توجد وحدة مسعَّرة} one {وحدة واحدة مسعَّرة} two {وحدتان مسعَّرتان} few {# وحدات مسعَّرة} other {# وحدة مسعَّرة}}",
+      "save": "حفظ المسودة",
+      "saved": "تم حفظ المسودة.",
+      "apply": "تطبيق الجدول",
+      "applyTitle": "تطبيق «{name}»؟",
+      "applyDescription": "سيتم استبدال أسعار بيع الوحدات المعدَّلة. تحتفظ الحجوزات الحالية بسعرها.",
+      "applied": "{changed, plural, =0 {لم يتغير أي سعر} one {تم تعديل سعر واحد} two {تم تعديل سعرين} few {تم تعديل # أسعار} other {تم تعديل # سعر}}.",
+      "discard": "إلغاء الجدول",
+      "discarded": "تم إلغاء الجدول.",
+      "readOnly": "هذا الجدول للقراءة فقط.",
+      "bulk": {
+        "title": "تعبئة سريعة",
+        "percent": "نسبة التغيّر (%) على السعر الحالي",
+        "perSqm": "السعر للمتر المربع (دج)",
+        "applyPercent": "تطبيق النسبة",
+        "applyPerSqm": "المساحة × السعر للمتر المربع"
+      },
+      "discardDescription": "سيتم التخلي عن المسودة؛ لن تتغير أسعار البيع الحالية.",
+      "unsaved": "تعديلات غير محفوظة"
+    },
+    "errors": {
+      "codeTaken": "هذا الرمز مستعمل بالفعل.",
+      "projectHasUnits": "المشروع يحتوي على وحدات.",
+      "buildingHasUnits": "العمارة تحتوي على وحدات.",
+      "unitNotDeletable": "هذه الوحدة مرتبطة بعملية بيع.",
+      "floorOutOfRange": "المستوى خارج حدود العمارة.",
+      "unitsOutsideFloors": "توجد وحدات خارج هذه المستويات.",
+      "priceListNotDraft": "لم يعد هذا الجدول قابلاً للتعديل.",
+      "unitNotInProject": "إحدى الوحدات لا تنتمي إلى هذا المشروع."
     }
   }
 }

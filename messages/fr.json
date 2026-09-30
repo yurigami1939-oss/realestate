@@ -9,7 +9,18 @@
     "backHome": "Retour à l'accueil",
     "signOut": "Se déconnecter",
     "or": "ou",
-    "continue": "Continuer"
+    "continue": "Continuer",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "create": "Créer",
+    "back": "Retour",
+    "confirm": "Confirmer",
+    "actions": "Actions",
+    "saved": "Modifications enregistrées.",
+    "breadcrumb": "Fil d'Ariane",
+    "close": "Fermer"
   },
   "locale": {
     "fr": "Français",
@@ -37,7 +48,16 @@
     "passwordMin": "10 caractères minimum.",
     "slug": "Lettres minuscules, chiffres et tirets uniquement.",
     "tooLong": "Texte trop long.",
-    "rolesRequired": "Choisissez au moins un rôle."
+    "rolesRequired": "Choisissez au moins un rôle.",
+    "integer": "Nombre entier attendu.",
+    "outOfRange": "Valeur hors limites.",
+    "area": "Surface invalide (ex. 85,50).",
+    "amount": "Montant invalide (ex. 12 500 000,00).",
+    "date": "Date invalide.",
+    "code": "Lettres, chiffres et tirets uniquement.",
+    "floorRange": "L'étage le plus haut doit être au-dessus du plus bas.",
+    "tooManyUnits": "Trop de lots en une fois (500 maximum).",
+    "percent": "Pourcentage invalide (ex. 5 ou -2,5)."
   },
   "auth": {
     "fields": {
@@ -128,7 +148,8 @@
     "main": "Navigation",
     "dashboard": "Tableau de bord",
     "settings": "Paramètres",
-    "members": "Membres"
+    "members": "Membres",
+    "projects": "Projets"
   },
   "shell": {
     "organizations": "Sociétés",
@@ -173,6 +194,215 @@
       "expires": "Expire le {date}",
       "cancel": "Annuler l'invitation",
       "cancelled": "Invitation annulée."
+    }
+  },
+  "inventory": {
+    "projectStatus": {
+      "planning": "En étude",
+      "under_construction": "En construction",
+      "delivered": "Livré"
+    },
+    "unitStatus": {
+      "available": "Disponible",
+      "optioned": "Optionné",
+      "reserved": "Réservé",
+      "sold": "Vendu",
+      "delivered": "Livré",
+      "rented": "Loué",
+      "blocked": "Bloqué"
+    },
+    "unitType": {
+      "apartment": "Appartement",
+      "commercial": "Local commercial",
+      "office": "Bureau",
+      "parking": "Parking / box",
+      "storage": "Cave",
+      "villa": "Villa"
+    },
+    "orientation": {
+      "N": "Nord",
+      "NE": "Nord-Est",
+      "E": "Est",
+      "SE": "Sud-Est",
+      "S": "Sud",
+      "SW": "Sud-Ouest",
+      "W": "Ouest",
+      "NW": "Nord-Ouest"
+    },
+    "stats": {
+      "units": "Lots",
+      "available": "Disponibles",
+      "engaged": "Optionnés / réservés",
+      "sold": "Vendus",
+      "unavailable": "Bloqués / loués"
+    },
+    "floor": {
+      "ground": "RDC",
+      "upper": "Étage {floor}",
+      "basement": "Sous-sol {level}"
+    },
+    "projects": {
+      "title": "Projets",
+      "description": "Vos promotions immobilières et leur stock de lots.",
+      "new": "Nouveau projet",
+      "empty": "Aucun projet pour le moment.",
+      "editTitle": "Modifier le projet",
+      "created": "Projet créé.",
+      "deleted": "Projet supprimé.",
+      "deleteTitle": "Supprimer le projet {name} ?",
+      "deleteDescription": "Seul un projet sans lots peut être supprimé.",
+      "information": "Informations",
+      "fields": {
+        "code": "Code",
+        "codeHint": "Court et unique, ex. OLIV",
+        "name": "Nom",
+        "status": "État",
+        "address": "Adresse",
+        "wilaya": "Wilaya",
+        "commune": "Commune",
+        "buildingPermitNumber": "N° du permis de construire",
+        "buildingPermitDate": "Date du permis",
+        "launchedOn": "Lancement",
+        "plannedDeliveryOn": "Livraison prévue",
+        "description": "Description"
+      }
+    },
+    "buildings": {
+      "title": "Bâtiments",
+      "new": "Ajouter un bâtiment",
+      "empty": "Aucun bâtiment. Ajoutez un bloc pour créer ses lots.",
+      "created": "Bâtiment créé.",
+      "deleted": "Bâtiment supprimé.",
+      "editTitle": "Modifier le bâtiment",
+      "deleteTitle": "Supprimer le bâtiment {name} ?",
+      "deleteDescription": "Seul un bâtiment sans lots peut être supprimé.",
+      "floors": "{count, plural, one {# niveau} other {# niveaux}}",
+      "openGrid": "Voir la grille",
+      "fields": {
+        "code": "Code",
+        "codeHint": "Ex. A — utilisé dans les codes des lots",
+        "name": "Nom",
+        "lowestFloor": "Niveau le plus bas",
+        "lowestFloorHint": "0 = RDC, -1 = premier sous-sol",
+        "topFloor": "Dernier étage"
+      }
+    },
+    "grid": {
+      "title": "Grille de disponibilité",
+      "legend": "Légende",
+      "empty": "Aucun lot dans ce bâtiment.",
+      "all": "Tous"
+    },
+    "generate": {
+      "title": "Générer des lots",
+      "description": "Crée les lots étage par étage avec des codes du type {example}. Les codes existants sont ignorés.",
+      "fromFloor": "Du niveau",
+      "toFloor": "Au niveau",
+      "unitsPerFloor": "Lots par étage",
+      "submit": "Générer",
+      "result": "{created, plural, =0 {Aucun lot créé} one {# lot créé} other {# lots créés}} · {skipped} ignoré(s)."
+    },
+    "units": {
+      "new": "Nouveau lot",
+      "editTitle": "Modifier le lot {code}",
+      "created": "Lot créé.",
+      "deleted": "Lot supprimé.",
+      "deleteTitle": "Supprimer le lot {code} ?",
+      "deleteDescription": "Seul un lot disponible ou bloqué peut être supprimé.",
+      "details": "Caractéristiques",
+      "noPrice": "Non tarifé",
+      "pricePerSqm": "{price} / m²",
+      "fields": {
+        "building": "Bâtiment",
+        "code": "Code",
+        "floor": "Niveau",
+        "type": "Type",
+        "typology": "Typologie",
+        "isDuplex": "Duplex",
+        "livingArea": "Surface habitable (m²)",
+        "usableArea": "Surface utile (m²)",
+        "outdoorArea": "Balcon / terrasse (m²)",
+        "orientations": "Orientation",
+        "share": "Quote-part (tantièmes)",
+        "notes": "Notes",
+        "listPrice": "Prix de vente",
+        "status": "Statut"
+      },
+      "block": "Bloquer",
+      "unblock": "Débloquer",
+      "blockTitle": "Bloquer le lot {code}",
+      "unblockTitle": "Débloquer le lot {code}",
+      "reason": "Motif",
+      "blocked": "Lot bloqué.",
+      "unblocked": "Lot débloqué.",
+      "changePrice": "Modifier le prix",
+      "changePriceTitle": "Prix de vente du lot {code}",
+      "newPrice": "Nouveau prix (DA)",
+      "priceChanged": "Prix mis à jour.",
+      "statusHistory": "Historique des statuts",
+      "priceHistory": "Historique des prix",
+      "noHistory": "Aucun changement.",
+      "historyColumns": {
+        "date": "Date",
+        "change": "Changement",
+        "reason": "Motif",
+        "by": "Par"
+      },
+      "createdEvent": "Création",
+      "priceListRef": "Grille V{version}"
+    },
+    "priceLists": {
+      "title": "Grilles de prix",
+      "description": "Préparez une nouvelle grille, vérifiez-la, puis appliquez-la en une fois.",
+      "new": "Nouvelle grille",
+      "newTitle": "Nouvelle grille de prix",
+      "name": "Nom",
+      "nameHint": "Ex. Grille 2027",
+      "empty": "Aucune grille pour ce projet.",
+      "version": "V{version}",
+      "status": {
+        "draft": "Brouillon",
+        "applied": "Appliquée",
+        "discarded": "Abandonnée"
+      },
+      "columns": {
+        "unit": "Lot",
+        "floor": "Niveau",
+        "typology": "Typologie",
+        "area": "Surface",
+        "current": "Prix actuel",
+        "new": "Nouveau prix",
+        "change": "Variation"
+      },
+      "items": "{count, plural, =0 {Aucun lot tarifé} one {# lot tarifé} other {# lots tarifés}}",
+      "save": "Enregistrer le brouillon",
+      "saved": "Brouillon enregistré.",
+      "apply": "Appliquer la grille",
+      "applyTitle": "Appliquer « {name} » ?",
+      "applyDescription": "Les prix de vente des lots modifiés seront remplacés. Les réservations existantes gardent leur prix.",
+      "applied": "{changed, plural, =0 {Aucun prix modifié} one {# prix modifié} other {# prix modifiés}}.",
+      "discard": "Abandonner",
+      "discarded": "Grille abandonnée.",
+      "readOnly": "Cette grille est en lecture seule.",
+      "bulk": {
+        "title": "Remplissage rapide",
+        "percent": "Variation (%) sur le prix actuel",
+        "perSqm": "Prix au m² (DA)",
+        "applyPercent": "Appliquer la variation",
+        "applyPerSqm": "Surface × prix au m²"
+      },
+      "discardDescription": "Le brouillon est abandonné ; les prix de vente actuels ne changent pas.",
+      "unsaved": "Modifications non enregistrées"
+    },
+    "errors": {
+      "codeTaken": "Ce code est déjà utilisé.",
+      "projectHasUnits": "Le projet contient des lots.",
+      "buildingHasUnits": "Le bâtiment contient des lots.",
+      "unitNotDeletable": "Ce lot est engagé dans une vente.",
+      "floorOutOfRange": "Niveau hors du bâtiment.",
+      "unitsOutsideFloors": "Des lots existent en dehors de ces niveaux.",
+      "priceListNotDraft": "Cette grille n'est plus modifiable.",
+      "unitNotInProject": "Un lot n'appartient pas à ce projet."
     }
   }
 }

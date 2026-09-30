@@ -1,6 +1,6 @@
 "use client";
 
-import { LayoutDashboard, type LucideIcon, Users } from "lucide-react";
+import { Building2, LayoutDashboard, type LucideIcon, Users } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import {
@@ -21,11 +21,14 @@ import { Link, usePathname } from "@/i18n/navigation";
 import { NavUser } from "./nav-user";
 import { type OrgOption, OrgSwitcher } from "./org-switcher";
 
-type NavKey = "dashboard" | "members";
+type NavKey = "dashboard" | "projects" | "members";
 type NavItem = { href: string; key: NavKey; icon: LucideIcon };
 
 /** Each module adds its entries here as it lands (CLAUDE.md §11 Roadmap). */
-const mainNav: NavItem[] = [{ href: "/dashboard", key: "dashboard", icon: LayoutDashboard }];
+const mainNav: NavItem[] = [
+  { href: "/dashboard", key: "dashboard", icon: LayoutDashboard },
+  { href: "/projects", key: "projects", icon: Building2 },
+];
 const settingsNav: NavItem[] = [{ href: "/settings/members", key: "members", icon: Users }];
 
 export function AppSidebar({

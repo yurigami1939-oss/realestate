@@ -1,6 +1,16 @@
 import { describe, expect, it } from "vitest";
 
-import { allocate, applyRate, formatDZD, parseDZD, sumCentimes, toDecimalString } from "./money";
+import {
+  adjustByBasisPoints,
+  allocate,
+  applyRate,
+  formatCompactDZD,
+  formatDZD,
+  parseDZD,
+  parsePercentToBasisPoints,
+  sumCentimes,
+  toDecimalString,
+} from "./money";
 
 describe("parseDZD", () => {
   it.each([
@@ -95,5 +105,25 @@ describe("allocate", () => {
       expect(sumCentimes(parts)).toBe(total);
       parts.forEach((p) => expect(p >= 0n).toBe(true));
     }
+  });
+});
+
+describe("price adjustments", () => {
+  it("adjusts by signed basis points with half-up rounding, never below zero", () => {
+    expect(adjustByBasisPoints(1_000_000n, 500)).toBe(1_050_000n);
+    expect(adjustByBasisPoints(1_000_000n, -250)).toBe(975_000n);
+    expect(adjustByBasisPoints(333n, 1)).toBe(333n);
+    expect(adjustByBasisPoints(100n, -20_000)).toBe(0n);
+  });
+
+  it("parses percentages", () => {
+    expect(parsePercentToBasisPoints("5")).toBe(500n);
+    expect(parsePercentToBasisPoints("-2,5")).toBe(-250n);
+    expect(parsePercentToBasisPoints("0.25")).toBe(25n);
+    expect(parsePercentToBasisPoints("abc")).toBeNull();
+  });
+
+  it("formats compact amounts for dense views", () => {
+    expect(formatCompactDZD(1_250_000_000n, "fr")).toBe("12,5\u00a0M\u00a0DA");
   });
 });
