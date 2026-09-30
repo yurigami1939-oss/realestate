@@ -20,7 +20,7 @@ pnpm dev                                # http://localhost:3000
 pnpm worker                             # background jobs (emails…), in a second terminal
 ```
 
-Demo accounts (one per role) are listed in `src/db/seed/demo.ts`. Outgoing emails appear in Mailpit at http://localhost:8025.
+Demo accounts (one per role) are listed in `src/db/seed/demo.ts`; the demo promoter comes with two projects and 118 priced units (`src/db/seed/inventory.ts`). Outgoing emails appear in Mailpit at http://localhost:8025.
 
 ## Quality gate
 

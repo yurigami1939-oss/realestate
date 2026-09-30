@@ -31,7 +31,7 @@ Exact versions are pinned in `package.json` (`.npmrc`: `save-exact`, `engine-str
 | Validation | `zod` | 4.6.5 |
 | UI | `tailwindcss` · shadcn/ui CLI `shadcn` (radix-nova, RTL) · `radix-ui` · `lucide-react` · `sonner` | 4.3.3 · 4.21.0 · 1.6.7 · 1.49.0 · 2.0.8 |
 | Forms | `react-hook-form` · `@hookform/resolvers` | 7.89.0 · 5.9.1 |
-| Data grids | `@tanstack/react-table` | 9.2.x — install with the first data grid (Phase 1) |
+| Data grids | `@tanstack/react-table` | 9.2.x — install with the first large paginated list (CRM leads) |
 | i18n | `next-intl` | 4.14.8 |
 | Jobs | `pg-boss` | 12.35.0 |
 | PDF | HTML templates → **headless Chromium** via `playwright-core` | 1.63.0 |
@@ -81,7 +81,8 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 ├── messages/                 # next-intl catalogs fr.json / ar.json (identical keys, tested)
 ├── scripts/                  # db-migrate/seed/reset, storage-init, rtl-lint, check-source-chars,
 │                             # auth schema generation, shims/server-only.mjs, swc-native-cache.ts
-├── e2e/                      # Playwright specs, env, global setup (db reset)
+├── e2e/                      # Playwright specs, helpers, auth.setup (one saved session per role),
+│                             # env, global setup (bucket + db reset)
 ├── tests/                    # Vitest global setup, env, factories, Better Auth helpers
 ├── .github/workflows/ci.yml  # check job + e2e job
 └── src/
@@ -101,19 +102,20 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
     │   ├── app-shell/        # sidebar, org switcher, user menu
     │   ├── forms/            # TextField, FormAlert, useAction, useTranslateKey
     │   ├── files/            # UploadButton (posts to /api/files)
+    │   ├── inventory/        # unit/project status badges, stats bar, floor labels
     │   └── auth/ · i18n/     # sign-out, locale switcher
     ├── db/
     │   ├── schema/           # auth.ts (GENERATED) · platform.ts · _columns.ts helpers · index.ts
     │   ├── migrations/       # drizzle-kit SQL (never hand-edit applied files)
     │   ├── sql/post-migrate.sql # RLS on every organization_id table, grants, revokes
-    │   ├── seed/             # demo promoter; grows with each module
+    │   ├── seed/             # demo promoter (demo.ts), inventory.ts (2 projects, 118 units); grows per module
     │   ├── client.ts         # pg Pool + drizzle (app role)
     │   ├── tenant.ts         # withTenant(scope, fn, tx?)
     │   └── migrate.ts        # migrateDatabase(): migrations + post-migrate + pg-boss
     ├── server/
     │   ├── action.ts         # defineAction()
     │   ├── auth/             # auth.ts (Better Auth), session.ts (getSession, getTenantCtx, assertCan),
-    │   │                     # page-guard.ts (requireTenantCtx), schemas.ts, schema-options.ts
+    │   │                     # page-guard.ts (requireTenantCtx, requirePermission), schemas.ts, schema-options.ts
     │   ├── audit/            # recordAudit()
     │   ├── numbering/        # nextDocumentNumber()
     │   ├── email/            # transport, send-later (queue), bilingual templates
@@ -144,7 +146,9 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 ### Data access
 - `src/server/<module>/queries.ts` (reads) and `service.ts` (mutations + rules) take `ctx: TenantCtx` first and start with `import 'server-only'`.
 - ESLint `no-restricted-imports`: `@/db/*`, `drizzle-orm`, `pg`, `pg-boss` only in `src/db`, `src/server`, `src/jobs`, `scripts`, `tests`, `e2e`.
-- Server Components call queries directly and get their context with **`requireTenantCtx()`** (`page-guard.ts`), which redirects instead of throwing (pages render in parallel with the layout guard).
+- Server Components call queries directly and get their context with **`requireTenantCtx()`** (`page-guard.ts`), which redirects instead of throwing (pages render in parallel with the layout guard); **`requirePermission(permission)`** adds the check and answers 404 when it fails.
+- One transaction = one connection: inside `withTenant`, `await` queries one after another (no `Promise.all` on `tx`; pg deprecates concurrent queries on a client).
+- Tenant child → parent foreign keys are **composite** `(organization_id, parent_id)` → `(organization_id, id)` with explicit short names (`unit_building_fk`): FK checks bypass RLS, so this is what stops a row from pointing into another tenant.
 - `schemas.ts` files are isomorphic (shared with client forms): no server-only imports.
 
 ### Mutations
@@ -299,11 +303,16 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 | `sold` | `delivered` | handover PV signed |
 | `blocked` / `rented` | `available` | unblock / lease ended |
 - Anything else → `INVALID_TRANSITION`. `delivered` is terminal on the sales side.
-- **Only** `transitionUnit(ctx, tx, unitId, to, { reason, refType, refId })` (in `src/server/inventory/`) writes `unit.status`; it validates, writes `unit_status_history` and `audit_log`.
+- **Only** `transitionUnit(tx, actor, unitId, to, { reason, refType, refId })` (`src/server/inventory/transition-unit.ts`; `actor.userId` null for jobs) writes `unit.status`: row lock, validation, `unit_status_history`, audit `unit.status_change`. New units start `available` (history row, no transition).
+- Manual block/unblock needs a reason (`blockUnit` / `unblockUnit`, permission `unit:block`). Units, buildings and projects are soft-deleted, and only when nothing is engaged (unit `available`/`blocked`; building/project without live units).
+- Unit codes default to `{building}-{floor}-{nn}` (`A-03-02`; basements `S1`), unique per project; `generateUnits` skips existing codes (max 500 per run).
 - Reservation transfer: unit stays `reserved`, buyer changes. Unit swap: A `reserved → available` + B `available → reserved` in one transaction.
 
 ### Pricing
-- Unit price changes write `unit_price_history` + audit. A reservation **snapshots** the agreed price and discount; later price-list changes never touch it.
+- `unit.list_price` is the current asking price. It changes only through `updateUnitPrice` (one unit, reason required, audit `unit.price_change`) or by applying a **price list**.
+- `price_list`: versioned per project (`V1`, `V2`…), `draft` → `applied` | `discarded`. A draft is prefilled from current prices, edited as a whole (bulk % change, price per m² × living area, rounded half-up), then applied in one transaction: only changed units get a `unit_price_history` row; one audit `price_list.apply` lists the changes. Applied/discarded lists are read-only.
+- `unit_status_history` and `unit_price_history` are append-only (no `UPDATE`/`DELETE` grant).
+- A reservation **snapshots** the agreed price and discount; later price-list changes never touch it.
 
 ### Payment schedule, calls, payments
 - Sum of `installment.amount` == contract price exactly (built with `allocate`).
@@ -338,7 +347,8 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 | i18n keys | English camelCase, namespaced by module | `members.invite.submit` |
 | Commits | Conventional Commits, small, each green on `pnpm check` | `feat(inventory): add unit status machine` |
 
-- **Validation**: one Zod schema per input in `schemas.ts`, used by the form (`zodResolver`) and the action. **Zod messages are i18n keys** (`"validation.required"`), translated by `TextField` / `useTranslateKey`. Parse at every boundary: actions, route handlers, job payloads, env, seed input.
+- **Validation**: one Zod schema per input in `schemas.ts`, used by the form (`zodResolver`) and the action. **Zod messages are i18n keys** (`"validation.required"`), translated by `TextField` / `useTranslateKey`. Parse at every boundary: actions, route handlers, job payloads, env, seed input. Form inputs are strings; builders in `src/lib/zod.ts` (`moneyText` → bigint, `intText`, `optionalAreaText`, `optionalDateText`, `codeText`…) transform them.
+- **Forms**: `useForm<z.input<S>, unknown, z.output<S>>({ resolver: zodResolver(S) })` and submit the **raw** values: `form.handleSubmit(() => onSubmit(form.getValues()))` — the action re-parses (transformed values such as bigint do not cross the wire). Field components: `TextField`, `SelectField`, `TextareaField`, `CheckboxField`, `CheckboxGroupField`; server field errors via `applyFieldErrors`. Confirmations via `ConfirmAction`.
 - **Result & errors**: `Result<T> = { ok: true; data } | { ok: false; error: AppErrorShape }`; `AppError(code, messageKey?, { fieldErrors, details })` with codes `VALIDATION`, `UNAUTHENTICATED`, `FORBIDDEN`, `NOT_FOUND`, `CONFLICT`, `INVALID_TRANSITION`, `UNEXPECTED`. Services throw, `defineAction` converts, `useAction` toasts `t(messageKey)`. Unexpected errors are logged server-side, returned as `UNEXPECTED`.
 - **i18n**: no hard-coded UI strings (incl. aria labels); every key in `fr.json` **and** `ar.json` in the same change (tested, incl. ICU arguments). Arabic = Modern Standard Arabic. Latin digits in both locales. `<html lang dir>` set per locale. Use `Link`/`redirect`/`useRouter` from `@/i18n/navigation` with locale-less paths. Page params: `toLocale(params.locale)`.
 - **RTL/UI**: Tailwind logical utilities only (`ms-/me-/ps-/pe-/start-/end-/text-start/rounded-s/border-e`), enforced by `pnpm lint`; directional icons get `rtl:rotate-180`; physical `side` props (sidebar, toaster) are set from the locale direction. Emails, passwords, codes and numbers in inputs/cells get `dir="ltr"`. shadcn/ui for primitives; forms with react-hook-form + `TextField`; data grids with TanStack Table (server-side pagination via search params).
@@ -356,9 +366,11 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 | Concurrency | Vitest + Postgres | parallel `nextDocumentNumber` → exactly 1…N; rollback leaves no gap |
 | Jobs/email | Vitest + Mailpit | handler delivers via SMTP (checked through Mailpit API); enqueue stores the job |
 | PDF | Vitest + Chromium | template HTML (RTL blocks, `<bdi>`, amounts in words) and one-page PDF |
-| E2E | Playwright, production build, `realestate_e2e` reset + seeded | anonymous redirect, sign-in error, members, org switch, FR→AR RTL, role-based UI; Phase 1 golden path lead → option → reservation → schedule → payment → receipt PDF |
+| Files | Vitest + SeaweedFS | magic-byte sniffing, file names, `Content-Disposition`, upload size cap and origin check (route helpers), floor plans stored/replaced/removed, presigned download |
+| E2E | Playwright, production build, `realestate_e2e` reset + seeded | anonymous redirect, sign-in error, members, org switch, FR→AR RTL, role-based UI; inventory: project → building → generated units → per-m² price list → block → floor plan, read-only commercial, Arabic unit sheet; Phase 1 golden path lead → option → reservation → schedule → payment → receipt PDF |
 
-- Vitest `globalSetup` migrates the test DB once; each test creates its own organization(s) (`tests/factories.ts`, `tests/auth-helpers.ts`) → isolation without truncation.
+- Vitest `globalSetup` migrates the test DB and creates the S3 bucket once; each test creates its own organization(s) (`tests/factories.ts`, `tests/auth-helpers.ts`) → isolation without truncation.
+- E2E specs reuse one session per role (`test.use({ storageState: authFile("salesManager") })`, written by `e2e/auth.setup.ts` through the sign-in API): production builds rate-limit sign-in (3 per 10 s). Only the smoke tests sign in through the form.
 - No mocking of the database or RLS. `server-only` is stubbed in Vitest and shimmed for tsx scripts.
 - Every service function has at least one integration test; a bug fix starts with a failing test.
 - CI: `check` job (`pnpm check`) then `e2e` job; Playwright report uploaded on failure.
@@ -381,6 +393,7 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 - Don't reuse, skip or edit document numbers.
 - Don't connect the app as table owner/superuser (RLS bypass); don't add an `organization_id` table to the RLS exemption list.
 - Don't cache tenant data without `orgId` in the key.
+- Don't `Promise.all` queries on one transaction; don't trust a browser's MIME type (sniff with `checkUpload`).
 - Don't use physical-direction Tailwind classes (`ml-`, `pr-`, `left-`, `text-right`…).
 - Don't send email or render PDFs inside a request — enqueue a job.
 - Don't edit generated files (`src/db/schema/auth.ts`, applied migrations); regenerate instead.
@@ -388,7 +401,7 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 
 ## 11. Roadmap
 
-**Current: Phase 0 done — PR https://github.com/yurigami1939-oss/realestate/pull/1 (`phase-0` → `main`). Next: Phase 1, module 1 (projects & inventory).**
+**Current: Phase 1 module 1 done — branch `phase-1/inventory`, PR stacked on `phase-0` (PR https://github.com/yurigami1939-oss/realestate/pull/1 still open). Next: module 2 (sales CRM); the open business questions below must be answered before module 3.**
 
 ### Phase 0 — Foundations ✅
 - [x] `CLAUDE.md` approved (2026-09-30)
@@ -406,13 +419,18 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 - [x] Playwright smoke suite
 
 ### Phase 1 — MVP
-- [ ] Module 1 — Projects & inventory (projects, buildings, units, price lists + history, availability grid, `transitionUnit`)
+- [x] Module 1 — Projects & inventory
+  - [x] Schema: project, building, unit (+ status/price history), price_list (+ items), file; composite tenant FKs
+  - [x] Services + 27 integration tests: CRUD with guards, unit generation, `transitionUnit`, block/unblock, price change, price lists (create/edit/apply/discard), floor plans
+  - [x] UI: project list/sheet/form, buildings, availability grid with status filter, unit sheet (price/m², histories, floor plan), price-list editor with bulk fill
+  - [x] File layer: `/api/files` upload (magic bytes, 20 MB) and presigned download
+  - [x] E2E: inventory golden path + read-only commercial + Arabic unit sheet
 - [ ] Module 2 — Sales CRM (leads, phone dedup, pipeline, visits, follow-ups, simulator, quotation PDF, commissions)
 - [ ] Module 3 — Reservation & sale (buyer file, reservation, VSP, schedule, payments, receipts, reminders, penalties, withdrawal, transfer, swap, bank loans)
 - [ ] Owner dashboard
 - [ ] Audit log viewer
 - [ ] Organization settings page (legal identity: RC/NIF/NIS/AI, address, logo)
-- [ ] Seed: 2 projects, 3 buildings, ~120 units, leads, buyers, payments
+- [ ] Seed: ~~2 projects, 3 buildings, ~120 units~~ (done: 118 units, 2 applied price lists + 1 draft, 3 blocked units) · leads · buyers · payments
 
 ### Phase 2
 - [ ] Module 6 — Residence management
@@ -448,6 +466,14 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 | 2026-09-30 | `@swc/core` (loaded by the next-intl plugin) refuses a native-binding cache under a `%LOCALAPPDATA%` that grants write access to sandbox SIDs: `next.config.ts` sets `SWC_NATIVE_BINDING_CACHE` to `node_modules/.cache/swc` first. |
 | 2026-09-30 | Source files may not contain invisible/bidi-control characters (`scripts/check-source-chars.ts`). |
 | 2026-09-30 | Phase 0 seed = demo SARL with one user per role + a second SARL for the gérant; business data seeded with each Phase 1 module. |
+| 2026-09-30 | **Pricing model**: `unit.list_price` (current) + versioned per-project `price_list` drafts applied in one go; per-unit `unit_price_history`; one-off changes need a reason. Reservations will snapshot the price. |
+| 2026-09-30 | Tenant child→parent FKs are composite `(organization_id, parent_id)` with explicit short names (63-char identifier limit); FK checks bypass RLS. |
+| 2026-09-30 | `unit_status_history`, `unit_price_history` append-only through grants (like `audit_log`). |
+| 2026-09-30 | Project `wilaya`/`commune` are free text for now; the global reference tables come with the first form that needs a strict list (CRM / buyer addresses). |
+| 2026-09-30 | TanStack Table deferred: module 1 lists are small and unpaginated (shadcn `Table`); install it with the paginated leads list. |
+| 2026-09-30 | **Uploads go through our Route Handler** (not presigned PUT) so the server checks size and magic bytes before storing; downloads are a 302 to a 5-min presigned GET. Replaced/removed files are soft-deleted, objects kept. |
+| 2026-09-30 | Better Auth's production rate limit stays on (sign-in 3 per 10 s); forms show a "too many attempts" message; e2e signs in once per role through the API. |
+| 2026-09-30 | CI runs SeaweedFS as a `docker run` step (service containers cannot take a command); test setups create the bucket (`waitForBucket`). |
 
 ### Open items
 - **GitHub**: repo `yurigami1939-oss/realestate` is **public** — make it private before real client data or configuration lands. Work happens on branches merged through PRs; CI must be green.
@@ -462,3 +488,4 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 - VSP payment tranches: enforce legal percentages per milestone or free schedule?
 - Commission rules (base, rate, trigger: reservation, VSP, or full payment).
 - Hosting location (Loi 18-07 restricts cross-border transfer of personal data).
+- Are list prices **TTC** (TVA included) or HT? Quotations, reservation and VSP contracts will print the price; if TVA must be shown separately we need the rate(s) per unit type (housing vs. commercial).
