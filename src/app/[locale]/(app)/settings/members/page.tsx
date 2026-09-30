@@ -3,7 +3,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { toLocale } from "@/i18n/locales";
 import { can } from "@/lib/permissions";
-import { getTenantCtx } from "@/server/auth/session";
+import { requireTenantCtx } from "@/server/auth/page-guard";
 import { listMembers, listPendingInvitations } from "@/server/organizations/queries";
 
 import { InviteMemberForm } from "./invite-member-form";
@@ -18,7 +18,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function MembersPage({ params }: PageProps<"/[locale]/settings/members">) {
   setRequestLocale(toLocale((await params).locale));
   const t = await getTranslations("members");
-  const ctx = await getTenantCtx();
+  const ctx = await requireTenantCtx();
   const canInvite = can(ctx.roles, "invitation:create");
 
   const [members, invitations] = await Promise.all([
