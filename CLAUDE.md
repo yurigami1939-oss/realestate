@@ -381,7 +381,7 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 
 ## 11. Roadmap
 
-**Current: Phase 0 done (branch `phase-0`, not yet pushed — see §12 open items). Next: Phase 1, module 1.**
+**Current: Phase 0 done — PR https://github.com/yurigami1939-oss/realestate/pull/1 (`phase-0` → `main`). Next: Phase 1, module 1 (projects & inventory).**
 
 ### Phase 0 — Foundations ✅
 - [x] `CLAUDE.md` approved (2026-09-30)
@@ -443,7 +443,7 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 | 2026-09-30 | Phase 0 seed = demo SARL with one user per role + a second SARL for the gérant; business data seeded with each Phase 1 module. |
 
 ### Open items
-- **GitHub**: target repo `yurigami1939-oss/realestate` (public). The local `gh` account has read-only access — grant push access (or sign in as the owner) to push `main` + `phase-0` and open the PR.
+- **GitHub**: repo `yurigami1939-oss/realestate` is **public** — make it private before real client data or configuration lands. Work happens on branches merged through PRs; CI must be green.
 
 ### Open business questions (ask before implementing)
 - Late penalty formula (rate, base, grace period, cap) — and check décret 13-431.
