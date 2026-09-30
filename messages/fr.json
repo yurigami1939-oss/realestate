@@ -36,7 +36,8 @@
     "email": "Adresse e-mail invalide.",
     "passwordMin": "10 caractères minimum.",
     "slug": "Lettres minuscules, chiffres et tirets uniquement.",
-    "tooLong": "Texte trop long."
+    "tooLong": "Texte trop long.",
+    "rolesRequired": "Choisissez au moins un rôle."
   },
   "auth": {
     "fields": {
@@ -121,6 +122,57 @@
       "body": "Une réinitialisation du mot de passe a été demandée pour votre compte PRODUCT_NAME.",
       "notice": "Si vous n'êtes pas à l'origine de cette demande, ignorez cet e-mail.",
       "cta": "Choisir un nouveau mot de passe"
+    }
+  },
+  "nav": {
+    "main": "Navigation",
+    "dashboard": "Tableau de bord",
+    "settings": "Paramètres",
+    "members": "Membres"
+  },
+  "shell": {
+    "organizations": "Sociétés",
+    "newOrganization": "Nouvelle société",
+    "language": "Langue",
+    "account": "Compte",
+    "toggleSidebar": "Afficher / masquer le menu"
+  },
+  "members": {
+    "title": "Membres",
+    "description": "Les personnes qui ont accès à cette société et leurs rôles.",
+    "you": "vous",
+    "columns": {
+      "name": "Nom",
+      "email": "E-mail",
+      "roles": "Rôles",
+      "joined": "Depuis",
+      "actions": "Actions"
+    },
+    "actions": "Actions pour {name}",
+    "editRoles": "Rôles",
+    "remove": "Retirer de la société",
+    "removeTitle": "Retirer {name} ?",
+    "removeDescription": "Cette personne n'aura plus accès à la société. Son historique reste dans le journal d'audit.",
+    "confirmRemove": "Retirer",
+    "cancel": "Annuler",
+    "ownerLocked": "Le rôle du gérant ne peut pas être modifié.",
+    "alreadyMember": "Cette personne est déjà membre de la société.",
+    "updated": "Rôles mis à jour.",
+    "removed": "Membre retiré.",
+    "invite": {
+      "title": "Inviter un membre",
+      "description": "Un e-mail d'invitation en français et en arabe sera envoyé.",
+      "email": "E-mail",
+      "roles": "Rôles",
+      "submit": "Envoyer l'invitation",
+      "sent": "Invitation envoyée à {email}."
+    },
+    "pending": {
+      "title": "Invitations en attente",
+      "empty": "Aucune invitation en attente.",
+      "expires": "Expire le {date}",
+      "cancel": "Annuler l'invitation",
+      "cancelled": "Invitation annulée."
     }
   }
 }

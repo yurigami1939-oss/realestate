@@ -28,7 +28,16 @@ export type Role = keyof typeof roles;
 export const roleNames = Object.keys(roles) as Role[];
 
 /** Roles that can be granted through an invitation (owner is only the organization creator). */
-export const invitableRoles = roleNames.filter((r) => r !== "owner");
+export const invitableRoles = [
+  "sales_manager",
+  "sales_agent",
+  "accountant",
+  "cashier",
+  "property_manager",
+  "resident",
+] as const satisfies readonly Exclude<Role, "owner">[];
+
+export type InvitableRole = (typeof invitableRoles)[number];
 
 type Statement = typeof statement;
 export type Permission = {

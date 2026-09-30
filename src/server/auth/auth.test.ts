@@ -8,47 +8,13 @@ import { member } from "@/db/schema";
 import { stopEnqueue } from "@/jobs/enqueue";
 import { getPendingInvitation } from "@/server/organizations/queries";
 
-import { auth } from "./auth";
+import { createOrganizationAs as createOrg, signIn, signUp } from "../../../tests/auth-helpers";
 
-const password = "test-only-password-123";
+import { auth } from "./auth";
 
 afterAll(async () => {
   await stopEnqueue();
 });
-
-/** Signs up a user and returns request headers carrying their session cookie. */
-async function signUp(name: string) {
-  const email = `${name.toLowerCase()}-${randomUUID().slice(0, 8)}@example.test`;
-  const { headers } = await auth.api.signUpEmail({
-    body: { name, email, password },
-    returnHeaders: true,
-  });
-  const cookie = headers
-    .getSetCookie()
-    .map((c) => c.split(";")[0])
-    .join("; ");
-  return { email, headers: new Headers({ cookie }) };
-}
-
-async function signIn(email: string) {
-  const { headers } = await auth.api.signInEmail({
-    body: { email, password },
-    returnHeaders: true,
-  });
-  return new Headers({
-    cookie: headers
-      .getSetCookie()
-      .map((c) => c.split(";")[0])
-      .join("; "),
-  });
-}
-
-async function createOrg(headers: Headers) {
-  const slug = `promo-${randomUUID().slice(0, 8)}`;
-  const org = await auth.api.createOrganization({ body: { name: `Promo ${slug}`, slug }, headers });
-  if (!org) throw new Error("organization not created");
-  return org;
-}
 
 describe("organizations and roles (Better Auth)", () => {
   it("makes the creator owner and activates their organization on the next sign-in", async () => {
