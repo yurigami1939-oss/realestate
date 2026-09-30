@@ -113,7 +113,10 @@ export async function listPaymentSetups(ctx: TenantCtx) {
       .where(isNull(paymentPlan.deletedAt));
     const byProject: Record<
       string,
-      { milestones: { id: string; name: string; plannedOn: string | null }[]; plans: PaymentPlanWithSteps[] }
+      {
+        milestones: { id: string; name: string; plannedOn: string | null }[];
+        plans: PaymentPlanWithSteps[];
+      }
     > = {};
     for (const projectId of new Set(plans.map((p) => p.projectId))) {
       byProject[projectId] = {

@@ -13,9 +13,11 @@ import {
   changeLeadStageSchema,
   createFollowUpSchema,
   createLeadSchema,
+  saveTargetsSchema,
   scheduleVisitSchema,
   updateVisitSchema,
 } from "@/server/crm/schemas";
+import { saveTargets } from "@/server/crm/targets";
 import { scheduleVisit, updateVisit } from "@/server/crm/visits";
 
 type Owner = "agentA" | "agentB" | "manager" | "none";
@@ -438,5 +440,17 @@ export async function seedCrm(
       });
     }
   }
+  // This month's activity targets.
+  await saveTargets(
+    actors.manager,
+    saveTargetsSchema.parse({
+      month: todayInAlgiers().slice(0, 7),
+      targets: [
+        { userId: actors.agentA.userId, visits: "12", quotations: "4" },
+        { userId: actors.agentB.userId, visits: "10", quotations: "3" },
+        { userId: actors.manager.userId, visits: "4", quotations: "2" },
+      ],
+    }),
+  );
   return leadIds;
 }

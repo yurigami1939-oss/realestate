@@ -21,10 +21,12 @@ import {
   changeLeadStageSchema,
   createFollowUpSchema,
   createLeadSchema,
+  saveTargetsSchema,
   scheduleVisitSchema,
   updateLeadSchema,
   updateVisitSchema,
 } from "./schemas";
+import { getTargetProgress, saveTargets } from "./targets";
 import { scheduleVisit, updateVisit } from "./visits";
 
 const rawLead = {
@@ -330,5 +332,69 @@ describe("tenancy", () => {
       assignLead(a.manager, { leadId: id, assignedTo: b.agentA.userId }),
     ).rejects.toMatchObject({ code: "VALIDATION" });
     expect((await listLeads(b.manager, {})).total).toBe(0);
+  });
+});
+
+describe("monthly targets", () => {
+  it("counts done visits against targets; commercials see only their own line", async () => {
+    const { orgId, owner, manager, agentA, agentB } = await createSalesTeam();
+    const cashier = await addMember(orgId, ["cashier"]);
+    const month = tomorrowAt(10).slice(0, 7);
+    await saveTargets(
+      manager,
+      saveTargetsSchema.parse({
+        month,
+        targets: [
+          { userId: agentA.userId, visits: "12", quotations: "4" },
+          { userId: agentB.userId, visits: "8", quotations: "2" },
+        ],
+      }),
+    );
+    await expect(
+      saveTargets(
+        agentA,
+        saveTargetsSchema.parse({
+          month,
+          targets: [{ userId: agentA.userId, visits: "99", quotations: "0" }],
+        }),
+      ),
+    ).rejects.toMatchObject({ code: "FORBIDDEN" });
+    await expect(
+      saveTargets(
+        manager,
+        saveTargetsSchema.parse({
+          month,
+          targets: [{ userId: cashier.userId, visits: "1", quotations: "0" }],
+        }),
+      ),
+    ).rejects.toMatchObject({ code: "VALIDATION" });
+
+    const { id } = await newLead(agentA);
+    const done = await scheduleVisit(
+      agentA,
+      scheduleVisitSchema.parse({ leadId: id, scheduledAt: tomorrowAt(10) }),
+    );
+    await updateVisit(
+      agentA,
+      updateVisitSchema.parse({ visitId: done.id, status: "done", scheduledAt: tomorrowAt(10) }),
+    );
+    await scheduleVisit(
+      agentA,
+      scheduleVisitSchema.parse({ leadId: id, scheduledAt: tomorrowAt(11) }),
+    );
+
+    const mine = await getTargetProgress(agentA, month);
+    expect(mine).toEqual([
+      {
+        userId: agentA.userId,
+        name: expect.any(String),
+        target: { visits: 12, quotations: 4 },
+        actual: { visits: 1, quotations: 0 },
+      },
+    ]);
+    const all = await getTargetProgress(manager, month);
+    expect(all.map((r) => r.userId).sort()).toEqual(
+      [owner.userId, agentA.userId, agentB.userId, manager.userId].sort(),
+    );
   });
 });

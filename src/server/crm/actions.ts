@@ -23,10 +23,12 @@ import {
   createLeadSchema,
   leadIdSchema,
   mergeLeadsSchema,
+  saveTargetsSchema,
   scheduleVisitSchema,
   updateLeadSchema,
   updateVisitSchema,
 } from "./schemas";
+import { saveTargets } from "./targets";
 import { scheduleVisit, updateVisit } from "./visits";
 
 /** CRM pages: /leads (list, pipeline, duplicates, sheets), /follow-ups, /visits, dashboard. */
@@ -82,4 +84,12 @@ export const createFollowUpAction = defineAction(
 export const completeFollowUpAction = defineAction(
   { input: completeFollowUpSchema, permission: "lead:update" },
   (input, ctx) => mutation(() => completeFollowUp(ctx, input)),
+);
+
+export const saveTargetsAction = defineAction(
+  { input: saveTargetsSchema, permission: "target:update" },
+  async (input, ctx) => {
+    await saveTargets(ctx, input);
+    revalidatePath("/[locale]/targets", "page");
+  },
 );

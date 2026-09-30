@@ -1,5 +1,18 @@
 import { sql } from "drizzle-orm";
-import { foreignKey, index, jsonb, pgEnum, pgTable, text, unique, uuid } from "drizzle-orm/pg-core";
+import {
+  check,
+  date,
+  foreignKey,
+  index,
+  integer,
+  jsonb,
+  pgEnum,
+  pgTable,
+  primaryKey,
+  text,
+  unique,
+  uuid,
+} from "drizzle-orm/pg-core";
 
 import {
   financingModes,
@@ -19,6 +32,7 @@ import {
   organizationId,
   softDelete,
   timestamps,
+  updatedAt,
   userRef,
 } from "./_columns";
 import { project, typology, unit } from "./inventory";
@@ -171,5 +185,28 @@ export const followUp = pgTable(
     }),
     index().on(t.organizationId, t.assignedTo, t.dueAt),
     index().on(t.organizationId, t.leadId),
+  ],
+);
+
+/**
+ * Objectif mensuel d'un commercial, in activity counts (CLAUDE.md §12). Reservation and sales
+ * targets come with module 3.
+ */
+export const salesTarget = pgTable(
+  "sales_target",
+  {
+    organizationId: organizationId(),
+    userId: userRef().notNull(),
+    /** First day of the month (Algiers calendar). */
+    month: date({ mode: "string" }).notNull(),
+    visits: integer().notNull().default(0),
+    quotations: integer().notNull().default(0),
+    updatedAt: updatedAt(),
+    updatedBy: userRef(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.organizationId, t.userId, t.month] }),
+    check("sales_target_counts", sql`${t.visits} >= 0 and ${t.quotations} >= 0`),
+    check("sales_target_month", sql`extract(day from ${t.month}) = 1`),
   ],
 );

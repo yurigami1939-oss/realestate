@@ -9,6 +9,7 @@ import {
   LayoutDashboard,
   type LucideIcon,
   PhoneCall,
+  Target,
   Users,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -39,7 +40,8 @@ type NavKey =
   | "leads"
   | "pipeline"
   | "followUps"
-  | "visits";
+  | "visits"
+  | "targets";
 type NavItem = { href: string; key: NavKey; icon: LucideIcon };
 
 /** Each module adds its entries here as it lands (CLAUDE.md §11 Roadmap). */
@@ -52,6 +54,7 @@ const salesNav: NavItem[] = [
   { href: "/leads/pipeline", key: "pipeline", icon: Kanban },
   { href: "/follow-ups", key: "followUps", icon: PhoneCall },
   { href: "/visits", key: "visits", icon: CalendarDays },
+  { href: "/targets", key: "targets", icon: Target },
 ];
 const settingsNav: NavItem[] = [
   { href: "/settings/members", key: "members", icon: Users },

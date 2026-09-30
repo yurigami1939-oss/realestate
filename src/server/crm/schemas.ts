@@ -12,6 +12,7 @@ import {
 import { typologies } from "@/lib/inventory";
 import {
   dateTimeText,
+  intText,
   optionalEmailText,
   optionalEnum,
   optionalMoneyText,
@@ -124,3 +125,21 @@ export const leadListParams = z.object({
 export type LeadListParams = z.output<typeof leadListParams>;
 
 export const LEADS_PAGE_SIZE = 25;
+
+// ── Targets ─────────────────────────────────────────────────────────────────
+
+/** "YYYY-MM" (Algiers calendar month). */
+export const monthText = () => z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/, "validation.date");
+
+export const saveTargetsSchema = z.object({
+  month: monthText(),
+  targets: z
+    .array(
+      z.object({
+        userId: z.uuid(),
+        visits: intText(0, 1000),
+        quotations: intText(0, 1000),
+      }),
+    )
+    .max(200),
+});

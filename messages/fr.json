@@ -172,7 +172,8 @@
     "followUps": "Relances",
     "visits": "Visites",
     "duplicates": "Doublons",
-    "company": "Société"
+    "company": "Société",
+    "targets": "Objectifs"
   },
   "shell": {
     "organizations": "Sociétés",
@@ -773,5 +774,23 @@
       "planNotFound": "Échéancier introuvable pour ce projet.",
       "alreadyCancelled": "Ce devis est déjà annulé."
     }
+  },
+  "targets": {
+    "title": "Objectifs",
+    "description": "Objectifs mensuels d'activité des commerciaux : visites effectuées et devis émis.",
+    "previous": "Mois précédent",
+    "next": "Mois suivant",
+    "columns": {
+      "member": "Commercial",
+      "visits": "Visites effectuées",
+      "quotations": "Devis émis"
+    },
+    "target": "Objectif",
+    "save": "Enregistrer les objectifs",
+    "saved": "Objectifs enregistrés.",
+    "progress": "{actual} / {target}",
+    "noTarget": "{actual} (sans objectif)",
+    "hint": "Les objectifs de réservations et de ventes arriveront avec le module de réservation.",
+    "empty": "Aucun commercial."
   }
 }
