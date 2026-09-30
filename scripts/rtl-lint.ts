@@ -18,13 +18,18 @@ function* walk(dir: string): Generator<string> {
   }
 }
 
+/** Class names only live in string literals; comments and identifiers are ignored. */
+const STRING_LITERAL = /(["'`])((?:\\.|(?!\1)[^\\])*)\1/g;
+
 const problems: string[] = [];
 for (const file of walk(ROOT)) {
   const lines = readFileSync(file, "utf8").split("\n");
   lines.forEach((line, i) => {
     if (line.includes("rtl-lint-ignore")) return;
-    for (const match of line.matchAll(PHYSICAL)) {
-      problems.push(`${relative(process.cwd(), file)}:${i + 1}  ${match[0]}`);
+    for (const literal of line.matchAll(STRING_LITERAL)) {
+      for (const match of (literal[2] ?? "").matchAll(PHYSICAL)) {
+        problems.push(`${relative(process.cwd(), file)}:${i + 1}  ${match[0]}`);
+      }
     }
   });
 }

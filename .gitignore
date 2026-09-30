@@ -34,3 +34,6 @@ next-env.d.ts
 
 # local artifacts
 /tmp/
+
+# local Claude Code launch config
+.claude/launch.json

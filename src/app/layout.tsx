@@ -1,14 +1,7 @@
-import type { Metadata } from "next";
-import "./globals.css";
-
-export const metadata: Metadata = {
-  title: "PRODUCT_NAME",
-};
-
-export default function RootLayout({ children }: LayoutProps<"/">) {
-  return (
-    <html lang="fr" dir="ltr">
-      <body className="min-h-dvh antialiased">{children}</body>
-    </html>
-  );
+/**
+ * The real root layout (with <html>) is src/app/[locale]/layout.tsx.
+ * This pass-through exists because src/app/not-found.tsx needs a layout.
+ */
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return children;
 }

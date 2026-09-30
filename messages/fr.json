@@ -1,0 +1,30 @@
+{
+  "metadata": {
+    "title": "PRODUCT_NAME",
+    "description": "Gestion des promotions immobilières et des résidences"
+  },
+  "common": {
+    "appName": "PRODUCT_NAME",
+    "language": "Langue",
+    "backHome": "Retour à l'accueil"
+  },
+  "locale": {
+    "fr": "Français",
+    "ar": "العربية"
+  },
+  "errors": {
+    "VALIDATION": "Certaines informations sont invalides.",
+    "UNAUTHENTICATED": "Veuillez vous connecter pour continuer.",
+    "FORBIDDEN": "Vous n'avez pas l'autorisation d'effectuer cette action.",
+    "NOT_FOUND": "Élément introuvable.",
+    "CONFLICT": "Cette opération entre en conflit avec des données existantes.",
+    "INVALID_TRANSITION": "Ce changement de statut n'est pas autorisé.",
+    "UNEXPECTED": "Une erreur inattendue est survenue. Veuillez réessayer.",
+    "notFoundTitle": "Page introuvable",
+    "notFoundText": "La page demandée n'existe pas ou a été déplacée."
+  },
+  "home": {
+    "title": "Bienvenue",
+    "subtitle": "Promotions immobilières, ventes et gestion des résidences."
+  }
+}
