@@ -31,14 +31,14 @@ Exact versions are pinned in `package.json` (`.npmrc`: `save-exact`, `engine-str
 | Validation | `zod` | 4.6.5 |
 | UI | `tailwindcss` · shadcn/ui CLI `shadcn` (radix-nova, RTL) · `radix-ui` · `lucide-react` · `sonner` | 4.3.3 · 4.21.0 · 1.6.7 · 1.49.0 · 2.0.8 |
 | Forms | `react-hook-form` · `@hookform/resolvers` | 7.89.0 · 5.9.1 |
-| Data grids | `@tanstack/react-table` | 9.2.x — install with the first large paginated list (CRM leads) |
+| Data grids | `@tanstack/react-table` (v9 API: `useTable`, `tableFeatures`) | 9.2.4 |
 | i18n | `next-intl` | 4.14.8 |
 | Jobs | `pg-boss` | 12.35.0 |
 | PDF | HTML templates → **headless Chromium** via `playwright-core` | 1.63.0 |
 | Files | `@aws-sdk/client-s3` · `@aws-sdk/s3-request-presigner` · SeaweedFS (local S3) | 3.1143.0 · `chrislusf/seaweedfs:4.48` |
 | Email | `nodemailer` · Mailpit (local SMTP catcher) | 10.0.13 · `axllent/mailpit:v1.31` |
 | Dates | `date-fns` · `@date-fns/tz` (schedules, Phase 1) | 4.4.0 · 1.5.0 |
-| Phones | `libphonenumber-js` — install with the CRM (Phase 1) | 1.13.x |
+| Phones | `libphonenumber-js` (default "min" metadata) | 1.13.14 |
 | Font | IBM Plex Sans Arabic (OFL, Arabic + Latin), `src/assets/fonts/` | 1.101 |
 | Tests | `vitest` · `@playwright/test` | 5.0.3 · 1.63.0 |
 | Tooling | `eslint` + `eslint-config-next` (flat) · `prettier` + `prettier-plugin-tailwindcss` · `tsx` | 9.39.5 + 16.3.7 · 3.9.9 + 0.8.1 · 4.23.15 |
@@ -59,7 +59,7 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 | `pnpm typecheck` | `next typegen` + `tsc --noEmit` |
 | `pnpm format` | Prettier write |
 | `pnpm test` · `pnpm test:watch` | Vitest unit + integration against `realestate_test` (needs `docker:up` + Chromium) |
-| `pnpm e2e` | Playwright: builds, serves on :3100, resets + seeds `realestate_e2e` |
+| `pnpm e2e` | Playwright: builds, serves on :3100, resets + seeds `realestate_e2e`, runs a job worker |
 | `pnpm db:generate` | drizzle-kit: SQL migration from `src/db/schema` |
 | `pnpm db:migrate` | Migrations (owner) + `post-migrate.sql` (RLS, grants) + pg-boss schema and queues |
 | `pnpm db:seed` | Wipe local data and seed the demo promoter (refuses non-local DBs) |
@@ -102,13 +102,16 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
     │   ├── app-shell/        # sidebar, org switcher, user menu
     │   ├── forms/            # TextField, FormAlert, useAction, useTranslateKey
     │   ├── files/            # UploadButton (posts to /api/files)
+    │   ├── data-table/       # DataTable (TanStack columns), Pagination (links), useSearchParamsState
+    │   ├── crm/              # stage/visit badges, phone text + call/WhatsApp, follow-up/visit dialogs
     │   ├── inventory/        # unit/project status badges, stats bar, floor labels
     │   └── auth/ · i18n/     # sign-out, locale switcher
     ├── db/
     │   ├── schema/           # auth.ts (GENERATED) · platform.ts · _columns.ts helpers · index.ts
     │   ├── migrations/       # drizzle-kit SQL (never hand-edit applied files)
     │   ├── sql/post-migrate.sql # RLS on every organization_id table, grants, revokes
-    │   ├── seed/             # demo promoter (demo.ts), inventory.ts (2 projects, 118 units); grows per module
+    │   ├── seed/             # demo.ts (users, SARLs), inventory.ts (118 units), crm.ts (25 leads,
+    │   │                     # visits, follow-ups, targets), sales.ts (plans, quotations); grows per module
     │   ├── client.ts         # pg Pool + drizzle (app role)
     │   ├── tenant.ts         # withTenant(scope, fn, tx?)
     │   └── migrate.ts        # migrateDatabase(): migrations + post-migrate + pg-boss
@@ -122,13 +125,18 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
     │   ├── files/            # s3.ts (client, ensureBucket), storage.ts (keys, put, presign),
     │   │                     # service.ts (checkUpload, storeFile, discardFile, getFileDownloadUrl)
     │   ├── route-handler.ts  # jsonResult, assertSameOrigin, readFormData (size-capped)
-    │   ├── organizations/    # members & invitations: queries, service, actions, schemas
+    │   ├── organizations/    # members & invitations; settings.ts (legal identity, sales settings)
+    │   ├── inventory/        # projects, buildings, units, price lists, floor plans, transitionUnit
+    │   ├── crm/              # leads, visits, follow-ups, merge, targets; access.ts (lead visibility)
+    │   ├── payment-plans/    # construction milestones (planned) and payment plan templates
+    │   ├── quotations/       # issue/cancel, queries, pdf.ts (job: render + store once)
     │   └── <module>/         # schemas.ts (isomorphic) · queries.ts · service.ts · actions.ts · *.test.ts
     ├── jobs/                 # queues.ts (names, retry policy, payload types), enqueue.ts, worker.ts, handlers/
-    ├── pdf/                  # render.ts (Chromium), document.tsx (shell + fonts), templates/, receipt.ts
+    ├── pdf/                  # render.ts (Chromium), document.tsx (shell + fonts), templates/, receipt.ts, quotation.ts
     ├── i18n/                 # locales, routing, navigation, request config, typed messages
     ├── hooks/                # client hooks (use-mobile)
-    └── lib/                  # isomorphic: result, permissions, money/, dates, document-types, safe-next, auth-client
+    └── lib/                  # isomorphic: result, permissions, money/, dates, document-types, safe-next, auth-client,
+                              # inventory, crm (stages), phone, payment-plans (buildSchedule), quotations, files, zod, ids
 ```
 
 ## 5. Architecture rules
@@ -150,6 +158,8 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 - One transaction = one connection: inside `withTenant`, `await` queries one after another (no `Promise.all` on `tx`; pg deprecates concurrent queries on a client).
 - Tenant child → parent foreign keys are **composite** `(organization_id, parent_id)` → `(organization_id, id)` with explicit short names (`unit_building_fk`): FK checks bypass RLS, so this is what stops a row from pointing into another tenant.
 - `schemas.ts` files are isomorphic (shared with client forms): no server-only imports.
+- **Lead visibility** (CRM): a commercial sees the leads assigned to them, managers (`lead:read_all`) all. Every CRM read/write goes through `visibleLeads(ctx)` / `loadVisibleLead()` (`src/server/crm/access.ts`); visits, follow-ups, quotations and their PDFs follow their lead. Invisible = `NOT_FOUND`.
+- Detail queries return `null`/not-found for a non-UUID route id (`isUuid`) instead of reaching Postgres.
 
 ### Mutations
 - Server Actions in `src/server/<module>/actions.ts` (`'use server'`), each `defineAction({ input, permission }, handler)`: zod parse → `getTenantCtx()` → `assertCan` → handler → `Result<T>`. Never throws to the client except Next control flow. Handlers call services, then `revalidatePath`.
@@ -180,7 +190,9 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 - Schema `pgboss` is owned by the app role; `db:migrate` creates it and creates/updates every queue declared in `src/jobs/queues.ts` (name, retry policy, payload type).
 - Worker = separate process (`pnpm worker`), graceful shutdown. Next.js only calls `enqueue()` (send-only instance).
 - Tenant jobs carry `organizationId` and run inside `withTenant`; platform jobs (auth emails) do not. Handlers are idempotent. Money in payloads = decimal string of centimes.
-- Queues today: `email.send`. Planned: option expiry, overdue reminders (daily 08:00 Algiers), milestone → payment calls, charge calls, PDF rendering, lease alerts.
+- A job that follows a business write is enqueued **in the same transaction** with `enqueueInTx(tx, …)` (pg-boss `fromDrizzle`): it exists only if the write commits. `singletonKey` = the record id.
+- Queues today: `email.send`, `pdf.quotation`. Planned: option expiry, overdue reminders (daily 08:00 Algiers), milestone → payment calls, charge calls, receipts, lease alerts.
+- `db:migrate` starts pg-boss once with the scheduler on so its internal cron queue exists before any worker (see §12). Stop dev workers by killing the node process tree (Windows keeps children of a stopped shell).
 
 ### Email
 - Always queued (`sendEmailLater`); the worker sends with nodemailer. Auth emails are **bilingual** (French then Arabic) because the recipient's language is unknown. Templates in `src/server/email/templates.ts`, texts in the catalogs (`emails.*`), values HTML-escaped.
@@ -189,8 +201,8 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 - S3 API only. Local: SeaweedFS (bucket created by `docker:up`). Production: any S3-compatible provider (location TBD, §12).
 - Private bucket. Key: `org/{orgId}/{entityType}/{entityId}/{fileId}.{ext}`; a tenant-scoped `file` row holds metadata (`entity_type` + `entity_id` = owner record).
 - **Upload**: `POST /api/files` (multipart `purpose`, `entityId`, `file`) → `Result<{ fileId }>`. Same-origin check, body capped while streaming (`readFormData`), then a switch on `purpose` calls the owning service (e.g. `setUnitFloorPlan`), which asserts the permission, runs `checkUpload` (size + **magic-byte** format check against `uploadPurposes` in `src/lib/files.ts`; the browser's MIME type is ignored) and `storeFile(tx, …)` (row insert, then S3 put, inside the tenant transaction). Client: `UploadButton`.
-- **Download**: `GET /api/files/{id}[?download]` → permission by `entity_type` (`readPermission` in `src/server/files/service.ts`) → 302 to a 5-min presigned URL with the original name (`Content-Disposition` with UTF-8 `filename*`).
-- Replacing/removing a file soft-deletes the old row (`deleted_at`); the object stays in the bucket. New purpose = entry in `uploadPurposes` + service function + `case` in `src/app/api/files/route.ts` (+ `readPermission` for a new entity type).
+- **Download**: `GET /api/files/{id}[?download]` → access check by `entity_type` (`readers` in `src/server/files/service.ts`: a unit plan needs `inventory:read`, a quotation PDF needs its lead to be visible) → 302 to a 5-min presigned URL with the original name (`Content-Disposition` with UTF-8 `filename*`).
+- Replacing/removing a file soft-deletes the old row (`deleted_at`); the object stays in the bucket. New purpose = entry in `uploadPurposes` + service function + `case` in `src/app/api/files/route.ts` (+ a `readers` entry for a new entity type). Generated documents are stored with `storeFile(tx, { orgId, userId: null }, …)` by their job.
 - Issued documents are rendered once at issue; the stored PDF is served for reprints.
 
 ### PDF
@@ -214,11 +226,14 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 | Typologie F1…F6, duplex | `unit.typology` | |
 | Surface habitable / utile | `unit.living_area`, `unit.usable_area` | m², `numeric(10,2)` (not money, decimals OK) |
 | Grille de prix | `price_list` | versioned per project |
-| Prospect | `lead` | `lead_source`: `facebook`, `instagram`, `whatsapp`, `ouedkniss`, `walk_in`, `referral`, `phone`, `website`, `other` |
+| Prospect | `lead` | one `full_name`, E.164 `phone`/`phone2`, `city` free text; `lead_source`: `facebook`, `instagram`, `whatsapp`, `ouedkniss`, `walk_in`, `referral`, `phone`, `website`, `other`; `lead_stage`; interest (project, typologies, budget, `financing_mode`) |
+| Historique du prospect | `lead_activity` | append-only timeline (`lead_activity_type`) |
 | Visite | `visit` | |
 | Relance | `follow_up` | |
 | Devis / Simulation | `quotation` | |
-| Commission / Objectif | `commission` / `sales_target` | |
+| Commission / Objectif | `commission` / `sales_target` | targets = monthly visits done + quotations issued per commercial (module 2); commissions in module 3 |
+| Échéancier type | `payment_plan` / `payment_plan_step` | per project; step `trigger`: `signing`, `months_after_signing`, `milestone` |
+| Réglages de la société | `organization_setting` | quotation validity (days) |
 | Acquéreur | `buyer` | |
 | Pièces du dossier (CNI, extrait de naissance, fiche familiale, attestation de travail, fiches de paie) | `buyer_document` | `document_kind` enum |
 | NIN (numéro d'identification national) | `national_id_number` | |
@@ -261,7 +276,7 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 | Société (SARL) | `organization` | Better Auth table + legal fields below |
 | RC, NIF, NIS, AI (identifiants légaux SARL) | `organization.rc_number`, `nif`, `nis`, `ai_number` | + `legal_name`, `address`, `wilaya`, `phone`; printed on documents |
 | Membre / Invitation | `member` / `invitation` | Better Auth tables |
-| Wilaya / Commune | `wilaya` / `commune` | global reference tables (Phase 1) |
+| Wilaya / Commune | `wilaya` / `commune` | global reference tables — deferred to the buyer file (module 3); free text until then |
 
 ## 7. Domain rules & invariants
 
@@ -308,6 +323,16 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 - Unit codes default to `{building}-{floor}-{nn}` (`A-03-02`; basements `S1`), unique per project; `generateUnits` skips existing codes (max 500 per run).
 - Reservation transfer: unit stays `reserved`, buyer changes. Unit swap: A `reserved → available` + B `available → reserved` in one transaction.
 
+### CRM (leads)
+- Fixed pipeline `new → contacted → visit_scheduled → visited → negotiation → won | lost`; `lost` needs a `lost_reason`. Manual changes go anywhere; events only move a lead **forward** and never out of won/lost (`advanceStage`): follow-up done → contacted, visit planned → visit_scheduled, visit done → visited, quotation issued → negotiation. Every change writes `lead_activity` in the same transaction.
+- Duplicates (same phone in `phone`/`phone2` of another live lead) are allowed and **flagged**, never stored as a flag. Managers merge: visits and follow-ups move to the kept lead, empty fields are filled, the other lead is soft-deleted with `merged_into_id` (its timeline stays visible), audited `lead.merge`.
+- A commercial's new lead is assigned to them; managers assign or leave unassigned. Reassignment moves the previous owner's open follow-ups. Overdue follow-ups are derived (`due_at < now()` in SQL).
+
+### Payment plans & quotations
+- A plan's step shares (basis points) sum to exactly 10 000; `buildSchedule(price, steps, signingOn, milestones)` splits with `allocate()` and dates each line (signing day, signing + N months, milestone planned date). Construction milestones are planned per project here; module 4 validates them.
+- A quotation is issued for a lead and an `available`/`optioned`, priced unit, with a plan of the unit's project: number `DEV-YYYY-NNNNNN`, snapshots of list price, discount, net price and lines; `valid_until` = issue day + company validity. Only managers discount (≤ list price). Issued quotations are never edited or deleted, only cancelled with a reason (audited); "expired" is derived from `valid_until`.
+- The bilingual PDF is rendered once by the `pdf.quotation` job (enqueued in the issuing transaction) and linked with `pdf_file_id`; the page offers a retry if it is missing.
+
 ### Pricing
 - `unit.list_price` is the current asking price. It changes only through `updateUnitPrice` (one unit, reason required, audit `unit.price_change`) or by applying a **price list**.
 - `price_list`: versioned per project (`V1`, `V2`…), `draft` → `applied` | `discarded`. A draft is prefilled from current prices, edited as a whole (bulk % change, price per m² × living area, rounded half-up), then applied in one transaction: only changed units get a `unit_price_history` row; one audit `price_list.apply` lists the changes. Applied/discarded lists are read-only.
@@ -351,10 +376,13 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 - **Forms**: `useForm<z.input<S>, unknown, z.output<S>>({ resolver: zodResolver(S) })` and submit the **raw** values: `form.handleSubmit(() => onSubmit(form.getValues()))` — the action re-parses (transformed values such as bigint do not cross the wire). Field components: `TextField`, `SelectField`, `TextareaField`, `CheckboxField`, `CheckboxGroupField`; server field errors via `applyFieldErrors`. Confirmations via `ConfirmAction`.
 - **Result & errors**: `Result<T> = { ok: true; data } | { ok: false; error: AppErrorShape }`; `AppError(code, messageKey?, { fieldErrors, details })` with codes `VALIDATION`, `UNAUTHENTICATED`, `FORBIDDEN`, `NOT_FOUND`, `CONFLICT`, `INVALID_TRANSITION`, `UNEXPECTED`. Services throw, `defineAction` converts, `useAction` toasts `t(messageKey)`. Unexpected errors are logged server-side, returned as `UNEXPECTED`.
 - **i18n**: no hard-coded UI strings (incl. aria labels); every key in `fr.json` **and** `ar.json` in the same change (tested, incl. ICU arguments). Arabic = Modern Standard Arabic. Latin digits in both locales. `<html lang dir>` set per locale. Use `Link`/`redirect`/`useRouter` from `@/i18n/navigation` with locale-less paths. Page params: `toLocale(params.locale)`.
-- **RTL/UI**: Tailwind logical utilities only (`ms-/me-/ps-/pe-/start-/end-/text-start/rounded-s/border-e`), enforced by `pnpm lint`; directional icons get `rtl:rotate-180`; physical `side` props (sidebar, toaster) are set from the locale direction. Emails, passwords, codes and numbers in inputs/cells get `dir="ltr"`. shadcn/ui for primitives; forms with react-hook-form + `TextField`; data grids with TanStack Table (server-side pagination via search params).
+- **RTL/UI**: Tailwind logical utilities only (`ms-/me-/ps-/pe-/start-/end-/text-start/rounded-s/border-e`), enforced by `pnpm lint`; directional icons get `rtl:rotate-180`; physical `side` props (sidebar, toaster) are set from the locale direction. Emails, passwords, codes and numbers in inputs/cells get `dir="ltr"`. shadcn/ui for primitives; forms with react-hook-form + `TextField`; data grids with `DataTable` (below).
 - **Source text**: never paste invisible or bidi-control characters (U+00A0, U+202F, U+200E…) in code — write `\u00a0`-style escapes (`pnpm lint` rejects them; tools may decode `\u` escapes when writing files, so check with grep).
 - **TypeScript**: no `any`, no `!` outside tests, `import type` for types, exhaustive `switch` on enums.
-- **Phones**: stored E.164 (`+213…`) via `libphonenumber-js`; displayed nationally.
+- **Phones**: stored E.164 (`+213…`) via `normalizePhone` / zod `phoneText()`; shown with `PhoneText` (national for Algeria, international otherwise, always LTR); searched with `phoneSearchDigits`.
+- **Date-times typed by users** (`datetime-local`) are Algiers time: zod `dateTimeText()` → instant; `toAlgiersDateTimeInput()` for defaults.
+- **Lists**: server-paginated `DataTable` (TanStack Table v9 column helpers) + `Pagination` links; filters live in the URL (`useSearchParamsState`, page reset on change). Wrap the app shell content with `min-w-0` so wide tables scroll inside their frame.
+- **React compiler rules**: no `Date.now()`/`Math.random()` during render (derive "overdue" etc. in SQL or pass data); `useWatch({ control, name })` instead of `form.watch()`; no JSX elements directly in array literals (use `{ label, value }` objects).
 
 ## 9. Testing strategy
 
@@ -367,9 +395,10 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 | Jobs/email | Vitest + Mailpit | handler delivers via SMTP (checked through Mailpit API); enqueue stores the job |
 | PDF | Vitest + Chromium | template HTML (RTL blocks, `<bdi>`, amounts in words) and one-page PDF |
 | Files | Vitest + SeaweedFS | magic-byte sniffing, file names, `Content-Disposition`, upload size cap and origin check (route helpers), floor plans stored/replaced/removed, presigned download |
-| E2E | Playwright, production build, `realestate_e2e` reset + seeded | anonymous redirect, sign-in error, members, org switch, FR→AR RTL, role-based UI; inventory: project → building → generated units → per-m² price list → block → floor plan, read-only commercial, Arabic unit sheet; Phase 1 golden path lead → option → reservation → schedule → payment → receipt PDF |
+| E2E | Playwright, production build, `realestate_e2e` reset + seeded | anonymous redirect, sign-in error, members, org switch, FR→AR RTL, role-based UI; inventory: project → building → generated units → per-m² price list → block → floor plan, read-only commercial, Arabic unit sheet; CRM: lead (flagged duplicate) → call → visit → quotation → PDF by the worker, commercial scope, merge, discount + cancel, targets; Phase 1 golden path lead → option → reservation → schedule → payment → receipt PDF |
 
 - Vitest `globalSetup` migrates the test DB and creates the S3 bucket once; each test creates its own organization(s) (`tests/factories.ts`, `tests/auth-helpers.ts`) → isolation without truncation.
+- The e2e global setup starts `src/jobs/worker.ts` after the reset and stops its process tree at the end (documents render during e2e).
 - E2E specs reuse one session per role (`test.use({ storageState: authFile("salesManager") })`, written by `e2e/auth.setup.ts` through the sign-in API): production builds rate-limit sign-in (3 per 10 s). Only the smoke tests sign in through the form.
 - No mocking of the database or RLS. `server-only` is stubbed in Vitest and shimmed for tsx scripts.
 - Every service function has at least one integration test; a bug fix starts with a failing test.
@@ -382,6 +411,7 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 - Check permissions in the service layer (`assertCan`), even if the UI hides the control.
 - Issue numbers, write audit and change status inside the same transaction as the business write.
 - Use `requireTenantCtx()` in pages, `defineAction` for mutations, `useAction` in client components.
+- Enqueue follow-up jobs with `enqueueInTx` inside the business transaction; go through `loadVisibleLead` for anything hanging off a lead.
 - Run `pnpm check` before calling a step done; add FR **and** AR keys together.
 - Ask the user before any ambiguous business rule; log the answer in §12.
 
@@ -401,7 +431,7 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 
 ## 11. Roadmap
 
-**Current: Phase 1 module 1 done — branch `phase-1/inventory`, PR stacked on `phase-0` (PR https://github.com/yurigami1939-oss/realestate/pull/1 still open). Next: module 2 (sales CRM); the open business questions below must be answered before module 3.**
+**Current: Phase 1 modules 1 and 2 done — `phase-1/inventory` (PR https://github.com/yurigami1939-oss/realestate/pull/2, stacked on #1) and `phase-1/crm` (stacked on #2). Next: module 3 (reservation & sale) — the open business questions below must be answered first.**
 
 ### Phase 0 — Foundations ✅
 - [x] `CLAUDE.md` approved (2026-09-30)
@@ -425,12 +455,17 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
   - [x] UI: project list/sheet/form, buildings, availability grid with status filter, unit sheet (price/m², histories, floor plan), price-list editor with bulk fill
   - [x] File layer: `/api/files` upload (magic bytes, 20 MB) and presigned download
   - [x] E2E: inventory golden path + read-only commercial + Arabic unit sheet
-- [ ] Module 2 — Sales CRM (leads, phone dedup, pipeline, visits, follow-ups, simulator, quotation PDF, commissions)
+- [x] Module 2 — Sales CRM
+  - [x] Leads: list (search, filters, pagination), form, sheet with timeline, stage/assignment, notes; duplicates flagged, manager merge
+  - [x] Pipeline board, follow-ups (overdue/today/upcoming), visits agenda, monthly activity targets
+  - [x] Construction milestones (planned) + payment plan templates per project; simulator
+  - [x] Quotations: numbered, discount by managers, cancel, bilingual PDF by the worker
+  - [ ] Commissions and reservation/sales targets → module 3 (§12)
 - [ ] Module 3 — Reservation & sale (buyer file, reservation, VSP, schedule, payments, receipts, reminders, penalties, withdrawal, transfer, swap, bank loans)
 - [ ] Owner dashboard
 - [ ] Audit log viewer
-- [ ] Organization settings page (legal identity: RC/NIF/NIS/AI, address, logo)
-- [ ] Seed: ~~2 projects, 3 buildings, ~120 units~~ (done: 118 units, 2 applied price lists + 1 draft, 3 blocked units) · leads · buyers · payments
+- [ ] Organization settings page — legal identity + quotation validity done (`/settings/company`); logo upload pending
+- [ ] Seed: ~~2 projects, 3 buildings, ~120 units~~ · ~~leads, visits, follow-ups, plans, quotations, targets~~ · buyers · payments
 
 ### Phase 2
 - [ ] Module 6 — Residence management
@@ -481,6 +516,11 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 | 2026-09-30 | **Lead assignment (user)**: a commercial owns the leads they create and sees only theirs; managers see all, assign/reassign by hand, and may leave leads unassigned. |
 | 2026-09-30 | **Simulator (user)**: payment plans are per-project templates (share per step: at signing, N months after signing, or at a construction milestone); the simulator and module 3 schedules use the same model. |
 | 2026-09-30 | **Quotations (user)**: bilingual FR + AR on one document; validity is a company setting, default 15 days. |
+| 2026-09-30 | Leads keep one `full_name` (prospects rarely give more); the buyer file (module 3) will hold the structured legal identity. |
+| 2026-09-30 | Quotations only for `available`/`optioned` priced units; the schedule assumes signing on the issue day (milestone dates = planned dates, printed as provisional). |
+| 2026-09-30 | Jobs that follow a write are enqueued inside the transaction (`enqueueInTx`, pg-boss `fromDrizzle`), with the record id as `singletonKey`; handlers are idempotent. |
+| 2026-09-30 | `db:migrate` starts pg-boss with the scheduler on so its internal `__pgboss__send-it` queue exists before the first worker (otherwise the worker logs "does not exist" while its cache catches up). |
+| 2026-09-30 | Demo seed has a second commercial (Lina Saadi) to exercise assignment and commercial scoping. |
 
 ### Open items
 - **GitHub**: repo `yurigami1939-oss/realestate` is **public** — make it private before real client data or configuration lands. Work happens on branches merged through PRs; CI must be green.
