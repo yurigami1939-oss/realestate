@@ -36,7 +36,8 @@
     "UNEXPECTED": "Une erreur inattendue est survenue. Veuillez réessayer.",
     "notFoundTitle": "Page introuvable",
     "notFoundText": "La page demandée n'existe pas ou a été déplacée.",
-    "noActiveOrganization": "Aucune société n'est sélectionnée."
+    "noActiveOrganization": "Aucune société n'est sélectionnée.",
+    "tooManyRequests": "Trop de tentatives. Réessayez dans quelques secondes."
   },
   "files": {
     "errors": {

@@ -41,7 +41,9 @@ export function SignInForm({ next }: { next: string }) {
       setError(
         authError.code === "INVALID_EMAIL_OR_PASSWORD" || authError.status === 401
           ? t("signIn.invalidCredentials")
-          : tErrors("UNEXPECTED"),
+          : authError.status === 429
+            ? tErrors("tooManyRequests")
+            : tErrors("UNEXPECTED"),
       );
       return;
     }

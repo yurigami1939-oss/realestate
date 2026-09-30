@@ -36,7 +36,8 @@
     "UNEXPECTED": "حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.",
     "notFoundTitle": "الصفحة غير موجودة",
     "notFoundText": "الصفحة المطلوبة غير موجودة أو تم نقلها.",
-    "noActiveOrganization": "لم يتم اختيار أي شركة."
+    "noActiveOrganization": "لم يتم اختيار أي شركة.",
+    "tooManyRequests": "محاولات كثيرة جداً. يُرجى إعادة المحاولة بعد بضع ثوانٍ."
   },
   "files": {
     "errors": {
