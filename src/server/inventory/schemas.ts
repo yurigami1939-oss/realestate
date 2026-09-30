@@ -84,6 +84,9 @@ export const createUnitSchema = unitFields;
 export const updateUnitSchema = unitFields.extend({ unitId: z.uuid() });
 export const deleteUnitSchema = z.object({ unitId: z.uuid() });
 
+/** Actions on one unit that take no other input (e.g. removing its floor plan). */
+export const unitIdSchema = z.object({ unitId: z.uuid() });
+
 export const generateUnitsSchema = z
   .object({
     buildingId: z.uuid(),

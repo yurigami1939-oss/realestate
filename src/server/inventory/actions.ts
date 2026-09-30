@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 
 import { defineAction } from "@/server/action";
 
+import { removeUnitFloorPlan } from "./floor-plans";
 import {
   applyPriceList,
   createPriceList,
@@ -21,6 +22,7 @@ import {
   generateUnitsSchema,
   priceListIdSchema,
   setPriceListItemsSchema,
+  unitIdSchema,
   unitStatusReasonSchema,
   updateBuildingSchema,
   updateProjectSchema,
@@ -123,4 +125,10 @@ export const applyPriceListAction = defineAction(
 export const discardPriceListAction = defineAction(
   { input: priceListIdSchema, permission: "price:update" },
   (input, ctx) => mutation(() => discardPriceList(ctx, input)),
+);
+
+// Floor plans are uploaded through the /api/files Route Handler; removal is a plain action.
+export const removeUnitFloorPlanAction = defineAction(
+  { input: unitIdSchema, permission: "unit:update" },
+  (input, ctx) => mutation(() => removeUnitFloorPlan(ctx, input)),
 );

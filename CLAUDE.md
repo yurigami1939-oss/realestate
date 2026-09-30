@@ -94,11 +94,13 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
     │   │   ├── (app)/        # back-office shell (guard + sidebar) · dashboard · settings/members
     │   │   └── (portal)/     # buyer/resident portal (Phase 2)
     │   ├── api/auth/[...all] # Better Auth handler (Route Handlers: auth, files, webhooks, /api/v1)
+    │   ├── api/files/        # upload (POST) · [fileId] download (GET → presigned redirect)
     │   └── fonts.ts          # next/font/local for the shared font
     ├── components/
     │   ├── ui/               # shadcn/ui primitives (generated; sidebar labels made translatable)
     │   ├── app-shell/        # sidebar, org switcher, user menu
     │   ├── forms/            # TextField, FormAlert, useAction, useTranslateKey
+    │   ├── files/            # UploadButton (posts to /api/files)
     │   └── auth/ · i18n/     # sign-out, locale switcher
     ├── db/
     │   ├── schema/           # auth.ts (GENERATED) · platform.ts · _columns.ts helpers · index.ts
@@ -115,7 +117,9 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
     │   ├── audit/            # recordAudit()
     │   ├── numbering/        # nextDocumentNumber()
     │   ├── email/            # transport, send-later (queue), bilingual templates
-    │   ├── files/            # S3 client, ensureBucket
+    │   ├── files/            # s3.ts (client, ensureBucket), storage.ts (keys, put, presign),
+    │   │                     # service.ts (checkUpload, storeFile, discardFile, getFileDownloadUrl)
+    │   ├── route-handler.ts  # jsonResult, assertSameOrigin, readFormData (size-capped)
     │   ├── organizations/    # members & invitations: queries, service, actions, schemas
     │   └── <module>/         # schemas.ts (isomorphic) · queries.ts · service.ts · actions.ts · *.test.ts
     ├── jobs/                 # queues.ts (names, retry policy, payload types), enqueue.ts, worker.ts, handlers/
@@ -146,7 +150,7 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 ### Mutations
 - Server Actions in `src/server/<module>/actions.ts` (`'use server'`), each `defineAction({ input, permission }, handler)`: zod parse → `getTenantCtx()` → `assertCan` → handler → `Result<T>`. Never throws to the client except Next control flow. Handlers call services, then `revalidatePath`.
 - Client components run actions with `useAction(action)` (translated error toasts).
-- Route Handlers only for: Better Auth (`/api/auth/[...all]`), file upload/download, webhooks (SATIM, WhatsApp), future mobile API (`/api/v1/*`).
+- Route Handlers only for: Better Auth (`/api/auth/[...all]`), file upload/download (`/api/files`), webhooks (SATIM, WhatsApp), future mobile API (`/api/v1/*`). They answer the same `Result<T>` JSON via `jsonResult()` (HTTP status from the error code) and call services exactly like actions.
 
 ### Auth & roles
 - Better Auth: email + password, password reset, organization plugin, invitations by email (7 days). `session.activeOrganizationId` = current tenant; new sessions land in the user's first organization (database hook); the org switcher changes it.
@@ -179,7 +183,10 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 
 ### Files
 - S3 API only. Local: SeaweedFS (bucket created by `docker:up`). Production: any S3-compatible provider (location TBD, §12).
-- Private bucket. Key: `org/{orgId}/{entity}/{entityId}/{uuid}.{ext}`; a tenant-scoped `file` row holds metadata. Upload via Route Handler (auth + permission + MIME allow-list + max 20 MB); download via 5-min presigned GET after a permission check. (Implemented with the first upload feature.)
+- Private bucket. Key: `org/{orgId}/{entityType}/{entityId}/{fileId}.{ext}`; a tenant-scoped `file` row holds metadata (`entity_type` + `entity_id` = owner record).
+- **Upload**: `POST /api/files` (multipart `purpose`, `entityId`, `file`) → `Result<{ fileId }>`. Same-origin check, body capped while streaming (`readFormData`), then a switch on `purpose` calls the owning service (e.g. `setUnitFloorPlan`), which asserts the permission, runs `checkUpload` (size + **magic-byte** format check against `uploadPurposes` in `src/lib/files.ts`; the browser's MIME type is ignored) and `storeFile(tx, …)` (row insert, then S3 put, inside the tenant transaction). Client: `UploadButton`.
+- **Download**: `GET /api/files/{id}[?download]` → permission by `entity_type` (`readPermission` in `src/server/files/service.ts`) → 302 to a 5-min presigned URL with the original name (`Content-Disposition` with UTF-8 `filename*`).
+- Replacing/removing a file soft-deletes the old row (`deleted_at`); the object stays in the bucket. New purpose = entry in `uploadPurposes` + service function + `case` in `src/app/api/files/route.ts` (+ `readPermission` for a new entity type).
 - Issued documents are rendered once at issue; the stored PDF is served for reprints.
 
 ### PDF

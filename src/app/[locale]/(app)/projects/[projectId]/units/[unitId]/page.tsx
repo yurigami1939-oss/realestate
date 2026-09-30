@@ -27,6 +27,7 @@ import { requirePermission } from "@/server/auth/page-guard";
 import { deleteUnitAction } from "@/server/inventory/actions";
 import { getUnit, type UnitDetail } from "@/server/inventory/queries";
 
+import { FloorPlanCard } from "./_components/floor-plan-card";
 import { BlockUnitDialog, ChangePriceDialog } from "./_components/unit-dialogs";
 
 export async function generateMetadata({
@@ -107,7 +108,15 @@ export default async function UnitPage({
 
       <div className="grid gap-6 lg:grid-cols-3">
         <UnitDetails unit={unit} />
-        <PriceCard unit={unit} />
+        <div className="space-y-6">
+          <PriceCard unit={unit} />
+          <FloorPlanCard
+            unitId={unit.id}
+            code={unit.code}
+            plan={unit.floorPlan}
+            editable={can(ctx.roles, "unit:update")}
+          />
+        </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">

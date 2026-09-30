@@ -187,48 +187,47 @@ export async function getUnit(ctx: TenantCtx, unitId: string) {
       .where(and(eq(unit.id, unitId), isNull(unit.deletedAt)));
     if (!row) return null;
 
-    const [statusHistory, priceHistory, floorPlan] = await Promise.all([
-      tx
-        .select({
-          id: unitStatusHistory.id,
-          fromStatus: unitStatusHistory.fromStatus,
-          toStatus: unitStatusHistory.toStatus,
-          reason: unitStatusHistory.reason,
-          createdAt: unitStatusHistory.createdAt,
-          actorName: user.name,
-        })
-        .from(unitStatusHistory)
-        .leftJoin(user, eq(user.id, unitStatusHistory.actorUserId))
-        .where(eq(unitStatusHistory.unitId, unitId))
-        .orderBy(desc(unitStatusHistory.createdAt)),
-      tx
-        .select({
-          id: unitPriceHistory.id,
-          oldPrice: unitPriceHistory.oldPrice,
-          newPrice: unitPriceHistory.newPrice,
-          reason: unitPriceHistory.reason,
-          createdAt: unitPriceHistory.createdAt,
-          actorName: user.name,
-          priceListVersion: priceList.version,
-        })
-        .from(unitPriceHistory)
-        .leftJoin(user, eq(user.id, unitPriceHistory.actorUserId))
-        .leftJoin(priceList, eq(priceList.id, unitPriceHistory.priceListId))
-        .where(eq(unitPriceHistory.unitId, unitId))
-        .orderBy(desc(unitPriceHistory.createdAt)),
-      row.unit.floorPlanFileId
-        ? tx
-            .select({
-              id: file.id,
-              fileName: file.fileName,
-              contentType: file.contentType,
-              sizeBytes: file.sizeBytes,
-            })
-            .from(file)
-            .where(and(eq(file.id, row.unit.floorPlanFileId), isNull(file.deletedAt)))
-            .then((r) => r[0] ?? null)
-        : Promise.resolve(null),
-    ]);
+    // Sequential on purpose: a transaction is one connection, which runs one query at a time
+    // (pg deprecates queueing concurrent queries on a client).
+    const statusHistory = await tx
+      .select({
+        id: unitStatusHistory.id,
+        fromStatus: unitStatusHistory.fromStatus,
+        toStatus: unitStatusHistory.toStatus,
+        reason: unitStatusHistory.reason,
+        createdAt: unitStatusHistory.createdAt,
+        actorName: user.name,
+      })
+      .from(unitStatusHistory)
+      .leftJoin(user, eq(user.id, unitStatusHistory.actorUserId))
+      .where(eq(unitStatusHistory.unitId, unitId))
+      .orderBy(desc(unitStatusHistory.createdAt));
+    const priceHistory = await tx
+      .select({
+        id: unitPriceHistory.id,
+        oldPrice: unitPriceHistory.oldPrice,
+        newPrice: unitPriceHistory.newPrice,
+        reason: unitPriceHistory.reason,
+        createdAt: unitPriceHistory.createdAt,
+        actorName: user.name,
+        priceListVersion: priceList.version,
+      })
+      .from(unitPriceHistory)
+      .leftJoin(user, eq(user.id, unitPriceHistory.actorUserId))
+      .leftJoin(priceList, eq(priceList.id, unitPriceHistory.priceListId))
+      .where(eq(unitPriceHistory.unitId, unitId))
+      .orderBy(desc(unitPriceHistory.createdAt));
+    const [floorPlan = null] = row.unit.floorPlanFileId
+      ? await tx
+          .select({
+            id: file.id,
+            fileName: file.fileName,
+            contentType: file.contentType,
+            sizeBytes: file.sizeBytes,
+          })
+          .from(file)
+          .where(and(eq(file.id, row.unit.floorPlanFileId), isNull(file.deletedAt)))
+      : [];
 
     return {
       ...row.unit,

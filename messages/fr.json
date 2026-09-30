@@ -38,6 +38,13 @@
     "notFoundText": "La page demandée n'existe pas ou a été déplacée.",
     "noActiveOrganization": "Aucune société n'est sélectionnée."
   },
+  "files": {
+    "errors": {
+      "empty": "Aucun fichier reçu, ou fichier vide.",
+      "tooLarge": "Le fichier dépasse la taille maximale de 20 Mo.",
+      "type": "Format non accepté. Formats acceptés : PDF, PNG, JPEG, WebP."
+    }
+  },
   "home": {
     "title": "Bienvenue",
     "subtitle": "Promotions immobilières, ventes et gestion des résidences."
@@ -349,7 +356,22 @@
         "by": "Par"
       },
       "createdEvent": "Création",
-      "priceListRef": "Grille V{version}"
+      "priceListRef": "Grille V{version}",
+      "floorPlan": {
+        "title": "Plan du lot",
+        "empty": "Aucun plan pour ce lot.",
+        "upload": "Ajouter un plan",
+        "replace": "Remplacer",
+        "download": "Télécharger",
+        "open": "Ouvrir le plan",
+        "remove": "Supprimer le plan",
+        "removeTitle": "Supprimer le plan du lot {code} ?",
+        "removeDescription": "Le plan ne sera plus affiché sur la fiche du lot.",
+        "uploaded": "Plan enregistré.",
+        "removed": "Plan supprimé.",
+        "hint": "PDF, PNG, JPEG ou WebP, 20 Mo maximum.",
+        "alt": "Plan du lot {code}"
+      }
     },
     "priceLists": {
       "title": "Grilles de prix",
