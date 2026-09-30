@@ -23,7 +23,7 @@
     "db:seed": "tsx --env-file-if-exists=.env --import ./scripts/shims/server-only.mjs scripts/db-seed.ts",
     "db:reset": "tsx --env-file-if-exists=.env --import ./scripts/shims/server-only.mjs scripts/db-reset.ts",
     "db:studio": "drizzle-kit studio",
-    "docker:up": "docker compose up -d --wait",
+    "docker:up": "docker compose up -d --wait && tsx --env-file-if-exists=.env --import ./scripts/shims/server-only.mjs scripts/storage-init.ts",
     "docker:down": "docker compose down",
     "check": "pnpm lint && pnpm typecheck && pnpm test"
   },
