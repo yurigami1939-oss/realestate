@@ -302,7 +302,7 @@
     },
     "generate": {
       "title": "Générer des lots",
-      "description": "Crée les lots étage par étage avec des codes du type {example}. Les codes existants sont ignorés.",
+      "description": "Crée les lots étage par étage avec des codes du type <code>{example}</code>. Les codes existants sont ignorés.",
       "fromFloor": "Du niveau",
       "toFloor": "Au niveau",
       "unitsPerFloor": "Lots par étage",

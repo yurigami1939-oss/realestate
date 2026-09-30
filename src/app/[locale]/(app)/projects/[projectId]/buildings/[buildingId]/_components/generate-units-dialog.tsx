@@ -73,7 +73,14 @@ export function GenerateUnitsDialog({
         <DialogHeader>
           <DialogTitle>{t("generate.title")}</DialogTitle>
           <DialogDescription>
-            {t("generate.description", { example: defaultUnitCode(building.code, 3, 2) })}
+            {t.rich("generate.description", {
+              example: defaultUnitCode(building.code, 3, 2),
+              code: (chunks) => (
+                <bdi dir="ltr" className="font-mono whitespace-nowrap">
+                  {chunks}
+                </bdi>
+              ),
+            })}
           </DialogDescription>
         </DialogHeader>
         <form
