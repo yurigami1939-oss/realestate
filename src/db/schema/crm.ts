@@ -1,14 +1,5 @@
 import { sql } from "drizzle-orm";
-import {
-  foreignKey,
-  index,
-  jsonb,
-  pgEnum,
-  pgTable,
-  text,
-  unique,
-  uuid,
-} from "drizzle-orm/pg-core";
+import { foreignKey, index, jsonb, pgEnum, pgTable, text, unique, uuid } from "drizzle-orm/pg-core";
 
 import {
   financingModes,

@@ -90,3 +90,9 @@ export function addMonths(date: CalendarDate, months: number): CalendarDate {
   const day = Math.min(d, lastDay);
   return `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 }
+
+/** Adds whole days to a calendar date. */
+export function addDays(date: CalendarDate, days: number): CalendarDate {
+  if (!CALENDAR_DATE.test(date)) throw new RangeError(`addDays: invalid calendar date "${date}"`);
+  return new Date(Date.parse(`${date}T00:00:00Z`) + days * 86_400_000).toISOString().slice(0, 10);
+}

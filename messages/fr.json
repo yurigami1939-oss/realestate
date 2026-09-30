@@ -171,7 +171,8 @@
     "pipeline": "Pipeline",
     "followUps": "Relances",
     "visits": "Visites",
-    "duplicates": "Doublons"
+    "duplicates": "Doublons",
+    "company": "Société"
   },
   "shell": {
     "organizations": "Sociétés",
@@ -642,6 +643,135 @@
       "projectNotFound": "Projet introuvable.",
       "unitNotFound": "Lot introuvable dans ce projet.",
       "mergeSelf": "Choisissez une autre fiche à fusionner."
+    }
+  },
+  "company": {
+    "title": "Société",
+    "description": "Identité légale imprimée sur les devis, reçus et contrats, et réglages commerciaux.",
+    "identity": "Identité légale",
+    "sales": "Réglages commerciaux",
+    "saved": "Réglages enregistrés.",
+    "fields": {
+      "name": "Nom commercial",
+      "legalName": "Raison sociale",
+      "address": "Adresse du siège",
+      "wilaya": "Wilaya",
+      "phone": "Téléphone",
+      "rcNumber": "N° RC",
+      "nif": "NIF",
+      "nis": "NIS",
+      "aiNumber": "N° d'article d'imposition (AI)",
+      "quotationValidityDays": "Validité des devis (jours)"
+    }
+  },
+  "paymentPlans": {
+    "title": "Échéanciers",
+    "description": "Étapes des travaux prévues et échéanciers types proposés aux acquéreurs.",
+    "milestones": "Avancement des travaux (prévisionnel)",
+    "milestonesHint": "Les échéances liées à une étape sont dues à sa réalisation ; la date prévue sert aux simulations.",
+    "milestoneName": "Étape",
+    "plannedOn": "Date prévue",
+    "addMilestone": "Ajouter une étape",
+    "saveMilestones": "Enregistrer les étapes",
+    "milestonesSaved": "Étapes enregistrées.",
+    "noMilestones": "Aucune étape prévue.",
+    "plans": "Échéanciers types",
+    "noPlans": "Aucun échéancier. Créez-en un pour pouvoir émettre des devis.",
+    "new": "Nouvel échéancier",
+    "edit": "Modifier",
+    "newTitle": "Nouvel échéancier",
+    "editTitle": "Modifier « {name} »",
+    "name": "Nom",
+    "isDefault": "Échéancier par défaut du projet",
+    "default": "Par défaut",
+    "notes": "Notes",
+    "steps": "Tranches",
+    "addStep": "Ajouter une tranche",
+    "removeStep": "Retirer la tranche",
+    "step": {
+      "label": "Libellé",
+      "share": "Part (%)",
+      "trigger": "Exigible",
+      "months": "Mois après signature",
+      "milestoneId": "Étape des travaux"
+    },
+    "trigger": {
+      "signing": "À la signature",
+      "months_after_signing": "N mois après signature",
+      "milestone": "À une étape des travaux"
+    },
+    "total": "Total : {total}",
+    "created": "Échéancier créé.",
+    "updated": "Échéancier enregistré.",
+    "deleted": "Échéancier supprimé.",
+    "deleteTitle": "Supprimer « {name} » ?",
+    "deleteDescription": "Les devis déjà émis gardent leur échéancier.",
+    "monthsAfter": "{months, plural, =0 {À la signature} one {# mois après signature} other {# mois après signature}}",
+    "errors": {
+      "total": "La somme des tranches doit faire exactement 100 %.",
+      "noSteps": "Ajoutez au moins une tranche.",
+      "milestoneInUse": "Cette étape est utilisée par un échéancier : retirez-la d'abord de l'échéancier.",
+      "milestoneNotFound": "Étape inconnue pour ce projet."
+    },
+    "defaultSteps": {
+      "signing": "Réservation",
+      "handover": "Remise des clés"
+    }
+  },
+  "quotations": {
+    "title": "Devis",
+    "new": "Nouveau devis",
+    "newTitle": "Devis pour {name}",
+    "simulator": "Simulation",
+    "project": "Projet",
+    "unit": "Lot",
+    "plan": "Échéancier",
+    "discount": "Remise (DA)",
+    "discountHint": "Réservée à la direction commerciale.",
+    "notes": "Remarques imprimées sur le devis",
+    "listPrice": "Prix de vente",
+    "net": "Prix net",
+    "issue": "Émettre le devis",
+    "issued": "Devis {number} émis.",
+    "noPlan": "Ce projet n'a pas encore d'échéancier.",
+    "noUnits": "Aucun lot disponible et tarifé dans ce projet.",
+    "chooseUnit": "Choisissez un lot pour voir la simulation.",
+    "columns": {
+      "step": "Tranche",
+      "due": "Exigible",
+      "share": "%",
+      "amount": "Montant"
+    },
+    "atSigning": "À la signature",
+    "plannedMilestone": "{name} (prévu le {date})",
+    "unplannedMilestone": "{name} (date non prévue)",
+    "validUntil": "Valable jusqu'au {date}",
+    "issuedBy": "Émis le {date} par {name}",
+    "status": {
+      "issued": "Émis",
+      "cancelled": "Annulé",
+      "expired": "Expiré"
+    },
+    "pdf": "PDF",
+    "pdfPending": "PDF en préparation…",
+    "pdfRetry": "Relancer la génération",
+    "pdfRequested": "Génération relancée.",
+    "download": "Télécharger le PDF",
+    "cancel": "Annuler le devis",
+    "cancelTitle": "Annuler le devis {number} ?",
+    "cancelDescription": "Le devis reste consultable avec son numéro ; il ne peut plus servir.",
+    "cancelReason": "Motif",
+    "cancelled": "Devis annulé.",
+    "cancelledBy": "Annulé le {date} par {name} : {reason}",
+    "none": "Aucun devis.",
+    "lead": "Prospect",
+    "errors": {
+      "discountForbidden": "Seule la direction commerciale peut accorder une remise.",
+      "discountTooHigh": "La remise dépasse le prix du lot.",
+      "unitNotAvailable": "Ce lot n'est plus disponible.",
+      "unitNotPriced": "Ce lot n'a pas de prix de vente.",
+      "planNotFound": "Échéancier introuvable pour ce projet.",
+      "alreadyCancelled": "Ce devis est déjà annulé."
     }
   }
 }

@@ -332,7 +332,8 @@ function at(days: number, time: string) {
 export async function seedCrm(
   actors: { manager: TenantCtx; agentA: TenantCtx; agentB: TenantCtx },
   projectIds: Map<string, string>,
-) {
+): Promise<Map<string, string>> {
+  const leadIds = new Map<string, string>();
   const creatorOf = (owner: Owner) =>
     owner === "agentA" ? actors.agentA : owner === "agentB" ? actors.agentB : actors.manager;
   let index = 0;
@@ -353,6 +354,7 @@ export async function seedCrm(
         assignedTo: demo.owner === "manager" ? actors.manager.userId : "",
       }),
     );
+    if (!leadIds.has(demo.name)) leadIds.set(demo.name, id);
     const projectId = demo.project ? projectIds.get(demo.project) : undefined;
     const stageAt = (stage: LeadStage) =>
       ["contacted", "visit_scheduled", "visited", "negotiation", "won"].indexOf(stage);
@@ -436,4 +438,5 @@ export async function seedCrm(
       });
     }
   }
+  return leadIds;
 }

@@ -1,4 +1,4 @@
-import { AlertTriangle, Pencil, Trash2 } from "lucide-react";
+import { AlertTriangle, FileText, Pencil, Trash2 } from "lucide-react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
@@ -8,19 +8,22 @@ import { PageHeader } from "@/components/app-shell/page-header";
 import { LeadStageBadge, VisitStatusBadge } from "@/components/crm/badges";
 import { PhoneActions, PhoneText } from "@/components/crm/phone";
 import { ConfirmAction } from "@/components/forms/confirm-action";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "@/i18n/navigation";
 import { toLocale } from "@/i18n/locales";
-import { formatDateTime } from "@/lib/dates";
+import { formatDate, formatDateTime, todayInAlgiers } from "@/lib/dates";
 import { formatDZD } from "@/lib/money";
 import { can } from "@/lib/permissions";
+import { quotationState } from "@/lib/quotations";
 import { cn } from "@/lib/utils";
 import { requirePermission } from "@/server/auth/page-guard";
 import type { TenantCtx } from "@/server/auth/session";
 import { deleteLeadAction, mergeLeadsAction } from "@/server/crm/actions";
 import { getLead, listLeadOwners, type LeadDetail } from "@/server/crm/queries";
 import { listProjectOptions, listUnitOptions } from "@/server/inventory/queries";
+import { listLeadQuotations } from "@/server/quotations/queries";
 
 import {
   CompleteFollowUpDialog,
@@ -59,6 +62,7 @@ export default async function LeadPage({ params }: PageProps<"/[locale]/leads/[l
     code: u.code,
     typology: u.typology,
   }));
+  const quotations = await listLeadQuotations(ctx, lead.id);
   const t = await getTranslations("crm");
   const tc = await getTranslations("common");
   const editable = can(ctx.roles, "lead:update");
@@ -117,6 +121,11 @@ export default async function LeadPage({ params }: PageProps<"/[locale]/leads/[l
             <ContactCard lead={lead} />
             <InterestCard lead={lead} />
           </div>
+          <QuotationsCard
+            leadId={lead.id}
+            quotations={quotations}
+            canCreate={can(ctx.roles, "quotation:create")}
+          />
           <FollowUpsCard lead={lead} owners={owners} editable={editable} />
           <VisitsCard
             lead={lead}
@@ -366,6 +375,70 @@ function Duplicates({ lead, ctx }: { lead: LeadDetail; ctx: TenantCtx }) {
             ))}
           </ul>
         ) : null}
+      </CardContent>
+    </Card>
+  );
+}
+
+function QuotationsCard({
+  leadId,
+  quotations,
+  canCreate,
+}: {
+  leadId: string;
+  quotations: Awaited<ReturnType<typeof listLeadQuotations>>;
+  canCreate: boolean;
+}) {
+  const t = useTranslations("quotations");
+  const locale = useLocale() === "ar" ? "ar" : "fr";
+  const today = todayInAlgiers();
+  return (
+    <Card data-testid="lead-quotations">
+      <CardHeader className="flex flex-row items-center justify-between gap-2">
+        <CardTitle className="text-base">{t("title")}</CardTitle>
+        {canCreate ? (
+          <Button asChild variant="outline" size="sm">
+            <Link href={`/leads/${leadId}/quotations/new`}>
+              <FileText data-icon="inline-start" />
+              {t("new")}
+            </Link>
+          </Button>
+        ) : null}
+      </CardHeader>
+      <CardContent>
+        {quotations.length === 0 ? (
+          <p className="text-sm text-muted-foreground">{t("none")}</p>
+        ) : (
+          <ul className="divide-y">
+            {quotations.map((q) => {
+              const state = quotationState(q, today);
+              return (
+                <li
+                  key={q.id}
+                  className="flex flex-wrap items-center justify-between gap-3 py-2.5 text-sm"
+                >
+                  <div className="space-y-0.5">
+                    <Link href={`/quotations/${q.id}`} className="font-medium hover:underline">
+                      {q.number}
+                    </Link>
+                    <p className="text-muted-foreground">
+                      {q.projectName} · <bdi dir="ltr">{q.unitCode}</bdi> ·{" "}
+                      {t("validUntil", { date: formatDate(q.validUntil) })}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span dir="ltr" className="font-medium whitespace-nowrap">
+                      {formatDZD(q.price, locale)}
+                    </span>
+                    <Badge variant={state === "issued" ? "default" : "secondary"}>
+                      {t(`status.${state}`)}
+                    </Badge>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        )}
       </CardContent>
     </Card>
   );

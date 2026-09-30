@@ -3,7 +3,7 @@ import "server-only";
 import { and, eq, isNull, sql } from "drizzle-orm";
 
 import type { Tx } from "@/db/client";
-import { file } from "@/db/schema";
+import { file, lead, quotation } from "@/db/schema";
 import { withTenant } from "@/db/tenant";
 import {
   cleanFileName,
@@ -12,18 +12,31 @@ import {
   type FileContentType,
   type UploadPurpose,
 } from "@/lib/files";
-import type { Permission } from "@/lib/permissions";
+import { can } from "@/lib/permissions";
 import { AppError } from "@/lib/result";
-import { assertCan, type TenantCtx } from "@/server/auth/session";
+import type { TenantCtx } from "@/server/auth/session";
+import { visibleLeads } from "@/server/crm/access";
 
 import { presignDownload, putObject, storageKey } from "./storage";
 
 /** A file received by the upload Route Handler, not yet checked. */
 export type Upload = { fileName: string; bytes: Uint8Array };
 
-/** Permission needed to download a file, by the kind of record it belongs to. */
-const readPermission: Record<string, Permission> = {
-  unit: "inventory:read",
+type Reader = (tx: Tx, ctx: TenantCtx, entityId: string) => Promise<boolean>;
+
+/** Who may download a file, by the kind of record it belongs to. Unknown kinds: nobody. */
+const readers: Record<string, Reader> = {
+  unit: async (_tx, ctx) => can(ctx.roles, "inventory:read"),
+  // A quotation PDF follows its lead: commercials only see their own leads' quotations.
+  quotation: async (tx, ctx, entityId) => {
+    if (!can(ctx.roles, "lead:read")) return false;
+    const [row] = await tx
+      .select({ id: quotation.id })
+      .from(quotation)
+      .innerJoin(lead, eq(lead.id, quotation.leadId))
+      .where(and(eq(quotation.id, entityId), visibleLeads(ctx)));
+    return row !== undefined;
+  },
 };
 
 const invalidFile = (messageKey: string) =>
@@ -48,7 +61,8 @@ export function checkUpload(purpose: UploadPurpose, upload: Upload): FileContent
  */
 export async function storeFile(
   tx: Tx,
-  actor: Pick<TenantCtx, "orgId" | "userId">,
+  /** `userId` is null for background jobs (e.g. a rendered document). */
+  actor: { orgId: string; userId: string | null },
   input: {
     entityType: string;
     entityId: string;
@@ -97,14 +111,14 @@ export async function getFileDownloadUrl(
         fileName: file.fileName,
         contentType: file.contentType,
         entityType: file.entityType,
+        entityId: file.entityId,
       })
       .from(file)
       .where(and(eq(file.id, fileId), isNull(file.deletedAt)));
+    if (!found) throw new AppError("NOT_FOUND");
+    const reader = readers[found.entityType];
+    if (!reader || !(await reader(tx, ctx, found.entityId))) throw new AppError("FORBIDDEN");
     return found;
   });
-  if (!row) throw new AppError("NOT_FOUND");
-  const permission = readPermission[row.entityType];
-  if (!permission) throw new AppError("FORBIDDEN");
-  assertCan(ctx, permission);
   return presignDownload({ ...row, disposition });
 }

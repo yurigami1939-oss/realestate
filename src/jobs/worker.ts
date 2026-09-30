@@ -7,6 +7,7 @@ import { PgBoss } from "pg-boss";
 import { JOBS_SCHEMA } from "@/db/jobs-schema";
 import { env } from "@/env";
 
+import { handleRenderQuotationPdf } from "./handlers/render-quotation-pdf";
 import { handleSendEmail } from "./handlers/send-email";
 
 const boss = new PgBoss({
@@ -20,7 +21,8 @@ boss.on("error", (error) => console.error("[worker]", error));
 
 await boss.start();
 await boss.work("email.send", { batchSize: 5 }, handleSendEmail);
-console.log("[worker] started: email.send");
+await boss.work("pdf.quotation", { batchSize: 1 }, handleRenderQuotationPdf);
+console.log("[worker] started: email.send, pdf.quotation");
 
 let stopping = false;
 async function shutdown(signal: string) {

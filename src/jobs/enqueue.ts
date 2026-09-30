@@ -1,7 +1,9 @@
 import "server-only";
 
-import { PgBoss, type SendOptions } from "pg-boss";
+import { sql } from "drizzle-orm";
+import { fromDrizzle, PgBoss, type SendOptions } from "pg-boss";
 
+import type { Tx } from "@/db/client";
 import { JOBS_SCHEMA } from "@/db/jobs-schema";
 import { env } from "@/env";
 
@@ -35,6 +37,20 @@ export async function enqueue<Q extends QueueName>(
 ): Promise<string | null> {
   const boss = await sender();
   return boss.send(queue, data, options);
+}
+
+/**
+ * Enqueues through the caller's transaction: the job exists only if the business change
+ * commits (e.g. render a document right after issuing it). Returns the job id.
+ */
+export async function enqueueInTx<Q extends QueueName>(
+  tx: Tx,
+  queue: Q,
+  data: JobPayloads[Q],
+  options: SendOptions = {},
+): Promise<string | null> {
+  const boss = await sender();
+  return boss.send(queue, data, { ...options, db: fromDrizzle(tx, sql) });
 }
 
 /** Closes the sender's connections (tests, scripts). */

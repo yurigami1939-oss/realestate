@@ -30,7 +30,10 @@ export default async function AppLayout({ children, params }: LayoutProps<"/[loc
         organizations={organizations.map(({ id, name }) => ({ id, name }))}
         activeOrgId={activeOrgId}
         user={{ name: session.user.name, email: session.user.email }}
-        sales={can(ctx.roles, "lead:read")}
+        access={{
+          sales: can(ctx.roles, "lead:read"),
+          company: can(ctx.roles, "organization:update"),
+        }}
       />
       {/* min-w-0: wide tables scroll inside their own container, not the page. */}
       <SidebarInset className="min-w-0">

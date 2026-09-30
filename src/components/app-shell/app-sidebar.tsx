@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Building,
   Building2,
   CalendarDays,
   Contact,
@@ -30,7 +31,15 @@ import { Link, usePathname } from "@/i18n/navigation";
 import { NavUser } from "./nav-user";
 import { type OrgOption, OrgSwitcher } from "./org-switcher";
 
-type NavKey = "dashboard" | "projects" | "members" | "leads" | "pipeline" | "followUps" | "visits";
+type NavKey =
+  | "dashboard"
+  | "projects"
+  | "members"
+  | "company"
+  | "leads"
+  | "pipeline"
+  | "followUps"
+  | "visits";
 type NavItem = { href: string; key: NavKey; icon: LucideIcon };
 
 /** Each module adds its entries here as it lands (CLAUDE.md §11 Roadmap). */
@@ -44,7 +53,10 @@ const salesNav: NavItem[] = [
   { href: "/follow-ups", key: "followUps", icon: PhoneCall },
   { href: "/visits", key: "visits", icon: CalendarDays },
 ];
-const settingsNav: NavItem[] = [{ href: "/settings/members", key: "members", icon: Users }];
+const settingsNav: NavItem[] = [
+  { href: "/settings/members", key: "members", icon: Users },
+  { href: "/settings/company", key: "company", icon: Building },
+];
 
 const allItems = [...mainNav, ...salesNav, ...settingsNav];
 
@@ -61,11 +73,11 @@ export function AppSidebar({
   organizations,
   activeOrgId,
   user,
-  sales,
+  access,
 }: {
   side: "left" | "right";
-  /** Shows the sales (CRM) entries: roles that work leads. */
-  sales: boolean;
+  /** Entries shown by role: sales (CRM) for roles that work leads, company for the gérant. */
+  access: { sales: boolean; company: boolean };
   organizations: OrgOption[];
   activeOrgId: string;
   user: { name: string; email: string };
@@ -105,8 +117,11 @@ export function AppSidebar({
       </SidebarHeader>
       <SidebarContent>
         {renderGroup(t("nav.main"), mainNav)}
-        {sales ? renderGroup(t("nav.sales"), salesNav) : null}
-        {renderGroup(t("nav.settings"), settingsNav)}
+        {access.sales ? renderGroup(t("nav.sales"), salesNav) : null}
+        {renderGroup(
+          t("nav.settings"),
+          settingsNav.filter((item) => item.key !== "company" || access.company),
+        )}
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={user} />

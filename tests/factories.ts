@@ -38,14 +38,12 @@ export async function createTenantCtx(roles: Role[] = ["owner"]): Promise<Tenant
 /** Adds a member with these roles to the organization and returns their TenantCtx. */
 export async function addMember(orgId: string, roles: Role[]): Promise<TenantCtx> {
   const created = await createUser();
-  await db
-    .insert(member)
-    .values({
-      organizationId: orgId,
-      userId: created.id,
-      role: roles.join(","),
-      createdAt: new Date(),
-    });
+  await db.insert(member).values({
+    organizationId: orgId,
+    userId: created.id,
+    role: roles.join(","),
+    createdAt: new Date(),
+  });
   return { orgId, userId: created.id, roles, locale: "fr" };
 }
 

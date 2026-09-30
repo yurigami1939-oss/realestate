@@ -1,5 +1,6 @@
 /** `pnpm db:seed`: wipes local data and seeds the demo promoter. */
 import { pool } from "@/db/client";
+import { stopEnqueue } from "@/jobs/enqueue";
 import { assertLocalDatabase, seedDemo, wipeData } from "@/db/seed";
 
 const ownerUrl = process.env.DATABASE_OWNER_URL;
@@ -9,5 +10,7 @@ assertLocalDatabase(appUrl);
 
 await wipeData(ownerUrl);
 await seedDemo();
+// Seeding enqueues jobs (document PDFs): close the pg-boss sender too.
+await stopEnqueue();
 await pool.end();
 console.log("Seeded the demo promoter (see src/db/seed/demo.ts for accounts).");

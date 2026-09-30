@@ -2,6 +2,7 @@
 import { Pool } from "pg";
 
 import { pool } from "@/db/client";
+import { stopEnqueue } from "@/jobs/enqueue";
 import { JOBS_SCHEMA } from "@/db/jobs-schema";
 import { migrateDatabase } from "@/db/migrate";
 import { assertLocalDatabase, seedDemo } from "@/db/seed";
@@ -26,5 +27,7 @@ try {
 
 await migrateDatabase({ ownerUrl, appUrl });
 await seedDemo();
+// Seeding enqueues jobs (document PDFs): close the pg-boss sender too.
+await stopEnqueue();
 await pool.end();
 console.log("Database reset, migrated and seeded.");

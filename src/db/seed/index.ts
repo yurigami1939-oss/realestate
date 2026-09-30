@@ -9,6 +9,7 @@ import type { TenantCtx } from "@/server/auth/session";
 import { DEMO_PASSWORD, demoOrganizations, demoUsers } from "./demo";
 import { seedCrm } from "./crm";
 import { seedInventory } from "./inventory";
+import { seedPaymentPlans, seedQuotations } from "./sales";
 
 /** Refuses anything but a local database: seeding wipes data. */
 export function assertLocalDatabase(url: string): void {
@@ -73,14 +74,17 @@ export async function seedDemo(): Promise<void> {
       locale: "fr",
     });
     const salesManager = ctx("salesManager", ["sales_manager"]);
-    const projectIds = await seedInventory({ owner: ctx("owner", ["owner"]), salesManager });
-    await seedCrm(
-      {
-        manager: salesManager,
-        agentA: ctx("salesAgent", ["sales_agent"]),
-        agentB: ctx("salesAgent2", ["sales_agent"]),
-      },
-      projectIds,
+    const agentA = ctx("salesAgent", ["sales_agent"]);
+    const agentB = ctx("salesAgent2", ["sales_agent"]);
+    const { projectIds, unitIds } = await seedInventory({
+      owner: ctx("owner", ["owner"]),
+      salesManager,
+    });
+    const plans = await seedPaymentPlans(salesManager, projectIds);
+    const leads = await seedCrm({ manager: salesManager, agentA, agentB }, projectIds);
+    await seedQuotations(
+      { manager: salesManager, agentA, agentB },
+      { leads, units: unitIds, plans },
     );
   }
 }

@@ -7,11 +7,13 @@ import { defineAction } from "@/server/action";
 
 import {
   cancelInvitationSchema,
+  companySettingsSchema,
   inviteMemberSchema,
   removeMemberSchema,
   updateMemberRolesSchema,
 } from "./schemas";
 import { cancelInvitation, inviteMember, removeMember, updateMemberRoles } from "./service";
+import { updateCompanySettings } from "./settings";
 
 const MEMBERS_PAGE = "/[locale]/settings/members";
 
@@ -45,5 +47,14 @@ export const removeMemberAction = defineAction(
   async (input, ctx) => {
     await removeMember(ctx, await headers(), input);
     revalidatePath(MEMBERS_PAGE, "page");
+  },
+);
+
+export const updateCompanySettingsAction = defineAction(
+  { input: companySettingsSchema, permission: "organization:update" },
+  async (input, ctx) => {
+    await updateCompanySettings(ctx, input);
+    // The name shows in the shell (org switcher, header) on every page.
+    revalidatePath("/[locale]", "layout");
   },
 );
