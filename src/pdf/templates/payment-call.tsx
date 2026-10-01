@@ -6,6 +6,8 @@ import type { CompanyIdentity } from "@/server/organizations/settings";
 
 import { PdfDocument } from "../document";
 
+import { Letterhead } from "./letterhead";
+
 /** Everything printed on a payment call, already resolved (no lookups in templates). */
 export type PaymentCallData = {
   number: string;
@@ -58,22 +60,7 @@ export function PaymentCallTemplate({
     : `réservation ${data.saleNumber}`;
   return (
     <PdfDocument title={data.number} css={CSS}>
-      <header>
-        <div>
-          <div className="org">{company.legalName ?? company.name}</div>
-          <div className="muted">
-            {[company.address, company.wilaya].filter(Boolean).join(", ")}
-          </div>
-          {company.phone ? <div className="muted">Tél. {company.phone}</div> : null}
-        </div>
-        <div className="muted" style={{ textAlign: "end" }}>
-          {company.rcNumber ? `RC ${company.rcNumber}` : ""}{" "}
-          {company.nif ? `· NIF ${company.nif}` : ""}
-          <br />
-          {company.nis ? `NIS ${company.nis}` : ""}{" "}
-          {company.aiNumber ? `· AI ${company.aiNumber}` : ""}
-        </div>
-      </header>
+      <Letterhead company={company} />
 
       <div className="title">
         <h1>APPEL DE FONDS</h1>
@@ -122,8 +109,8 @@ export function PaymentCallTemplate({
       </p>
       <p dir="rtl" lang="ar">
         يسرنا إعلامكم بإنجاز مرحلة «<bdi>{data.milestoneName}</bdi>» بتاريخ{" "}
-        {formatDate(data.validatedOn)}. ووفقاً لجدول الدفعات المنصوص عليه في عقدكم، نرجو منكم
-        تسديد المبلغ أدناه في أجل أقصاه <b>{formatDate(data.dueOn)}</b>.
+        {formatDate(data.validatedOn)}. ووفقاً لجدول الدفعات المنصوص عليه في عقدكم، نرجو منكم تسديد
+        المبلغ أدناه في أجل أقصاه <b>{formatDate(data.dueOn)}</b>.
       </p>
 
       <table>

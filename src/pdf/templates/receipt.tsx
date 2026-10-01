@@ -16,6 +16,8 @@ export type ReceiptData = {
     nif: string;
     nis: string;
     aiNumber: string;
+    /** Data URI of the company logo, when there is one. */
+    logo?: string | null;
   };
   payer: { fr: string; ar: string };
   reference: { fr: string; ar: string };
@@ -62,9 +64,20 @@ export function ReceiptTemplate({ data }: { data: ReceiptData }) {
   return (
     <PdfDocument title={data.number} css={CSS}>
       <header>
-        <div>
-          <div className="org">{org.legalName}</div>
-          <div className="muted">{org.address}</div>
+        <div style={{ display: "flex", alignItems: "center", gap: "10pt" }}>
+          {org.logo ? (
+            // Static HTML printed by Chromium (not a Next page): a plain image, embedded as data.
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={org.logo}
+              alt=""
+              style={{ maxHeight: "40pt", maxWidth: "120pt", objectFit: "contain" }}
+            />
+          ) : null}
+          <div>
+            <div className="org">{org.legalName}</div>
+            <div className="muted">{org.address}</div>
+          </div>
         </div>
         <div className="muted" style={{ textAlign: "end" }}>
           RC {org.rcNumber} · NIF {org.nif}

@@ -9,7 +9,7 @@ import { withTenant } from "@/db/tenant";
 import { isUuid } from "@/lib/ids";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
 import { visibleLeads } from "@/server/crm/access";
-import { loadCompanyProfile } from "@/server/organizations/settings";
+import { loadCompanyLetterhead } from "@/server/organizations/settings";
 
 const canceller = alias(user, "canceller");
 
@@ -73,7 +73,7 @@ export type QuotationDetail = NonNullable<Awaited<ReturnType<typeof getQuotation
 export async function loadQuotationDocument(tx: Tx, orgId: string, quotationId: string) {
   const detail = await loadQuotation(tx, quotationId);
   if (!detail) return null;
-  return { ...detail, company: await loadCompanyProfile(tx, orgId) };
+  return { ...detail, company: await loadCompanyLetterhead(tx, orgId) };
 }
 
 export type QuotationDocument = NonNullable<Awaited<ReturnType<typeof loadQuotationDocument>>>;

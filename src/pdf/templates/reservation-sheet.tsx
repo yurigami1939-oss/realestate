@@ -4,10 +4,12 @@ import { formatDate } from "@/lib/dates";
 import { amountInWordsAr, amountInWordsFr, formatDZD } from "@/lib/money";
 import { formatShare } from "@/lib/payment-plans";
 import { formatPhone } from "@/lib/phone";
-import type { CompanyProfile } from "@/server/organizations/settings";
+import type { CompanyIdentity } from "@/server/organizations/settings";
 import type { SaleDetail } from "@/server/sales/sale-queries";
 
 import { PdfDocument } from "../document";
+
+import { Letterhead } from "./letterhead";
 
 const CSS = `
 @page{size:A4;margin:14mm}
@@ -56,7 +58,7 @@ export function ReservationSheetTemplate({
   company,
 }: {
   sale: Sale;
-  company: CompanyProfile;
+  company: CompanyIdentity;
 }) {
   const money = (v: bigint) => formatDZD(v, "fr");
   const location = [sale.projectAddress, sale.projectCommune, sale.projectWilaya]
@@ -64,22 +66,7 @@ export function ReservationSheetTemplate({
     .join(", ");
   return (
     <PdfDocument title={sale.number} css={CSS}>
-      <header>
-        <div>
-          <div className="org">{company.legalName ?? company.name}</div>
-          <div className="muted">
-            {[company.address, company.wilaya].filter(Boolean).join(", ")}
-          </div>
-          {company.phone ? <div className="muted">Tél. {company.phone}</div> : null}
-        </div>
-        <div className="muted" style={{ textAlign: "end" }}>
-          {company.rcNumber ? `RC ${company.rcNumber}` : ""}{" "}
-          {company.nif ? `· NIF ${company.nif}` : ""}
-          <br />
-          {company.nis ? `NIS ${company.nis}` : ""}{" "}
-          {company.aiNumber ? `· AI ${company.aiNumber}` : ""}
-        </div>
-      </header>
+      <Letterhead company={company} />
 
       <div className="title">
         <h1>FICHE DE RÉSERVATION</h1>

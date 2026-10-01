@@ -32,6 +32,13 @@ export async function deleteObject(key: string) {
   await s3.send(new DeleteObjectCommand({ Bucket: bucket, Key: key }));
 }
 
+/** Whole object (small files only: e.g. the logo embedded in documents). */
+export async function getObjectBytes(key: string): Promise<Uint8Array> {
+  const response = await s3.send(new GetObjectCommand({ Bucket: bucket, Key: key }));
+  if (!response.Body) throw new Error(`getObjectBytes: no body for ${key}`);
+  return response.Body.transformToByteArray();
+}
+
 /** Short-lived GET link; the browser gets the original file name and type. */
 export function presignDownload(file: {
   storageKey: string;

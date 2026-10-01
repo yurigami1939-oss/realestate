@@ -5,22 +5,12 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
 import type { Tx } from "@/db/client";
-import {
-  buyer,
-  project,
-  reminderLetter,
-  reservation,
-  reservationBuyer,
-  unit,
-} from "@/db/schema";
+import { buyer, project, reminderLetter, reservation, reservationBuyer, unit } from "@/db/schema";
 import { withTenant } from "@/db/tenant";
 import { renderPdf } from "@/pdf/render";
-import {
-  type ReminderLetterData,
-  ReminderLetterTemplate,
-} from "@/pdf/templates/reminder-letter";
+import { type ReminderLetterData, ReminderLetterTemplate } from "@/pdf/templates/reminder-letter";
 import { storeFile } from "@/server/files/service";
-import { type CompanyIdentity, loadCompanyProfile } from "@/server/organizations/settings";
+import { type CompanyIdentity, loadCompanyLetterhead } from "@/server/organizations/settings";
 
 /** Everything printed on a reminder letter (null if unknown). */
 export async function loadReminderLetterData(
@@ -100,7 +90,7 @@ export async function renderAndStoreReminderLetter(
   const loaded = await withTenant(scope, async (tx) => {
     const letter = await loadReminderLetterData(tx, letterId);
     if (!letter || letter.pdfFileId) return null;
-    return { letter, company: await loadCompanyProfile(tx, organizationId) };
+    return { letter, company: await loadCompanyLetterhead(tx, organizationId) };
   });
   if (!loaded) return "skipped";
   const bytes = new Uint8Array(

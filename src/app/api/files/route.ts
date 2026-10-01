@@ -7,6 +7,7 @@ import { buyerDocumentKinds } from "@/lib/sales";
 import { getTenantCtx } from "@/server/auth/session";
 import { setBuyerDocumentScan } from "@/server/buyers/service";
 import { setUnitFloorPlan } from "@/server/inventory/floor-plans";
+import { setCompanyLogo } from "@/server/organizations/settings";
 import { setReservationScan } from "@/server/sales/reservations";
 import { assertSameOrigin, jsonResult, readFormData } from "@/server/route-handler";
 
@@ -57,6 +58,13 @@ export async function POST(request: Request) {
           upload,
         });
         revalidatePath("/[locale]/sales", "layout");
+        return result;
+      }
+      case "organization.logo": {
+        // The logo belongs to the member's organization only.
+        if (fields.data.entityId !== ctx.orgId) throw new AppError("NOT_FOUND");
+        const result = await setCompanyLogo(ctx, { upload });
+        revalidatePath("/[locale]/settings/company", "page");
         return result;
       }
       case "buyer.document": {

@@ -8,6 +8,8 @@ import type { QuotationDocument } from "@/server/quotations/queries";
 
 import { PdfDocument } from "../document";
 
+import { Letterhead } from "./letterhead";
+
 const CSS = `
 @page{size:A4;margin:14mm}
 header{display:flex;justify-content:space-between;gap:16pt;margin-bottom:12pt}
@@ -63,18 +65,7 @@ export function QuotationTemplate({ doc }: { doc: Doc }) {
 
   return (
     <PdfDocument title={doc.number} css={CSS}>
-      <header>
-        <div>
-          <div className="org">{c.legalName ?? c.name}</div>
-          <div className="muted">{[c.address, c.wilaya].filter(Boolean).join(", ")}</div>
-          {c.phone ? <div className="muted">Tél. {c.phone}</div> : null}
-        </div>
-        <div className="muted" style={{ textAlign: "end" }}>
-          {c.rcNumber ? `RC ${c.rcNumber}` : ""} {c.nif ? `· NIF ${c.nif}` : ""}
-          <br />
-          {c.nis ? `NIS ${c.nis}` : ""} {c.aiNumber ? `· AI ${c.aiNumber}` : ""}
-        </div>
-      </header>
+      <Letterhead company={c} />
 
       <div className="title">
         <h1>DEVIS</h1>

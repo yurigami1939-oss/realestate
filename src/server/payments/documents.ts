@@ -19,7 +19,7 @@ import type { PaymentMethod } from "@/lib/sales";
 import { type ReceiptData, receiptHtml } from "@/pdf/receipt";
 import { renderPdf } from "@/pdf/render";
 import { storeFile } from "@/server/files/service";
-import { loadCompanyProfile } from "@/server/organizations/settings";
+import { loadCompanyLetterhead } from "@/server/organizations/settings";
 
 const methodLabels: Record<PaymentMethod, { fr: string; ar: string }> = {
   cash: { fr: "Espèces", ar: "نقداً" },
@@ -59,7 +59,7 @@ export async function loadReceiptData(
     .where(eq(reservationBuyer.reservationId, row.payment.reservationId))
     .orderBy(asc(reservationBuyer.position))
     .limit(1);
-  const company = await loadCompanyProfile(tx, orgId);
+  const company = await loadCompanyLetterhead(tx, orgId);
 
   const p = row.payment;
   const method = methodLabels[p.method];
@@ -84,6 +84,7 @@ export async function loadReceiptData(
         nif: company.nif ?? "",
         nis: company.nis ?? "",
         aiNumber: company.aiNumber ?? "",
+        logo: company.logo,
       },
       payer: { fr: p.payerName, ar: arabicName || p.payerName },
       reference: {

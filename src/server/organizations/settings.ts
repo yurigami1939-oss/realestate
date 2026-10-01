@@ -1,15 +1,17 @@
 import "server-only";
 
-import { eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import type { z } from "zod";
 
 import type { Tx } from "@/db/client";
-import { organization, organizationSetting } from "@/db/schema";
+import { file, organization, organizationSetting } from "@/db/schema";
 import { withTenant } from "@/db/tenant";
 import { AppError } from "@/lib/result";
 import { salesSettingDefaults, type SalesSettings, type VspLimits } from "@/lib/sales";
 import { recordAudit } from "@/server/audit/record-audit";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
+import { checkUpload, discardFile, storeFile, type Upload } from "@/server/files/service";
+import { getObjectBytes } from "@/server/files/storage";
 
 import type { companySettingsSchema } from "./schemas";
 
@@ -62,15 +64,109 @@ export async function loadCompanyProfile(tx: Tx, orgId: string) {
     .from(organization)
     .where(eq(organization.id, orgId));
   if (!org) throw new AppError("NOT_FOUND");
-  return { ...org, ...(await loadSalesSettings(tx, orgId)) };
+  const [setting] = await tx
+    .select({ logoFileId: organizationSetting.logoFileId })
+    .from(organizationSetting)
+    .where(eq(organizationSetting.organizationId, orgId));
+  return {
+    ...org,
+    ...(await loadSalesSettings(tx, orgId)),
+    logoFileId: setting?.logoFileId ?? null,
+  };
 }
 
 export type CompanyProfile = Awaited<ReturnType<typeof loadCompanyProfile>>;
-/** The legal identity printed on documents. */
+/** The legal identity printed on documents, with the logo as a data URI when there is one. */
 export type CompanyIdentity = Pick<
   CompanyProfile,
   "name" | "legalName" | "address" | "wilaya" | "phone" | "rcNumber" | "nif" | "nis" | "aiNumber"
->;
+> & { logo?: string | null };
+
+/**
+ * Company profile for the PDF templates: the logo is read from storage and embedded as a data
+ * URI (documents are rendered offline by Chromium in the worker).
+ */
+export async function loadCompanyLetterhead(tx: Tx, orgId: string) {
+  const profile = await loadCompanyProfile(tx, orgId);
+  if (!profile.logoFileId) return { ...profile, logo: null };
+  const [logo] = await tx
+    .select({ storageKey: file.storageKey, contentType: file.contentType })
+    .from(file)
+    .where(and(eq(file.id, profile.logoFileId), isNull(file.deletedAt)));
+  if (!logo) return { ...profile, logo: null };
+  const bytes = await getObjectBytes(logo.storageKey);
+  return {
+    ...profile,
+    logo: `data:${logo.contentType};base64,${Buffer.from(bytes).toString("base64")}`,
+  };
+}
+
+export type CompanyLetterhead = Awaited<ReturnType<typeof loadCompanyLetterhead>>;
+
+/**
+ * Gérant: the company logo (PNG/JPEG, checked by magic bytes), printed on the documents issued
+ * afterwards; the previous logo file is soft-deleted. Audited.
+ */
+export async function setCompanyLogo(ctx: TenantCtx, input: { upload: Upload }) {
+  assertCan(ctx, "organization:update");
+  const contentType = checkUpload("organization.logo", input.upload);
+  return withTenant(ctx, async (tx) => {
+    const [current] = await tx
+      .select({ logoFileId: organizationSetting.logoFileId })
+      .from(organizationSetting)
+      .where(eq(organizationSetting.organizationId, ctx.orgId))
+      .for("update");
+    const stored = await storeFile(tx, ctx, {
+      entityType: "organization",
+      entityId: ctx.orgId,
+      upload: input.upload,
+      contentType,
+    });
+    await tx
+      .insert(organizationSetting)
+      .values({ organizationId: ctx.orgId, logoFileId: stored.id, updatedBy: ctx.userId })
+      .onConflictDoUpdate({
+        target: organizationSetting.organizationId,
+        set: { logoFileId: stored.id, updatedBy: ctx.userId, updatedAt: new Date() },
+      });
+    if (current?.logoFileId) await discardFile(tx, current.logoFileId);
+    await recordAudit(tx, ctx, {
+      actorUserId: ctx.userId,
+      action: "organization.logo",
+      entityType: "organization",
+      entityId: ctx.orgId,
+      before: { logoFileId: current?.logoFileId ?? null },
+      after: { logoFileId: stored.id, fileName: input.upload.fileName },
+    });
+    return { fileId: stored.id };
+  });
+}
+
+/** Gérant: documents are issued without a logo again. Audited. */
+export async function removeCompanyLogo(ctx: TenantCtx) {
+  assertCan(ctx, "organization:update");
+  await withTenant(ctx, async (tx) => {
+    const [current] = await tx
+      .select({ logoFileId: organizationSetting.logoFileId })
+      .from(organizationSetting)
+      .where(eq(organizationSetting.organizationId, ctx.orgId))
+      .for("update");
+    if (!current?.logoFileId) return;
+    await tx
+      .update(organizationSetting)
+      .set({ logoFileId: null, updatedBy: ctx.userId })
+      .where(eq(organizationSetting.organizationId, ctx.orgId));
+    await discardFile(tx, current.logoFileId);
+    await recordAudit(tx, ctx, {
+      actorUserId: ctx.userId,
+      action: "organization.logo",
+      entityType: "organization",
+      entityId: ctx.orgId,
+      before: { logoFileId: current.logoFileId },
+      after: { logoFileId: null },
+    });
+  });
+}
 
 export async function getCompanySettings(ctx: TenantCtx) {
   assertCan(ctx, "organization:update");

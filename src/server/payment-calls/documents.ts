@@ -19,7 +19,7 @@ import { withTenant } from "@/db/tenant";
 import { renderPdf } from "@/pdf/render";
 import { type PaymentCallData, PaymentCallTemplate } from "@/pdf/templates/payment-call";
 import { storeFile } from "@/server/files/service";
-import { type CompanyIdentity, loadCompanyProfile } from "@/server/organizations/settings";
+import { type CompanyIdentity, loadCompanyLetterhead } from "@/server/organizations/settings";
 
 /** Everything printed on a payment call (null if unknown). */
 export async function loadPaymentCallData(
@@ -103,7 +103,7 @@ export async function renderAndStorePaymentCall(
   const loaded = await withTenant(scope, async (tx) => {
     const call = await loadPaymentCallData(tx, callId);
     if (!call || call.pdfFileId) return null;
-    return { call, company: await loadCompanyProfile(tx, organizationId) };
+    return { call, company: await loadCompanyLetterhead(tx, organizationId) };
   });
   if (!loaded) return "skipped";
   const bytes = new Uint8Array(await renderPdf(paymentCallHtml(loaded.call.data, loaded.company)));

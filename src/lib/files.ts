@@ -35,6 +35,11 @@ export const uploadPurposes = {
     accept: ["application/pdf", "image/png", "image/jpeg", "image/webp"],
     maxBytes: MAX_UPLOAD_BYTES,
   },
+  /** Company logo printed on documents: raster only (no SVG and its scripts), small. */
+  "organization.logo": {
+    accept: ["image/png", "image/jpeg"],
+    maxBytes: 2 * 1024 * 1024,
+  },
 } as const satisfies Record<string, { accept: readonly FileContentType[]; maxBytes: number }>;
 
 export type UploadPurpose = keyof typeof uploadPurposes;

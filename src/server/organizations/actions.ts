@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
+import { z } from "zod";
 
 import { defineAction } from "@/server/action";
 
@@ -13,7 +14,7 @@ import {
   updateMemberRolesSchema,
 } from "./schemas";
 import { cancelInvitation, inviteMember, removeMember, updateMemberRoles } from "./service";
-import { updateCompanySettings } from "./settings";
+import { removeCompanyLogo, updateCompanySettings } from "./settings";
 
 const MEMBERS_PAGE = "/[locale]/settings/members";
 
@@ -47,6 +48,14 @@ export const removeMemberAction = defineAction(
   async (input, ctx) => {
     await removeMember(ctx, await headers(), input);
     revalidatePath(MEMBERS_PAGE, "page");
+  },
+);
+
+export const removeCompanyLogoAction = defineAction(
+  { input: z.object({}), permission: "organization:update" },
+  async (_input, ctx) => {
+    await removeCompanyLogo(ctx);
+    revalidatePath("/[locale]/settings/company", "page");
   },
 );
 

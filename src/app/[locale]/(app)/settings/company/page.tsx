@@ -8,6 +8,7 @@ import { requirePermission } from "@/server/auth/page-guard";
 import { getCompanySettings } from "@/server/organizations/settings";
 
 import { CompanyForm } from "./_components/company-form";
+import { CompanyLogo } from "./_components/company-logo";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("company");
@@ -24,6 +25,7 @@ export default async function CompanyPage({ params }: PageProps<"/[locale]/setti
   return (
     <div className="mx-auto max-w-4xl space-y-6">
       <PageHeader title={t("title")} description={t("description")} />
+      <CompanyLogo orgId={ctx.orgId} logoFileId={settings.logoFileId} />
       <CompanyForm
         defaultValues={{
           name: settings.name,

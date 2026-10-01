@@ -77,10 +77,17 @@ export const organizationSetting = pgTable(
       .$type<VspLimits>()
       .notNull()
       .default(sql`'{}'::jsonb`),
+    /** Company logo (PNG/JPEG), printed on the documents issued afterwards. */
+    logoFileId: uuid(),
     updatedAt: updatedAt(),
     updatedBy: userRef(),
   },
   (t) => [
+    foreignKey({
+      name: "organization_setting_logo_fk",
+      columns: [t.organizationId, t.logoFileId],
+      foreignColumns: [file.organizationId, file.id],
+    }),
     check("organization_setting_validity_range", sql`${t.quotationValidityDays} between 1 and 365`),
     check("organization_setting_option_hours", sql`${t.optionHours} between 1 and 720`),
     check("organization_setting_call_delay", sql`${t.paymentCallDelayDays} between 0 and 180`),

@@ -78,6 +78,13 @@
       "when": 1790872972069,
       "tag": "0010_sales_targets",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1790879715761,
+      "tag": "0011_company_logo",
+      "breakpoints": true
     }
   ]
 }

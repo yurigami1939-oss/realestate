@@ -6,6 +6,8 @@ import type { CompanyIdentity } from "@/server/organizations/settings";
 
 import { PdfDocument } from "../document";
 
+import { Letterhead } from "./letterhead";
+
 /** Everything printed on a reminder letter, already resolved (no lookups in templates). */
 export type ReminderLetterData = {
   issuedAt: Date;
@@ -60,22 +62,7 @@ export function ReminderLetterTemplate({
   const showPenalties = data.penalties > 0n;
   return (
     <PdfDocument title={`Relance ${data.saleNumber}`} css={CSS}>
-      <header>
-        <div>
-          <div className="org">{company.legalName ?? company.name}</div>
-          <div className="muted">
-            {[company.address, company.wilaya].filter(Boolean).join(", ")}
-          </div>
-          {company.phone ? <div className="muted">Tél. {company.phone}</div> : null}
-        </div>
-        <div className="muted" style={{ textAlign: "end" }}>
-          {company.rcNumber ? `RC ${company.rcNumber}` : ""}{" "}
-          {company.nif ? `· NIF ${company.nif}` : ""}
-          <br />
-          {company.nis ? `NIS ${company.nis}` : ""}{" "}
-          {company.aiNumber ? `· AI ${company.aiNumber}` : ""}
-        </div>
-      </header>
+      <Letterhead company={company} />
 
       <div className="title">
         <h1>LETTRE DE RELANCE</h1>
@@ -114,15 +101,15 @@ export function ReminderLetterTemplate({
       </div>
 
       <p>
-        Sauf erreur de notre part, les échéances ci-dessous de votre échéancier restent impayées
-        à ce jour. Nous vous prions de bien vouloir régulariser votre situation au plus tard le{" "}
-        <b>{formatDate(data.payBy)}</b>. Si votre règlement a été effectué entre-temps, veuillez
-        ne pas tenir compte de la présente.
+        Sauf erreur de notre part, les échéances ci-dessous de votre échéancier restent impayées à
+        ce jour. Nous vous prions de bien vouloir régulariser votre situation au plus tard le{" "}
+        <b>{formatDate(data.payBy)}</b>. Si votre règlement a été effectué entre-temps, veuillez ne
+        pas tenir compte de la présente.
       </p>
       <p dir="rtl" lang="ar">
-        ما لم يكن هناك خطأ من جهتنا، تبقى الدفعات المبينة أدناه من جدول دفعاتكم غير مسددة إلى
-        يومنا هذا. نرجو منكم تسوية وضعيتكم في أجل أقصاه <b>{formatDate(data.payBy)}</b>. وإذا
-        تمّ التسديد في الأثناء، فالرجاء عدم اعتبار هذه الرسالة.
+        ما لم يكن هناك خطأ من جهتنا، تبقى الدفعات المبينة أدناه من جدول دفعاتكم غير مسددة إلى يومنا
+        هذا. نرجو منكم تسوية وضعيتكم في أجل أقصاه <b>{formatDate(data.payBy)}</b>. وإذا تمّ التسديد
+        في الأثناء، فالرجاء عدم اعتبار هذه الرسالة.
       </p>
 
       <table>

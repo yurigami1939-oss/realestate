@@ -709,7 +709,20 @@
     "collections": "Encaissements et commissions",
     "penaltyHint": "Pénalités de retard : calculées et affichées sur les relevés et lettres de relance, jamais facturées automatiquement. 0 % = désactivées.",
     "vspLimits": "Plafonds de paiement VSP (cumulés)",
-    "vspLimitsHint": "Selon le décret 13-431 tel que confirmé par votre notaire. Laissez vide pour ne pas contrôler ; un dépassement affiche un avertissement, sans bloquer."
+    "vspLimitsHint": "Selon le décret 13-431 tel que confirmé par votre notaire. Laissez vide pour ne pas contrôler ; un dépassement affiche un avertissement, sans bloquer.",
+    "logo": {
+      "title": "Logo",
+      "alt": "Logo de la société",
+      "none": "Aucun logo.",
+      "upload": "Ajouter le logo",
+      "replace": "Remplacer",
+      "uploaded": "Logo enregistré.",
+      "remove": "Retirer",
+      "removeTitle": "Retirer le logo ?",
+      "removeDescription": "Les documents émis ensuite n'auront plus de logo ; ceux déjà émis restent inchangés.",
+      "removed": "Logo retiré.",
+      "hint": "PNG ou JPEG, 2 Mo au plus. Imprimé en tête des devis, fiches de réservation, reçus, appels de fonds et lettres de relance émis ensuite."
+    }
   },
   "paymentPlans": {
     "title": "Échéanciers",
@@ -1410,7 +1423,8 @@
     "actions": {
       "organization": {
         "create": "Création de la société",
-        "update": "Paramètres de la société modifiés"
+        "update": "Paramètres de la société modifiés",
+        "logo": "Logo de la société modifié"
       },
       "member": {
         "join": "Arrivée d'un membre",

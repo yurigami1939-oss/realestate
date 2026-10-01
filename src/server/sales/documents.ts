@@ -9,11 +9,11 @@ import { withTenant } from "@/db/tenant";
 import { renderPdf } from "@/pdf/render";
 import { ReservationSheetTemplate } from "@/pdf/templates/reservation-sheet";
 import { storeFile } from "@/server/files/service";
-import { type CompanyProfile, loadCompanyProfile } from "@/server/organizations/settings";
+import { type CompanyIdentity, loadCompanyLetterhead } from "@/server/organizations/settings";
 
 import { loadSale, type SaleDetail } from "./sale-queries";
 
-export function reservationSheetHtml(sale: SaleDetail, company: CompanyProfile): string {
+export function reservationSheetHtml(sale: SaleDetail, company: CompanyIdentity): string {
   return `<!doctype html>${renderToStaticMarkup(
     createElement(ReservationSheetTemplate, { sale, company }),
   )}`;
@@ -28,7 +28,7 @@ export async function renderAndStoreReservationSheet(
   const data = await withTenant(scope, async (tx) => {
     const sale = await loadSale(tx, organizationId, reservationId);
     if (!sale || sale.sheetFileId) return null;
-    return { sale, company: await loadCompanyProfile(tx, organizationId) };
+    return { sale, company: await loadCompanyLetterhead(tx, organizationId) };
   });
   if (!data) return "skipped";
   const bytes = new Uint8Array(await renderPdf(reservationSheetHtml(data.sale, data.company)));

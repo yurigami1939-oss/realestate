@@ -28,6 +28,8 @@ type Reader = (tx: Tx, ctx: TenantCtx, entityId: string) => Promise<boolean>;
 
 /** Who may download a file, by the kind of record it belongs to. Unknown kinds: nobody. */
 const readers: Record<string, Reader> = {
+  // The company logo: any member of the organization.
+  organization: async (_tx, ctx, entityId) => entityId === ctx.orgId,
   unit: async (_tx, ctx) => can(ctx.roles, "inventory:read"),
   // A buyer's scans follow the buyer: commercials only see the buyers they follow.
   buyer: async (tx, ctx, entityId) => {
