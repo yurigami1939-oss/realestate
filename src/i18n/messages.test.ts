@@ -15,9 +15,13 @@ function flatten(tree: Tree, prefix = ""): Map<string, string> {
   return out;
 }
 
-/** Top-level ICU argument names: {name}, {count, plural, …} → name, count. */
+/**
+ * ICU argument names used by a message: {name}, {count, plural, …} → name, count. A set:
+ * Arabic has more plural branches than French, each of which may repeat an argument.
+ */
 function argumentsOf(message: string): string[] {
-  return [...message.matchAll(/\{\s*([a-zA-Z_][\w]*)\s*[,}]/g)].map((m) => m[1] ?? "").sort();
+  const names = [...message.matchAll(/\{\s*([a-zA-Z_][\w]*)\s*[,}]/g)].map((m) => m[1] ?? "");
+  return [...new Set(names)].sort();
 }
 
 describe("message catalogs", () => {

@@ -22,7 +22,7 @@ import type { createSalesTeam } from "./factories";
 type Team = Awaited<ReturnType<typeof createSalesTeam>>;
 
 /**
- * A project with one building, three units priced 13 010 000 DA, two milestones
+ * A project with one building, three F3 units of 86,75 m² priced 13 010 000 DA, two milestones
  * (foundations, structure) and a default 20 / 30 / 50 plan.
  */
 export async function createSaleSetup(team: Team) {
@@ -101,6 +101,7 @@ export async function createSaleSetup(team: Team) {
   );
   return {
     projectId,
+    buildingId,
     unitIds: unitIds as [string, string, string],
     planId,
     milestoneIds: [foundations?.id ?? "", structure?.id ?? ""] as [string, string],

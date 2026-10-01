@@ -194,7 +194,9 @@
     "saleList": "Réservations et ventes",
     "overdue": "Impayés",
     "commissions": "Commissions",
-    "audit": "Journal d'audit"
+    "audit": "Journal d'audit",
+    "residenceGroup": "Gestion des résidences",
+    "residences": "Résidences"
   },
   "shell": {
     "organizations": "Sociétés",
@@ -1418,7 +1420,8 @@
       "construction_milestone": "Étape des travaux",
       "reservation": "Réservation / vente",
       "payment": "Paiement",
-      "commission": "Commission"
+      "commission": "Commission",
+      "residence": "Résidence"
     },
     "actions": {
       "organization": {
@@ -1475,6 +1478,11 @@
       "commission": {
         "pay": "Commission payée",
         "rates": "Taux de commission modifiés"
+      },
+      "residence": {
+        "create": "Résidence créée",
+        "update": "Résidence modifiée",
+        "shares": "Tantièmes modifiés"
       }
     }
   },
@@ -1521,6 +1529,113 @@
       "lateFollowUps": "Relances en retard",
       "won": "Prospects gagnés",
       "lost": "Perdus : {count}"
+    }
+  },
+  "residences": {
+    "title": "Résidences",
+    "description": "Résidences livrées gérées par la société : lots, tantièmes, copropriétaires et occupants.",
+    "new": "Nouvelle résidence",
+    "newTitle": "Nouvelle résidence",
+    "editTitle": "Modifier la résidence",
+    "empty": "Aucune résidence.",
+    "created": "{count, plural, =0 {Résidence créée (aucun lot libre dans ce projet).} one {Résidence créée avec # lot.} other {Résidence créée avec # lots.}}",
+    "days": "{days, plural, one {# jour} other {# jours}}",
+    "columns": {
+      "name": "Résidence",
+      "project": "Projet",
+      "units": "Lots",
+      "shares": "Tantièmes",
+      "coOwners": "Lots avec copropriétaire",
+      "frequency": "Appels de charges"
+    },
+    "fields": {
+      "projectId": "Projet",
+      "projectHint": "Les lots du projet qui ne sont dans aucune autre résidence la rejoignent.",
+      "name": "Nom",
+      "address": "Adresse",
+      "commune": "Commune",
+      "wilaya": "Wilaya",
+      "shareBasis": "Base des tantièmes",
+      "shareBasisHint": "Total des quotes-parts (ex. 10 000).",
+      "chargeFrequency": "Appels de charges",
+      "reserveFund": "Fonds de réserve (% du budget)",
+      "reserveFundHint": "Ajouté à chaque appel ; 0 = aucun.",
+      "callDueDays": "Délai de paiement d'un appel (jours)",
+      "notes": "Remarques"
+    },
+    "frequency": {
+      "monthly": "Mensuels",
+      "quarterly": "Trimestriels",
+      "half_yearly": "Semestriels",
+      "yearly": "Annuels"
+    },
+    "units": {
+      "title": "Lots et tantièmes",
+      "unit": "Lot",
+      "area": "Surface",
+      "share": "Tantièmes",
+      "shareOf": "Tantièmes du lot {code}",
+      "coOwners": "Copropriétaire(s)",
+      "occupant": "Occupant",
+      "residents": "Copropriétaires et occupants",
+      "noCoOwner": "Sans copropriétaire",
+      "total": "Total"
+    },
+    "shares": {
+      "save": "Enregistrer les tantièmes",
+      "saved": "Tantièmes enregistrés.",
+      "savedCount": "{count, plural, =0 {Aucun changement.} one {# lot modifié.} other {# lots modifiés.}}",
+      "byArea": "Répartir selon la surface",
+      "byAreaTitle": "Répartir les tantièmes selon la surface ?",
+      "byAreaDescription": "Les {basis} tantièmes sont répartis au prorata de la surface des lots (habitable, à défaut utile) ; les tantièmes actuels sont remplacés.",
+      "unbalanced": "Le total doit faire {basis} pour une répartition exacte."
+    },
+    "import": {
+      "open": "Importer les acquéreurs",
+      "title": "Importer les acquéreurs des lots vendus ?",
+      "description": "Pour chaque lot vendu (VSP signée) sans copropriétaire, ses acquéreurs deviennent copropriétaires à la date de la VSP.",
+      "submit": "Importer",
+      "done": "{units, plural, =0 {Aucun lot à compléter.} one {# lot complété ({coOwners} copropriétaires).} other {# lots complétés ({coOwners} copropriétaires).}}"
+    },
+    "residents": {
+      "open": "Copropriétaires",
+      "title": "Lot {code} : copropriétaires et occupants",
+      "description": "Historique des copropriétaires et occupants ; le copropriétaire principal reçoit les appels de charges.",
+      "none": "Aucun copropriétaire ni occupant.",
+      "kind": {
+        "co_owner": "Copropriétaire",
+        "occupant": "Occupant"
+      },
+      "main": "Principal",
+      "period": "Du {since} au {until}",
+      "fromSale": "issu de la vente",
+      "untilOn": "Fin le",
+      "end": "Terminer",
+      "ended": "Fin enregistrée.",
+      "add": "Ajouter un copropriétaire ou un occupant",
+      "addSubmit": "Ajouter",
+      "added": "Ajouté.",
+      "fields": {
+        "kind": "Qualité",
+        "sinceOn": "Depuis le",
+        "lastName": "Nom",
+        "firstName": "Prénom",
+        "lastNameAr": "Nom (en arabe)",
+        "firstNameAr": "Prénom (en arabe)",
+        "phone": "Téléphone",
+        "email": "E-mail",
+        "address": "Adresse postale",
+        "isMain": "Principal (reçoit les appels de charges)"
+      },
+      "periodSince": "Depuis le {since}",
+      "periodUntil": "Jusqu'au {until}"
+    },
+    "errors": {
+      "projectNotFound": "Projet introuvable.",
+      "unitNotInResidence": "Ce lot n'appartient pas à la résidence.",
+      "alreadyEnded": "Déjà terminé.",
+      "endBeforeStart": "La fin ne peut précéder le début.",
+      "noArea": "Aucun lot n'a de surface renseignée."
     }
   }
 }

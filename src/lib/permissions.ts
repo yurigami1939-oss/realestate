@@ -50,6 +50,18 @@ export const statement = {
   milestone: ["validate"],
   /** `read` = my commissions, `read_all` = everyone's, `update` = mark paid / cancel. */
   commission: ["read", "read_all", "update"],
+  /** Residences after delivery (module 6): setup, units' shares, co-owners and occupants. */
+  residence: ["read", "create", "update"],
+  /** Charge categories, budgets and calls; `cancel` voids an issued call. */
+  charge: ["read", "create", "cancel"],
+  /** Suppliers, their contracts and invoices. */
+  supplier: ["read", "update"],
+  /** Residence staff, attendance, salary advances and pay. */
+  staff: ["read", "update"],
+  /** Maintenance tickets (réclamations). */
+  ticket: ["read", "create", "update"],
+  /** General assemblies: convocations, attendance, resolutions and votes. */
+  assembly: ["read", "update"],
 } as const;
 
 export const ac = createAccessControl(statement);
@@ -80,6 +92,12 @@ export const roles = {
     payment: ["read", "create", "cancel"],
     milestone: ["validate"],
     commission: ["read", "read_all", "update"],
+    residence: ["read", "create", "update"],
+    charge: ["read", "create", "cancel"],
+    supplier: ["read", "update"],
+    staff: ["read", "update"],
+    ticket: ["read", "create", "update"],
+    assembly: ["read", "update"],
   }),
   sales_manager: ac.newRole({
     inventory: ["read"],
@@ -110,14 +128,29 @@ export const roles = {
     sale: ["read", "read_all", "remind"],
     payment: ["read", "create", "cancel"],
     commission: ["read", "read_all", "update"],
+    residence: ["read"],
+    charge: ["read", "cancel"],
+    supplier: ["read", "update"],
+    staff: ["read", "update"],
   }),
   cashier: ac.newRole({
     inventory: ["read"],
     buyer: ["read", "read_all"],
     sale: ["read", "read_all", "remind"],
     payment: ["read", "create"],
+    residence: ["read"],
+    charge: ["read"],
   }),
-  property_manager: ac.newRole({ inventory: ["read"] }),
+  property_manager: ac.newRole({
+    inventory: ["read"],
+    payment: ["read", "create"],
+    residence: ["read", "create", "update"],
+    charge: ["read", "create"],
+    supplier: ["read", "update"],
+    staff: ["read", "update"],
+    ticket: ["read", "create", "update"],
+    assembly: ["read", "update"],
+  }),
   resident: ac.newRole({}),
 };
 

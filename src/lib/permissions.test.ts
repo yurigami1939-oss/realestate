@@ -27,6 +27,19 @@ describe("permissions", () => {
     }
   });
 
+  it("gives the residence module to the property manager, finance to the accountant", () => {
+    expect(can(["property_manager"], "residence:create")).toBe(true);
+    expect(can(["property_manager"], "charge:create")).toBe(true);
+    expect(can(["property_manager"], "charge:cancel")).toBe(false);
+    expect(can(["property_manager"], "payment:create")).toBe(true);
+    expect(can(["property_manager"], "payment:cancel")).toBe(false);
+    expect(can(["accountant"], "charge:cancel")).toBe(true);
+    expect(can(["accountant"], "residence:update")).toBe(false);
+    expect(can(["cashier"], "charge:read")).toBe(true);
+    expect(can(["sales_manager"], "residence:read")).toBe(false);
+    expect(can(["owner"], "assembly:update")).toBe(true);
+  });
+
   it("grants the union of several roles", () => {
     expect(can(["cashier"], "audit:read")).toBe(false);
     expect(can(["cashier", "accountant"], "audit:read")).toBe(true);
