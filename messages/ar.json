@@ -579,7 +579,17 @@
         "follow_up_done": "تمت المتابعة",
         "quotation_issued": "إصدار عرض السعر {number}",
         "quotation_cancelled": "إلغاء عرض السعر {number}",
-        "merged": "دمج بطاقة «{name}» هنا"
+        "merged": "دمج بطاقة «{name}» هنا",
+        "option_placed": "خيار على الوحدة {unit} إلى غاية {date}",
+        "option_ended": "الخيار على الوحدة {unit}: {reason}",
+        "option_reason": {
+          "expired": "انتهى",
+          "cancelled": "رُفع",
+          "converted": "تم توقيع الحجز"
+        },
+        "reserved": "توقيع الحجز {number} (الوحدة {unit})",
+        "sale_signed": "توقيع عقد البيع على التصاميم (الوحدة {unit})",
+        "withdrawn": "عدول (الحجز {number})"
       }
     },
     "pipeline": {
@@ -903,6 +913,34 @@
     },
     "errors": {
       "ninTaken": "رقم التعريف الوطني هذا مستعمل لمشترٍ آخر."
+    }
+  },
+  "sales": {
+    "options": {
+      "title": "الخيارات",
+      "place": "وضع خيار",
+      "placeTitle": "وضع خيار",
+      "placed": "تم وضع الخيار إلى غاية {date}.",
+      "lead": "الزبون المحتمل",
+      "unit": "الوحدة",
+      "heldFor": "محجوزة مؤقتاً لـ<lead>{name}</lead> إلى غاية {date}",
+      "heldUntil": "محجوزة مؤقتاً إلى غاية {date}",
+      "cancel": "رفع الخيار",
+      "cancelTitle": "رفع الخيار عن الوحدة {code}؟",
+      "cancelDescription": "تعود الوحدة متوفرة للجميع.",
+      "cancelled": "تم رفع الخيار.",
+      "none": "لا توجد خيارات.",
+      "hint": "يدوم الخيار {hours, plural, one {ساعة واحدة} two {ساعتين} few {# ساعات} many {# ساعة} other {# ساعة}}، ثم تُحرَّر الوحدة تلقائياً.",
+      "state": {
+        "active": "نشط",
+        "expired": "منتهٍ",
+        "cancelled": "مرفوع",
+        "converted": "محجوز"
+      }
+    },
+    "errors": {
+      "unitNotAvailable": "هذه الوحدة لم تعد متوفرة.",
+      "optionNotActive": "هذا الخيار لم يعد نشطاً."
     }
   }
 }

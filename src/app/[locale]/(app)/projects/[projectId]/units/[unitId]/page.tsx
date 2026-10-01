@@ -24,10 +24,14 @@ import { pricePerSquareMeter } from "@/lib/inventory";
 import { formatDZD, toDecimalString } from "@/lib/money";
 import { can } from "@/lib/permissions";
 import { requirePermission } from "@/server/auth/page-guard";
+import { listLeadChoices } from "@/server/crm/queries";
+import { getSalesSettings } from "@/server/organizations/settings";
+import { getUnitOption } from "@/server/sales/queries";
 import { deleteUnitAction } from "@/server/inventory/actions";
 import { getUnit, type UnitDetail } from "@/server/inventory/queries";
 
 import { FloorPlanCard } from "./_components/floor-plan-card";
+import { UnitSaleCard } from "./_components/unit-sale-card";
 import { BlockUnitDialog, ChangePriceDialog } from "./_components/unit-dialogs";
 
 export async function generateMetadata({
@@ -47,6 +51,10 @@ export default async function UnitPage({
   const unit = await getUnit(ctx, unitId);
   if (!unit || unit.projectId !== projectId) notFound();
 
+  const canSell = can(ctx.roles, "sale:create");
+  const option = unit.status === "optioned" ? await getUnitOption(ctx, unit.id) : null;
+  const leads = canSell && unit.status === "available" ? await listLeadChoices(ctx) : [];
+  const { optionHours } = await getSalesSettings(ctx);
   const t = await getTranslations("inventory");
   const tc = await getTranslations("common");
   const deletable = unit.status === "available" || unit.status === "blocked";
@@ -110,6 +118,15 @@ export default async function UnitPage({
         <UnitDetails unit={unit} />
         <div className="space-y-6">
           <PriceCard unit={unit} />
+          <UnitSaleCard
+            unitId={unit.id}
+            code={unit.code}
+            status={unit.status}
+            option={option}
+            leads={leads}
+            optionHours={optionHours}
+            canSell={canSell}
+          />
           <FloorPlanCard
             unitId={unit.id}
             code={unit.code}

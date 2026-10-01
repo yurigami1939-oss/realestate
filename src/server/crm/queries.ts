@@ -387,3 +387,18 @@ export async function listLeadOwners(ctx: TenantCtx) {
       .map((r) => ({ id: r.userId, name: r.name }));
   });
 }
+
+/** Open leads the member may work, for selects (option on a unit, reservation). */
+export async function listLeadChoices(ctx: TenantCtx) {
+  assertCan(ctx, "lead:read");
+  return withTenant(ctx, (tx) =>
+    tx
+      .select({ id: lead.id, fullName: lead.fullName, phone: lead.phone })
+      .from(lead)
+      .where(
+        and(isNull(lead.deletedAt), visibleLeads(ctx), inArray(lead.stage, [...openLeadStages])),
+      )
+      .orderBy(asc(lead.fullName))
+      .limit(1000),
+  );
+}

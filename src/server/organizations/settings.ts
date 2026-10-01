@@ -134,3 +134,8 @@ export async function updateCompanySettings(
     });
   });
 }
+
+/** Sales settings for any member (option duration shown in dialogs, etc.). */
+export async function getSalesSettings(ctx: TenantCtx) {
+  return withTenant(ctx, (tx) => loadSalesSettings(tx, ctx.orgId));
+}

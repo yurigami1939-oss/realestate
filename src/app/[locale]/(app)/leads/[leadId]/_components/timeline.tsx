@@ -99,6 +99,42 @@ function ActivityLine({ activity }: { activity: Activity }) {
       return <p>{t("leads.activity.quotation_cancelled", { number: text("number") ?? "" })}</p>;
     case "merged":
       return <p>{t("leads.activity.merged", { name: text("sourceName") ?? "" })}</p>;
+    case "option_placed":
+      return (
+        <p>
+          {t("leads.activity.option_placed", {
+            unit: text("unitCode") ?? "—",
+            date: date("expiresAt"),
+          })}
+        </p>
+      );
+    case "option_ended": {
+      const reason = oneOf(["expired", "cancelled", "converted"] as const, d.reason);
+      return (
+        <>
+          <p>
+            {t("leads.activity.option_ended", {
+              unit: text("unitCode") ?? "—",
+              reason: reason ? t(`leads.activity.option_reason.${reason}`) : "—",
+            })}
+          </p>
+          {detail(text("note"))}
+        </>
+      );
+    }
+    case "reserved":
+      return (
+        <p>
+          {t("leads.activity.reserved", {
+            number: text("number") ?? "",
+            unit: text("unitCode") ?? "—",
+          })}
+        </p>
+      );
+    case "sale_signed":
+      return <p>{t("leads.activity.sale_signed", { unit: text("unitCode") ?? "—" })}</p>;
+    case "withdrawn":
+      return <p>{t("leads.activity.withdrawn", { number: text("number") ?? "" })}</p>;
   }
 }
 

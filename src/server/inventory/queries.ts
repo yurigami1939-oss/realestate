@@ -332,7 +332,7 @@ export async function listProjectOptions(ctx: TenantCtx) {
 }
 
 /** Live units that can still be shown or sold (not sold, delivered or rented), per project. */
-export async function listUnitOptions(ctx: TenantCtx) {
+export async function listUnitChoices(ctx: TenantCtx) {
   assertCan(ctx, "inventory:read");
   return withTenant(ctx, (tx) =>
     tx
@@ -353,4 +353,4 @@ export async function listUnitOptions(ctx: TenantCtx) {
   );
 }
 
-export type UnitOption = Awaited<ReturnType<typeof listUnitOptions>>[number];
+export type UnitChoiceRow = Awaited<ReturnType<typeof listUnitChoices>>[number];

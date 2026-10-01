@@ -579,7 +579,17 @@
         "follow_up_done": "Relance effectuée",
         "quotation_issued": "Devis {number} émis",
         "quotation_cancelled": "Devis {number} annulé",
-        "merged": "Fiche « {name} » fusionnée ici"
+        "merged": "Fiche « {name} » fusionnée ici",
+        "option_placed": "Option sur le lot {unit} jusqu'au {date}",
+        "option_ended": "Option sur le lot {unit} : {reason}",
+        "option_reason": {
+          "expired": "expirée",
+          "cancelled": "levée",
+          "converted": "réservation signée"
+        },
+        "reserved": "Réservation {number} signée (lot {unit})",
+        "sale_signed": "VSP signée (lot {unit})",
+        "withdrawn": "Désistement (réservation {number})"
       }
     },
     "pipeline": {
@@ -903,6 +913,34 @@
     },
     "errors": {
       "ninTaken": "Ce NIN est déjà utilisé par un autre acquéreur."
+    }
+  },
+  "sales": {
+    "options": {
+      "title": "Options",
+      "place": "Poser une option",
+      "placeTitle": "Poser une option",
+      "placed": "Option posée jusqu'au {date}.",
+      "lead": "Prospect",
+      "unit": "Lot",
+      "heldFor": "Optionné pour <lead>{name}</lead> jusqu'au {date}",
+      "heldUntil": "Optionné jusqu'au {date}",
+      "cancel": "Lever l'option",
+      "cancelTitle": "Lever l'option sur le lot {code} ?",
+      "cancelDescription": "Le lot redevient disponible pour tous.",
+      "cancelled": "Option levée.",
+      "none": "Aucune option.",
+      "hint": "L'option dure {hours, plural, one {# heure} other {# heures}} ; le lot est ensuite libéré automatiquement.",
+      "state": {
+        "active": "Active",
+        "expired": "Expirée",
+        "cancelled": "Levée",
+        "converted": "Réservée"
+      }
+    },
+    "errors": {
+      "unitNotAvailable": "Ce lot n'est plus disponible.",
+      "optionNotActive": "Cette option n'est plus active."
     }
   }
 }

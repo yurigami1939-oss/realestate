@@ -7,7 +7,7 @@ import { toLocale } from "@/i18n/locales";
 import { can } from "@/lib/permissions";
 import { requirePermission } from "@/server/auth/page-guard";
 import { getLead } from "@/server/crm/queries";
-import { listProjectOptions, listUnitOptions } from "@/server/inventory/queries";
+import { listProjectOptions, listUnitChoices } from "@/server/inventory/queries";
 import { listPaymentSetups } from "@/server/payment-plans/queries";
 
 import { QuotationForm, type QuotableUnit } from "./_components/quotation-form";
@@ -26,7 +26,7 @@ export default async function NewQuotationPage({
   const lead = await getLead(ctx, leadId);
   if (!lead) notFound();
   const projects = await listProjectOptions(ctx);
-  const units: QuotableUnit[] = (await listUnitOptions(ctx)).flatMap((u) =>
+  const units: QuotableUnit[] = (await listUnitChoices(ctx)).flatMap((u) =>
     (u.status === "available" || u.status === "optioned") && u.listPrice !== null
       ? [
           {

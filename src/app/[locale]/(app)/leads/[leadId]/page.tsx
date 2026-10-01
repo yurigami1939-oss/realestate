@@ -8,6 +8,7 @@ import { PageHeader } from "@/components/app-shell/page-header";
 import { LeadStageBadge, VisitStatusBadge } from "@/components/crm/badges";
 import { PhoneActions, PhoneText } from "@/components/crm/phone";
 import { ConfirmAction } from "@/components/forms/confirm-action";
+import { type OptionUnitChoice, PlaceOptionDialog } from "@/components/sales/option-dialogs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,8 +24,10 @@ import { listBuyersOfLead } from "@/server/buyers/queries";
 import type { TenantCtx } from "@/server/auth/session";
 import { deleteLeadAction, mergeLeadsAction } from "@/server/crm/actions";
 import { getLead, listLeadOwners, type LeadDetail } from "@/server/crm/queries";
-import { listProjectOptions, listUnitOptions } from "@/server/inventory/queries";
+import { listProjectOptions, listUnitChoices } from "@/server/inventory/queries";
+import { getSalesSettings } from "@/server/organizations/settings";
 import { listLeadQuotations } from "@/server/quotations/queries";
+import { listLeadOptions, type LeadOptionRow } from "@/server/sales/queries";
 
 import {
   CompleteFollowUpDialog,
@@ -57,13 +60,17 @@ export default async function LeadPage({ params }: PageProps<"/[locale]/leads/[l
   const managers = can(ctx.roles, "lead:assign");
   const owners = managers ? await listLeadOwners(ctx) : null;
   const projects = await listProjectOptions(ctx);
-  const units: UnitChoice[] = (await listUnitOptions(ctx)).map((u) => ({
-    id: u.id,
-    projectId: u.projectId,
-    code: u.code,
-    typology: u.typology,
-  }));
+  const units = await listUnitChoices(ctx);
   const quotations = await listLeadQuotations(ctx, lead.id);
+  const options = await listLeadOptions(ctx, lead.id);
+  const canSell = can(ctx.roles, "sale:create");
+  const { optionHours } = await getSalesSettings(ctx);
+  const projectNames = new Map(projects.map((p) => [p.id, p.name]));
+  const availableUnits: OptionUnitChoice[] = units.flatMap((u) =>
+    u.status === "available"
+      ? [{ id: u.id, code: u.code, projectName: projectNames.get(u.projectId) ?? "" }]
+      : [],
+  );
   const buyers = can(ctx.roles, "buyer:read") ? await listBuyersOfLead(ctx, lead.id) : [];
   const t = await getTranslations("crm");
   const tc = await getTranslations("common");
@@ -142,6 +149,13 @@ export default async function LeadPage({ params }: PageProps<"/[locale]/leads/[l
             <ContactCard lead={lead} />
             <InterestCard lead={lead} />
           </div>
+          <OptionsCard
+            leadId={lead.id}
+            options={options}
+            units={availableUnits}
+            optionHours={optionHours}
+            canSell={canSell}
+          />
           <QuotationsCard
             leadId={lead.id}
             quotations={quotations}
@@ -152,7 +166,12 @@ export default async function LeadPage({ params }: PageProps<"/[locale]/leads/[l
             lead={lead}
             owners={owners}
             projects={projects}
-            units={units}
+            units={units.map((u) => ({
+              id: u.id,
+              projectId: u.projectId,
+              code: u.code,
+              typology: u.typology,
+            }))}
             editable={editable}
           />
         </div>
@@ -458,6 +477,60 @@ function QuotationsCard({
                 </li>
               );
             })}
+          </ul>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function OptionsCard({
+  leadId,
+  options,
+  units,
+  optionHours,
+  canSell,
+}: {
+  leadId: string;
+  options: LeadOptionRow[];
+  units: OptionUnitChoice[];
+  optionHours: number;
+  canSell: boolean;
+}) {
+  const t = useTranslations("sales.options");
+  if (options.length === 0 && !canSell) return null;
+  return (
+    <Card data-testid="lead-options">
+      <CardHeader className="flex flex-row items-center justify-between gap-2">
+        <CardTitle className="text-base">{t("title")}</CardTitle>
+        {canSell ? (
+          <PlaceOptionDialog leadId={leadId} units={units} optionHours={optionHours} />
+        ) : null}
+      </CardHeader>
+      <CardContent>
+        {options.length === 0 ? (
+          <p className="text-sm text-muted-foreground">{t("none")}</p>
+        ) : (
+          <ul className="divide-y">
+            {options.map((o) => (
+              <li
+                key={o.id}
+                className="flex flex-wrap items-center justify-between gap-3 py-2.5 text-sm"
+              >
+                <span>
+                  <Link
+                    href={`/projects/${o.projectId}/units/${o.unitId}`}
+                    className="font-medium hover:underline"
+                  >
+                    <bdi dir="ltr">{o.unitCode}</bdi>
+                  </Link>{" "}
+                  · {o.projectName} · {formatDateTime(o.expiresAt)}
+                </span>
+                <Badge variant={o.state === "active" ? "default" : "secondary"}>
+                  {t(`state.${o.state}`)}
+                </Badge>
+              </li>
+            ))}
           </ul>
         )}
       </CardContent>

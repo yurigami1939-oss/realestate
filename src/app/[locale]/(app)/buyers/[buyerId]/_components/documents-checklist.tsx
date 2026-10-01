@@ -15,12 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableRow,
-} from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { useRouter } from "@/i18n/navigation";
 import { documentStatuses, type DocumentStatus } from "@/lib/sales";
 import { cn } from "@/lib/utils";
