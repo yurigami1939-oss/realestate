@@ -92,7 +92,8 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
     ├── app/
     │   ├── [locale]/
     │   │   ├── (auth)/       # sign-in, sign-up, forgot/reset password, onboarding, accept-invitation
-    │   │   ├── (app)/        # back-office shell (guard + sidebar) · dashboard · settings/members
+    │   │   ├── (app)/        # back-office shell (guard + sidebar) · dashboard · settings (members,
+    │   │   │                 # company + logo, audit log) · projects · leads · buyers · sales · commissions
     │   │   └── (portal)/     # buyer/resident portal (Phase 2)
     │   ├── api/auth/[...all] # Better Auth handler (Route Handlers: auth, files, webhooks, /api/v1)
     │   ├── api/files/        # upload (POST) · [fileId] download (GET → presigned redirect)
@@ -121,13 +122,15 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
     │   ├── action.ts         # defineAction()
     │   ├── auth/             # auth.ts (Better Auth), session.ts (getSession, getTenantCtx, assertCan),
     │   │                     # page-guard.ts (requireTenantCtx, requirePermission), schemas.ts, schema-options.ts
-    │   ├── audit/            # recordAudit()
+    │   ├── audit/            # recordAudit(); queries.ts (audit log viewer, record links)
+    │   ├── dashboard/        # getDashboard(): role-dependent sections (to-do, sales, collections, stock, CRM)
     │   ├── numbering/        # nextDocumentNumber()
     │   ├── email/            # transport, send-later (queue), bilingual templates
     │   ├── files/            # s3.ts (client, ensureBucket), storage.ts (keys, put, presign),
     │   │                     # service.ts (checkUpload, storeFile, discardFile, getFileDownloadUrl)
     │   ├── route-handler.ts  # jsonResult, assertSameOrigin, readFormData (size-capped)
-    │   ├── organizations/    # members & invitations; settings.ts (legal identity, sales settings)
+    │   ├── organizations/    # members & invitations; settings.ts (legal identity, sales settings, logo,
+    │   │                     # loadCompanyLetterhead for documents)
     │   ├── inventory/        # projects, buildings, units, price lists, floor plans, transitionUnit
     │   ├── crm/              # leads, visits, follow-ups, merge, targets; access.ts (lead visibility)
     │   ├── payment-plans/    # construction milestones (planned, stage) and payment plan templates
@@ -143,7 +146,8 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
     │   └── <module>/         # schemas.ts (isomorphic) · queries.ts · service.ts · actions.ts · *.test.ts
     ├── jobs/                 # queues.ts (names, retry policy, payload types), enqueue.ts, worker.ts, handlers/
     ├── pdf/                  # render.ts (Chromium), document.tsx (shell + fonts), receipt.ts, quotation.ts,
-    │                         # templates/ (quotation, receipt, reservation-sheet, payment-call, reminder-letter)
+    │                         # templates/ (letterhead, quotation, receipt, reservation-sheet, payment-call,
+    │                         # reminder-letter)
     ├── i18n/                 # locales, routing, navigation, request config, typed messages
     ├── hooks/                # client hooks (use-mobile)
     └── lib/                  # isomorphic: result, permissions, money/, dates, document-types, safe-next, auth-client,
@@ -215,13 +219,14 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 - Private bucket. Key: `org/{orgId}/{entityType}/{entityId}/{fileId}.{ext}`; a tenant-scoped `file` row holds metadata (`entity_type` + `entity_id` = owner record).
 - **Upload**: `POST /api/files` (multipart `purpose`, `entityId`, `file`) → `Result<{ fileId }>`. Same-origin check, body capped while streaming (`readFormData`), then a switch on `purpose` calls the owning service (e.g. `setUnitFloorPlan`), which asserts the permission, runs `checkUpload` (size + **magic-byte** format check against `uploadPurposes` in `src/lib/files.ts`; the browser's MIME type is ignored) and `storeFile(tx, …)` (row insert, then S3 put, inside the tenant transaction). Client: `UploadButton`.
 - **Download**: `GET /api/files/{id}[?download]` → access check by `entity_type` (`readers` in `src/server/files/service.ts`: a unit plan needs `inventory:read`, a quotation PDF needs its lead to be visible, a buyer document its buyer, a sale's files its sale) → 302 to a 5-min presigned URL with the original name (`Content-Disposition` with UTF-8 `filename*`).
-- Upload purposes today: `unit.floor_plan`, `buyer.document` (variant = document kind), `reservation.contract`, `reservation.deed`. Every document of a sale (reservation sheet, receipts, payment calls, reminder letters, signed scans) is filed under entity `reservation`, so its readers follow the sale's visibility.
+- Upload purposes today: `unit.floor_plan`, `buyer.document` (variant = document kind), `reservation.contract`, `reservation.deed`, `organization.logo` (PNG/JPEG only, 2 MB; readable by any member of the organization). Every document of a sale (reservation sheet, receipts, payment calls, reminder letters, signed scans) is filed under entity `reservation`, so its readers follow the sale's visibility.
 - Replacing/removing a file soft-deletes the old row (`deleted_at`); the object stays in the bucket. New purpose = entry in `uploadPurposes` + service function + `case` in `src/app/api/files/route.ts` (+ a `readers` entry for a new entity type). Generated documents are stored with `storeFile(tx, { orgId, userId: null }, …)` by their job.
 - Issued documents are rendered once at issue; the stored PDF is served for reprints.
 
 ### PDF
 - Documents are React components rendered to static HTML (`src/pdf/templates/*`) inside `PdfDocument` (embedded font, base CSS), then printed by headless Chromium (`renderPdf`, one browser per process, CSS `@page` for size). Render in the worker, not in requests.
 - Arabic blocks use `dir="rtl" lang="ar"`; values that may mix scripts are wrapped in `<bdi>`. Chromium must be installed where PDFs render (`playwright install chromium`).
+- Every document starts with the shared `Letterhead` (`src/pdf/templates/letterhead.tsx`): logo, legal name, address, identifiers. Renderers load it with `loadCompanyLetterhead(tx, orgId)`, which embeds the logo as a data URI (Chromium renders offline). A logo change only affects documents issued afterwards.
 
 ### Caching
 - Tenant data is dynamic by default. Any `use cache` / cached function on tenant data must include `orgId` in its key and be tagged `org:{orgId}:{entity}`.
@@ -425,7 +430,7 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 | Jobs/email | Vitest + Mailpit | handler delivers via SMTP (checked through Mailpit API); enqueue stores the job |
 | PDF | Vitest + Chromium | template HTML (RTL blocks, `<bdi>`, amounts in words) and one-page PDF |
 | Files | Vitest + SeaweedFS | magic-byte sniffing, file names, `Content-Disposition`, upload size cap and origin check (route helpers), floor plans stored/replaced/removed, presigned download |
-| E2E | Playwright, production build, `realestate_e2e` reset + seeded | anonymous redirect, sign-in error, members, org switch, FR→AR RTL, role-based UI; inventory: project → building → generated units → per-m² price list → block → floor plan, read-only commercial, Arabic unit sheet; CRM: lead (flagged duplicate) → call → visit → quotation → PDF by the worker, commercial scope, merge, discount + cancel, targets; sales golden path: lead → option → buyer file → reservation of the optioned unit → sheet PDF → cashier payment → receipt PDF, commercial scope, overdue list; seeded VSP with payment call, bank loan and commission |
+| E2E | Playwright, production build, `realestate_e2e` reset + seeded | anonymous redirect, sign-in error, members, org switch, FR→AR RTL, role-based UI; inventory: project → building → generated units → per-m² price list → block → floor plan, read-only commercial, Arabic unit sheet; CRM: lead (flagged duplicate) → call → visit → quotation → PDF by the worker, commercial scope, merge, discount + cancel, targets; sales golden path: lead → option → buyer file → reservation of the optioned unit → sheet PDF → cashier payment → receipt PDF, commercial scope, overdue list; seeded VSP with payment call, bank loan and commission; dashboard sections and overdue link |
 
 - Vitest `globalSetup` migrates the test DB and creates the S3 bucket once; each test creates its own organization(s) (`tests/factories.ts`, `tests/auth-helpers.ts`) → isolation without truncation.
 - The e2e global setup starts `src/jobs/worker.ts` after the reset and stops its process tree at the end (documents render during e2e).
@@ -461,7 +466,7 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 
 ## 11. Roadmap
 
-**Current: Phase 1 modules 1–3 done — `phase-1/inventory` (PR https://github.com/yurigami1939-oss/realestate/pull/2), `phase-1/crm` (PR https://github.com/yurigami1939-oss/realestate/pull/3) and `phase-1/sales` (stacked on `phase-1/crm`). Next: owner dashboard and audit log viewer, then Phase 2.**
+**Current: Phase 1 done — `phase-1/inventory` (PR https://github.com/yurigami1939-oss/realestate/pull/2), `phase-1/crm` (PR https://github.com/yurigami1939-oss/realestate/pull/3), `phase-1/sales` (PR https://github.com/yurigami1939-oss/realestate/pull/4) and `phase-1/wrap-up` (dashboard, audit log, logo; stacked on #4). Next: Phase 2 (module 6 residence management, module 7 portal) — its business questions must be answered first.**
 
 ### Phase 0 — Foundations ✅
 - [x] `CLAUDE.md` approved (2026-09-30)
@@ -500,9 +505,9 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
   - [x] Withdrawal (proposal → approval → refund), transfer, unit swap, bank loans
   - [x] Commissions page (paid, rates per commercial); targets for reservations and VSP
   - [x] Seed and e2e golden path
-- [ ] Owner dashboard
-- [ ] Audit log viewer
-- [ ] Organization settings page — legal identity + quotation validity done (`/settings/company`); logo upload pending
+- [x] Owner dashboard (`/dashboard`): to-do by role, sales, collections, stock, prospection
+- [x] Audit log viewer (`/settings/audit`, gérant and comptable)
+- [x] Organization settings page (`/settings/company`): legal identity, sales settings, logo printed on documents
 - [x] Seed: 2 projects, 3 buildings, ~120 units · leads, visits, follow-ups, plans, quotations, targets · buyers, sales, payments, VSP, loan, calls, reminder
 
 ### Phase 2
@@ -578,6 +583,9 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 | 2026-10-01 | Withdrawal, transfer and unit swap apply to reservations before the VSP only; a swap stays within the project and keeps the reservation number (a new reservation sheet is rendered). Withdrawal approval recomputes the amounts on what is paid at that moment; payments stay valid and the refund is recorded separately. |
 | 2026-10-01 | Bank loans: one followed loan per sale; disbursements are recorded as payments with method `bank_loan` (no separate disbursement table). |
 | 2026-10-01 | Per-commercial commission rates are set by the gérant (`organization:update`); accountants mark commissions paid; each commission keeps the rate it was earned at. Monthly targets also count reservations signed (not withdrawn) and VSP signed, credited to the sale's commercial. |
+| 2026-10-01 | Dashboard = one page whose sections follow the member's permissions (and the sale/lead visibility), not one dashboard per role. Figures are derived on the fly (no snapshots); "this month" is the Algiers calendar month. |
+| 2026-10-01 | Audit log viewer for `audit:read` (gérant, comptable); details show the stored JSON as is (amounts in centimes, rates in basis points). |
+| 2026-10-01 | Company logo: PNG/JPEG only (no SVG: scripts), 2 MB, stored like other files; printed on documents issued after the upload (issued PDFs are never re-rendered). |
 
 ### Open items
 - **GitHub**: repo `yurigami1939-oss/realestate` is **public** — make it private before real client data or configuration lands. Work happens on branches merged through PRs; CI must be green.

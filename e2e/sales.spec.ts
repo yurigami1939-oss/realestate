@@ -98,4 +98,15 @@ test.describe("directrice commerciale", () => {
     await expect(page.getByTestId("bank-loans")).toContainText("CNEP-Banque");
     await expect(page.getByTestId("sale-commission")).toContainText("1,5");
   });
+
+  test("follows sales and collections on the dashboard", async ({ page }) => {
+    await page.goto("/fr/dashboard");
+    await expect(page.getByTestId("dashboard-sales")).toBeVisible();
+    await expect(page.getByTestId("dashboard-stock")).toBeVisible();
+    const overdue = page.getByTestId("dashboard-overdue");
+    await expect(overdue).toContainText("1 vente en retard");
+    await overdue.click();
+    await expect(page).toHaveURL(/\/fr\/sales\/overdue$/);
+    await expect(page.getByTestId("overdue-table")).toContainText("Meziane Houda");
+  });
 });
