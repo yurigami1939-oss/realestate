@@ -3,7 +3,7 @@ import "server-only";
 import { and, eq, isNull, sql } from "drizzle-orm";
 
 import type { Tx } from "@/db/client";
-import { buyer, file, lead, quotation } from "@/db/schema";
+import { buyer, file, lead, quotation, reservation } from "@/db/schema";
 import { withTenant } from "@/db/tenant";
 import {
   cleanFileName,
@@ -17,6 +17,7 @@ import { AppError } from "@/lib/result";
 import type { TenantCtx } from "@/server/auth/session";
 import { visibleBuyers } from "@/server/buyers/access";
 import { visibleLeads } from "@/server/crm/access";
+import { visibleSales } from "@/server/sales/access";
 
 import { presignDownload, putObject, storageKey } from "./storage";
 
@@ -35,6 +36,15 @@ const readers: Record<string, Reader> = {
       .select({ id: buyer.id })
       .from(buyer)
       .where(and(eq(buyer.id, entityId), visibleBuyers(ctx)));
+    return row !== undefined;
+  },
+  // Sale documents (contract scans, sheets, receipts…) follow the sale's visibility.
+  reservation: async (tx, ctx, entityId) => {
+    if (!can(ctx.roles, "sale:read")) return false;
+    const [row] = await tx
+      .select({ id: reservation.id })
+      .from(reservation)
+      .where(and(eq(reservation.id, entityId), visibleSales(ctx)));
     return row !== undefined;
   },
   // A quotation PDF follows its lead: commercials only see their own leads' quotations.

@@ -17,7 +17,14 @@ import {
 } from "drizzle-orm/pg-core";
 
 import { planStepTriggers } from "../../lib/payment-plans";
-import { constructionStages, optionStatuses, type VspLimits } from "../../lib/sales";
+import {
+  commissionStatuses,
+  constructionStages,
+  optionStatuses,
+  paymentMethods,
+  reservationStatuses,
+  type VspLimits,
+} from "../../lib/sales";
 
 import {
   createdAt,
@@ -30,6 +37,7 @@ import {
   updatedAt,
   userRef,
 } from "./_columns";
+import { buyer } from "./buyers";
 import { lead } from "./crm";
 import { file } from "./files";
 import { project, unit } from "./inventory";
@@ -319,5 +327,300 @@ export const unitOption = pgTable(
       .where(sql`${t.status} = 'active'`),
     index().on(t.organizationId, t.leadId),
     check("unit_option_expiry", sql`${t.expiresAt} > ${t.placedAt}`),
+  ],
+);
+
+export const reservationStatus = pgEnum("reservation_status", reservationStatuses);
+export const commissionStatus = pgEnum("commission_status", commissionStatuses);
+
+/**
+ * Réservation, then vente (VSP) once signed at the notary. Numbered RES-…; the VSP gets its
+ * own VSP-… reference. Prices are snapshots: later price lists never touch them. At most one
+ * live (reserved or sold) reservation per unit.
+ */
+export const reservation = pgTable(
+  "reservation",
+  {
+    id: id(),
+    organizationId: organizationId(),
+    number: text().notNull(),
+    unitId: uuid().notNull(),
+    projectId: uuid().notNull(),
+    leadId: uuid(),
+    /** Commercial credited with the sale (lead owner at reservation): commissions, targets. */
+    commercialUserId: userRef(),
+    paymentPlanId: uuid(),
+    listPrice: money().notNull(),
+    discount: money()
+      .notNull()
+      .default(sql`0`),
+    price: money().notNull(),
+    status: reservationStatus().notNull().default("reserved"),
+    /** Contrat de réservation (signed at the notary). */
+    reservedOn: date({ mode: "string" }).notNull(),
+    reservationNotary: text(),
+    reservationReference: text(),
+    reservationScanFileId: uuid(),
+    /** Vente sur plans (acte notarié). */
+    saleNumber: text(),
+    saleSignedOn: date({ mode: "string" }),
+    saleNotary: text(),
+    saleReference: text(),
+    saleScanFileId: uuid(),
+    /** Internal reservation sheet (PDF rendered by the worker). */
+    sheetFileId: uuid(),
+    notes: text(),
+    endedOn: date({ mode: "string" }),
+    ...timestamps(),
+  },
+  (t) => [
+    unique().on(t.organizationId, t.id),
+    unique().on(t.organizationId, t.number),
+    unique().on(t.organizationId, t.saleNumber),
+    foreignKey({
+      name: "reservation_unit_fk",
+      columns: [t.organizationId, t.unitId],
+      foreignColumns: [unit.organizationId, unit.id],
+    }),
+    foreignKey({
+      name: "reservation_project_fk",
+      columns: [t.organizationId, t.projectId],
+      foreignColumns: [project.organizationId, project.id],
+    }),
+    foreignKey({
+      name: "reservation_lead_fk",
+      columns: [t.organizationId, t.leadId],
+      foreignColumns: [lead.organizationId, lead.id],
+    }),
+    foreignKey({
+      name: "reservation_plan_fk",
+      columns: [t.organizationId, t.paymentPlanId],
+      foreignColumns: [paymentPlan.organizationId, paymentPlan.id],
+    }),
+    foreignKey({
+      name: "reservation_scan_fk",
+      columns: [t.organizationId, t.reservationScanFileId],
+      foreignColumns: [file.organizationId, file.id],
+    }),
+    foreignKey({
+      name: "reservation_deed_fk",
+      columns: [t.organizationId, t.saleScanFileId],
+      foreignColumns: [file.organizationId, file.id],
+    }),
+    foreignKey({
+      name: "reservation_sheet_fk",
+      columns: [t.organizationId, t.sheetFileId],
+      foreignColumns: [file.organizationId, file.id],
+    }),
+    uniqueIndex("reservation_one_live_per_unit")
+      .on(t.organizationId, t.unitId)
+      .where(sql`${t.status} in ('reserved', 'sold')`),
+    index().on(t.organizationId, t.commercialUserId),
+    index().on(t.organizationId, t.leadId),
+    check(
+      "reservation_amounts",
+      sql`${t.discount} >= 0 and ${t.price} = ${t.listPrice} - ${t.discount}`,
+    ),
+    check(
+      "reservation_sale",
+      sql`(${t.status} = 'sold') <= (${t.saleSignedOn} is not null and ${t.saleNumber} is not null)`,
+    ),
+  ],
+);
+
+/** Buyers of a reservation (co-acquéreurs); position 1 is the main buyer. */
+export const reservationBuyer = pgTable(
+  "reservation_buyer",
+  {
+    organizationId: organizationId(),
+    reservationId: uuid().notNull(),
+    buyerId: uuid().notNull(),
+    position: integer().notNull(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.reservationId, t.buyerId] }),
+    unique("reservation_buyer_position").on(t.reservationId, t.position),
+    foreignKey({
+      name: "reservation_buyer_reservation_fk",
+      columns: [t.organizationId, t.reservationId],
+      foreignColumns: [reservation.organizationId, reservation.id],
+    }).onDelete("cascade"),
+    foreignKey({
+      name: "reservation_buyer_buyer_fk",
+      columns: [t.organizationId, t.buyerId],
+      foreignColumns: [buyer.organizationId, buyer.id],
+    }),
+    index().on(t.organizationId, t.buyerId),
+  ],
+);
+
+/**
+ * Échéance of a sale. Amounts sum exactly to the price (allocate). A milestone installment has
+ * no due date until its milestone is validated (then validation day + company delay).
+ */
+export const installment = pgTable(
+  "installment",
+  {
+    organizationId: organizationId(),
+    reservationId: uuid().notNull(),
+    position: integer().notNull(),
+    label: text().notNull(),
+    shareBp: integer().notNull(),
+    amount: money().notNull(),
+    trigger: planStepTrigger().notNull(),
+    months: integer(),
+    milestoneId: uuid(),
+    dueOn: date({ mode: "string" }),
+  },
+  (t) => [
+    primaryKey({ columns: [t.reservationId, t.position] }),
+    foreignKey({
+      name: "installment_reservation_fk",
+      columns: [t.organizationId, t.reservationId],
+      foreignColumns: [reservation.organizationId, reservation.id],
+    }).onDelete("cascade"),
+    foreignKey({
+      name: "installment_milestone_fk",
+      columns: [t.organizationId, t.milestoneId],
+      foreignColumns: [constructionMilestone.organizationId, constructionMilestone.id],
+    }),
+    index().on(t.organizationId, t.milestoneId),
+    check("installment_amount", sql`${t.amount} >= 0`),
+  ],
+);
+
+/** Commission rate of a commercial (overrides the company default). */
+export const commissionRate = pgTable(
+  "commission_rate",
+  {
+    organizationId: organizationId(),
+    userId: userRef().notNull(),
+    rateBp: integer().notNull(),
+    updatedAt: updatedAt(),
+    updatedBy: userRef(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.organizationId, t.userId] }),
+    check("commission_rate_range", sql`${t.rateBp} between 0 and 2000`),
+  ],
+);
+
+/** Commission earned at the VSP on the net price (CLAUDE.md §12); one per sale. */
+export const commission = pgTable(
+  "commission",
+  {
+    id: id(),
+    organizationId: organizationId(),
+    reservationId: uuid().notNull(),
+    userId: userRef().notNull(),
+    base: money().notNull(),
+    rateBp: integer().notNull(),
+    amount: money().notNull(),
+    earnedOn: date({ mode: "string" }).notNull(),
+    status: commissionStatus().notNull().default("earned"),
+    paidOn: date({ mode: "string" }),
+    paidBy: userRef(),
+    cancelledAt: instant(),
+    cancelledBy: userRef(),
+    cancelReason: text(),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    unique().on(t.organizationId, t.id),
+    unique().on(t.organizationId, t.reservationId),
+    foreignKey({
+      name: "commission_reservation_fk",
+      columns: [t.organizationId, t.reservationId],
+      foreignColumns: [reservation.organizationId, reservation.id],
+    }),
+    index().on(t.organizationId, t.userId, t.earnedOn),
+  ],
+);
+
+export const paymentMethod = pgEnum("payment_method", paymentMethods);
+export const paymentStatus = pgEnum("payment_status", ["valid", "cancelled"]);
+export const receiptStatus = pgEnum("receipt_status", ["issued", "cancelled"]);
+
+/**
+ * Encaissement on a sale. Immutable (CLAUDE.md §7): only its cancellation (with a reason) and a
+ * cheque's clearance date can change — enforced by column grants in post-migrate.sql. Applied to
+ * installments by the derived FIFO statement (src/lib/statement.ts), never stored.
+ */
+export const payment = pgTable(
+  "payment",
+  {
+    id: id(),
+    organizationId: organizationId(),
+    reservationId: uuid().notNull(),
+    amount: money().notNull(),
+    method: paymentMethod().notNull(),
+    /** Day the money (or cheque) was received. */
+    paidOn: date({ mode: "string" }).notNull(),
+    /** Cheque number, transfer reference… */
+    reference: text(),
+    bank: text(),
+    /** Who handed the payment over, as printed on the receipt. */
+    payerName: text().notNull(),
+    chequeClearedOn: date({ mode: "string" }),
+    notes: text(),
+    status: paymentStatus().notNull().default("valid"),
+    cancelledAt: instant(),
+    cancelledBy: userRef(),
+    cancellationReason: text(),
+    recordedBy: userRef().notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    unique().on(t.organizationId, t.id),
+    foreignKey({
+      name: "payment_reservation_fk",
+      columns: [t.organizationId, t.reservationId],
+      foreignColumns: [reservation.organizationId, reservation.id],
+    }),
+    index().on(t.organizationId, t.reservationId),
+    index().on(t.organizationId, t.paidOn),
+    check("payment_amount", sql`${t.amount} > 0`),
+    check(
+      "payment_cancellation",
+      sql`(${t.status} = 'cancelled') = (${t.cancelledAt} is not null and ${t.cancellationReason} is not null)`,
+    ),
+  ],
+);
+
+/**
+ * Reçu REC-…: exactly one per payment, issued with it. `allocation` is the snapshot of the
+ * installments the payment settled when it was issued (printed on the receipt).
+ */
+export const receipt = pgTable(
+  "receipt",
+  {
+    id: id(),
+    organizationId: organizationId(),
+    number: text().notNull(),
+    paymentId: uuid().notNull(),
+    issuedAt: instant().notNull().defaultNow(),
+    issuedBy: userRef().notNull(),
+    allocation: jsonb()
+      .$type<{ position: number; label: string; amount: string }[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
+    status: receiptStatus().notNull().default("issued"),
+    cancelledAt: instant(),
+    pdfFileId: uuid(),
+  },
+  (t) => [
+    unique().on(t.organizationId, t.id),
+    unique().on(t.organizationId, t.number),
+    unique().on(t.organizationId, t.paymentId),
+    foreignKey({
+      name: "receipt_payment_fk",
+      columns: [t.organizationId, t.paymentId],
+      foreignColumns: [payment.organizationId, payment.id],
+    }),
+    foreignKey({
+      name: "receipt_pdf_fk",
+      columns: [t.organizationId, t.pdfFileId],
+      foreignColumns: [file.organizationId, file.id],
+    }),
   ],
 );

@@ -167,7 +167,7 @@
     "settings": "Paramètres",
     "members": "Membres",
     "projects": "Projets",
-    "sales": "Ventes",
+    "sales": "Prospection",
     "leads": "Prospects",
     "pipeline": "Pipeline",
     "followUps": "Relances",
@@ -176,7 +176,8 @@
     "company": "Société",
     "targets": "Objectifs",
     "buyers": "Acquéreurs",
-    "contracts": "Contrats et encaissements"
+    "contracts": "Contrats et encaissements",
+    "saleList": "Réservations et ventes"
   },
   "shell": {
     "organizations": "Sociétés",
@@ -697,7 +698,7 @@
     "title": "Échéanciers",
     "description": "Étapes des travaux prévues et échéanciers types proposés aux acquéreurs.",
     "milestones": "Avancement des travaux (prévisionnel)",
-    "milestonesHint": "Les échéances liées à une étape sont dues à sa réalisation ; la date prévue sert aux simulations.",
+    "milestonesHint": "Les échéances liées à une étape sont dues à sa réalisation ; la date prévue sert aux simulations, le stade au contrôle des plafonds VSP.",
     "milestoneName": "Étape",
     "plannedOn": "Date prévue",
     "addMilestone": "Ajouter une étape",
@@ -740,12 +741,23 @@
       "total": "La somme des tranches doit faire exactement 100 %.",
       "noSteps": "Ajoutez au moins une tranche.",
       "milestoneInUse": "Cette étape est utilisée par un échéancier : retirez-la d'abord de l'échéancier.",
-      "milestoneNotFound": "Étape inconnue pour ce projet."
+      "milestoneNotFound": "Étape inconnue pour ce projet.",
+      "milestoneValidated": "Une étape réalisée ne peut pas être retirée.",
+      "milestoneInSale": "Cette étape figure dans l'échéancier d'une réservation."
     },
     "defaultSteps": {
       "signing": "Réservation",
       "handover": "Remise des clés"
-    }
+    },
+    "stage": "Stade des travaux",
+    "stages": {
+      "none": "Non classée",
+      "foundations": "Fin des fondations",
+      "structure": "Fin du gros œuvre",
+      "completion": "Fin des travaux",
+      "handover": "Remise des clés"
+    },
+    "validatedOn": "Réalisée le {date}"
   },
   "quotations": {
     "title": "Devis",
@@ -940,7 +952,185 @@
     },
     "errors": {
       "unitNotAvailable": "Ce lot n'est plus disponible.",
-      "optionNotActive": "Cette option n'est plus active."
+      "optionNotActive": "Cette option n'est plus active.",
+      "buyerRequired": "Choisissez au moins un acquéreur.",
+      "buyerTwice": "Un acquéreur ne peut figurer deux fois.",
+      "optionedForAnother": "Ce lot est en option pour un autre prospect.",
+      "futureDate": "La date ne peut pas être dans le futur.",
+      "notReserved": "Seule une réservation en cours peut être signée en VSP.",
+      "beforeReservation": "La VSP ne peut précéder la réservation.",
+      "closed": "Cette réservation est close (désistement).",
+      "notSold": "L'acte de vente ne peut être joint qu'après la signature de la VSP."
+    },
+    "title": "Réservations et ventes",
+    "description": "Réservations signées, ventes sur plans et suivi des encaissements.",
+    "new": "Nouvelle réservation",
+    "newTitle": "Nouvelle réservation",
+    "reserve": "Réserver",
+    "openSale": "Voir la réservation {number}",
+    "created": "Réservation {number} enregistrée.",
+    "search": "N°, lot ou acquéreur",
+    "allStatuses": "Tous les statuts",
+    "empty": "Aucune réservation.",
+    "count": "{count, plural, =0 {Aucune réservation} one {# réservation} other {# réservations}}",
+    "status": {
+      "reserved": "Réservé",
+      "sold": "Vendu (VSP)",
+      "withdrawn": "Désisté"
+    },
+    "columns": {
+      "number": "N°",
+      "buyers": "Acquéreur(s)",
+      "unit": "Lot",
+      "status": "Statut",
+      "price": "Prix",
+      "paid": "Encaissé",
+      "reservedOn": "Réservé le",
+      "commercial": "Commercial"
+    },
+    "fields": {
+      "unitId": "Lot",
+      "buyerIds": "Acquéreur(s)",
+      "addBuyer": "Ajouter un co-acquéreur",
+      "removeBuyer": "Retirer",
+      "mainBuyer": "Acquéreur principal",
+      "coBuyer": "Co-acquéreur",
+      "paymentPlanId": "Échéancier",
+      "discount": "Remise (DA)",
+      "reservedOn": "Date du contrat de réservation",
+      "notary": "Notaire",
+      "reference": "Référence de l'acte",
+      "notes": "Remarques"
+    },
+    "newBuyer": "Nouvel acquéreur",
+    "noBuyer": "Aucun acquéreur : créez d'abord la fiche acquéreur.",
+    "schedule": "Échéancier",
+    "atSigning": "À la signature",
+    "atMilestone": "À l'achèvement : {name}",
+    "plannedOn": "prévu le {date}",
+    "warnings": {
+      "title": "Contrôle des plafonds VSP",
+      "over_limit": "{stage} : {cumulative} demandés pour un plafond de {limit}.",
+      "unclassified": "{share} ne sont pas liés à une étape des travaux classée.",
+      "stage": {
+        "signing": "À la signature",
+        "foundations": "Fin des fondations",
+        "structure": "Fin du gros œuvre",
+        "completion": "Fin des travaux"
+      }
+    },
+    "missingDocuments": "{count, plural, =0 {Dossier acquéreur complet} one {# pièce manquante au dossier} other {# pièces manquantes au dossier}}",
+    "sections": {
+      "summary": "Résumé",
+      "buyers": "Acquéreurs",
+      "documents": "Documents",
+      "statement": "Échéancier et paiements",
+      "payments": "Encaissements",
+      "commission": "Commission"
+    },
+    "sheet": "Fiche de réservation",
+    "contractScan": "Contrat de réservation signé",
+    "deedScan": "Acte de vente (VSP) signé",
+    "attach": "Joindre le scan",
+    "replace": "Remplacer",
+    "scanSaved": "Scan enregistré.",
+    "pdfPending": "En préparation…",
+    "notaryRef": "Notaire : {notary}",
+    "vsp": {
+      "record": "Enregistrer la VSP",
+      "title": "Vente sur plans signée",
+      "description": "Le lot passe à « vendu », la commission du commercial est acquise.",
+      "signedOn": "Date de signature",
+      "notary": "Notaire",
+      "reference": "N° de l'acte",
+      "recorded": "VSP {number} enregistrée.",
+      "signed": "VSP {number} signée le {date} chez {notary}"
+    },
+    "statement": {
+      "price": "Prix",
+      "paid": "Encaissé",
+      "remaining": "Reste à payer",
+      "due": "Exigible",
+      "overdue": "En retard",
+      "advance": "Avance sur échéances à venir",
+      "penalties": "Pénalités calculées",
+      "penaltiesHint": "Calculées selon les réglages, affichées pour information ; jamais facturées automatiquement.",
+      "columns": {
+        "step": "Échéance",
+        "due": "Exigible le",
+        "amount": "Montant",
+        "paid": "Payé",
+        "remaining": "Reste",
+        "state": "État",
+        "penalty": "Pénalité"
+      },
+      "state": {
+        "paid": "Payée",
+        "overdue": "En retard",
+        "due": "Exigible",
+        "upcoming": "À venir",
+        "pending": "Étape non atteinte"
+      },
+      "daysLate": "{days} j de retard"
+    },
+    "commission": {
+      "line": "{name} · {rate} du prix net · {amount}",
+      "status": {
+        "earned": "Acquise",
+        "paid": "Payée",
+        "cancelled": "Annulée"
+      }
+    }
+  },
+  "payments": {
+    "record": "Enregistrer un paiement",
+    "recordTitle": "Paiement · {number}",
+    "recorded": "Paiement enregistré, reçu {number}.",
+    "fields": {
+      "amount": "Montant (DA)",
+      "method": "Mode de paiement",
+      "paidOn": "Reçu le",
+      "reference": "N° de chèque / référence",
+      "bank": "Banque",
+      "payerName": "Versé par",
+      "notes": "Remarques"
+    },
+    "method": {
+      "cash": "Espèces",
+      "cheque": "Chèque",
+      "bank_transfer": "Virement",
+      "ccp": "CCP",
+      "bank_loan": "Crédit bancaire"
+    },
+    "columns": {
+      "date": "Date",
+      "amount": "Montant",
+      "method": "Mode",
+      "receipt": "Reçu",
+      "status": "État"
+    },
+    "remainingHint": "Reste à payer : {amount}",
+    "none": "Aucun paiement.",
+    "cancelled": "Annulé",
+    "cancelledBy": "Annulé : {reason}",
+    "cancel": "Annuler",
+    "cancelTitle": "Annuler le paiement et le reçu {number} ?",
+    "cancelDescription": "Le reçu reste numéroté et consultable ; les échéances qu'il réglait redeviennent dues.",
+    "cancelReason": "Motif (ex. chèque impayé)",
+    "cancelDone": "Paiement annulé.",
+    "pendingCheque": "Chèque à encaisser",
+    "clear": "Encaissé",
+    "clearTitle": "Chèque encaissé",
+    "clearedOn": "Encaissé le",
+    "cleared": "Encaissement du chèque enregistré.",
+    "chequeCleared": "Chèque encaissé le {date}",
+    "errors": {
+      "aboveBalance": "Le montant dépasse le reste à payer de la vente.",
+      "chequeDetails": "Indiquez le numéro du chèque et la banque.",
+      "saleClosed": "Cette vente n'accepte plus de paiements.",
+      "alreadyCancelled": "Ce paiement est déjà annulé.",
+      "notPendingCheque": "Ce paiement n'est pas un chèque en attente d'encaissement.",
+      "beforePayment": "L'encaissement ne peut précéder la remise du chèque."
     }
   }
 }

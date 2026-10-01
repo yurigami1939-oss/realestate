@@ -3,7 +3,14 @@ import { z } from "zod";
 
 import { parsePercentToBasisPoints } from "@/lib/money";
 import { FULL_SHARE_BP, planStepTriggers } from "@/lib/payment-plans";
-import { optionalDateText, optionalIntText, optionalText, requiredText } from "@/lib/zod";
+import { constructionStages } from "@/lib/sales";
+import {
+  optionalDateText,
+  optionalEnum,
+  optionalIntText,
+  optionalText,
+  requiredText,
+} from "@/lib/zod";
 
 // ── Construction milestones (planning) ──────────────────────────────────────
 
@@ -11,6 +18,8 @@ export const milestoneFields = z.object({
   /** Existing milestone, or "" for a new one. */
   id: z.union([z.uuid(), z.literal("")]),
   name: requiredText(120),
+  /** Construction stage, for the VSP limit check (CLAUDE.md §12). */
+  stage: optionalEnum(constructionStages),
   plannedOn: optionalDateText(),
 });
 

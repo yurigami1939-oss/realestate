@@ -8,11 +8,15 @@ export const queues = {
   "email.send": { retryLimit: 5, retryDelay: 30, retryBackoff: true, expireInSeconds: 120 },
   /** Releases a unit when its option expires (scheduled at placement, idempotent). */
   "option.expire": { retryLimit: 5, retryDelay: 60, retryBackoff: true, expireInSeconds: 120 },
-  /** Renders an issued quotation's PDF and stores it (idempotent). */
-  "pdf.quotation": { retryLimit: 3, retryDelay: 15, retryBackoff: true, expireInSeconds: 180 },
+  /** Renders an issued document's PDF once and stores it (idempotent per kind and id). */
+  "pdf.document": { retryLimit: 3, retryDelay: 15, retryBackoff: true, expireInSeconds: 180 },
 } as const satisfies Record<string, QueueOptions>;
 
 export type QueueName = keyof typeof queues;
+
+/** Documents rendered by `pdf.document` (src/server/documents/render.ts). */
+export const pdfDocumentKinds = ["quotation", "reservation_sheet", "receipt"] as const;
+export type PdfDocumentKind = (typeof pdfDocumentKinds)[number];
 
 export const queueNames = Object.keys(queues) as QueueName[];
 
@@ -26,6 +30,6 @@ export type EmailMessage = {
 /** Payload of each queue. */
 export type JobPayloads = {
   "email.send": EmailMessage;
-  "pdf.quotation": { organizationId: string; quotationId: string };
+  "pdf.document": { organizationId: string; kind: PdfDocumentKind; id: string };
   "option.expire": { organizationId: string; optionId: string };
 };

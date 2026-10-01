@@ -43,6 +43,13 @@
       "when": 1790818451897,
       "tag": "0005_buyers_options",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1790821024971,
+      "tag": "0006_reservations_payments",
+      "breakpoints": true
     }
   ]
 }

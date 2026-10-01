@@ -65,3 +65,12 @@ export const salesSettingDefaults = {
 export type SalesSettings = { [K in keyof typeof salesSettingDefaults]: number } & {
   vspLimits: VspLimits;
 };
+
+export const reservationStatuses = ["reserved", "sold", "withdrawn"] as const;
+export type ReservationStatus = (typeof reservationStatuses)[number];
+
+export const commissionStatuses = ["earned", "paid", "cancelled"] as const;
+export type CommissionStatus = (typeof commissionStatuses)[number];
+
+/** A reservation has 1 to 3 buyers (co-acquéreurs, e.g. spouses); the first is the main one. */
+export const MAX_BUYERS_PER_SALE = 3;

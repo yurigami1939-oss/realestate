@@ -8,7 +8,7 @@ import { JOBS_SCHEMA } from "@/db/jobs-schema";
 import { env } from "@/env";
 
 import { handleExpireOption } from "./handlers/expire-option";
-import { handleRenderQuotationPdf } from "./handlers/render-quotation-pdf";
+import { handleRenderDocument } from "./handlers/render-document";
 import { handleSendEmail } from "./handlers/send-email";
 
 const boss = new PgBoss({
@@ -22,9 +22,9 @@ boss.on("error", (error) => console.error("[worker]", error));
 
 await boss.start();
 await boss.work("email.send", { batchSize: 5 }, handleSendEmail);
-await boss.work("pdf.quotation", { batchSize: 1 }, handleRenderQuotationPdf);
+await boss.work("pdf.document", { batchSize: 1 }, handleRenderDocument);
 await boss.work("option.expire", { batchSize: 10 }, handleExpireOption);
-console.log("[worker] started: email.send, pdf.quotation, option.expire");
+console.log("[worker] started: email.send, pdf.document, option.expire");
 
 let stopping = false;
 async function shutdown(signal: string) {

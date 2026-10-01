@@ -10,7 +10,7 @@ import { storeFile } from "@/server/files/service";
 import { loadQuotationDocument } from "./queries";
 
 /**
- * Job `pdf.quotation`: renders the quotation once and links the stored PDF. Idempotent: a
+ * `pdf.document` (kind quotation): renders the quotation once and links the stored PDF. Idempotent: a
  * quotation that already has its PDF is skipped (retries, duplicate jobs).
  */
 export async function renderAndStoreQuotationPdf(payload: {

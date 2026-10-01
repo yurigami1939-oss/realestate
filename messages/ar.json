@@ -167,7 +167,7 @@
     "settings": "الإعدادات",
     "members": "الأعضاء",
     "projects": "المشاريع",
-    "sales": "المبيعات",
+    "sales": "التنقيب التجاري",
     "leads": "الزبائن المحتملون",
     "pipeline": "مسار البيع",
     "followUps": "المتابعات",
@@ -176,7 +176,8 @@
     "company": "الشركة",
     "targets": "الأهداف",
     "buyers": "المشترون",
-    "contracts": "العقود والتحصيلات"
+    "contracts": "العقود والتحصيلات",
+    "saleList": "الحجوزات والمبيعات"
   },
   "shell": {
     "organizations": "الشركات",
@@ -697,7 +698,7 @@
     "title": "جداول الدفع",
     "description": "مراحل الأشغال المتوقعة وجداول الدفع النموذجية المقترحة على المشترين.",
     "milestones": "تقدم الأشغال (تقديري)",
-    "milestonesHint": "الدفعات المرتبطة بمرحلة تستحق عند إنجازها؛ ويُستعمل التاريخ المتوقع في المحاكاة.",
+    "milestonesHint": "تستحق الدفعات المرتبطة بمرحلة عند إنجازها؛ يُستعمل التاريخ المتوقع في المحاكاة، والمرحلة في مراقبة سقوف البيع على التصاميم.",
     "milestoneName": "المرحلة",
     "plannedOn": "التاريخ المتوقع",
     "addMilestone": "إضافة مرحلة",
@@ -740,12 +741,23 @@
       "total": "يجب أن يساوي مجموع الدفعات 100٪ بالضبط.",
       "noSteps": "أضيفوا دفعة واحدة على الأقل.",
       "milestoneInUse": "هذه المرحلة مستعملة في جدول دفع: احذفوها منه أولاً.",
-      "milestoneNotFound": "مرحلة غير معروفة لهذا المشروع."
+      "milestoneNotFound": "مرحلة غير معروفة لهذا المشروع.",
+      "milestoneValidated": "لا يمكن حذف مرحلة منجزة.",
+      "milestoneInSale": "هذه المرحلة واردة في جدول دفعات حجز."
     },
     "defaultSteps": {
       "signing": "الحجز",
       "handover": "تسليم المفاتيح"
-    }
+    },
+    "stage": "مرحلة الأشغال",
+    "stages": {
+      "none": "غير مصنفة",
+      "foundations": "نهاية الأساسات",
+      "structure": "نهاية الهيكل",
+      "completion": "نهاية الأشغال",
+      "handover": "تسليم المفاتيح"
+    },
+    "validatedOn": "أُنجزت في {date}"
   },
   "quotations": {
     "title": "عروض الأسعار",
@@ -940,7 +952,185 @@
     },
     "errors": {
       "unitNotAvailable": "هذه الوحدة لم تعد متوفرة.",
-      "optionNotActive": "هذا الخيار لم يعد نشطاً."
+      "optionNotActive": "هذا الخيار لم يعد نشطاً.",
+      "buyerRequired": "اختاروا مشترياً واحداً على الأقل.",
+      "buyerTwice": "لا يمكن أن يظهر المشتري مرتين.",
+      "optionedForAnother": "هذه الوحدة محجوزة مؤقتاً لزبون محتمل آخر.",
+      "futureDate": "لا يمكن أن يكون التاريخ في المستقبل.",
+      "notReserved": "لا يمكن توقيع البيع على التصاميم إلا لحجز جارٍ.",
+      "beforeReservation": "لا يمكن أن يسبق البيع على التصاميم الحجز.",
+      "closed": "هذا الحجز مغلق (عدول).",
+      "notSold": "لا يمكن إرفاق عقد البيع إلا بعد توقيع البيع على التصاميم."
+    },
+    "title": "الحجوزات والمبيعات",
+    "description": "الحجوزات الموقعة والبيع على التصاميم ومتابعة التحصيلات.",
+    "new": "حجز جديد",
+    "newTitle": "حجز جديد",
+    "reserve": "حجز",
+    "openSale": "عرض الحجز {number}",
+    "created": "تم تسجيل الحجز {number}.",
+    "search": "الرقم أو الوحدة أو المشتري",
+    "allStatuses": "كل الحالات",
+    "empty": "لا توجد حجوزات.",
+    "count": "{count, plural, =0 {لا يوجد حجز} one {حجز واحد} two {حجزان} few {# حجوزات} many {# حجزاً} other {# حجز}}",
+    "status": {
+      "reserved": "محجوز",
+      "sold": "مباع (بيع على التصاميم)",
+      "withdrawn": "عدول"
+    },
+    "columns": {
+      "number": "الرقم",
+      "buyers": "المشتري(ون)",
+      "unit": "الوحدة",
+      "status": "الحالة",
+      "price": "السعر",
+      "paid": "المحصّل",
+      "reservedOn": "تاريخ الحجز",
+      "commercial": "المندوب"
+    },
+    "fields": {
+      "unitId": "الوحدة",
+      "buyerIds": "المشتري(ون)",
+      "addBuyer": "إضافة مشترٍ شريك",
+      "removeBuyer": "إزالة",
+      "mainBuyer": "المشتري الرئيسي",
+      "coBuyer": "مشترٍ شريك",
+      "paymentPlanId": "جدول الدفع",
+      "discount": "التخفيض (دج)",
+      "reservedOn": "تاريخ عقد الحجز",
+      "notary": "الموثق",
+      "reference": "مرجع العقد",
+      "notes": "ملاحظات"
+    },
+    "newBuyer": "مشترٍ جديد",
+    "noBuyer": "لا يوجد مشترٍ: أنشئوا ملف المشتري أولاً.",
+    "schedule": "جدول الدفع",
+    "atSigning": "عند التوقيع",
+    "atMilestone": "عند إنجاز: {name}",
+    "plannedOn": "متوقع في {date}",
+    "warnings": {
+      "title": "مراقبة سقوف البيع على التصاميم",
+      "over_limit": "{stage}: مطلوب {cumulative} مقابل سقف {limit}.",
+      "unclassified": "{share} غير مرتبطة بمرحلة أشغال مصنفة.",
+      "stage": {
+        "signing": "عند التوقيع",
+        "foundations": "نهاية الأساسات",
+        "structure": "نهاية الهيكل",
+        "completion": "نهاية الأشغال"
+      }
+    },
+    "missingDocuments": "{count, plural, =0 {ملف المشتري كامل} one {وثيقة واحدة ناقصة في الملف} two {وثيقتان ناقصتان في الملف} few {# وثائق ناقصة في الملف} many {# وثيقة ناقصة في الملف} other {# وثيقة ناقصة في الملف}}",
+    "sections": {
+      "summary": "الملخص",
+      "buyers": "المشترون",
+      "documents": "الوثائق",
+      "statement": "جدول الدفع والمدفوعات",
+      "payments": "التحصيلات",
+      "commission": "العمولة"
+    },
+    "sheet": "بطاقة الحجز",
+    "contractScan": "عقد الحجز الموقع",
+    "deedScan": "عقد البيع على التصاميم الموقع",
+    "attach": "إرفاق النسخة الممسوحة",
+    "replace": "استبدال",
+    "scanSaved": "تم حفظ النسخة الممسوحة.",
+    "pdfPending": "قيد الإعداد…",
+    "notaryRef": "الموثق: {notary}",
+    "vsp": {
+      "record": "تسجيل البيع على التصاميم",
+      "title": "توقيع عقد البيع على التصاميم",
+      "description": "تصبح الوحدة «مباعة» وتُستحق عمولة المندوب.",
+      "signedOn": "تاريخ التوقيع",
+      "notary": "الموثق",
+      "reference": "رقم العقد",
+      "recorded": "تم تسجيل البيع {number}.",
+      "signed": "عقد {number} موقع يوم {date} لدى {notary}"
+    },
+    "statement": {
+      "price": "السعر",
+      "paid": "المحصّل",
+      "remaining": "الباقي للدفع",
+      "due": "مستحق",
+      "overdue": "متأخر",
+      "advance": "دفع مسبق للأقساط القادمة",
+      "penalties": "الغرامات المحسوبة",
+      "penaltiesHint": "محسوبة حسب الإعدادات ومعروضة للعلم؛ لا تُفوتر تلقائياً أبداً.",
+      "columns": {
+        "step": "الدفعة",
+        "due": "تاريخ الاستحقاق",
+        "amount": "المبلغ",
+        "paid": "المدفوع",
+        "remaining": "الباقي",
+        "state": "الحالة",
+        "penalty": "الغرامة"
+      },
+      "state": {
+        "paid": "مدفوعة",
+        "overdue": "متأخرة",
+        "due": "مستحقة",
+        "upcoming": "قادمة",
+        "pending": "المرحلة لم تُنجز"
+      },
+      "daysLate": "تأخر {days} يوماً"
+    },
+    "commission": {
+      "line": "{name} · {rate} من السعر الصافي · {amount}",
+      "status": {
+        "earned": "مستحقة",
+        "paid": "مدفوعة",
+        "cancelled": "ملغاة"
+      }
+    }
+  },
+  "payments": {
+    "record": "تسجيل دفعة",
+    "recordTitle": "دفعة · {number}",
+    "recorded": "تم تسجيل الدفعة، الوصل {number}.",
+    "fields": {
+      "amount": "المبلغ (دج)",
+      "method": "طريقة الدفع",
+      "paidOn": "تاريخ الاستلام",
+      "reference": "رقم الصك / المرجع",
+      "bank": "البنك",
+      "payerName": "دفعها",
+      "notes": "ملاحظات"
+    },
+    "method": {
+      "cash": "نقداً",
+      "cheque": "صك",
+      "bank_transfer": "تحويل",
+      "ccp": "حساب بريدي جارٍ",
+      "bank_loan": "قرض بنكي"
+    },
+    "columns": {
+      "date": "التاريخ",
+      "amount": "المبلغ",
+      "method": "الطريقة",
+      "receipt": "الوصل",
+      "status": "الحالة"
+    },
+    "remainingHint": "الباقي للدفع: {amount}",
+    "none": "لا توجد مدفوعات.",
+    "cancelled": "ملغاة",
+    "cancelledBy": "ملغاة: {reason}",
+    "cancel": "إلغاء",
+    "cancelTitle": "إلغاء الدفعة والوصل {number}؟",
+    "cancelDescription": "يبقى الوصل مرقماً وقابلاً للاطلاع؛ وتعود الأقساط التي سددها مستحقة.",
+    "cancelReason": "السبب (مثلاً: صك بدون رصيد)",
+    "cancelDone": "تم إلغاء الدفعة.",
+    "pendingCheque": "صك قيد التحصيل",
+    "clear": "تم التحصيل",
+    "clearTitle": "تحصيل الصك",
+    "clearedOn": "تاريخ التحصيل",
+    "cleared": "تم تسجيل تحصيل الصك.",
+    "chequeCleared": "صك محصّل يوم {date}",
+    "errors": {
+      "aboveBalance": "المبلغ يتجاوز الباقي للدفع في هذا البيع.",
+      "chequeDetails": "أدخلوا رقم الصك والبنك.",
+      "saleClosed": "هذا البيع لم يعد يقبل الدفعات.",
+      "alreadyCancelled": "هذه الدفعة ملغاة مسبقاً.",
+      "notPendingCheque": "هذه الدفعة ليست صكاً قيد التحصيل.",
+      "beforePayment": "لا يمكن أن يسبق التحصيل تسليم الصك."
     }
   }
 }

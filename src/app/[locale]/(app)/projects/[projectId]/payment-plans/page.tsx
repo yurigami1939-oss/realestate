@@ -64,7 +64,13 @@ export default async function PaymentPlansPage({
           <p className="text-sm text-muted-foreground">{t("paymentPlans.milestonesHint")}</p>
         </CardHeader>
         <CardContent>
-          <MilestonesEditor projectId={projectId} milestones={milestones} editable={editable} />
+          {/* Remounted when the saved list changes: new rows get their ids. */}
+          <MilestonesEditor
+            key={milestones.map((m) => `${m.id}:${m.validatedOn ?? ""}`).join()}
+            projectId={projectId}
+            milestones={milestones}
+            editable={editable}
+          />
         </CardContent>
       </Card>
 

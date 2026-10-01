@@ -7,6 +7,7 @@ import { constructionMilestone, paymentPlan, paymentPlanStep } from "@/db/schema
 import { withTenant } from "@/db/tenant";
 import { isUuid } from "@/lib/ids";
 import type { PlanMilestone, PlanStep } from "@/lib/payment-plans";
+import type { ConstructionStage } from "@/lib/sales";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
 
 /** Planned construction milestones of a project, in order. */
@@ -15,6 +16,7 @@ export async function loadMilestones(tx: Tx, projectId: string) {
     .select({
       id: constructionMilestone.id,
       name: constructionMilestone.name,
+      stage: constructionMilestone.stage,
       plannedOn: constructionMilestone.plannedOn,
       validatedOn: constructionMilestone.validatedOn,
     })
@@ -102,7 +104,9 @@ export async function listPaymentSetups(ctx: TenantCtx) {
         id: constructionMilestone.id,
         projectId: constructionMilestone.projectId,
         name: constructionMilestone.name,
+        stage: constructionMilestone.stage,
         plannedOn: constructionMilestone.plannedOn,
+        validatedOn: constructionMilestone.validatedOn,
       })
       .from(constructionMilestone)
       .where(isNull(constructionMilestone.deletedAt))
@@ -114,7 +118,13 @@ export async function listPaymentSetups(ctx: TenantCtx) {
     const byProject: Record<
       string,
       {
-        milestones: { id: string; name: string; plannedOn: string | null }[];
+        milestones: {
+          id: string;
+          name: string;
+          stage: ConstructionStage | null;
+          plannedOn: string | null;
+          validatedOn: string | null;
+        }[];
         plans: PaymentPlanWithSteps[];
       }
     > = {};

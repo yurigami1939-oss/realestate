@@ -1,7 +1,14 @@
 import { describe, expect, it } from "vitest";
 
 import { sumCentimes } from "./money";
-import { buildSchedule, formatShare, netPrice, type PlanStep, totalShare } from "./payment-plans";
+import {
+  buildSchedule,
+  checkVspLimits,
+  formatShare,
+  netPrice,
+  type PlanStep,
+  totalShare,
+} from "./payment-plans";
 
 const step = (shareBp: number, extra: Partial<PlanStep> = {}): PlanStep => ({
   label: `Tranche ${shareBp}`,
@@ -61,5 +68,37 @@ describe("helpers", () => {
     expect(formatShare(1_205)).toBe("12,05\u00a0%");
     expect(netPrice(10_000n, 2_500n)).toBe(7_500n);
     expect(netPrice(10_000n, 20_000n)).toBe(0n);
+  });
+});
+
+describe("checkVspLimits", () => {
+  const milestones = [
+    { id: "f", stage: "foundations" as const },
+    { id: "s", stage: "structure" as const },
+    { id: "x", stage: null },
+  ];
+  const plan = [
+    step(3_000),
+    step(2_000, { trigger: "milestone", milestoneId: "f" }),
+    step(3_000, { trigger: "milestone", milestoneId: "s" }),
+    step(2_000, { trigger: "months_after_signing", months: 24 }),
+  ];
+
+  it("says nothing when no limit is configured", () => {
+    expect(checkVspLimits(plan, milestones, {})).toEqual([]);
+  });
+
+  it("warns on cumulative shares above the limits and on unclassified steps", () => {
+    expect(
+      checkVspLimits(plan, milestones, { signing: 2_000, foundations: 3_500, structure: 7_000 }),
+    ).toEqual([
+      { kind: "over_limit", stage: "signing", limitBp: 2_000, cumulativeBp: 3_000 },
+      { kind: "over_limit", stage: "foundations", limitBp: 3_500, cumulativeBp: 5_000 },
+      { kind: "over_limit", stage: "structure", limitBp: 7_000, cumulativeBp: 8_000 },
+      { kind: "unclassified", shareBp: 2_000 },
+    ]);
+    expect(
+      checkVspLimits(plan.slice(0, 3), milestones, { signing: 3_000, structure: 8_000 }),
+    ).toEqual([]);
   });
 });

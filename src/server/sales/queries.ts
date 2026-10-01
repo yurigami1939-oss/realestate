@@ -1,11 +1,12 @@
 import "server-only";
 
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 
 import { lead, project, unit, unitOption, user } from "@/db/schema";
 import { withTenant } from "@/db/tenant";
 import { isUuid } from "@/lib/ids";
+import type { Typology, UnitStatus } from "@/lib/inventory";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
 import { visibleLeads } from "@/server/crm/access";
 
@@ -72,3 +73,50 @@ export async function listLeadOptions(ctx: TenantCtx, leadId: string) {
 }
 
 export type LeadOptionRow = Awaited<ReturnType<typeof listLeadOptions>>[number];
+
+export type ReservableUnit = {
+  id: string;
+  code: string;
+  typology: Typology | null;
+  status: UnitStatus;
+  listPrice: bigint;
+  projectId: string;
+  projectName: string;
+  /** The active option, for an optioned unit (only that lead's buyers can reserve it). */
+  option: { unitId: string; leadId: string; leadName: string } | null;
+};
+
+/**
+ * Units a member may reserve: available ones, and optioned ones whose option belongs to a
+ * lead they see (only that lead's buyers can reserve it).
+ */
+export async function listReservableUnits(ctx: TenantCtx): Promise<ReservableUnit[]> {
+  assertCan(ctx, "sale:create");
+  return withTenant(ctx, async (tx) => {
+    const units = await tx
+      .select({
+        id: unit.id,
+        code: unit.code,
+        typology: unit.typology,
+        status: unit.status,
+        listPrice: unit.listPrice,
+        projectId: unit.projectId,
+        projectName: project.name,
+      })
+      .from(unit)
+      .innerJoin(project, eq(project.id, unit.projectId))
+      .where(and(sql`${unit.deletedAt} is null`, inArray(unit.status, ["available", "optioned"])))
+      .orderBy(asc(project.name), asc(unit.code));
+    const options = await tx
+      .select({ unitId: unitOption.unitId, leadId: unitOption.leadId, leadName: lead.fullName })
+      .from(unitOption)
+      .innerJoin(lead, eq(lead.id, unitOption.leadId))
+      .where(and(eq(unitOption.status, "active"), visibleLeads(ctx)));
+    return units.flatMap((u): ReservableUnit[] => {
+      if (u.listPrice === null) return [];
+      if (u.status === "available") return [{ ...u, listPrice: u.listPrice, option: null }];
+      const option = options.find((o) => o.unitId === u.id);
+      return option ? [{ ...u, listPrice: u.listPrice, option }] : [];
+    });
+  });
+}

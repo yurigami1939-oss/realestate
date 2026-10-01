@@ -290,7 +290,7 @@ describe("quotations", () => {
 
     // The PDF job was enqueued in the same transaction.
     const { rows } = await db.execute<{ n: number }>(
-      sql`select count(*)::int as n from pgboss.job where name = 'pdf.quotation' and data->>'quotationId' = ${id}`,
+      sql`select count(*)::int as n from pgboss.job where name = 'pdf.document' and data->>'kind' = 'quotation' and data->>'id' = ${id}`,
     );
     expect(rows[0]?.n).toBe(1);
   });

@@ -228,3 +228,14 @@ export const optionalNinText = () =>
       }
       return v;
     });
+
+/** Required HTML date input value "YYYY-MM-DD". */
+export const dateText = () =>
+  z
+    .string()
+    .trim()
+    .min(1, "validation.required")
+    .refine(
+      (v) => /^\d{4}-\d{2}-\d{2}$/.test(v) && !Number.isNaN(Date.parse(`${v}T00:00:00Z`)),
+      "validation.date",
+    );

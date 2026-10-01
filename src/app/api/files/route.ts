@@ -7,6 +7,7 @@ import { buyerDocumentKinds } from "@/lib/sales";
 import { getTenantCtx } from "@/server/auth/session";
 import { setBuyerDocumentScan } from "@/server/buyers/service";
 import { setUnitFloorPlan } from "@/server/inventory/floor-plans";
+import { setReservationScan } from "@/server/sales/reservations";
 import { assertSameOrigin, jsonResult, readFormData } from "@/server/route-handler";
 
 const uploadFields = z.object({
@@ -46,6 +47,16 @@ export async function POST(request: Request) {
       case "unit.floor_plan": {
         const result = await setUnitFloorPlan(ctx, { unitId: fields.data.entityId, upload });
         revalidatePath("/[locale]/projects", "layout");
+        return result;
+      }
+      case "reservation.contract":
+      case "reservation.deed": {
+        const result = await setReservationScan(ctx, {
+          reservationId: fields.data.entityId,
+          kind: fields.data.purpose === "reservation.contract" ? "contract" : "deed",
+          upload,
+        });
+        revalidatePath("/[locale]/sales", "layout");
         return result;
       }
       case "buyer.document": {

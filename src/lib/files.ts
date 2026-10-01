@@ -20,6 +20,16 @@ export const uploadPurposes = {
     accept: ["application/pdf", "image/png", "image/jpeg", "image/webp"],
     maxBytes: MAX_UPLOAD_BYTES,
   },
+  /** Signed scan of a reservation contract. */
+  "reservation.contract": {
+    accept: ["application/pdf", "image/png", "image/jpeg", "image/webp"],
+    maxBytes: MAX_UPLOAD_BYTES,
+  },
+  /** Signed scan of the VSP deed. */
+  "reservation.deed": {
+    accept: ["application/pdf", "image/png", "image/jpeg", "image/webp"],
+    maxBytes: MAX_UPLOAD_BYTES,
+  },
   /** A buyer's document scan; `variant` = the document kind. */
   "buyer.document": {
     accept: ["application/pdf", "image/png", "image/jpeg", "image/webp"],

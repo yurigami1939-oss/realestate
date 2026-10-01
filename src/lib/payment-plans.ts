@@ -5,6 +5,12 @@
  */
 import { addMonths, type CalendarDate } from "./dates";
 import { allocate, type Centimes } from "./money";
+import {
+  type ConstructionStage,
+  vspLimitStages,
+  type VspLimitStage,
+  type VspLimits,
+} from "./sales";
 
 export const planStepTriggers = ["signing", "months_after_signing", "milestone"] as const;
 export type PlanStepTrigger = (typeof planStepTriggers)[number];
@@ -90,3 +96,48 @@ export function formatShare(bp: number): string {
 /** Net price after a discount, never below zero. */
 export const netPrice = (listPrice: Centimes, discount: Centimes) =>
   discount >= listPrice ? 0n : listPrice - discount;
+
+export type VspWarning =
+  | { kind: "over_limit"; stage: VspLimitStage; limitBp: number; cumulativeBp: number }
+  /** Steps not tied to a classified construction stage (time-based, or milestone without stage). */
+  | { kind: "unclassified"; shareBp: number };
+
+const stageRank: Record<VspLimitStage | ConstructionStage, number> = {
+  signing: 0,
+  foundations: 1,
+  structure: 2,
+  completion: 3,
+  handover: 4,
+};
+
+/**
+ * Compares a schedule with the company's cumulative VSP limits (CLAUDE.md §12): warnings only,
+ * nothing when no limit is configured.
+ */
+export function checkVspLimits(
+  steps: readonly Pick<PlanStep, "shareBp" | "trigger" | "milestoneId">[],
+  milestones: readonly { id: string; stage: ConstructionStage | null }[],
+  limits: VspLimits,
+): VspWarning[] {
+  const configured = vspLimitStages.filter((stage) => limits[stage] !== undefined);
+  if (configured.length === 0) return [];
+  const ranked = steps.map((step) => {
+    if (step.trigger === "signing") return { shareBp: step.shareBp, rank: 0 };
+    const stage =
+      step.trigger === "milestone"
+        ? milestones.find((m) => m.id === step.milestoneId)?.stage
+        : undefined;
+    return { shareBp: step.shareBp, rank: stage ? stageRank[stage] : null };
+  });
+  const warnings: VspWarning[] = [];
+  for (const stage of configured) {
+    const limitBp = limits[stage] ?? 0;
+    const cumulativeBp = ranked
+      .filter((r) => r.rank !== null && r.rank <= stageRank[stage])
+      .reduce((sum, r) => sum + r.shareBp, 0);
+    if (cumulativeBp > limitBp) warnings.push({ kind: "over_limit", stage, limitBp, cumulativeBp });
+  }
+  const unclassified = ranked.filter((r) => r.rank === null).reduce((sum, r) => sum + r.shareBp, 0);
+  if (unclassified > 0) warnings.push({ kind: "unclassified", shareBp: unclassified });
+  return warnings;
+}

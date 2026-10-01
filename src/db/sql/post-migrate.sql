@@ -48,3 +48,13 @@ REVOKE UPDATE, DELETE, TRUNCATE ON public.lead_activity FROM realestate_app;
 REVOKE UPDATE, DELETE, TRUNCATE ON public.quotation_line FROM realestate_app;
 -- Issued documents are cancelled, never deleted (status, PDF link and cancellation are updated).
 REVOKE DELETE, TRUNCATE ON public.quotation FROM realestate_app;
+
+-- 4. Payments and receipts are immutable (CLAUDE.md §7): no delete; only the cancellation
+--    columns (and a cheque's clearance, a receipt's PDF link) can be updated.
+REVOKE UPDATE, DELETE, TRUNCATE ON public.payment FROM realestate_app;
+GRANT UPDATE (status, cancelled_at, cancelled_by, cancellation_reason, cheque_cleared_on)
+  ON public.payment TO realestate_app;
+REVOKE UPDATE, DELETE, TRUNCATE ON public.receipt FROM realestate_app;
+GRANT UPDATE (status, cancelled_at, pdf_file_id) ON public.receipt TO realestate_app;
+-- Sales are never deleted (withdrawal changes their status).
+REVOKE DELETE, TRUNCATE ON public.reservation FROM realestate_app;

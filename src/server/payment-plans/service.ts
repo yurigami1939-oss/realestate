@@ -1,10 +1,17 @@
 import "server-only";
 
-import { and, asc, eq, inArray, isNull, ne } from "drizzle-orm";
+import { and, asc, eq, inArray, isNotNull, isNull, ne } from "drizzle-orm";
 import type { z } from "zod";
 
 import type { Tx } from "@/db/client";
-import { constructionMilestone, paymentPlan, paymentPlanStep, project } from "@/db/schema";
+import {
+  constructionMilestone,
+  installment,
+  paymentPlan,
+  paymentPlanStep,
+  project,
+  reservation,
+} from "@/db/schema";
 import { withTenant } from "@/db/tenant";
 import { AppError } from "@/lib/result";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
@@ -57,6 +64,24 @@ export async function saveMilestones(ctx: TenantCtx, input: In<typeof saveMilest
         .where(and(inArray(paymentPlanStep.milestoneId, removed), isNull(paymentPlan.deletedAt)))
         .limit(1);
       if (used) throw new AppError("CONFLICT", "paymentPlans.errors.milestoneInUse");
+      const [done] = await tx
+        .select({ id: constructionMilestone.id })
+        .from(constructionMilestone)
+        .where(
+          and(
+            inArray(constructionMilestone.id, removed),
+            isNotNull(constructionMilestone.validatedOn),
+          ),
+        )
+        .limit(1);
+      if (done) throw new AppError("CONFLICT", "paymentPlans.errors.milestoneValidated");
+      const [scheduled] = await tx
+        .select({ id: installment.milestoneId })
+        .from(installment)
+        .innerJoin(reservation, eq(reservation.id, installment.reservationId))
+        .where(and(inArray(installment.milestoneId, removed), ne(reservation.status, "withdrawn")))
+        .limit(1);
+      if (scheduled) throw new AppError("CONFLICT", "paymentPlans.errors.milestoneInSale");
       await tx
         .update(constructionMilestone)
         .set({ deletedAt: new Date(), deletedBy: ctx.userId })
@@ -64,7 +89,7 @@ export async function saveMilestones(ctx: TenantCtx, input: In<typeof saveMilest
     }
 
     for (const [index, m] of input.milestones.entries()) {
-      const values = { name: m.name, plannedOn: m.plannedOn, position: index + 1 };
+      const values = { name: m.name, stage: m.stage, plannedOn: m.plannedOn, position: index + 1 };
       if (m.id) {
         await tx
           .update(constructionMilestone)

@@ -130,8 +130,8 @@ export async function issueQuotation(ctx: TenantCtx, input: In<typeof issueQuota
     });
     await enqueueInTx(
       tx,
-      "pdf.quotation",
-      { organizationId: ctx.orgId, quotationId: row.id },
+      "pdf.document",
+      { organizationId: ctx.orgId, kind: "quotation", id: row.id },
       { singletonKey: row.id },
     );
     return { id: row.id, number };
@@ -189,8 +189,8 @@ export async function requestQuotationPdf(ctx: TenantCtx, quotationId: string) {
     if (row.pdfFileId) return;
     await enqueueInTx(
       tx,
-      "pdf.quotation",
-      { organizationId: ctx.orgId, quotationId },
+      "pdf.document",
+      { organizationId: ctx.orgId, kind: "quotation", id: quotationId },
       { singletonKey: quotationId },
     );
   });
