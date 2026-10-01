@@ -7,6 +7,7 @@ import { withTenant } from "@/db/tenant";
 import { todayInAlgiers } from "@/lib/dates";
 import { sumCentimes } from "@/lib/money";
 import type { TenantCtx } from "@/server/auth/session";
+import { listBuyerOptions } from "@/server/buyers/queries";
 import { createBuyerSchema } from "@/server/buyers/schemas";
 import { createBuyer } from "@/server/buyers/service";
 import { companySettingsSchema } from "@/server/organizations/schemas";
@@ -24,6 +25,7 @@ import { deletePaymentPlan, saveMilestones } from "@/server/payment-plans/servic
 import { addMember, companySettingsInput, createSalesTeam } from "../../../tests/factories";
 import { createSaleSetup, newLead } from "../../../tests/sales-fixtures";
 
+import { requestSaleDocument } from "./document-requests";
 import { renderAndStoreReservationSheet } from "./documents";
 import { placeOption } from "./options";
 import { listReservableUnits } from "./queries";
@@ -394,6 +396,34 @@ describe("payments and receipts", () => {
     expect(await renderAndStoreReceipt(team.orgId, receiptId)).toBe("skipped");
     expect((await getSale(team.agentA, saleId))?.sheetFileName).toMatch(/^RES-\d{4}-\d{6}\.pdf$/);
   });
+
+  it("can be requested again only by members who see the sale", async () => {
+    const { team, unitIds, planId, buyerId } = await scenario();
+    const cashier = await addMember(team.orgId, ["cashier"]);
+    const saleId = await reserved(team, unitIds[0], planId, buyerId);
+    const { receiptId } = await pay(cashier, saleId, "100 000");
+    const jobs = async (id: string) =>
+      (
+        await db.execute<{ n: number }>(
+          sql`select count(*)::int as n from pgboss.job
+              where name = 'pdf.document' and data->>'id' = ${id}`,
+        )
+      ).rows[0]?.n;
+
+    await expect(
+      requestSaleDocument(team.agentB, { kind: "receipt", id: receiptId }),
+    ).rejects.toMatchObject({ code: "NOT_FOUND" });
+    await expect(
+      requestSaleDocument(team.agentA, { kind: "payment_call", id: receiptId }),
+    ).rejects.toMatchObject({ code: "NOT_FOUND" });
+    await requestSaleDocument(team.agentA, { kind: "receipt", id: receiptId });
+    expect(await jobs(receiptId)).toBeGreaterThanOrEqual(1);
+
+    await renderAndStoreReceipt(team.orgId, receiptId);
+    const before = await jobs(receiptId);
+    await requestSaleDocument(team.agentA, { kind: "receipt", id: receiptId });
+    expect(await jobs(receiptId)).toBe(before);
+  });
 });
 
 describe("contract details and scans", () => {
@@ -480,6 +510,10 @@ describe("sale lists", () => {
     expect(
       (await listSales(team.manager, saleListParams.parse({ status: "sold" }))).total,
     ).toBe(0);
+
+    expect((await listBuyerOptions(team.agentA)).map((b) => b.id)).toEqual([buyerId]);
+    expect(await listBuyerOptions(team.agentB)).toEqual([]);
+    expect(await listBuyerOptions(team.manager, [])).toEqual([]);
 
     expect(await listBuyerSales(team.agentA, buyerId)).toEqual([
       expect.objectContaining({ id, number, status: "reserved" }),

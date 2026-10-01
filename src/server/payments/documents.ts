@@ -63,9 +63,12 @@ export async function loadReceiptData(
 
   const p = row.payment;
   const method = methodLabels[p.method];
-  const details = [p.reference ? `n° ${p.reference}` : null, p.bank ? `(${p.bank})` : null]
-    .filter(Boolean)
-    .join(" ");
+  const details = (number: string) =>
+    [p.reference ? `${number} ${p.reference}` : null, p.bank ? `(${p.bank})` : null]
+      .filter(Boolean)
+      .join(" ");
+  const detailsFr = details("n°");
+  const detailsAr = details("رقم");
   const settled = row.receipt.allocation.map((a) => a.label).join(", ");
   const arabicName = [main?.lastNameAr, main?.firstNameAr].filter(Boolean).join(" ");
 
@@ -88,10 +91,10 @@ export async function loadReceiptData(
         ar: `الحجز ${row.saleNumber} · ${row.projectName}، الوحدة ${row.unitCode}`,
       },
       method: {
-        fr: `${method.fr}${details ? ` ${details}` : ""} du ${formatDate(p.paidOn)}${
+        fr: `${method.fr}${detailsFr ? ` ${detailsFr}` : ""} du ${formatDate(p.paidOn)}${
           p.method === "cheque" ? " — sous réserve d'encaissement" : ""
         }`,
-        ar: `${method.ar}${details ? ` ${details}` : ""}${
+        ar: `${method.ar}${detailsAr ? ` ${detailsAr}` : ""} بتاريخ ${formatDate(p.paidOn)}${
           p.method === "cheque" ? " — مع التحفظ إلى حين التحصيل" : ""
         }`,
       },

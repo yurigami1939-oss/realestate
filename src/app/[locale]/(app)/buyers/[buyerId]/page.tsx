@@ -1,4 +1,4 @@
-import { Pencil } from "lucide-react";
+import { FileSignature, Pencil } from "lucide-react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -6,15 +6,19 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { PageHeader } from "@/components/app-shell/page-header";
 import { PhoneActions, PhoneText } from "@/components/crm/phone";
+import { SaleStatusBadge } from "@/components/sales/badges";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { Link } from "@/i18n/navigation";
 import { toLocale } from "@/i18n/locales";
 import { formatDate } from "@/lib/dates";
+import { formatDZD } from "@/lib/money";
 import { can } from "@/lib/permissions";
 import { requirePermission } from "@/server/auth/page-guard";
 import { getBuyer, type BuyerDetail } from "@/server/buyers/queries";
+import { listBuyerSales } from "@/server/sales/sale-queries";
 
 import { DocumentsChecklist } from "./_components/documents-checklist";
 
@@ -36,6 +40,9 @@ export default async function BuyerPage({ params }: PageProps<"/[locale]/buyers/
   const tc = await getTranslations("common");
   const editable = can(ctx.roles, "buyer:update");
   const civility = buyer.civility ? `${t(`civility.${buyer.civility}`)} ` : "";
+  const sales = can(ctx.roles, "sale:read") ? await listBuyerSales(ctx, buyer.id) : null;
+  const ts = await getTranslations("sales");
+  const money = (v: bigint) => formatDZD(v, toLocale(locale));
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
@@ -50,20 +57,69 @@ export default async function BuyerPage({ params }: PageProps<"/[locale]/buyers/
         }
         crumbs={[{ label: t("title"), href: "/buyers" }]}
         actions={
-          editable ? (
-            <Button asChild variant="outline">
-              <Link href={`/buyers/${buyer.id}/edit`}>
-                <Pencil data-icon="inline-start" />
-                {tc("edit")}
-              </Link>
-            </Button>
-          ) : null
+          <>
+            {can(ctx.roles, "sale:create") ? (
+              <Button asChild>
+                <Link href={`/sales/new?buyerId=${buyer.id}`}>
+                  <FileSignature data-icon="inline-start" />
+                  {ts("reserve")}
+                </Link>
+              </Button>
+            ) : null}
+            {editable ? (
+              <Button asChild variant="outline">
+                <Link href={`/buyers/${buyer.id}/edit`}>
+                  <Pencil data-icon="inline-start" />
+                  {tc("edit")}
+                </Link>
+              </Button>
+            ) : null}
+          </>
         }
       />
       <div className="grid gap-6 lg:grid-cols-3">
         <IdentityCard buyer={buyer} />
         <ContactCard buyer={buyer} />
       </div>
+      {sales && sales.length > 0 ? (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">{ts("title")}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Table data-testid="buyer-sales">
+              <TableBody>
+                {sales.map((sale) => (
+                  <TableRow key={sale.id}>
+                    <TableCell>
+                      <Link
+                        href={`/sales/${sale.id}`}
+                        className="font-medium tabular-nums hover:underline"
+                        dir="ltr"
+                      >
+                        {sale.number}
+                      </Link>
+                    </TableCell>
+                    <TableCell className="whitespace-normal">
+                      <bdi dir="ltr">{sale.unitCode}</bdi>
+                      <span className="text-muted-foreground"> · {sale.projectName}</span>
+                    </TableCell>
+                    <TableCell>
+                      <SaleStatusBadge status={sale.status} />
+                    </TableCell>
+                    <TableCell className="text-end tabular-nums" dir="ltr">
+                      {money(sale.price)}
+                    </TableCell>
+                    <TableCell className="tabular-nums" dir="ltr">
+                      {formatDate(sale.reservedOn)}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      ) : null}
       <Card>
         <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
           <CardTitle className="text-base">{t("documents.title")}</CardTitle>

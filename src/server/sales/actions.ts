@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 
 import { defineAction } from "@/server/action";
 
+import { requestSaleDocument } from "./document-requests";
 import { cancelOption, placeOption } from "./options";
 import { createReservation, recordSale, updateReservationContract } from "./reservations";
 import {
@@ -11,6 +12,7 @@ import {
   createReservationSchema,
   placeOptionSchema,
   recordSaleSchema,
+  requestSaleDocumentSchema,
   reservationContractSchema,
 } from "./schemas";
 
@@ -48,4 +50,8 @@ export const updateReservationContractAction = defineAction(
 export const recordSaleAction = defineAction(
   { input: recordSaleSchema, permission: "sale:sign" },
   (input, ctx) => mutation(() => recordSale(ctx, input)),
+);
+export const requestSaleDocumentAction = defineAction(
+  { input: requestSaleDocumentSchema, permission: "sale:read" },
+  (input, ctx) => mutation(() => requestSaleDocument(ctx, input)),
 );

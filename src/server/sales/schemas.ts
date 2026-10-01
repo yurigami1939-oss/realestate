@@ -55,6 +55,13 @@ export const recordSaleSchema = z.object({
   reference: optionalText(80),
 });
 
+/** Documents of a sale whose PDF can be requested again (worker was down…). */
+export const saleDocumentKinds = ["reservation_sheet", "receipt", "payment_call"] as const;
+export const requestSaleDocumentSchema = z.object({
+  kind: z.enum(saleDocumentKinds),
+  id: z.uuid(),
+});
+
 export const SALES_PAGE_SIZE = 25;
 
 export const saleListParams = z.object({

@@ -26,7 +26,8 @@
       "page": "Page {page} sur {pages}",
       "previous": "Précédent",
       "next": "Suivant"
-    }
+    },
+    "total": "Total"
   },
   "locale": {
     "fr": "Français",
@@ -1089,7 +1090,37 @@
         "paid": "Payée",
         "cancelled": "Annulée"
       }
-    }
+    },
+    "optionFor": "option de {name}",
+    "optionHeld": "Ce lot est en option pour {name} : l'option sera convertie en réservation.",
+    "optionHolderMissing": "Ce lot est en option pour {name} : ajoutez un acquéreur issu de ce prospect, sinon la réservation sera refusée.",
+    "submit": "Enregistrer la réservation",
+    "noUnits": "Aucun lot disponible à la réservation (lots disponibles et prix renseigné, ou en option pour vos prospects).",
+    "noScan": "Aucun scan joint.",
+    "missingDocumentsHint": "Complétez le dossier depuis la fiche de chaque acquéreur ; la réservation n'est pas bloquée.",
+    "detail": {
+      "title": "Réservation {number}",
+      "unit": "Lot",
+      "project": "Projet",
+      "listPrice": "Prix catalogue",
+      "discount": "Remise",
+      "price": "Prix convenu",
+      "reservedOn": "Réservé le",
+      "plan": "Échéancier",
+      "commercial": "Commercial"
+    },
+    "contract": {
+      "title": "Contrat de réservation",
+      "saved": "Contrat enregistré.",
+      "none": "Notaire non renseigné."
+    },
+    "documents": {
+      "pending": "En préparation…",
+      "retry": "Relancer la génération",
+      "requested": "Génération relancée."
+    },
+    "unitCardTitle": "Commercialisation",
+    "milestoneReached": "{name} (réalisée) : exigible le {date}"
   },
   "payments": {
     "record": "Enregistrer un paiement",
@@ -1140,7 +1171,8 @@
       "alreadyCancelled": "Ce paiement est déjà annulé.",
       "notPendingCheque": "Ce paiement n'est pas un chèque en attente d'encaissement.",
       "beforePayment": "L'encaissement ne peut précéder la remise du chèque."
-    }
+    },
+    "valid": "Valide"
   },
   "paymentCalls": {
     "title": "Appels de fonds",

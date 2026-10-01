@@ -107,10 +107,12 @@ export function ReservationSheetTemplate({
                   {b.lastName} {b.firstName}
                 </b>
                 {b.lastNameAr || b.firstNameAr ? (
-                  <span dir="rtl" lang="ar">
-                    {" "}
-                    · <bdi>{[b.lastNameAr, b.firstNameAr].filter(Boolean).join(" ")}</bdi>
-                  </span>
+                  <>
+                    {" · "}
+                    <bdi dir="rtl" lang="ar">
+                      {[b.lastNameAr, b.firstNameAr].filter(Boolean).join(" ")}
+                    </bdi>
+                  </>
                 ) : null}
               </div>
               {b.birthDate ? (
@@ -121,8 +123,12 @@ export function ReservationSheetTemplate({
               ) : null}
               {b.nin ? <div className="muted">NIN {b.nin}</div> : null}
               <div className="muted">
-                {[b.address, b.commune, b.wilaya].filter(Boolean).join(", ")}
-                {b.phone ? ` · ${formatPhone(b.phone)}` : ""}
+                {[
+                  [b.address, b.commune, b.wilaya].filter(Boolean).join(", "),
+                  b.phone ? formatPhone(b.phone) : "",
+                ]
+                  .filter(Boolean)
+                  .join(" · ")}
               </div>
             </div>
           ))}

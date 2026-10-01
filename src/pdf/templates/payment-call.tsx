@@ -91,10 +91,12 @@ export function PaymentCallTemplate({
           <div key={b.name}>
             <b>{b.name}</b>
             {b.nameAr ? (
-              <span dir="rtl" lang="ar">
-                {" "}
-                · <bdi>{b.nameAr}</bdi>
-              </span>
+              <>
+                {" · "}
+                <bdi dir="rtl" lang="ar">
+                  {b.nameAr}
+                </bdi>
+              </>
             ) : null}
             {b.address ? <div className="muted">{b.address}</div> : null}
           </div>

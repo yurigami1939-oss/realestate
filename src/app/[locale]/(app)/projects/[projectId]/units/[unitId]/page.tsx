@@ -27,6 +27,7 @@ import { requirePermission } from "@/server/auth/page-guard";
 import { listLeadChoices } from "@/server/crm/queries";
 import { getSalesSettings } from "@/server/organizations/settings";
 import { getUnitOption } from "@/server/sales/queries";
+import { getUnitSale } from "@/server/sales/sale-queries";
 import { deleteUnitAction } from "@/server/inventory/actions";
 import { getUnit, type UnitDetail } from "@/server/inventory/queries";
 
@@ -53,6 +54,10 @@ export default async function UnitPage({
 
   const canSell = can(ctx.roles, "sale:create");
   const option = unit.status === "optioned" ? await getUnitOption(ctx, unit.id) : null;
+  const sale =
+    can(ctx.roles, "sale:read") && ["reserved", "sold", "delivered"].includes(unit.status)
+      ? await getUnitSale(ctx, unit.id)
+      : null;
   const leads = canSell && unit.status === "available" ? await listLeadChoices(ctx) : [];
   const { optionHours } = await getSalesSettings(ctx);
   const t = await getTranslations("inventory");
@@ -123,9 +128,11 @@ export default async function UnitPage({
             code={unit.code}
             status={unit.status}
             option={option}
+            sale={sale}
             leads={leads}
             optionHours={optionHours}
             canSell={canSell}
+            priced={unit.listPrice !== null}
           />
           <FloorPlanCard
             unitId={unit.id}

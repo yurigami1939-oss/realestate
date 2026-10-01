@@ -194,7 +194,7 @@ describe("milestone validation and payment calls", () => {
     );
     expect(html).toContain("APPEL DE FONDS");
     expect(html).toContain('dir="rtl"');
-    expect(html).toContain("<bdi>حداد نادية</bdi>");
+    expect(html).toContain('<bdi dir="rtl" lang="ar">حداد نادية</bdi>');
     expect(html).toContain("trois millions neuf cent trois mille dinars");
     expect(html).toContain("16/10/2026");
   });

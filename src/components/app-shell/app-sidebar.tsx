@@ -5,6 +5,7 @@ import {
   Building2,
   CalendarDays,
   Contact,
+  FileSignature,
   IdCard,
   Kanban,
   LayoutDashboard,
@@ -44,7 +45,8 @@ type NavKey =
   | "followUps"
   | "visits"
   | "targets"
-  | "buyers";
+  | "buyers"
+  | "saleList";
 /** `permission`: shown only to roles that have it (display only; services enforce). */
 type NavItem = { href: string; key: NavKey; icon: LucideIcon; permission?: Permission };
 
@@ -61,6 +63,7 @@ const salesNav: NavItem[] = [
   { href: "/targets", key: "targets", icon: Target, permission: "lead:read" },
 ];
 const contractsNav: NavItem[] = [
+  { href: "/sales", key: "saleList", icon: FileSignature, permission: "sale:read" },
   { href: "/buyers", key: "buyers", icon: IdCard, permission: "buyer:read" },
 ];
 const settingsNav: NavItem[] = [
