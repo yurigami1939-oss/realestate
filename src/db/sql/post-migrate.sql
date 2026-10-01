@@ -58,6 +58,8 @@ REVOKE UPDATE, DELETE, TRUNCATE ON public.receipt FROM realestate_app;
 GRANT UPDATE (status, cancelled_at, pdf_file_id) ON public.receipt TO realestate_app;
 -- Sales are never deleted (withdrawal changes their status).
 REVOKE DELETE, TRUNCATE ON public.reservation FROM realestate_app;
--- Payment calls are issued once; only their PDF link is set afterwards.
+-- Payment calls and reminder letters are issued once; only their PDF link is set afterwards.
 REVOKE UPDATE, DELETE, TRUNCATE ON public.payment_call FROM realestate_app;
 GRANT UPDATE (pdf_file_id) ON public.payment_call TO realestate_app;
+REVOKE UPDATE, DELETE, TRUNCATE ON public.reminder_letter FROM realestate_app;
+GRANT UPDATE (pdf_file_id) ON public.reminder_letter TO realestate_app;

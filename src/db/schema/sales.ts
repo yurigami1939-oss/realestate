@@ -677,3 +677,50 @@ export const paymentCall = pgTable(
     ),
   ],
 );
+
+/**
+ * Lettre de relance: issued on demand for a sale with overdue installments. Keeps the
+ * overdue lines it printed (amounts as decimal strings of centimes); its PDF is rendered once.
+ */
+export const reminderLetter = pgTable(
+  "reminder_letter",
+  {
+    id: id(),
+    organizationId: organizationId(),
+    reservationId: uuid().notNull(),
+    issuedAt: instant().notNull().defaultNow(),
+    issuedBy: userRef().notNull(),
+    overdue: money().notNull(),
+    penalties: money().notNull(),
+    lines: jsonb()
+      .$type<
+        {
+          position: number;
+          label: string;
+          dueOn: string;
+          remaining: string;
+          daysLate: number;
+          penalty: string;
+        }[]
+      >()
+      .notNull(),
+    /** Date by which the buyer is asked to settle. */
+    payBy: date({ mode: "string" }).notNull(),
+    pdfFileId: uuid(),
+  },
+  (t) => [
+    unique().on(t.organizationId, t.id),
+    foreignKey({
+      name: "reminder_letter_reservation_fk",
+      columns: [t.organizationId, t.reservationId],
+      foreignColumns: [reservation.organizationId, reservation.id],
+    }),
+    foreignKey({
+      name: "reminder_letter_pdf_fk",
+      columns: [t.organizationId, t.pdfFileId],
+      foreignColumns: [file.organizationId, file.id],
+    }),
+    index().on(t.organizationId, t.reservationId),
+    check("reminder_letter_amounts", sql`${t.overdue} > 0 and ${t.penalties} >= 0`),
+  ],
+);

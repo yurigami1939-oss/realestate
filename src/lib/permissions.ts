@@ -31,8 +31,19 @@ export const statement = {
    * Options, reservations, schedules and VSP. `read` = the sales I am the commercial of,
    * `read_all` = every sale. `update`: contracts, transfers, swaps, bank loans.
    * `withdraw` proposes a withdrawal, `approve` (gérant) approves it (CLAUDE.md §12).
+   * `remind`: reminder letters for overdue installments.
    */
-  sale: ["read", "read_all", "create", "update", "discount", "sign", "withdraw", "approve"],
+  sale: [
+    "read",
+    "read_all",
+    "create",
+    "update",
+    "discount",
+    "sign",
+    "withdraw",
+    "approve",
+    "remind",
+  ],
   /** Payments and receipts: cashiers record, accountants cancel (CLAUDE.md §5 roles). */
   payment: ["read", "create", "cancel"],
   /** Validating a construction milestone makes its installments due and issues payment calls. */
@@ -55,7 +66,17 @@ export const roles = {
     quotation: ["create", "discount", "cancel"],
     target: ["update"],
     buyer: ["read", "read_all", "create", "update"],
-    sale: ["read", "read_all", "create", "update", "discount", "sign", "withdraw", "approve"],
+    sale: [
+      "read",
+      "read_all",
+      "create",
+      "update",
+      "discount",
+      "sign",
+      "withdraw",
+      "approve",
+      "remind",
+    ],
     payment: ["read", "create", "cancel"],
     milestone: ["validate"],
     commission: ["read", "read_all", "update"],
@@ -69,7 +90,7 @@ export const roles = {
     quotation: ["create", "discount", "cancel"],
     target: ["update"],
     buyer: ["read", "read_all", "create", "update"],
-    sale: ["read", "read_all", "create", "update", "discount", "sign", "withdraw"],
+    sale: ["read", "read_all", "create", "update", "discount", "sign", "withdraw", "remind"],
     payment: ["read"],
     milestone: ["validate"],
     commission: ["read", "read_all"],
@@ -86,14 +107,14 @@ export const roles = {
     audit: ["read"],
     inventory: ["read"],
     buyer: ["read", "read_all"],
-    sale: ["read", "read_all"],
+    sale: ["read", "read_all", "remind"],
     payment: ["read", "create", "cancel"],
     commission: ["read", "read_all", "update"],
   }),
   cashier: ac.newRole({
     inventory: ["read"],
     buyer: ["read", "read_all"],
-    sale: ["read", "read_all"],
+    sale: ["read", "read_all", "remind"],
     payment: ["read", "create"],
   }),
   property_manager: ac.newRole({ inventory: ["read"] }),

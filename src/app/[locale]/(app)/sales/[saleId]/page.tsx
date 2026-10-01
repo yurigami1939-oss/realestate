@@ -22,11 +22,13 @@ import {
 } from "@/components/ui/table";
 import { Link } from "@/i18n/navigation";
 import { toLocale } from "@/i18n/locales";
-import { formatDate, todayInAlgiers } from "@/lib/dates";
+import { addDays, formatDate, todayInAlgiers } from "@/lib/dates";
 import { formatDZD } from "@/lib/money";
 import { formatShare } from "@/lib/payment-plans";
 import { can } from "@/lib/permissions";
 import { requirePermission } from "@/server/auth/page-guard";
+import { listSaleReminders } from "@/server/collections/queries";
+import { REMINDER_PAY_WITHIN_DAYS } from "@/server/collections/schemas";
 import { listSalePaymentCalls } from "@/server/payment-calls/queries";
 import { listSalePayments } from "@/server/payments/queries";
 import { getSale } from "@/server/sales/sale-queries";
@@ -37,6 +39,7 @@ import {
   ContractDialog,
   RecordPaymentDialog,
   RecordSaleDialog,
+  ReminderDialog,
 } from "./_components/sale-dialogs";
 import { ScanUpload } from "./_components/scan-upload";
 
@@ -57,6 +60,7 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
   if (!sale) notFound();
   const payments = await listSalePayments(ctx, saleId);
   const calls = await listSalePaymentCalls(ctx, saleId);
+  const reminders = await listSaleReminders(ctx, saleId);
   const t = await getTranslations();
   const money = (v: bigint) => formatDZD(v, locale);
   const today = todayInAlgiers();
@@ -70,7 +74,8 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
   const pendingDocuments =
     (live && sale.sheetFileId === null) ||
     payments.some((p) => p.receiptPdfFileId === null) ||
-    calls.some((c) => c.pdfFileId === null);
+    calls.some((c) => c.pdfFileId === null) ||
+    reminders.some((r) => r.pdfFileId === null);
   const mainBuyer = sale.buyers[0];
 
   const summary: { label: string; value: React.ReactNode }[] = [
@@ -132,6 +137,14 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
               <RecordSaleDialog
                 reservationId={sale.id}
                 notary={sale.reservationNotary ?? ""}
+                today={today}
+              />
+            ) : null}
+            {live && st.overdue > 0n && can(ctx.roles, "sale:remind") ? (
+              <ReminderDialog
+                reservationId={sale.id}
+                overdue={st.overdue}
+                payBy={addDays(today, REMINDER_PAY_WITHIN_DAYS)}
                 today={today}
               />
             ) : null}
@@ -514,6 +527,28 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
                   fileName={sale.deedFileName}
                   editable={canUpdate}
                 />
+              ) : null}
+              {reminders.length > 0 ? (
+                <>
+                  <Separator />
+                  <div className="space-y-1" data-testid="sale-reminders">
+                    <div className="text-sm font-medium">{t("collections.reminders.title")}</div>
+                    {reminders.map((r) => (
+                      <div key={r.id} className="text-sm">
+                        <DocumentPdf
+                          fileId={r.pdfFileId}
+                          kind="reminder_letter"
+                          id={r.id}
+                          label={t("collections.reminders.line", {
+                            date: formatDate(r.issuedAt),
+                            amount: money(r.overdue),
+                            name: r.issuedByName,
+                          })}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </>
               ) : null}
             </CardContent>
           </Card>

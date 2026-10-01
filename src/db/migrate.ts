@@ -6,7 +6,7 @@ import { migrate } from "drizzle-orm/node-postgres/migrator";
 import { Pool } from "pg";
 import { PgBoss } from "pg-boss";
 
-import { queueNames, queues } from "@/jobs/queues";
+import { queueNames, queues, schedules } from "@/jobs/queues";
 
 import { JOBS_SCHEMA } from "./jobs-schema";
 
@@ -19,7 +19,8 @@ const postMigrateSql = join(import.meta.dirname, "sql", "post-migrate.sql");
  * Brings a database to the current schema:
  * 1. Drizzle SQL migrations (owner role)
  * 2. post-migrate.sql: RLS on tenant tables + grants (owner role)
- * 3. pg-boss schema owned by the app role, installed; queues created/updated (app role)
+ * 3. pg-boss schema owned by the app role, installed; queues created/updated, recurring
+ *    jobs scheduled (app role)
  */
 export async function migrateDatabase(urls: { ownerUrl: string; appUrl: string }): Promise<void> {
   const owner = new Pool({ connectionString: urls.ownerUrl, max: 1 });
@@ -46,6 +47,9 @@ export async function migrateDatabase(urls: { ownerUrl: string; appUrl: string }
     for (const name of queueNames) {
       if (await boss.getQueue(name)) await boss.updateQueue(name, queues[name]);
       else await boss.createQueue(name, queues[name]);
+    }
+    for (const { queue, cron, tz } of schedules) {
+      await boss.schedule(queue, cron, {}, { tz });
     }
   } finally {
     await boss.stop({ graceful: false });

@@ -160,6 +160,20 @@
       "body": "Une réinitialisation du mot de passe a été demandée pour votre compte PRODUCT_NAME.",
       "notice": "Si vous n'êtes pas à l'origine de cette demande, ignorez cet e-mail.",
       "cta": "Choisir un nouveau mot de passe"
+    },
+    "overdueDigest": {
+      "subject": "Échéances impayées au {date} — {organization}",
+      "intro": "{count, plural, one {# vente présente} other {# ventes présentent}} des échéances impayées au {date}, pour un total de {total}.",
+      "columns": {
+        "sale": "Vente",
+        "buyers": "Acquéreur(s)",
+        "unit": "Lot",
+        "overdue": "Impayé",
+        "late": "Retard"
+      },
+      "days": "{days} j",
+      "more": "… et {count} autres ventes (voir la liste complète).",
+      "cta": "Voir les impayés"
     }
   },
   "nav": {
@@ -178,7 +192,8 @@
     "targets": "Objectifs",
     "buyers": "Acquéreurs",
     "contracts": "Contrats et encaissements",
-    "saleList": "Réservations et ventes"
+    "saleList": "Réservations et ventes",
+    "overdue": "Impayés"
   },
   "shell": {
     "organizations": "Sociétés",
@@ -1183,6 +1198,40 @@
       "called": "Montant appelé",
       "dueOn": "À régler le",
       "issuedAt": "Émis le"
+    }
+  },
+  "collections": {
+    "title": "Impayés",
+    "description": "Ventes dont des échéances exigibles restent impayées, les plus en retard d'abord.",
+    "empty": "Aucune échéance impayée.",
+    "count": "{count, plural, =0 {Aucune vente en retard} one {# vente en retard} other {# ventes en retard}}",
+    "totalOverdue": "Total impayé",
+    "totalPenalties": "Pénalités calculées (information)",
+    "columns": {
+      "sale": "Vente",
+      "buyers": "Acquéreur(s)",
+      "unit": "Lot",
+      "overdue": "Impayé",
+      "since": "Exigible depuis",
+      "reminded": "Dernière relance",
+      "commercial": "Commercial"
+    },
+    "days": "{days} j de retard",
+    "reminder": {
+      "open": "Lettre de relance",
+      "title": "Lettre de relance",
+      "description": "La lettre reprend les échéances impayées à ce jour ({amount}) et, s'il y en a, les pénalités calculées. Elle est générée en PDF bilingue.",
+      "payBy": "À régler au plus tard le",
+      "submit": "Préparer la lettre",
+      "issued": "Lettre de relance en préparation."
+    },
+    "reminders": {
+      "title": "Relances",
+      "line": "{date} · {amount} · {name}"
+    },
+    "errors": {
+      "payByPast": "La date limite ne peut pas être passée.",
+      "nothingOverdue": "Aucune échéance n'est en retard sur cette vente."
     }
   }
 }

@@ -57,6 +57,13 @@
       "when": 1790862607655,
       "tag": "0007_payment_calls",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1790866372010,
+      "tag": "0008_reminder_letters",
+      "breakpoints": true
     }
   ]
 }

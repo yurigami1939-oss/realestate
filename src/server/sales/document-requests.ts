@@ -4,7 +4,7 @@ import { eq } from "drizzle-orm";
 import type { z } from "zod";
 
 import type { Tx } from "@/db/client";
-import { payment, paymentCall, receipt, reservation } from "@/db/schema";
+import { payment, paymentCall, receipt, reminderLetter, reservation } from "@/db/schema";
 import { withTenant } from "@/db/tenant";
 import { enqueueInTx } from "@/jobs/enqueue";
 import { AppError } from "@/lib/result";
@@ -41,6 +41,16 @@ async function documentOwner(
         .select({ reservationId: paymentCall.reservationId, pdfFileId: paymentCall.pdfFileId })
         .from(paymentCall)
         .where(eq(paymentCall.id, id));
+      return row ?? null;
+    }
+    case "reminder_letter": {
+      const [row] = await tx
+        .select({
+          reservationId: reminderLetter.reservationId,
+          pdfFileId: reminderLetter.pdfFileId,
+        })
+        .from(reminderLetter)
+        .where(eq(reminderLetter.id, id));
       return row ?? null;
     }
   }

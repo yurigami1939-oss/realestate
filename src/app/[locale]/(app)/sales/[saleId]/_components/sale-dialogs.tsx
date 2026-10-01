@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Ban, Banknote, CircleCheck, FileSignature, Pencil } from "lucide-react";
+import { Ban, Banknote, CircleCheck, FileSignature, Mail, Pencil } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { type FormEventHandler, type ReactNode, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -25,6 +25,8 @@ import {
 import { FieldGroup } from "@/components/ui/field";
 import { formatDZD } from "@/lib/money";
 import { paymentMethods } from "@/lib/sales";
+import { issueReminderAction } from "@/server/collections/actions";
+import { issueReminderSchema } from "@/server/collections/schemas";
 import {
   cancelPaymentAction,
   clearChequeAction,
@@ -366,6 +368,64 @@ export function ContractDialog({
     >
       <TextField control={form.control} name="notary" label={t("fields.notary")} />
       <TextField control={form.control} name="reference" label={t("fields.reference")} />
+    </FormDialog>
+  );
+}
+
+type ReminderValues = z.input<typeof issueReminderSchema>;
+
+/** Prepares a bilingual reminder letter for the overdue installments (PDF by the worker). */
+export function ReminderDialog({
+  reservationId,
+  overdue,
+  payBy,
+  today,
+}: {
+  reservationId: string;
+  overdue: bigint;
+  payBy: string;
+  today: string;
+}) {
+  const t = useTranslations("collections.reminder");
+  const locale = useLocale() === "ar" ? "ar" : "fr";
+  const [open, setOpen] = useState(false);
+  const issue = useAction(issueReminderAction);
+  const form = useForm<ReminderValues, unknown, z.output<typeof issueReminderSchema>>({
+    resolver: zodResolver(issueReminderSchema),
+    defaultValues: { reservationId, payBy },
+  });
+  return (
+    <FormDialog
+      open={open}
+      onOpenChange={setOpen}
+      trigger={
+        <Button variant="outline">
+          <Mail data-icon="inline-start" />
+          {t("open")}
+        </Button>
+      }
+      title={t("title")}
+      description={t("description", { amount: formatDZD(overdue, locale) })}
+      submitLabel={t("submit")}
+      pending={issue.pending}
+      onSubmit={form.handleSubmit(() =>
+        issue.run(form.getValues(), {
+          onSuccess: () => {
+            toast.success(t("issued"));
+            setOpen(false);
+          },
+          onError: (error) => applyFieldErrors(form, error),
+        }),
+      )}
+    >
+      <TextField
+        control={form.control}
+        name="payBy"
+        label={t("payBy")}
+        type="date"
+        dir="ltr"
+        min={today}
+      />
     </FormDialog>
   );
 }

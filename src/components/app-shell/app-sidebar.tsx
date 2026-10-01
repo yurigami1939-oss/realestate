@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  AlarmClock,
   Building,
   Building2,
   CalendarDays,
@@ -46,7 +47,8 @@ type NavKey =
   | "visits"
   | "targets"
   | "buyers"
-  | "saleList";
+  | "saleList"
+  | "overdue";
 /** `permission`: shown only to roles that have it (display only; services enforce). */
 type NavItem = { href: string; key: NavKey; icon: LucideIcon; permission?: Permission };
 
@@ -64,6 +66,7 @@ const salesNav: NavItem[] = [
 ];
 const contractsNav: NavItem[] = [
   { href: "/sales", key: "saleList", icon: FileSignature, permission: "sale:read" },
+  { href: "/sales/overdue", key: "overdue", icon: AlarmClock, permission: "sale:read" },
   { href: "/buyers", key: "buyers", icon: IdCard, permission: "buyer:read" },
 ];
 const settingsNav: NavItem[] = [

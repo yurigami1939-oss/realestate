@@ -17,7 +17,16 @@ export const queues = {
     retryBackoff: true,
     expireInSeconds: 300,
   },
+  /** Cron (08:00 Algiers): fans out one overdue digest per organization. */
+  "reminders.daily": { retryLimit: 3, retryDelay: 60, retryBackoff: true, expireInSeconds: 300 },
+  /** Overdue digest of one organization, e-mailed to its cashiers and sales managers. */
+  "reminders.digest": { retryLimit: 3, retryDelay: 60, retryBackoff: true, expireInSeconds: 300 },
 } as const satisfies Record<string, QueueOptions>;
+
+/** Recurring jobs, installed by `pnpm db:migrate` (pg-boss cron, Algiers time). */
+export const schedules = [
+  { queue: "reminders.daily", cron: "0 8 * * *", tz: "Africa/Algiers" },
+] as const satisfies readonly { queue: QueueName; cron: string; tz: string }[];
 
 export type QueueName = keyof typeof queues;
 
@@ -27,6 +36,7 @@ export const pdfDocumentKinds = [
   "reservation_sheet",
   "receipt",
   "payment_call",
+  "reminder_letter",
 ] as const;
 export type PdfDocumentKind = (typeof pdfDocumentKinds)[number];
 
@@ -45,4 +55,7 @@ export type JobPayloads = {
   "pdf.document": { organizationId: string; kind: PdfDocumentKind; id: string };
   "option.expire": { organizationId: string; optionId: string };
   "payment_call.issue": { organizationId: string; milestoneId: string };
+  "reminders.daily": Record<string, never>;
+  /** `date`: the Algiers day of the digest (one per organization and day). */
+  "reminders.digest": { organizationId: string; date: string };
 };

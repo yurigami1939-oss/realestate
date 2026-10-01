@@ -56,7 +56,7 @@ export async function paidTotals(tx: Tx, reservationIds: string[]): Promise<Map<
 }
 
 /** Buyers of reservations, main first: "Kaci Amina & Kaci Rachid". */
-async function buyerNames(tx: Tx, reservationIds: string[]) {
+export async function buyerNames(tx: Tx, reservationIds: string[]) {
   if (reservationIds.length === 0) return new Map<string, string>();
   const rows = await tx
     .select({
