@@ -11,6 +11,7 @@ import {
   Kanban,
   LayoutDashboard,
   type LucideIcon,
+  Percent,
   PhoneCall,
   Target,
   Users,
@@ -48,7 +49,8 @@ type NavKey =
   | "targets"
   | "buyers"
   | "saleList"
-  | "overdue";
+  | "overdue"
+  | "commissions";
 /** `permission`: shown only to roles that have it (display only; services enforce). */
 type NavItem = { href: string; key: NavKey; icon: LucideIcon; permission?: Permission };
 
@@ -68,6 +70,7 @@ const contractsNav: NavItem[] = [
   { href: "/sales", key: "saleList", icon: FileSignature, permission: "sale:read" },
   { href: "/sales/overdue", key: "overdue", icon: AlarmClock, permission: "sale:read" },
   { href: "/buyers", key: "buyers", icon: IdCard, permission: "buyer:read" },
+  { href: "/commissions", key: "commissions", icon: Percent, permission: "commission:read" },
 ];
 const settingsNav: NavItem[] = [
   { href: "/settings/members", key: "members", icon: Users },

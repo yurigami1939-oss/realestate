@@ -10,6 +10,7 @@ import type { TenantCtx } from "@/server/auth/session";
 import { listBuyerOptions } from "@/server/buyers/queries";
 import { createBuyerSchema } from "@/server/buyers/schemas";
 import { createBuyer } from "@/server/buyers/service";
+import { getTargetProgress } from "@/server/crm/targets";
 import { companySettingsSchema } from "@/server/organizations/schemas";
 import { updateCompanySettings } from "@/server/organizations/settings";
 import { renderAndStoreReceipt } from "@/server/payments/documents";
@@ -277,6 +278,10 @@ describe("VSP and commissions", () => {
       amount: 19_515_000n,
       status: "earned",
     });
+
+    // The month's targets credit the reservation and the VSP to the commercial.
+    const [progress] = await getTargetProgress(team.agentA, todayInAlgiers().slice(0, 7));
+    expect(progress?.actual).toMatchObject({ reservations: 1, sales: 1 });
   });
 });
 

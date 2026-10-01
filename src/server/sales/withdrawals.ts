@@ -139,7 +139,12 @@ export async function decideWithdrawal(ctx: TenantCtx, input: In<typeof decideWi
       .where(eq(reservation.id, sale.id));
     await tx
       .update(commission)
-      .set({ status: "cancelled" })
+      .set({
+        status: "cancelled",
+        cancelledAt: now,
+        cancelledBy: ctx.userId,
+        cancelReason: row.reason,
+      })
       .where(and(eq(commission.reservationId, sale.id), eq(commission.status, "earned")));
     await transitionUnit(tx, ctx, sale.unitId, "available", {
       reason: row.reason,

@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { toast } from "sonner";
 
 import { useAction } from "@/components/forms/use-action";
@@ -39,6 +39,10 @@ function Progress({ actual, target }: { actual: number; target: number }) {
   );
 }
 
+const metrics = ["visits", "quotations", "reservations", "sales"] as const;
+type Metric = (typeof metrics)[number];
+type Values = Record<Metric, string>;
+
 /** Progress per commercial; managers edit the targets inline. */
 export function TargetsTable({
   month,
@@ -51,18 +55,30 @@ export function TargetsTable({
 }) {
   const t = useTranslations("targets");
   const save = useAction(saveTargetsAction);
-  const [values, setValues] = useState(() =>
+  const [values, setValues] = useState<Record<string, Values>>(() =>
     Object.fromEntries(
       rows.map((r) => [
         r.userId,
-        { visits: String(r.target.visits), quotations: String(r.target.quotations) },
+        {
+          visits: String(r.target.visits),
+          quotations: String(r.target.quotations),
+          reservations: String(r.target.reservations),
+          sales: String(r.target.sales),
+        },
       ]),
     ),
   );
-  const edit = (userId: string, key: "visits" | "quotations", value: string) =>
+  const edit = (userId: string, key: Metric, value: string) =>
     setValues((prev) => ({
       ...prev,
-      [userId]: { visits: "0", quotations: "0", ...prev[userId], [key]: value },
+      [userId]: {
+        visits: "0",
+        quotations: "0",
+        reservations: "0",
+        sales: "0",
+        ...prev[userId],
+        [key]: value,
+      },
     }));
 
   return (
@@ -72,46 +88,36 @@ export function TargetsTable({
           <TableHeader>
             <TableRow>
               <TableHead>{t("columns.member")}</TableHead>
-              <TableHead>{t("columns.visits")}</TableHead>
-              {editable ? <TableHead className="w-28">{t("target")}</TableHead> : null}
-              <TableHead>{t("columns.quotations")}</TableHead>
-              {editable ? <TableHead className="w-28">{t("target")}</TableHead> : null}
+              {metrics.map((metric) => (
+                <TableHead key={metric} colSpan={editable ? 2 : 1}>
+                  {t(`columns.${metric}`)}
+                </TableHead>
+              ))}
             </TableRow>
           </TableHeader>
           <TableBody>
             {rows.map((r) => (
               <TableRow key={r.userId}>
                 <TableCell className="font-medium">{r.name}</TableCell>
-                <TableCell>
-                  <Progress actual={r.actual.visits} target={r.target.visits} />
-                </TableCell>
-                {editable ? (
-                  <TableCell>
-                    <Input
-                      value={values[r.userId]?.visits ?? ""}
-                      onChange={(e) => edit(r.userId, "visits", e.target.value)}
-                      aria-label={`${t("columns.visits")} ${r.name}`}
-                      inputMode="numeric"
-                      dir="ltr"
-                      className="h-8"
-                    />
-                  </TableCell>
-                ) : null}
-                <TableCell>
-                  <Progress actual={r.actual.quotations} target={r.target.quotations} />
-                </TableCell>
-                {editable ? (
-                  <TableCell>
-                    <Input
-                      value={values[r.userId]?.quotations ?? ""}
-                      onChange={(e) => edit(r.userId, "quotations", e.target.value)}
-                      aria-label={`${t("columns.quotations")} ${r.name}`}
-                      inputMode="numeric"
-                      dir="ltr"
-                      className="h-8"
-                    />
-                  </TableCell>
-                ) : null}
+                {metrics.map((metric) => (
+                  <Fragment key={metric}>
+                    <TableCell>
+                      <Progress actual={r.actual[metric]} target={r.target[metric]} />
+                    </TableCell>
+                    {editable ? (
+                      <TableCell className="w-24">
+                        <Input
+                          value={values[r.userId]?.[metric] ?? ""}
+                          onChange={(e) => edit(r.userId, metric, e.target.value)}
+                          aria-label={`${t("target")} · ${t(`columns.${metric}`)} · ${r.name}`}
+                          inputMode="numeric"
+                          dir="ltr"
+                          className="h-8 w-20"
+                        />
+                      </TableCell>
+                    ) : null}
+                  </Fragment>
+                ))}
               </TableRow>
             ))}
           </TableBody>
@@ -128,6 +134,8 @@ export function TargetsTable({
                   userId: r.userId,
                   visits: values[r.userId]?.visits ?? "0",
                   quotations: values[r.userId]?.quotations ?? "0",
+                  reservations: values[r.userId]?.reservations ?? "0",
+                  sales: values[r.userId]?.sales ?? "0",
                 })),
               },
               { onSuccess: () => toast.success(t("saved")) },

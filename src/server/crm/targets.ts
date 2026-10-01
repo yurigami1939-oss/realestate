@@ -1,11 +1,11 @@
 import "server-only";
 
-import { and, eq, gte, lt, sql } from "drizzle-orm";
+import { and, eq, gte, lt, ne, sql } from "drizzle-orm";
 import type { z } from "zod";
 
-import { member, quotation, salesTarget, user, visit } from "@/db/schema";
+import { member, quotation, reservation, salesTarget, user, visit } from "@/db/schema";
 import { withTenant } from "@/db/tenant";
-import { fromAlgiersDateTime } from "@/lib/dates";
+import { addMonths, fromAlgiersDateTime } from "@/lib/dates";
 import { can, parseRoles } from "@/lib/permissions";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
 
@@ -37,6 +37,8 @@ export async function saveTargets(ctx: TenantCtx, input: z.output<typeof saveTar
           month: firstDay,
           visits: target.visits,
           quotations: target.quotations,
+          reservations: target.reservations,
+          sales: target.sales,
           updatedBy: ctx.userId,
         })
         .onConflictDoUpdate({
@@ -44,6 +46,8 @@ export async function saveTargets(ctx: TenantCtx, input: z.output<typeof saveTar
           set: {
             visits: target.visits,
             quotations: target.quotations,
+            reservations: target.reservations,
+            sales: target.sales,
             updatedBy: ctx.userId,
             updatedAt: new Date(),
           },
@@ -53,8 +57,9 @@ export async function saveTargets(ctx: TenantCtx, input: z.output<typeof saveTar
 }
 
 /**
- * Targets and achievements of a month: visits done (by date of the visit) and quotations
- * issued and not cancelled. Commercials see their own line, managers everyone's.
+ * Targets and achievements of a month: visits done (by date of the visit), quotations issued
+ * and not cancelled, reservations signed (not withdrawn) and VSP signed, credited to the
+ * commercial of the sale. Commercials see their own line, managers everyone's.
  */
 export async function getTargetProgress(ctx: TenantCtx, month: string) {
   assertCan(ctx, "lead:read");
@@ -88,16 +93,48 @@ export async function getTargetProgress(ctx: TenantCtx, month: string) {
         ),
       )
       .groupBy(quotation.issuedBy);
+    const nextMonth = addMonths(firstDay, 1);
+    const reservations = await tx
+      .select({ userId: reservation.commercialUserId, n: sql<number>`count(*)::int` })
+      .from(reservation)
+      .where(
+        and(
+          ne(reservation.status, "withdrawn"),
+          gte(reservation.reservedOn, firstDay),
+          lt(reservation.reservedOn, nextMonth),
+        ),
+      )
+      .groupBy(reservation.commercialUserId);
+    const sales = await tx
+      .select({ userId: reservation.commercialUserId, n: sql<number>`count(*)::int` })
+      .from(reservation)
+      .where(
+        and(
+          eq(reservation.status, "sold"),
+          gte(reservation.saleSignedOn, firstDay),
+          lt(reservation.saleSignedOn, nextMonth),
+        ),
+      )
+      .groupBy(reservation.commercialUserId);
+    const count = (rows: { userId: string | null; n: number }[], userId: string) =>
+      rows.find((r) => r.userId === userId)?.n ?? 0;
 
     return people.map((p) => {
       const target = targets.find((t) => t.userId === p.userId);
       return {
         userId: p.userId,
         name: p.name,
-        target: { visits: target?.visits ?? 0, quotations: target?.quotations ?? 0 },
+        target: {
+          visits: target?.visits ?? 0,
+          quotations: target?.quotations ?? 0,
+          reservations: target?.reservations ?? 0,
+          sales: target?.sales ?? 0,
+        },
         actual: {
-          visits: visits.find((v) => v.userId === p.userId)?.n ?? 0,
-          quotations: quotations.find((q) => q.userId === p.userId)?.n ?? 0,
+          visits: count(visits, p.userId),
+          quotations: count(quotations, p.userId),
+          reservations: count(reservations, p.userId),
+          sales: count(sales, p.userId),
         },
       };
     });

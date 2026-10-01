@@ -446,9 +446,27 @@ export async function seedCrm(
     saveTargetsSchema.parse({
       month: todayInAlgiers().slice(0, 7),
       targets: [
-        { userId: actors.agentA.userId, visits: "12", quotations: "4" },
-        { userId: actors.agentB.userId, visits: "10", quotations: "3" },
-        { userId: actors.manager.userId, visits: "4", quotations: "2" },
+        {
+          userId: actors.agentA.userId,
+          visits: "12",
+          quotations: "4",
+          reservations: "2",
+          sales: "1",
+        },
+        {
+          userId: actors.agentB.userId,
+          visits: "10",
+          quotations: "3",
+          reservations: "2",
+          sales: "1",
+        },
+        {
+          userId: actors.manager.userId,
+          visits: "4",
+          quotations: "2",
+          reservations: "1",
+          sales: "1",
+        },
       ],
     }),
   );

@@ -193,7 +193,8 @@
     "buyers": "Acquéreurs",
     "contracts": "Contrats et encaissements",
     "saleList": "Réservations et ventes",
-    "overdue": "Impayés"
+    "overdue": "Impayés",
+    "commissions": "Commissions"
   },
   "shell": {
     "organizations": "Sociétés",
@@ -842,20 +843,22 @@
   },
   "targets": {
     "title": "Objectifs",
-    "description": "Objectifs mensuels d'activité des commerciaux : visites effectuées et devis émis.",
+    "description": "Objectifs mensuels des commerciaux : visites effectuées, devis émis, réservations et VSP signées.",
     "previous": "Mois précédent",
     "next": "Mois suivant",
     "columns": {
       "member": "Commercial",
       "visits": "Visites effectuées",
-      "quotations": "Devis émis"
+      "quotations": "Devis émis",
+      "reservations": "Réservations signées",
+      "sales": "VSP signées"
     },
     "target": "Objectif",
     "save": "Enregistrer les objectifs",
     "saved": "Objectifs enregistrés.",
     "progress": "{actual} / {target}",
     "noTarget": "{actual} (sans objectif)",
-    "hint": "Les objectifs de réservations et de ventes arriveront avec le module de réservation.",
+    "hint": "Les réservations et les ventes sont comptées au commercial de la vente ; une réservation désistée ne compte plus.",
     "empty": "Aucun commercial."
   },
   "buyers": {
@@ -1326,6 +1329,41 @@
     "errors": {
       "payByPast": "La date limite ne peut pas être passée.",
       "nothingOverdue": "Aucune échéance n'est en retard sur cette vente."
+    }
+  },
+  "commissions": {
+    "title": "Commissions",
+    "description": "Commissions des commerciaux : un pourcentage du prix net, acquis à la signature de la VSP.",
+    "toPay": "À payer",
+    "paidTotal": "Déjà payées",
+    "empty": "Aucune commission.",
+    "allStatuses": "Tous les états",
+    "allCommercials": "Tous les commerciaux",
+    "columns": {
+      "sale": "Vente",
+      "commercial": "Commercial",
+      "base": "Prix net",
+      "rate": "Taux",
+      "amount": "Commission",
+      "earnedOn": "Acquise le",
+      "status": "État"
+    },
+    "paidOnDate": "Payée le {date}",
+    "pay": "Marquer payée",
+    "payTitle": "Commission payée",
+    "paidOn": "Payée le",
+    "paid": "Commission marquée payée.",
+    "errors": {
+      "notEarned": "Seule une commission acquise et non payée peut être payée.",
+      "beforeEarned": "Le paiement ne peut précéder l'acquisition de la commission."
+    },
+    "rates": {
+      "title": "Taux par commercial",
+      "commercial": "Commercial",
+      "rate": "Taux (%)",
+      "hint": "Laissez vide pour appliquer le taux de la société ({rate}). Un taux s'applique aux VSP signées ensuite ; chaque commission garde son taux.",
+      "save": "Enregistrer les taux",
+      "saved": "Taux enregistrés."
     }
   }
 }

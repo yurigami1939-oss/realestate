@@ -345,8 +345,8 @@ describe("monthly targets", () => {
       saveTargetsSchema.parse({
         month,
         targets: [
-          { userId: agentA.userId, visits: "12", quotations: "4" },
-          { userId: agentB.userId, visits: "8", quotations: "2" },
+          { userId: agentA.userId, visits: "12", quotations: "4", reservations: "2", sales: "1" },
+          { userId: agentB.userId, visits: "8", quotations: "2", reservations: "1", sales: "0" },
         ],
       }),
     );
@@ -355,7 +355,9 @@ describe("monthly targets", () => {
         agentA,
         saveTargetsSchema.parse({
           month,
-          targets: [{ userId: agentA.userId, visits: "99", quotations: "0" }],
+          targets: [
+            { userId: agentA.userId, visits: "99", quotations: "0", reservations: "0", sales: "0" },
+          ],
         }),
       ),
     ).rejects.toMatchObject({ code: "FORBIDDEN" });
@@ -364,7 +366,9 @@ describe("monthly targets", () => {
         manager,
         saveTargetsSchema.parse({
           month,
-          targets: [{ userId: cashier.userId, visits: "1", quotations: "0" }],
+          targets: [
+            { userId: cashier.userId, visits: "1", quotations: "0", reservations: "0", sales: "0" },
+          ],
         }),
       ),
     ).rejects.toMatchObject({ code: "VALIDATION" });
@@ -388,8 +392,8 @@ describe("monthly targets", () => {
       {
         userId: agentA.userId,
         name: expect.any(String),
-        target: { visits: 12, quotations: 4 },
-        actual: { visits: 1, quotations: 0 },
+        target: { visits: 12, quotations: 4, reservations: 2, sales: 1 },
+        actual: { visits: 1, quotations: 0, reservations: 0, sales: 0 },
       },
     ]);
     const all = await getTargetProgress(manager, month);

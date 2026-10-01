@@ -139,6 +139,8 @@ export const saveTargetsSchema = z.object({
         userId: z.uuid(),
         visits: intText(0, 1000),
         quotations: intText(0, 1000),
+        reservations: intText(0, 1000),
+        sales: intText(0, 1000),
       }),
     )
     .max(200),

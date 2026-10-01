@@ -71,6 +71,13 @@
       "when": 1790867365422,
       "tag": "0009_withdrawals_transfers_loans",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1790872972069,
+      "tag": "0010_sales_targets",
+      "breakpoints": true
     }
   ]
 }

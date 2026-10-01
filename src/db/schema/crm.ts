@@ -201,12 +201,18 @@ export const salesTarget = pgTable(
     month: date({ mode: "string" }).notNull(),
     visits: integer().notNull().default(0),
     quotations: integer().notNull().default(0),
+    /** Reservations signed and VSP signed in the month (module 3). */
+    reservations: integer().notNull().default(0),
+    sales: integer().notNull().default(0),
     updatedAt: updatedAt(),
     updatedBy: userRef(),
   },
   (t) => [
     primaryKey({ columns: [t.organizationId, t.userId, t.month] }),
-    check("sales_target_counts", sql`${t.visits} >= 0 and ${t.quotations} >= 0`),
+    check(
+      "sales_target_counts",
+      sql`${t.visits} >= 0 and ${t.quotations} >= 0 and ${t.reservations} >= 0 and ${t.sales} >= 0`,
+    ),
     check("sales_target_month", sql`extract(day from ${t.month}) = 1`),
   ],
 );
