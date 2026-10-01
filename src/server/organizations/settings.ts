@@ -66,6 +66,11 @@ export async function loadCompanyProfile(tx: Tx, orgId: string) {
 }
 
 export type CompanyProfile = Awaited<ReturnType<typeof loadCompanyProfile>>;
+/** The legal identity printed on documents. */
+export type CompanyIdentity = Pick<
+  CompanyProfile,
+  "name" | "legalName" | "address" | "wilaya" | "phone" | "rcNumber" | "nif" | "nis" | "aiNumber"
+>;
 
 export async function getCompanySettings(ctx: TenantCtx) {
   assertCan(ctx, "organization:update");

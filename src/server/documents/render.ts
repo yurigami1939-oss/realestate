@@ -1,6 +1,7 @@
 import "server-only";
 
 import type { JobPayloads, PdfDocumentKind } from "@/jobs/queues";
+import { renderAndStorePaymentCall } from "@/server/payment-calls/documents";
 import { renderAndStoreReceipt } from "@/server/payments/documents";
 import { renderAndStoreQuotationPdf } from "@/server/quotations/pdf";
 import { renderAndStoreReservationSheet } from "@/server/sales/documents";
@@ -13,6 +14,7 @@ const renderers: Record<PdfDocumentKind, Renderer> = {
     renderAndStoreQuotationPdf({ organizationId, quotationId }),
   reservation_sheet: renderAndStoreReservationSheet,
   receipt: renderAndStoreReceipt,
+  payment_call: renderAndStorePaymentCall,
 };
 
 /** Job `pdf.document`: dispatches to the document's renderer (idempotent). */

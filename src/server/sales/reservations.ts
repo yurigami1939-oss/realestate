@@ -17,9 +17,15 @@ import {
 } from "@/db/schema";
 import { withTenant } from "@/db/tenant";
 import { enqueueInTx } from "@/jobs/enqueue";
-import { addDays, type CalendarDate, todayInAlgiers } from "@/lib/dates";
+import { type CalendarDate, todayInAlgiers } from "@/lib/dates";
 import { applyRate } from "@/lib/money";
-import { buildSchedule, checkVspLimits, netPrice, type VspWarning } from "@/lib/payment-plans";
+import {
+  buildSchedule,
+  checkVspLimits,
+  milestoneDueOn,
+  netPrice,
+  type VspWarning,
+} from "@/lib/payment-plans";
 import { can } from "@/lib/permissions";
 import { AppError } from "@/lib/result";
 import { requiredBuyerDocuments } from "@/lib/sales";
@@ -178,11 +184,16 @@ export async function createReservation(
           trigger: line.trigger,
           months: step?.months ?? null,
           milestoneId: step?.milestoneId ?? null,
-          // A milestone installment is due once its milestone is validated (+ company delay).
+          // A milestone installment is due once its milestone is validated (+ company delay),
+          // never before the signing (a milestone already reached is due at signing).
           dueOn:
             line.trigger === "milestone"
               ? milestone?.validatedOn
-                ? addDays(milestone.validatedOn, settings.paymentCallDelayDays)
+                ? milestoneDueOn(
+                    milestone.validatedOn,
+                    settings.paymentCallDelayDays,
+                    input.reservedOn,
+                  )
                 : null
               : line.dueOn,
         };

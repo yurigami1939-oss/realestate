@@ -8,6 +8,7 @@ import { JOBS_SCHEMA } from "@/db/jobs-schema";
 import { env } from "@/env";
 
 import { handleExpireOption } from "./handlers/expire-option";
+import { handleIssuePaymentCalls } from "./handlers/issue-payment-calls";
 import { handleRenderDocument } from "./handlers/render-document";
 import { handleSendEmail } from "./handlers/send-email";
 
@@ -24,7 +25,8 @@ await boss.start();
 await boss.work("email.send", { batchSize: 5 }, handleSendEmail);
 await boss.work("pdf.document", { batchSize: 1 }, handleRenderDocument);
 await boss.work("option.expire", { batchSize: 10 }, handleExpireOption);
-console.log("[worker] started: email.send, pdf.document, option.expire");
+await boss.work("payment_call.issue", { batchSize: 1 }, handleIssuePaymentCalls);
+console.log("[worker] started: email.send, pdf.document, option.expire, payment_call.issue");
 
 let stopping = false;
 async function shutdown(signal: string) {

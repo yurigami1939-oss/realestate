@@ -10,12 +10,24 @@ export const queues = {
   "option.expire": { retryLimit: 5, retryDelay: 60, retryBackoff: true, expireInSeconds: 120 },
   /** Renders an issued document's PDF once and stores it (idempotent per kind and id). */
   "pdf.document": { retryLimit: 3, retryDelay: 15, retryBackoff: true, expireInSeconds: 180 },
+  /** Issues the payment calls of a validated milestone (idempotent per installment). */
+  "payment_call.issue": {
+    retryLimit: 5,
+    retryDelay: 30,
+    retryBackoff: true,
+    expireInSeconds: 300,
+  },
 } as const satisfies Record<string, QueueOptions>;
 
 export type QueueName = keyof typeof queues;
 
 /** Documents rendered by `pdf.document` (src/server/documents/render.ts). */
-export const pdfDocumentKinds = ["quotation", "reservation_sheet", "receipt"] as const;
+export const pdfDocumentKinds = [
+  "quotation",
+  "reservation_sheet",
+  "receipt",
+  "payment_call",
+] as const;
 export type PdfDocumentKind = (typeof pdfDocumentKinds)[number];
 
 export const queueNames = Object.keys(queues) as QueueName[];
@@ -32,4 +44,5 @@ export type JobPayloads = {
   "email.send": EmailMessage;
   "pdf.document": { organizationId: string; kind: PdfDocumentKind; id: string };
   "option.expire": { organizationId: string; optionId: string };
+  "payment_call.issue": { organizationId: string; milestoneId: string };
 };

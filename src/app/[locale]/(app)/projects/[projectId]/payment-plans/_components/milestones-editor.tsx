@@ -25,6 +25,8 @@ import { type ConstructionStage, constructionStages } from "@/lib/sales";
 import { saveMilestonesAction } from "@/server/payment-plans/actions";
 import { saveMilestonesSchema } from "@/server/payment-plans/schemas";
 
+import { ValidateMilestoneDialog } from "./validate-milestone-dialog";
+
 type Values = z.input<typeof saveMilestonesSchema>;
 
 /** Radix Select reserves "" — this sentinel stands for "not classified". */
@@ -42,10 +44,13 @@ export function MilestonesEditor({
   projectId,
   milestones,
   editable,
+  validation,
 }: {
   projectId: string;
   milestones: EditableMilestone[];
   editable: boolean;
+  /** Present when the member may validate milestones. */
+  validation: { today: string; delayDays: number } | null;
 }) {
   const t = useTranslations("paymentPlans");
   const tc = useTranslations("common");
@@ -87,75 +92,82 @@ export function MilestonesEditor({
             const savedId = current[index]?.id ?? "";
             const done = savedId ? validatedOn(savedId) : null;
             return (
-              <li key={row.id} className="flex flex-wrap items-start gap-2">
-                <span className="w-6 pt-2 text-sm text-muted-foreground tabular-nums">
+              <li key={row.id} className="flex items-start gap-2">
+                <span className="w-6 shrink-0 pt-2 text-sm text-muted-foreground tabular-nums">
                   {index + 1}.
                 </span>
-                <Controller
-                  control={form.control}
-                  name={`milestones.${index}.name`}
-                  render={({ field, fieldState }) => (
-                    <div className="min-w-48 flex-1 space-y-1">
+                <div className="flex min-w-0 flex-1 flex-wrap items-start gap-2">
+                  <Controller
+                    control={form.control}
+                    name={`milestones.${index}.name`}
+                    render={({ field, fieldState }) => (
+                      <div className="min-w-48 flex-1 space-y-1">
+                        <Input
+                          {...field}
+                          aria-label={`${t("milestoneName")} ${index + 1}`}
+                          aria-invalid={fieldState.invalid}
+                          disabled={!editable}
+                        />
+                        {fieldState.error?.message ? (
+                          <p className="text-xs text-destructive">
+                            {translate(fieldState.error.message)}
+                          </p>
+                        ) : null}
+                      </div>
+                    )}
+                  />
+                  <Controller
+                    control={form.control}
+                    name={`milestones.${index}.stage`}
+                    render={({ field }) => (
+                      <Select
+                        value={field.value ? field.value : NONE}
+                        onValueChange={(value) => field.onChange(value === NONE ? "" : value)}
+                        disabled={!editable}
+                      >
+                        <SelectTrigger className="w-44" aria-label={`${t("stage")} ${index + 1}`}>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value={NONE}>{t("stages.none")}</SelectItem>
+                          {constructionStages.map((stage) => (
+                            <SelectItem key={stage} value={stage}>
+                              {t(`stages.${stage}`)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                  <Controller
+                    control={form.control}
+                    name={`milestones.${index}.plannedOn`}
+                    render={({ field }) => (
                       <Input
                         {...field}
-                        aria-label={`${t("milestoneName")} ${index + 1}`}
-                        aria-invalid={fieldState.invalid}
+                        value={field.value ?? ""}
+                        type="date"
+                        dir="ltr"
+                        className="w-40"
+                        aria-label={`${t("plannedOn")} ${index + 1}`}
                         disabled={!editable}
                       />
-                      {fieldState.error?.message ? (
-                        <p className="text-xs text-destructive">
-                          {translate(fieldState.error.message)}
-                        </p>
-                      ) : null}
-                    </div>
-                  )}
-                />
-                <Controller
-                  control={form.control}
-                  name={`milestones.${index}.stage`}
-                  render={({ field }) => (
-                    <Select
-                      value={field.value ? field.value : NONE}
-                      onValueChange={(value) => field.onChange(value === NONE ? "" : value)}
-                      disabled={!editable}
-                    >
-                      <SelectTrigger
-                        className="w-44"
-                        aria-label={`${t("stage")} ${index + 1}`}
-                      >
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value={NONE}>{t("stages.none")}</SelectItem>
-                        {constructionStages.map((stage) => (
-                          <SelectItem key={stage} value={stage}>
-                            {t(`stages.${stage}`)}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                />
-                <Controller
-                  control={form.control}
-                  name={`milestones.${index}.plannedOn`}
-                  render={({ field }) => (
-                    <Input
-                      {...field}
-                      value={field.value ?? ""}
-                      type="date"
-                      dir="ltr"
-                      className="w-40"
-                      aria-label={`${t("plannedOn")} ${index + 1}`}
-                      disabled={!editable}
+                    )}
+                  />
+                  {done ? (
+                    <Badge variant="secondary" className="mt-1.5" data-testid="milestone-validated">
+                      {t("validatedOn", { date: formatDate(done) })}
+                    </Badge>
+                  ) : null}
+                  {!done && validation && savedId ? (
+                    <ValidateMilestoneDialog
+                      milestoneId={savedId}
+                      name={milestones.find((m) => m.id === savedId)?.name ?? ""}
+                      today={validation.today}
+                      delayDays={validation.delayDays}
                     />
-                  )}
-                />
-                {done ? (
-                  <Badge variant="secondary" className="mt-1.5" data-testid="milestone-validated">
-                    {t("validatedOn", { date: formatDate(done) })}
-                  </Badge>
-                ) : null}
+                  ) : null}
+                </div>
                 {editable && !done ? (
                   <Button
                     type="button"

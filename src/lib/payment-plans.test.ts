@@ -4,6 +4,7 @@ import { sumCentimes } from "./money";
 import {
   buildSchedule,
   checkVspLimits,
+  milestoneDueOn,
   formatShare,
   netPrice,
   type PlanStep,
@@ -100,5 +101,13 @@ describe("checkVspLimits", () => {
     expect(
       checkVspLimits(plan.slice(0, 3), milestones, { signing: 3_000, structure: 8_000 }),
     ).toEqual([]);
+  });
+});
+
+describe("milestoneDueOn", () => {
+  it("adds the delay to the validation, but never dates before the signing", () => {
+    expect(milestoneDueOn("2026-10-01", 15, "2026-03-01")).toBe("2026-10-16");
+    expect(milestoneDueOn("2026-10-01", 15, "2026-11-20")).toBe("2026-11-20");
+    expect(milestoneDueOn("2026-12-25", 10, "2026-01-01")).toBe("2027-01-04");
   });
 });

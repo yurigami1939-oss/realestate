@@ -2,6 +2,7 @@
  * Demo payment plans (construction milestones + plan templates per project) and a few
  * quotations for leads in negotiation. Their PDFs render when `pnpm worker` runs.
  */
+import type { ConstructionStage } from "@/lib/sales";
 import type { TenantCtx } from "@/server/auth/session";
 import { getProjectPaymentSetup } from "@/server/payment-plans/queries";
 import { createPaymentPlanSchema, saveMilestonesSchema } from "@/server/payment-plans/schemas";
@@ -15,16 +16,20 @@ type StepSpec =
   | { label: string; share: string; trigger: "milestone"; milestone: string };
 
 type ProjectPlans = {
-  milestones: { name: string; plannedOn: string }[];
+  milestones: { name: string; stage: ConstructionStage; plannedOn: string }[];
   plans: { name: string; isDefault: boolean; notes?: string; steps: StepSpec[] }[];
 };
 
 export const demoPaymentPlans: Record<"OLIV" | "CORN", ProjectPlans> = {
   OLIV: {
     milestones: [
-      { name: "Achèvement du gros œuvre", plannedOn: "2026-12-31" },
-      { name: "Achèvement des travaux (tous corps d'état)", plannedOn: "2027-04-30" },
-      { name: "Remise des clés", plannedOn: "2027-06-30" },
+      { name: "Achèvement du gros œuvre", stage: "structure", plannedOn: "2026-12-31" },
+      {
+        name: "Achèvement des travaux (tous corps d'état)",
+        stage: "completion",
+        plannedOn: "2027-04-30",
+      },
+      { name: "Remise des clés", stage: "handover", plannedOn: "2027-06-30" },
     ],
     plans: [
       {
@@ -66,10 +71,10 @@ export const demoPaymentPlans: Record<"OLIV" | "CORN", ProjectPlans> = {
   },
   CORN: {
     milestones: [
-      { name: "Achèvement des fondations", plannedOn: "2027-03-31" },
-      { name: "Achèvement du gros œuvre", plannedOn: "2028-03-31" },
-      { name: "Achèvement des travaux", plannedOn: "2028-12-31" },
-      { name: "Remise des clés", plannedOn: "2029-03-31" },
+      { name: "Achèvement des fondations", stage: "foundations", plannedOn: "2027-03-31" },
+      { name: "Achèvement du gros œuvre", stage: "structure", plannedOn: "2028-03-31" },
+      { name: "Achèvement des travaux", stage: "completion", plannedOn: "2028-12-31" },
+      { name: "Remise des clés", stage: "handover", plannedOn: "2029-03-31" },
     ],
     plans: [
       {

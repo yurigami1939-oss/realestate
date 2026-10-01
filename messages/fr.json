@@ -743,7 +743,8 @@
       "milestoneInUse": "Cette étape est utilisée par un échéancier : retirez-la d'abord de l'échéancier.",
       "milestoneNotFound": "Étape inconnue pour ce projet.",
       "milestoneValidated": "Une étape réalisée ne peut pas être retirée.",
-      "milestoneInSale": "Cette étape figure dans l'échéancier d'une réservation."
+      "milestoneInSale": "Cette étape figure dans l'échéancier d'une réservation.",
+      "alreadyValidated": "Cette étape est déjà validée."
     },
     "defaultSteps": {
       "signing": "Réservation",
@@ -757,7 +758,15 @@
       "completion": "Fin des travaux",
       "handover": "Remise des clés"
     },
-    "validatedOn": "Réalisée le {date}"
+    "validatedOn": "Réalisée le {date}",
+    "validate": {
+      "open": "Valider",
+      "title": "Étape « {name} » réalisée",
+      "description": "Les échéances liées à cette étape deviennent exigibles {days, plural, =0 {dès la date de réalisation} one {# jour après la date de réalisation} other {# jours après la date de réalisation}}, jamais avant la signature de la réservation, et un appel de fonds numéroté est émis pour chaque vente concernée. Cette validation est définitive.",
+      "date": "Date de réalisation",
+      "submit": "Valider l'étape",
+      "done": "Étape validée. {count, plural, =0 {Aucune échéance concernée.} one {# échéance devient exigible ; l'appel de fonds est en préparation.} other {# échéances deviennent exigibles ; les appels de fonds sont en préparation.}}"
+    }
   },
   "quotations": {
     "title": "Devis",
@@ -1131,6 +1140,17 @@
       "alreadyCancelled": "Ce paiement est déjà annulé.",
       "notPendingCheque": "Ce paiement n'est pas un chèque en attente d'encaissement.",
       "beforePayment": "L'encaissement ne peut précéder la remise du chèque."
+    }
+  },
+  "paymentCalls": {
+    "title": "Appels de fonds",
+    "none": "Aucun appel de fonds.",
+    "columns": {
+      "number": "N°",
+      "milestone": "Étape",
+      "called": "Montant appelé",
+      "dueOn": "À régler le",
+      "issuedAt": "Émis le"
     }
   }
 }

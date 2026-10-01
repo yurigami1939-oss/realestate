@@ -3,7 +3,7 @@
  * at signing, N months after signing, or at a construction milestone. The simulator, quotations
  * and (module 3) real schedules all build their lines with `buildSchedule`. Isomorphic.
  */
-import { addMonths, type CalendarDate } from "./dates";
+import { addDays, addMonths, type CalendarDate } from "./dates";
 import { allocate, type Centimes } from "./money";
 import {
   type ConstructionStage,
@@ -140,4 +140,17 @@ export function checkVspLimits(
   const unclassified = ranked.filter((r) => r.rank === null).reduce((sum, r) => sum + r.shareBp, 0);
   if (unclassified > 0) warnings.push({ kind: "unclassified", shareBp: unclassified });
   return warnings;
+}
+
+/**
+ * Due date of a milestone installment once the milestone is validated: validation + the
+ * company's payment-call delay, never before the signing (CLAUDE.md §7).
+ */
+export function milestoneDueOn(
+  validatedOn: CalendarDate,
+  delayDays: number,
+  reservedOn: CalendarDate,
+): CalendarDate {
+  const due = addDays(validatedOn, delayDays);
+  return due < reservedOn ? reservedOn : due;
 }

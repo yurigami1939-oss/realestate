@@ -17,9 +17,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { toLocale } from "@/i18n/locales";
+import { todayInAlgiers } from "@/lib/dates";
 import { formatShare, type PlanStep } from "@/lib/payment-plans";
 import { can } from "@/lib/permissions";
 import { requirePermission } from "@/server/auth/page-guard";
+import { getSalesSettings } from "@/server/organizations/settings";
 import { getProject } from "@/server/inventory/queries";
 import { deletePaymentPlanAction } from "@/server/payment-plans/actions";
 import { getProjectPaymentSetup, type PaymentPlanWithSteps } from "@/server/payment-plans/queries";
@@ -44,6 +46,12 @@ export default async function PaymentPlansPage({
   if (!project) notFound();
   const { milestones, plans } = await getProjectPaymentSetup(ctx, projectId);
   const editable = can(ctx.roles, "project:update");
+  const validation = can(ctx.roles, "milestone:validate")
+    ? {
+        today: todayInAlgiers(),
+        delayDays: (await getSalesSettings(ctx)).paymentCallDelayDays,
+      }
+    : null;
   const t = await getTranslations();
 
   return (
@@ -70,6 +78,7 @@ export default async function PaymentPlansPage({
             projectId={projectId}
             milestones={milestones}
             editable={editable}
+            validation={validation}
           />
         </CardContent>
       </Card>

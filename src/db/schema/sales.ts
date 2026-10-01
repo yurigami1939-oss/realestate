@@ -624,3 +624,56 @@ export const receipt = pgTable(
     }),
   ],
 );
+
+/**
+ * Appel de fonds (ADF-…): issued per sale for each installment of a validated milestone,
+ * once (idempotent issue job). Snapshots what was called; the statement stays derived.
+ */
+export const paymentCall = pgTable(
+  "payment_call",
+  {
+    id: id(),
+    organizationId: organizationId(),
+    number: text().notNull(),
+    reservationId: uuid().notNull(),
+    milestoneId: uuid().notNull(),
+    installmentPosition: integer().notNull(),
+    label: text().notNull(),
+    /** The installment's amount, what earlier payments already settled on it, and the rest. */
+    amount: money().notNull(),
+    settled: money().notNull(),
+    called: money().notNull(),
+    dueOn: date({ mode: "string" }).notNull(),
+    issuedAt: instant().notNull().defaultNow(),
+    pdfFileId: uuid(),
+  },
+  (t) => [
+    unique().on(t.organizationId, t.id),
+    unique().on(t.organizationId, t.number),
+    unique("payment_call_installment_key").on(
+      t.organizationId,
+      t.reservationId,
+      t.installmentPosition,
+    ),
+    foreignKey({
+      name: "payment_call_reservation_fk",
+      columns: [t.organizationId, t.reservationId],
+      foreignColumns: [reservation.organizationId, reservation.id],
+    }),
+    foreignKey({
+      name: "payment_call_milestone_fk",
+      columns: [t.organizationId, t.milestoneId],
+      foreignColumns: [constructionMilestone.organizationId, constructionMilestone.id],
+    }),
+    foreignKey({
+      name: "payment_call_pdf_fk",
+      columns: [t.organizationId, t.pdfFileId],
+      foreignColumns: [file.organizationId, file.id],
+    }),
+    index().on(t.organizationId, t.milestoneId),
+    check(
+      "payment_call_amounts",
+      sql`${t.settled} >= 0 and ${t.called} > 0 and ${t.settled} + ${t.called} = ${t.amount}`,
+    ),
+  ],
+);
