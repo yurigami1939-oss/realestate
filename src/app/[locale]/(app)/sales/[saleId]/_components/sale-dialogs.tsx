@@ -3,26 +3,17 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Ban, Banknote, CircleCheck, FileSignature, Mail, Pencil } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
-import { type FormEventHandler, type ReactNode, useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import type { z } from "zod";
 
 import { applyFieldErrors } from "@/components/forms/apply-field-errors";
+import { FormDialog } from "@/components/forms/form-dialog";
 import { SelectField, TextareaField } from "@/components/forms/fields";
 import { TextField } from "@/components/forms/text-field";
 import { useAction } from "@/components/forms/use-action";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { FieldGroup } from "@/components/ui/field";
 import { formatDZD } from "@/lib/money";
 import { paymentMethods } from "@/lib/sales";
 import { issueReminderAction } from "@/server/collections/actions";
@@ -39,49 +30,6 @@ import {
 } from "@/server/payments/schemas";
 import { recordSaleAction, updateReservationContractAction } from "@/server/sales/actions";
 import { recordSaleSchema, reservationContractSchema } from "@/server/sales/schemas";
-
-function FormDialog({
-  open,
-  onOpenChange,
-  trigger,
-  title,
-  description,
-  submitLabel,
-  pending,
-  onSubmit,
-  children,
-}: {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  trigger: ReactNode;
-  title: string;
-  description?: string;
-  submitLabel: string;
-  pending: boolean;
-  onSubmit: FormEventHandler<HTMLFormElement>;
-  children: ReactNode;
-}) {
-  const tc = useTranslations("common");
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent closeLabel={tc("close")}>
-        <form className="space-y-4" onSubmit={onSubmit} noValidate>
-          <DialogHeader>
-            <DialogTitle>{title}</DialogTitle>
-            {description ? <DialogDescription>{description}</DialogDescription> : null}
-          </DialogHeader>
-          <FieldGroup>{children}</FieldGroup>
-          <DialogFooter>
-            <Button type="submit" disabled={pending}>
-              {submitLabel}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
-  );
-}
 
 type PaymentValues = z.input<typeof recordPaymentSchema>;
 
@@ -165,7 +113,12 @@ export function RecordPaymentDialog({
         />
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
-        <TextField control={form.control} name="reference" label={t("fields.reference")} dir="ltr" />
+        <TextField
+          control={form.control}
+          name="reference"
+          label={t("fields.reference")}
+          dir="ltr"
+        />
         <TextField control={form.control} name="bank" label={t("fields.bank")} />
       </div>
       <TextField control={form.control} name="payerName" label={t("fields.payerName")} />

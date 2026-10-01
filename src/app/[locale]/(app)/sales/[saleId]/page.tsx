@@ -23,15 +23,21 @@ import {
 import { Link } from "@/i18n/navigation";
 import { toLocale } from "@/i18n/locales";
 import { addDays, formatDate, todayInAlgiers } from "@/lib/dates";
-import { formatDZD } from "@/lib/money";
+import { formatDZD, toDecimalString } from "@/lib/money";
 import { formatShare } from "@/lib/payment-plans";
+import { formatPhone } from "@/lib/phone";
 import { can } from "@/lib/permissions";
 import { requirePermission } from "@/server/auth/page-guard";
+import { listBuyerOptions } from "@/server/buyers/queries";
 import { listSaleReminders } from "@/server/collections/queries";
 import { REMINDER_PAY_WITHIN_DAYS } from "@/server/collections/schemas";
 import { listSalePaymentCalls } from "@/server/payment-calls/queries";
 import { listSalePayments } from "@/server/payments/queries";
+import { getSalesSettings } from "@/server/organizations/settings";
+import { listSaleBankLoans } from "@/server/sales/bank-loans";
+import { listReservableUnits } from "@/server/sales/queries";
 import { getSale } from "@/server/sales/sale-queries";
+import { listSaleWithdrawals } from "@/server/sales/withdrawals";
 
 import {
   CancelPaymentDialog,
@@ -41,6 +47,14 @@ import {
   RecordSaleDialog,
   ReminderDialog,
 } from "./_components/sale-dialogs";
+import {
+  BankLoanDialog,
+  DecideWithdrawalDialog,
+  ProposeWithdrawalDialog,
+  SwapUnitDialog,
+  TransferDialog,
+  WithdrawalRefundDialog,
+} from "./_components/after-sale";
 import { ScanUpload } from "./_components/scan-upload";
 
 export async function generateMetadata({
@@ -61,6 +75,28 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
   const payments = await listSalePayments(ctx, saleId);
   const calls = await listSalePaymentCalls(ctx, saleId);
   const reminders = await listSaleReminders(ctx, saleId);
+  const withdrawals = await listSaleWithdrawals(ctx, saleId);
+  const { loans, disbursed } = await listSaleBankLoans(ctx, saleId);
+  const changeable = sale.status === "reserved" && can(ctx.roles, "sale:update");
+  const buyerChoices = changeable
+    ? (await listBuyerOptions(ctx)).map((b) => ({
+        id: b.id,
+        label: `${b.lastName} ${b.firstName} · ${formatPhone(b.phone)}`,
+      }))
+    : [];
+  const swapUnits = changeable
+    ? (await listReservableUnits(ctx)).filter(
+        (u) =>
+          u.projectId === sale.projectId &&
+          u.id !== sale.unitId &&
+          (u.option === null || u.option.leadId === sale.leadId),
+      )
+    : [];
+  const { withdrawalRetentionBp } = await getSalesSettings(ctx);
+  const openWithdrawal = withdrawals.find((w) => w.status !== "rejected");
+  const followedLoan = loans.find((l) => l.status !== "refused" && l.status !== "cancelled");
+  /** Money as typed in amount inputs ("8000000,00"). */
+  const moneyInput = (v: bigint) => toDecimalString(v).replace(".", ",");
   const t = await getTranslations();
   const money = (v: bigint) => formatDZD(v, locale);
   const today = todayInAlgiers();
@@ -177,33 +213,45 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
               <CardTitle className="text-base">{t("sales.sections.statement")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <dl className="grid gap-2 text-sm sm:grid-cols-3" data-testid="statement-totals">
-                {(
-                  [
-                    ["price", st.price],
-                    ["paid", st.paid],
-                    ["remaining", st.remaining],
-                    ["due", st.due],
-                    ["overdue", st.overdue],
-                    ["advance", st.advance],
-                  ] as const
-                ).map(([key, value]) => (
-                  <div
-                    key={key}
-                    className={
-                      key === "overdue" && value > 0n
-                        ? "rounded-md border border-red-300 bg-red-50 p-2 text-red-900"
-                        : "rounded-md border p-2"
-                    }
-                    data-total={key}
-                  >
-                    <dt className="text-muted-foreground">{t(`sales.statement.${key}`)}</dt>
-                    <dd className="font-semibold tabular-nums" dir="ltr">
-                      {money(value)}
-                    </dd>
-                  </div>
-                ))}
-              </dl>
+              {live ? null : (
+                <Alert data-testid="sale-closed">
+                  <AlertDescription>
+                    {t("sales.withdrawnNotice", {
+                      date: sale.endedOn ? formatDate(sale.endedOn) : "—",
+                      paid: money(st.paid),
+                    })}
+                  </AlertDescription>
+                </Alert>
+              )}
+              {live ? (
+                <dl className="grid gap-2 text-sm sm:grid-cols-3" data-testid="statement-totals">
+                  {(
+                    [
+                      ["price", st.price],
+                      ["paid", st.paid],
+                      ["remaining", st.remaining],
+                      ["due", st.due],
+                      ["overdue", st.overdue],
+                      ["advance", st.advance],
+                    ] as const
+                  ).map(([key, value]) => (
+                    <div
+                      key={key}
+                      className={
+                        key === "overdue" && value > 0n
+                          ? "rounded-md border border-red-300 bg-red-50 p-2 text-red-900"
+                          : "rounded-md border p-2"
+                      }
+                      data-total={key}
+                    >
+                      <dt className="text-muted-foreground">{t(`sales.statement.${key}`)}</dt>
+                      <dd className="font-semibold tabular-nums" dir="ltr">
+                        {money(value)}
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
+              ) : null}
               <Table data-testid="sale-statement">
                 <TableHeader>
                   <TableRow>
@@ -271,8 +319,8 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
               </Table>
               {st.penalties > 0n ? (
                 <p className="text-sm text-muted-foreground">
-                  {t("sales.statement.penalties")} :{" "}
-                  <bdi dir="ltr">{money(st.penalties)}</bdi>. {t("sales.statement.penaltiesHint")}
+                  {t("sales.statement.penalties")} : <bdi dir="ltr">{money(st.penalties)}</bdi>.{" "}
+                  {t("sales.statement.penaltiesHint")}
                 </p>
               ) : null}
             </CardContent>
@@ -312,7 +360,7 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
                           <TableCell
                             className={
                               cancelled
-                                ? "text-end tabular-nums text-muted-foreground line-through"
+                                ? "text-end text-muted-foreground tabular-nums line-through"
                                 : "text-end tabular-nums"
                             }
                             dir="ltr"
@@ -396,9 +444,7 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
                     <TableRow>
                       <TableHead>{t("paymentCalls.columns.number")}</TableHead>
                       <TableHead>{t("paymentCalls.columns.milestone")}</TableHead>
-                      <TableHead className="text-end">
-                        {t("paymentCalls.columns.called")}
-                      </TableHead>
+                      <TableHead className="text-end">{t("paymentCalls.columns.called")}</TableHead>
                       <TableHead>{t("paymentCalls.columns.dueOn")}</TableHead>
                       <TableHead>{t("paymentCalls.columns.issuedAt")}</TableHead>
                     </TableRow>
@@ -552,6 +598,156 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
               ) : null}
             </CardContent>
           </Card>
+
+          {withdrawals.length > 0 ||
+          loans.length > 0 ||
+          changeable ||
+          (sale.status === "reserved" && can(ctx.roles, "sale:withdraw")) ? (
+            <Card data-testid="after-sale">
+              <CardHeader>
+                <CardTitle className="text-base">{t("sales.sections.afterSale")}</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4 text-sm">
+                <div className="space-y-2" data-testid="withdrawals">
+                  <div className="font-medium">{t("sales.withdrawal.title")}</div>
+                  {withdrawals.map((w) => (
+                    <div key={w.id} className="space-y-1 rounded-md border p-2">
+                      <Badge variant="outline">{t(`sales.withdrawal.status.${w.status}`)}</Badge>
+                      <div className="text-muted-foreground">
+                        {t("sales.withdrawal.summary", {
+                          paid: money(w.paid),
+                          rate: formatShare(w.retentionBp),
+                          retention: money(w.retention),
+                          refund: money(w.refund),
+                        })}
+                      </div>
+                      <div className="whitespace-pre-line">{w.reason}</div>
+                      {w.decisionNote ? (
+                        <div className="text-muted-foreground">{w.decisionNote}</div>
+                      ) : null}
+                      {w.status === "approved" && w.refund > 0n ? (
+                        w.refundedOn ? (
+                          <div className="text-emerald-800">
+                            {t("sales.withdrawal.refundDone", { date: formatDate(w.refundedOn) })}
+                          </div>
+                        ) : (
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="text-amber-800">
+                              {t("sales.withdrawal.refundPending")}
+                            </span>
+                            {can(ctx.roles, "payment:create") ? (
+                              <WithdrawalRefundDialog
+                                withdrawalId={w.id}
+                                refund={w.refund}
+                                today={today}
+                              />
+                            ) : null}
+                          </div>
+                        )
+                      ) : null}
+                      {w.status === "proposed" && can(ctx.roles, "sale:approve") ? (
+                        <div className="flex flex-wrap gap-2">
+                          <DecideWithdrawalDialog withdrawalId={w.id} approve refund={w.refund} />
+                          <DecideWithdrawalDialog
+                            withdrawalId={w.id}
+                            approve={false}
+                            refund={w.refund}
+                          />
+                        </div>
+                      ) : null}
+                    </div>
+                  ))}
+                  {sale.status === "reserved" &&
+                  !openWithdrawal &&
+                  can(ctx.roles, "sale:withdraw") ? (
+                    <ProposeWithdrawalDialog
+                      reservationId={sale.id}
+                      paid={st.paid}
+                      defaultRetention={formatShare(withdrawalRetentionBp).slice(0, -2)}
+                    />
+                  ) : null}
+                </div>
+                {loans.length > 0 || (live && can(ctx.roles, "sale:update")) ? (
+                  <>
+                    <Separator />
+                    <div className="space-y-2" data-testid="bank-loans">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <span className="font-medium">{t("sales.loan.title")}</span>
+                        {live && can(ctx.roles, "sale:update") ? (
+                          <BankLoanDialog
+                            reservationId={sale.id}
+                            loan={
+                              followedLoan
+                                ? {
+                                    id: followedLoan.id,
+                                    bank: followedLoan.bank,
+                                    requested: moneyInput(followedLoan.requested),
+                                    approved:
+                                      followedLoan.approved === null
+                                        ? ""
+                                        : moneyInput(followedLoan.approved),
+                                    status: followedLoan.status,
+                                    submittedOn: followedLoan.submittedOn ?? "",
+                                    decidedOn: followedLoan.decidedOn ?? "",
+                                    reference: followedLoan.reference ?? "",
+                                    notes: followedLoan.notes ?? "",
+                                  }
+                                : null
+                            }
+                          />
+                        ) : null}
+                      </div>
+                      {loans.map((l) => (
+                        <div key={l.id} className="space-y-0.5">
+                          <div>
+                            {t("sales.loan.line", { bank: l.bank, requested: money(l.requested) })}{" "}
+                            <Badge variant="outline">{t(`sales.loan.statuses.${l.status}`)}</Badge>
+                          </div>
+                          {l.approved !== null ? (
+                            <div className="text-muted-foreground">
+                              {t("sales.loan.approvedLine", { approved: money(l.approved) })}
+                            </div>
+                          ) : null}
+                          {l.reference ? (
+                            <div className="text-muted-foreground" dir="auto">
+                              {l.reference}
+                            </div>
+                          ) : null}
+                        </div>
+                      ))}
+                      {disbursed > 0n ? (
+                        <div className="text-muted-foreground">
+                          {t("sales.loan.disbursed", { amount: money(disbursed) })}
+                        </div>
+                      ) : null}
+                    </div>
+                  </>
+                ) : null}
+                {changeable ? (
+                  <>
+                    <Separator />
+                    <div className="flex flex-wrap gap-2">
+                      <TransferDialog
+                        reservationId={sale.id}
+                        buyers={buyerChoices}
+                        current={sale.buyers.map((b) => b.id)}
+                        today={today}
+                      />
+                      {swapUnits.length > 0 ? (
+                        <SwapUnitDialog
+                          reservationId={sale.id}
+                          units={swapUnits}
+                          paid={st.paid}
+                          canDiscount={can(ctx.roles, "sale:discount")}
+                          today={today}
+                        />
+                      ) : null}
+                    </div>
+                  </>
+                ) : null}
+              </CardContent>
+            </Card>
+          ) : null}
 
           {seesCommission && sale.commission ? (
             <Card>

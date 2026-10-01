@@ -1051,7 +1051,8 @@
       "documents": "الوثائق",
       "statement": "جدول الدفع والمدفوعات",
       "payments": "التحصيلات",
-      "commission": "العمولة"
+      "commission": "العمولة",
+      "afterSale": "متابعة الملف"
     },
     "sheet": "بطاقة الحجز",
     "contractScan": "عقد الحجز الموقع",
@@ -1135,7 +1136,100 @@
       "requested": "أُعيد طلب الإنشاء."
     },
     "unitCardTitle": "التسويق",
-    "milestoneReached": "{name} (منجزة): مستحقة في {date}"
+    "milestoneReached": "{name} (منجزة): مستحقة في {date}",
+    "withdrawal": {
+      "title": "العدول",
+      "propose": "اقتراح عدول",
+      "proposeTitle": "اقتراح عدول",
+      "proposeDescription": "يُطبق الاقتطاع على المبلغ المحصّل. ويصادق المسير على العدول، فتعود الوحدة متاحة.",
+      "retention": "الاقتطاع (%)",
+      "paid": "المحصّل: {amount}",
+      "preview": "المحصّل {paid} · الاقتطاع {retention} · المبلغ المسترد {refund}",
+      "reason": "السبب",
+      "proposed": "اُقترح العدول على المسير.",
+      "approve": "المصادقة على العدول",
+      "reject": "رفض",
+      "approveTitle": "المصادقة على العدول؟",
+      "approveDescription": "يُغلق الحجز وتعود الوحدة متاحة. المبلغ المسترد المتوقع: {refund}، ويُعاد حسابه على التحصيلات إلى اليوم.",
+      "rejectTitle": "رفض العدول؟",
+      "rejectDescription": "يستمر الحجز. اذكروا سبب الرفض.",
+      "note": "ملاحظة",
+      "approved": "تمت المصادقة على العدول.",
+      "rejected": "تم رفض العدول.",
+      "recordRefund": "تم الاسترداد",
+      "refundTitle": "استرداد {amount}",
+      "refundedOn": "تاريخ الاسترداد",
+      "refunded": "تم تسجيل الاسترداد.",
+      "status": {
+        "proposed": "مقترح · في انتظار المسير",
+        "approved": "مصادق عليه",
+        "rejected": "مرفوض"
+      },
+      "summary": "المحصّل {paid} · الاقتطاع {rate} ({retention}) · المبلغ المسترد {refund}",
+      "refundDone": "اُسترد في {date}",
+      "refundPending": "استرداد قيد الانتظار",
+      "errors": {
+        "alreadyOpen": "يوجد عدول قيد المعالجة لهذا الحجز.",
+        "notProposed": "تمت معالجة هذا العدول مسبقاً.",
+        "noRefundDue": "لا يوجد مبلغ مستحق الاسترداد لهذا العدول."
+      }
+    },
+    "transfer": {
+      "open": "تنازل",
+      "title": "التنازل عن الحجز",
+      "description": "يستلم المشترون الجدد الحجز ودفعاته؛ وتبقى الوحدة محجوزة.",
+      "transferredOn": "تاريخ التنازل",
+      "notes": "ملاحظات",
+      "submit": "تسجيل التنازل",
+      "done": "تم تسجيل التنازل؛ بطاقة حجز جديدة قيد الإعداد.",
+      "errors": {
+        "sameBuyers": "لم يتغير المشترون."
+      }
+    },
+    "swap": {
+      "open": "تغيير الوحدة",
+      "title": "تغيير الوحدة",
+      "description": "تُحرر الوحدة الحالية وينتقل البيع إلى الوحدة المختارة بسعرها. تحتفظ الدفعات بنسبها؛ المحصّل: {paid}.",
+      "unit": "الوحدة الجديدة",
+      "discount": "التخفيض (دج)",
+      "newPrice": "السعر الجديد: {price}",
+      "swappedOn": "تاريخ التغيير",
+      "reason": "السبب",
+      "submit": "تغيير الوحدة",
+      "done": "تم تغيير الوحدة، السعر الجديد {price}.",
+      "errors": {
+        "sameUnit": "اختاروا وحدة أخرى.",
+        "otherProject": "يجب أن تنتمي الوحدة الجديدة إلى المشروع نفسه.",
+        "paidAbovePrice": "تتجاوز التحصيلات سعر الوحدة الجديدة."
+      }
+    },
+    "loan": {
+      "title": "القرض البنكي",
+      "open": "ملف القرض",
+      "bank": "البنك",
+      "requested": "المبلغ المطلوب (دج)",
+      "approved": "المبلغ الممنوح (دج)",
+      "status": "حالة الملف",
+      "statuses": {
+        "preparing": "قيد التحضير",
+        "submitted": "مودع لدى البنك",
+        "approved": "ممنوح",
+        "refused": "مرفوض",
+        "cancelled": "ملغى"
+      },
+      "submittedOn": "تاريخ الإيداع",
+      "decidedOn": "تاريخ رد البنك",
+      "reference": "مرجع الملف",
+      "notes": "ملاحظات",
+      "saved": "تم حفظ ملف القرض.",
+      "line": "{bank} · المطلوب {requested}",
+      "approvedLine": "الممنوح {approved}",
+      "disbursed": "المصروف من البنك: {amount}",
+      "errors": {
+        "alreadyOpen": "يوجد ملف قرض قيد المتابعة لهذا البيع."
+      }
+    },
+    "withdrawnNotice": "حجز مغلق بالعدول في {date}. المحصّل: {paid}؛ ويُحتفظ بجدول الدفعات للتوثيق."
   },
   "payments": {
     "record": "تسجيل دفعة",

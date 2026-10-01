@@ -69,6 +69,19 @@ export type SalesSettings = { [K in keyof typeof salesSettingDefaults]: number }
 export const reservationStatuses = ["reserved", "sold", "withdrawn"] as const;
 export type ReservationStatus = (typeof reservationStatuses)[number];
 
+/** Désistement: proposed by the directeur commercial, decided by the gérant (CLAUDE.md §12). */
+export const withdrawalStatuses = ["proposed", "approved", "rejected"] as const;
+export type WithdrawalStatus = (typeof withdrawalStatuses)[number];
+
+export const bankLoanStatuses = [
+  "preparing",
+  "submitted",
+  "approved",
+  "refused",
+  "cancelled",
+] as const;
+export type BankLoanStatus = (typeof bankLoanStatuses)[number];
+
 export const commissionStatuses = ["earned", "paid", "cancelled"] as const;
 export type CommissionStatus = (typeof commissionStatuses)[number];
 

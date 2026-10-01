@@ -18,12 +18,14 @@ import {
 
 import { planStepTriggers } from "../../lib/payment-plans";
 import {
+  bankLoanStatuses,
   commissionStatuses,
   constructionStages,
   optionStatuses,
   paymentMethods,
   reservationStatuses,
   type VspLimits,
+  withdrawalStatuses,
 } from "../../lib/sales";
 
 import {
@@ -722,5 +724,152 @@ export const reminderLetter = pgTable(
     }),
     index().on(t.organizationId, t.reservationId),
     check("reminder_letter_amounts", sql`${t.overdue} > 0 and ${t.penalties} >= 0`),
+  ],
+);
+
+// ── After the reservation: withdrawal, transfer, unit swap, bank loan ──────
+
+export const withdrawalStatus = pgEnum("withdrawal_status", withdrawalStatuses);
+
+/**
+ * Désistement (CLAUDE.md §12): proposed by the directeur commercial with a retention on the
+ * amount paid, approved (or rejected) by the gérant; the refund is recorded when paid out.
+ * Amounts are computed at the proposal and final at the approval.
+ */
+export const withdrawal = pgTable(
+  "withdrawal",
+  {
+    id: id(),
+    organizationId: organizationId(),
+    reservationId: uuid().notNull(),
+    status: withdrawalStatus().notNull().default("proposed"),
+    reason: text().notNull(),
+    retentionBp: integer().notNull(),
+    paid: money().notNull(),
+    retention: money().notNull(),
+    refund: money().notNull(),
+    proposedBy: userRef().notNull(),
+    proposedAt: instant().notNull().defaultNow(),
+    decidedBy: userRef(),
+    decidedAt: instant(),
+    decisionNote: text(),
+    refundedOn: date({ mode: "string" }),
+    refundMethod: paymentMethod(),
+    refundReference: text(),
+    refundRecordedBy: userRef(),
+  },
+  (t) => [
+    unique().on(t.organizationId, t.id),
+    uniqueIndex("withdrawal_open_key")
+      .on(t.organizationId, t.reservationId)
+      .where(sql`${t.status} <> 'rejected'`),
+    foreignKey({
+      name: "withdrawal_reservation_fk",
+      columns: [t.organizationId, t.reservationId],
+      foreignColumns: [reservation.organizationId, reservation.id],
+    }),
+    check(
+      "withdrawal_amounts",
+      sql`${t.retention} >= 0 and ${t.refund} >= 0 and ${t.retention} + ${t.refund} = ${t.paid}`,
+    ),
+    check("withdrawal_retention_bp", sql`${t.retentionBp} between 0 and 10000`),
+  ],
+);
+
+/** Cession de réservation: the buyers change, the unit stays reserved (history, append-only). */
+export const reservationTransfer = pgTable(
+  "reservation_transfer",
+  {
+    id: id(),
+    organizationId: organizationId(),
+    reservationId: uuid().notNull(),
+    transferredOn: date({ mode: "string" }).notNull(),
+    fromBuyerIds: jsonb().$type<string[]>().notNull(),
+    toBuyerIds: jsonb().$type<string[]>().notNull(),
+    notes: text(),
+    recordedBy: userRef().notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    unique().on(t.organizationId, t.id),
+    foreignKey({
+      name: "reservation_transfer_reservation_fk",
+      columns: [t.organizationId, t.reservationId],
+      foreignColumns: [reservation.organizationId, reservation.id],
+    }),
+    index().on(t.organizationId, t.reservationId),
+  ],
+);
+
+/** Changement de lot: the sale moves to another unit at a new price (history, append-only). */
+export const unitSwap = pgTable(
+  "unit_swap",
+  {
+    id: id(),
+    organizationId: organizationId(),
+    reservationId: uuid().notNull(),
+    fromUnitId: uuid().notNull(),
+    toUnitId: uuid().notNull(),
+    fromPrice: money().notNull(),
+    toPrice: money().notNull(),
+    swappedOn: date({ mode: "string" }).notNull(),
+    reason: text().notNull(),
+    recordedBy: userRef().notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    unique().on(t.organizationId, t.id),
+    foreignKey({
+      name: "unit_swap_reservation_fk",
+      columns: [t.organizationId, t.reservationId],
+      foreignColumns: [reservation.organizationId, reservation.id],
+    }),
+    foreignKey({
+      name: "unit_swap_from_unit_fk",
+      columns: [t.organizationId, t.fromUnitId],
+      foreignColumns: [unit.organizationId, unit.id],
+    }),
+    foreignKey({
+      name: "unit_swap_to_unit_fk",
+      columns: [t.organizationId, t.toUnitId],
+      foreignColumns: [unit.organizationId, unit.id],
+    }),
+    index().on(t.organizationId, t.reservationId),
+  ],
+);
+
+export const bankLoanStatus = pgEnum("bank_loan_status", bankLoanStatuses);
+
+/**
+ * Crédit bancaire of a buyer (dossier → accord → déblocage). Disbursements are payments of
+ * the sale with the `bank_loan` method.
+ */
+export const bankLoan = pgTable(
+  "bank_loan",
+  {
+    id: id(),
+    organizationId: organizationId(),
+    reservationId: uuid().notNull(),
+    bank: text().notNull(),
+    requested: money().notNull(),
+    approved: money(),
+    status: bankLoanStatus().notNull().default("preparing"),
+    submittedOn: date({ mode: "string" }),
+    decidedOn: date({ mode: "string" }),
+    reference: text(),
+    notes: text(),
+    ...timestamps(),
+  },
+  (t) => [
+    unique().on(t.organizationId, t.id),
+    uniqueIndex("bank_loan_open_key")
+      .on(t.organizationId, t.reservationId)
+      .where(sql`${t.status} not in ('refused', 'cancelled')`),
+    foreignKey({
+      name: "bank_loan_reservation_fk",
+      columns: [t.organizationId, t.reservationId],
+      foreignColumns: [reservation.organizationId, reservation.id],
+    }),
+    check("bank_loan_amounts", sql`${t.requested} > 0 and (${t.approved} is null or ${t.approved} > 0)`),
   ],
 );

@@ -1051,7 +1051,8 @@
       "documents": "Documents",
       "statement": "Échéancier et paiements",
       "payments": "Encaissements",
-      "commission": "Commission"
+      "commission": "Commission",
+      "afterSale": "Suivi du dossier"
     },
     "sheet": "Fiche de réservation",
     "contractScan": "Contrat de réservation signé",
@@ -1135,7 +1136,100 @@
       "requested": "Génération relancée."
     },
     "unitCardTitle": "Commercialisation",
-    "milestoneReached": "{name} (réalisée) : exigible le {date}"
+    "milestoneReached": "{name} (réalisée) : exigible le {date}",
+    "withdrawal": {
+      "title": "Désistement",
+      "propose": "Proposer un désistement",
+      "proposeTitle": "Proposer un désistement",
+      "proposeDescription": "La retenue s'applique au montant encaissé. Le gérant valide le désistement ; le lot redevient alors disponible.",
+      "retention": "Retenue (%)",
+      "paid": "Encaissé : {amount}",
+      "preview": "Encaissé {paid} · retenue {retention} · à rembourser {refund}",
+      "reason": "Motif",
+      "proposed": "Désistement proposé au gérant.",
+      "approve": "Valider le désistement",
+      "reject": "Refuser",
+      "approveTitle": "Valider le désistement ?",
+      "approveDescription": "La réservation est close et le lot redevient disponible. Remboursement prévu : {refund}, recalculé sur les encaissements à ce jour.",
+      "rejectTitle": "Refuser le désistement ?",
+      "rejectDescription": "La réservation continue. Indiquez la raison du refus.",
+      "note": "Commentaire",
+      "approved": "Désistement validé.",
+      "rejected": "Désistement refusé.",
+      "recordRefund": "Remboursement effectué",
+      "refundTitle": "Remboursement de {amount}",
+      "refundedOn": "Remboursé le",
+      "refunded": "Remboursement enregistré.",
+      "status": {
+        "proposed": "Proposé · en attente du gérant",
+        "approved": "Validé",
+        "rejected": "Refusé"
+      },
+      "summary": "Encaissé {paid} · retenue {rate} ({retention}) · à rembourser {refund}",
+      "refundDone": "Remboursé le {date}",
+      "refundPending": "Remboursement à effectuer",
+      "errors": {
+        "alreadyOpen": "Un désistement est déjà en cours pour cette réservation.",
+        "notProposed": "Ce désistement a déjà été traité.",
+        "noRefundDue": "Aucun remboursement n'est dû pour ce désistement."
+      }
+    },
+    "transfer": {
+      "open": "Cession",
+      "title": "Cession de la réservation",
+      "description": "Les nouveaux acquéreurs reprennent la réservation et ses paiements ; le lot reste réservé.",
+      "transferredOn": "Date de la cession",
+      "notes": "Remarques",
+      "submit": "Enregistrer la cession",
+      "done": "Cession enregistrée ; une nouvelle fiche de réservation est en préparation.",
+      "errors": {
+        "sameBuyers": "Les acquéreurs sont inchangés."
+      }
+    },
+    "swap": {
+      "open": "Changement de lot",
+      "title": "Changement de lot",
+      "description": "Le lot actuel est libéré et la vente passe sur le lot choisi, à son prix. Les tranches gardent leurs parts ; déjà encaissé : {paid}.",
+      "unit": "Nouveau lot",
+      "discount": "Remise (DA)",
+      "newPrice": "Nouveau prix : {price}",
+      "swappedOn": "Date du changement",
+      "reason": "Motif",
+      "submit": "Changer de lot",
+      "done": "Lot changé, nouveau prix {price}.",
+      "errors": {
+        "sameUnit": "Choisissez un autre lot.",
+        "otherProject": "Le nouveau lot doit appartenir au même projet.",
+        "paidAbovePrice": "Les encaissements dépassent le prix du nouveau lot."
+      }
+    },
+    "loan": {
+      "title": "Crédit bancaire",
+      "open": "Dossier de crédit",
+      "bank": "Banque",
+      "requested": "Montant demandé (DA)",
+      "approved": "Montant accordé (DA)",
+      "status": "État du dossier",
+      "statuses": {
+        "preparing": "En préparation",
+        "submitted": "Déposé à la banque",
+        "approved": "Accordé",
+        "refused": "Refusé",
+        "cancelled": "Abandonné"
+      },
+      "submittedOn": "Déposé le",
+      "decidedOn": "Réponse de la banque le",
+      "reference": "Référence du dossier",
+      "notes": "Remarques",
+      "saved": "Dossier de crédit enregistré.",
+      "line": "{bank} · demandé {requested}",
+      "approvedLine": "Accordé {approved}",
+      "disbursed": "Débloqué par la banque : {amount}",
+      "errors": {
+        "alreadyOpen": "Un dossier de crédit est déjà suivi pour cette vente."
+      }
+    },
+    "withdrawnNotice": "Réservation close par désistement le {date}. Encaissé : {paid} ; l'échéancier est conservé pour mémoire."
   },
   "payments": {
     "record": "Enregistrer un paiement",

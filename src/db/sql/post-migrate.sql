@@ -63,3 +63,7 @@ REVOKE UPDATE, DELETE, TRUNCATE ON public.payment_call FROM realestate_app;
 GRANT UPDATE (pdf_file_id) ON public.payment_call TO realestate_app;
 REVOKE UPDATE, DELETE, TRUNCATE ON public.reminder_letter FROM realestate_app;
 GRANT UPDATE (pdf_file_id) ON public.reminder_letter TO realestate_app;
+-- After-sale history: transfers and unit swaps are append-only; withdrawals are never deleted.
+REVOKE UPDATE, DELETE, TRUNCATE ON public.reservation_transfer FROM realestate_app;
+REVOKE UPDATE, DELETE, TRUNCATE ON public.unit_swap FROM realestate_app;
+REVOKE DELETE, TRUNCATE ON public.withdrawal FROM realestate_app;
