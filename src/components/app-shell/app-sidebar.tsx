@@ -13,6 +13,7 @@ import {
   type LucideIcon,
   Percent,
   PhoneCall,
+  ScrollText,
   Target,
   Users,
 } from "lucide-react";
@@ -50,7 +51,8 @@ type NavKey =
   | "buyers"
   | "saleList"
   | "overdue"
-  | "commissions";
+  | "commissions"
+  | "audit";
 /** `permission`: shown only to roles that have it (display only; services enforce). */
 type NavItem = { href: string; key: NavKey; icon: LucideIcon; permission?: Permission };
 
@@ -75,6 +77,7 @@ const contractsNav: NavItem[] = [
 const settingsNav: NavItem[] = [
   { href: "/settings/members", key: "members", icon: Users },
   { href: "/settings/company", key: "company", icon: Building, permission: "organization:update" },
+  { href: "/settings/audit", key: "audit", icon: ScrollText, permission: "audit:read" },
 ];
 
 const allItems = [...mainNav, ...salesNav, ...contractsNav, ...settingsNav];

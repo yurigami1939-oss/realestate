@@ -194,7 +194,8 @@
     "contracts": "Contrats et encaissements",
     "saleList": "Réservations et ventes",
     "overdue": "Impayés",
-    "commissions": "Commissions"
+    "commissions": "Commissions",
+    "audit": "Journal d'audit"
   },
   "shell": {
     "organizations": "Sociétés",
@@ -1364,6 +1365,104 @@
       "hint": "Laissez vide pour appliquer le taux de la société ({rate}). Un taux s'applique aux VSP signées ensuite ; chaque commission garde son taux.",
       "save": "Enregistrer les taux",
       "saved": "Taux enregistrés."
+    }
+  },
+  "audit": {
+    "title": "Journal d'audit",
+    "description": "Les opérations sensibles avec leur auteur, leur date et l'état avant / après. Le journal ne peut être ni modifié ni supprimé.",
+    "count": "{count, plural, =0 {Aucune opération} one {# opération} other {# opérations}}",
+    "empty": "Aucune opération pour ces critères.",
+    "columns": {
+      "date": "Date",
+      "actor": "Utilisateur",
+      "action": "Opération",
+      "record": "Élément",
+      "details": "Détails"
+    },
+    "system": "Système (tâche automatique)",
+    "reason": "Motif : {reason}",
+    "history": "Historique de l'élément",
+    "showDetails": "Voir avant / après",
+    "before": "Avant",
+    "after": "Après",
+    "hint": "Dans les détails, les montants sont en centimes de dinar (1300000000 = 13 000 000,00 DA) et les taux en points de base (150 = 1,5 %).",
+    "filters": {
+      "entityType": "Élément",
+      "allEntities": "Tous les éléments",
+      "actor": "Utilisateur",
+      "allActors": "Tous les utilisateurs",
+      "from": "Du",
+      "to": "Au",
+      "oneRecord": "Un seul élément · tout afficher"
+    },
+    "entities": {
+      "organization": "Société",
+      "member": "Membre",
+      "invitation": "Invitation",
+      "unit": "Lot",
+      "price_list": "Grille de prix",
+      "lead": "Prospect",
+      "quotation": "Devis",
+      "construction_milestone": "Étape des travaux",
+      "reservation": "Réservation / vente",
+      "payment": "Paiement",
+      "commission": "Commission"
+    },
+    "actions": {
+      "organization": {
+        "create": "Création de la société",
+        "update": "Paramètres de la société modifiés"
+      },
+      "member": {
+        "join": "Arrivée d'un membre",
+        "remove": "Retrait d'un membre",
+        "update_roles": "Rôles modifiés"
+      },
+      "invitation": {
+        "create": "Invitation envoyée",
+        "cancel": "Invitation annulée"
+      },
+      "unit": {
+        "price_change": "Prix du lot modifié",
+        "status_change": "Statut du lot modifié"
+      },
+      "price_list": {
+        "apply": "Grille de prix appliquée"
+      },
+      "lead": {
+        "merge": "Fusion de prospects"
+      },
+      "quotation": {
+        "issue": "Devis émis",
+        "cancel": "Devis annulé"
+      },
+      "milestone": {
+        "validate": "Étape des travaux validée"
+      },
+      "reservation": {
+        "create": "Réservation enregistrée",
+        "update_contract": "Contrat de réservation modifié",
+        "transfer": "Cession de réservation",
+        "swap_unit": "Changement de lot"
+      },
+      "sale": {
+        "sign": "VSP signée"
+      },
+      "payment": {
+        "create": "Paiement enregistré",
+        "cancel": "Paiement annulé",
+        "cheque_cleared": "Chèque encaissé"
+      },
+      "withdrawal": {
+        "propose": "Désistement proposé",
+        "approve": "Désistement validé",
+        "reject": "Désistement refusé",
+        "refund": "Remboursement de désistement"
+      },
+      "commission": {
+        "pay": "Commission payée",
+        "rates": "Taux de commission modifiés"
+      }
     }
   }
 }
