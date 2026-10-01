@@ -100,18 +100,20 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
     ├── components/
     │   ├── ui/               # shadcn/ui primitives (generated; sidebar labels made translatable)
     │   ├── app-shell/        # sidebar, org switcher, user menu
-    │   ├── forms/            # TextField, FormAlert, useAction, useTranslateKey
+    │   ├── forms/            # TextField, fields, FormDialog, ConfirmAction, useAction, useTranslateKey
     │   ├── files/            # UploadButton (posts to /api/files)
     │   ├── data-table/       # DataTable (TanStack columns), Pagination (links), useSearchParamsState
     │   ├── crm/              # stage/visit badges, phone text + call/WhatsApp, follow-up/visit dialogs
     │   ├── inventory/        # unit/project status badges, stats bar, floor labels
+    │   ├── sales/            # sale/installment badges, option dialogs, DocumentPdf (+ refresher), VSP warnings
     │   └── auth/ · i18n/     # sign-out, locale switcher
     ├── db/
     │   ├── schema/           # auth.ts (GENERATED) · platform.ts · _columns.ts helpers · index.ts
     │   ├── migrations/       # drizzle-kit SQL (never hand-edit applied files)
     │   ├── sql/post-migrate.sql # RLS on every organization_id table, grants, revokes
     │   ├── seed/             # demo.ts (users, SARLs), inventory.ts (118 units), crm.ts (25 leads,
-    │   │                     # visits, follow-ups, targets), sales.ts (plans, quotations); grows per module
+    │   │                     # visits, follow-ups, targets), sales.ts (plans, quotations), reservations.ts
+    │   │                     # (settings, buyers, sales, payments, VSP, loan, calls, letter); grows per module
     │   ├── client.ts         # pg Pool + drizzle (app role)
     │   ├── tenant.ts         # withTenant(scope, fn, tx?)
     │   └── migrate.ts        # migrateDatabase(): migrations + post-migrate + pg-boss
@@ -128,15 +130,25 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
     │   ├── organizations/    # members & invitations; settings.ts (legal identity, sales settings)
     │   ├── inventory/        # projects, buildings, units, price lists, floor plans, transitionUnit
     │   ├── crm/              # leads, visits, follow-ups, merge, targets; access.ts (lead visibility)
-    │   ├── payment-plans/    # construction milestones (planned) and payment plan templates
+    │   ├── payment-plans/    # construction milestones (planned, stage) and payment plan templates
     │   ├── quotations/       # issue/cancel, queries, pdf.ts (job: render + store once)
+    │   ├── buyers/           # buyer files, documents checklist; access.ts (buyer visibility)
+    │   ├── sales/            # options, reservations + VSP (reservations.ts), sale queries, withdrawals,
+    │   │                     # transfers + unit swaps (changes.ts), bank loans, documents; access.ts
+    │   ├── payments/         # payments + receipts (record, cancel, clear cheque), receipt PDF
+    │   ├── payment-calls/    # milestone validation, appels de fonds (job + PDF)
+    │   ├── collections/      # derived overdue, reminder letters (PDF), daily digest (jobs)
+    │   ├── commissions/      # list, mark paid, rates per commercial
+    │   ├── documents/        # render.ts: `pdf.document` dispatcher (one renderer per kind)
     │   └── <module>/         # schemas.ts (isomorphic) · queries.ts · service.ts · actions.ts · *.test.ts
     ├── jobs/                 # queues.ts (names, retry policy, payload types), enqueue.ts, worker.ts, handlers/
-    ├── pdf/                  # render.ts (Chromium), document.tsx (shell + fonts), templates/, receipt.ts, quotation.ts
+    ├── pdf/                  # render.ts (Chromium), document.tsx (shell + fonts), receipt.ts, quotation.ts,
+    │                         # templates/ (quotation, receipt, reservation-sheet, payment-call, reminder-letter)
     ├── i18n/                 # locales, routing, navigation, request config, typed messages
     ├── hooks/                # client hooks (use-mobile)
     └── lib/                  # isomorphic: result, permissions, money/, dates, document-types, safe-next, auth-client,
-                              # inventory, crm (stages), phone, payment-plans (buildSchedule), quotations, files, zod, ids
+                              # inventory, crm (stages), phone, payment-plans (buildSchedule, VSP limits, milestone
+                              # due date), statement (FIFO allocation, overdue, penalties), sales, quotations, files, zod, ids
 ```
 
 ## 5. Architecture rules
@@ -159,6 +171,7 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 - Tenant child → parent foreign keys are **composite** `(organization_id, parent_id)` → `(organization_id, id)` with explicit short names (`unit_building_fk`): FK checks bypass RLS, so this is what stops a row from pointing into another tenant.
 - `schemas.ts` files are isomorphic (shared with client forms): no server-only imports.
 - **Lead visibility** (CRM): a commercial sees the leads assigned to them, managers (`lead:read_all`) all. Every CRM read/write goes through `visibleLeads(ctx)` / `loadVisibleLead()` (`src/server/crm/access.ts`); visits, follow-ups, quotations and their PDFs follow their lead. Invisible = `NOT_FOUND`.
+- **Sale visibility**: a commercial sees the sales credited to them (`reservation.commercial_user_id`, the lead's owner at reservation), managers, cashiers and accountants (`sale:read_all`) all: `visibleSales(ctx)` / `loadVisibleReservation()` (`src/server/sales/access.ts`). Payments, receipts, payment calls, reminder letters, withdrawals, loans and their PDFs follow their sale. Buyers: `visibleBuyers` / `loadVisibleBuyer` (`buyer.owner_user_id`; `buyer:read_all` for managers, cashiers, accountants).
 - Detail queries return `null`/not-found for a non-UUID route id (`isUuid`) instead of reaching Postgres.
 
 ### Mutations
@@ -178,11 +191,11 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 
 | Role | FR | Scope today (extended per module) |
 |---|---|---|
-| `owner` | Gérant | Everything: organization, members, invitations, audit; created with the organization, cannot be changed or removed |
-| `sales_manager` | Directeur commercial | Phase 1: CRM & sales, price lists, lead assignment, discounts, targets |
-| `sales_agent` | Commercial | Phase 1: own leads/visits/quotations; options & reservations |
-| `accountant` | Comptable | Audit read; Phase 1: finance, cancel payments/receipts, exports |
-| `cashier` | Caissier | Phase 1: record payments, issue receipts |
+| `owner` | Gérant | Everything: organization, members, invitations, audit; approves withdrawals, sets commission rates; created with the organization, cannot be changed or removed |
+| `sales_manager` | Directeur commercial | CRM & sales, price lists, lead assignment, discounts, targets; reservations, VSP, contracts, transfers, unit swaps, bank loans, milestone validation, withdrawal proposals, reminder letters |
+| `sales_agent` | Commercial | Own leads/visits/quotations; buyer files, options and reservations of own leads; own sales and commissions (read) |
+| `accountant` | Comptable | Audit read; all sales (read), payments (record, cancel), withdrawal refunds, reminder letters, commissions (mark paid) |
+| `cashier` | Caissier | All sales (read); record payments (receipts), clear cheques, withdrawal refunds, reminder letters |
 | `property_manager` | Gestionnaire de résidence | Phase 2: residence module |
 | `resident` | Acquéreur / résident | Portal only (Phase 2), own records only |
 
@@ -190,18 +203,19 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 - Schema `pgboss` is owned by the app role; `db:migrate` creates it and creates/updates every queue declared in `src/jobs/queues.ts` (name, retry policy, payload type).
 - Worker = separate process (`pnpm worker`), graceful shutdown. Next.js only calls `enqueue()` (send-only instance).
 - Tenant jobs carry `organizationId` and run inside `withTenant`; platform jobs (auth emails) do not. Handlers are idempotent. Money in payloads = decimal string of centimes.
-- A job that follows a business write is enqueued **in the same transaction** with `enqueueInTx(tx, …)` (pg-boss `fromDrizzle`): it exists only if the write commits. `singletonKey` = the record id.
-- Queues today: `email.send`, `pdf.quotation`. Planned: option expiry, overdue reminders (daily 08:00 Algiers), milestone → payment calls, charge calls, receipts, lease alerts.
+- A job that follows a business write is enqueued **in the same transaction** with `enqueueInTx(tx, …)` (pg-boss `fromDrizzle`): it exists only if the write commits. `singletonKey` = the record id — on standard queues pg-boss only deduplicates **throttled** jobs (`singletonSeconds`), so handlers must be idempotent; once-a-day jobs use `singletonSeconds: 86_400`.
+- Queues today: `email.send`; `pdf.document` (`{ organizationId, kind, id }`, kinds `quotation`, `reservation_sheet`, `receipt`, `payment_call`, `reminder_letter`: one renderer per kind in `src/server/documents/render.ts`, each renders once and links the stored file); `option.expire` (scheduled at the option's expiry); `payment_call.issue` (after a milestone validation); `reminders.daily` (cron 08:00 Africa/Algiers, declared in `schedules` in `queues.ts` and installed by `db:migrate`) → one `reminders.digest` per organization. Planned: charge calls, lease alerts.
 - `db:migrate` starts pg-boss once with the scheduler on so its internal cron queue exists before any worker (see §12). Stop dev workers by killing the node process tree (Windows keeps children of a stopped shell).
 
 ### Email
-- Always queued (`sendEmailLater`); the worker sends with nodemailer. Auth emails are **bilingual** (French then Arabic) because the recipient's language is unknown. Templates in `src/server/email/templates.ts`, texts in the catalogs (`emails.*`), values HTML-escaped.
+- Always queued (`sendEmailLater`, or `enqueueInTx` from a job); the worker sends with nodemailer. Auth and staff emails are **bilingual** (French then Arabic) because the recipient's language is unknown (auth emails; the daily overdue digest). Templates in `src/server/email/templates.ts`, texts in the catalogs (`emails.*`), values HTML-escaped.
 
 ### Files
 - S3 API only. Local: SeaweedFS (bucket created by `docker:up`). Production: any S3-compatible provider (location TBD, §12).
 - Private bucket. Key: `org/{orgId}/{entityType}/{entityId}/{fileId}.{ext}`; a tenant-scoped `file` row holds metadata (`entity_type` + `entity_id` = owner record).
 - **Upload**: `POST /api/files` (multipart `purpose`, `entityId`, `file`) → `Result<{ fileId }>`. Same-origin check, body capped while streaming (`readFormData`), then a switch on `purpose` calls the owning service (e.g. `setUnitFloorPlan`), which asserts the permission, runs `checkUpload` (size + **magic-byte** format check against `uploadPurposes` in `src/lib/files.ts`; the browser's MIME type is ignored) and `storeFile(tx, …)` (row insert, then S3 put, inside the tenant transaction). Client: `UploadButton`.
-- **Download**: `GET /api/files/{id}[?download]` → access check by `entity_type` (`readers` in `src/server/files/service.ts`: a unit plan needs `inventory:read`, a quotation PDF needs its lead to be visible) → 302 to a 5-min presigned URL with the original name (`Content-Disposition` with UTF-8 `filename*`).
+- **Download**: `GET /api/files/{id}[?download]` → access check by `entity_type` (`readers` in `src/server/files/service.ts`: a unit plan needs `inventory:read`, a quotation PDF needs its lead to be visible, a buyer document its buyer, a sale's files its sale) → 302 to a 5-min presigned URL with the original name (`Content-Disposition` with UTF-8 `filename*`).
+- Upload purposes today: `unit.floor_plan`, `buyer.document` (variant = document kind), `reservation.contract`, `reservation.deed`. Every document of a sale (reservation sheet, receipts, payment calls, reminder letters, signed scans) is filed under entity `reservation`, so its readers follow the sale's visibility.
 - Replacing/removing a file soft-deletes the old row (`deleted_at`); the object stays in the bucket. New purpose = entry in `uploadPurposes` + service function + `case` in `src/app/api/files/route.ts` (+ a `readers` entry for a new entity type). Generated documents are stored with `storeFile(tx, { orgId, userId: null }, …)` by their job.
 - Issued documents are rendered once at issue; the stored PDF is served for reprints.
 
@@ -231,17 +245,17 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 | Visite | `visit` | |
 | Relance | `follow_up` | |
 | Devis / Simulation | `quotation` | |
-| Commission / Objectif | `commission` / `sales_target` | targets = monthly visits done + quotations issued per commercial (module 2); commissions in module 3 |
+| Commission / Objectif | `commission` (+ `commission_rate`) / `sales_target` | targets per commercial and month: visits done, quotations issued, reservations signed (not withdrawn), VSP signed; commission = % of the net price earned at the VSP, rate per commercial or company default |
 | Échéancier type | `payment_plan` / `payment_plan_step` | per project; step `trigger`: `signing`, `months_after_signing`, `milestone` |
-| Réglages de la société | `organization_setting` | quotation validity (days) |
+| Réglages de la société | `organization_setting` | quotation validity, option hours, payment-call delay, withdrawal retention, late penalties (rate, grace, cap), default commission, VSP limits |
 | Acquéreur | `buyer` | |
 | Pièces du dossier (CNI, extrait de naissance, fiche familiale, attestation de travail, fiches de paie) | `buyer_document` | `document_kind` enum |
 | NIN (numéro d'identification national) | `national_id_number` | |
 | Option | `unit_option` | has `expires_at` |
 | Contrat de réservation | `reservation` | |
-| Vente sur plan (VSP, acte notarié) | `sale_contract` | |
+| Vente sur plan (VSP, acte notarié) | on `reservation` (`sale_number`, `sale_signed_on`, `sale_notary`, deed scan) | status `sold`; `sale_contract` = its numbering doc type (`VSP-`) |
 | Notaire | `notary` | |
-| Échéancier / Échéance | `payment_schedule` / `installment` | |
+| Échéancier / Échéance | `installment` (of a `reservation`) | built from the plan at reservation; milestone lines dated at validation |
 | Appel de fonds | `payment_call` | |
 | Encaissement / Reçu | `payment` / `receipt` | |
 | Mode de paiement (espèces, chèque, virement, CCP, crédit) | `payment_method` | `cash`, `cheque`, `bank_transfer`, `ccp`, `bank_loan` |
@@ -249,7 +263,8 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 | Désistement | `withdrawal` | refund / retention |
 | Cession de réservation | `reservation_transfer` | |
 | Changement de lot | `unit_swap` | |
-| Crédit bancaire (dossier, accord, déblocage) | `bank_loan` / `loan_disbursement` | |
+| Crédit bancaire (dossier, accord, déblocage) | `bank_loan` | one followed loan per sale; disbursements = payments with method `bank_loan` |
+| Lettre de relance | `reminder_letter` | overdue lines kept as printed, bilingual PDF |
 | Avancement des travaux | `construction_milestone` | |
 | Remise des clés (PV) | `handover` | |
 | Réserves à la livraison | `punch_item` | |
@@ -276,7 +291,7 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 | Société (SARL) | `organization` | Better Auth table + legal fields below |
 | RC, NIF, NIS, AI (identifiants légaux SARL) | `organization.rc_number`, `nif`, `nis`, `ai_number` | + `legal_name`, `address`, `wilaya`, `phone`; printed on documents |
 | Membre / Invitation | `member` / `invitation` | Better Auth tables |
-| Wilaya / Commune | `wilaya` / `commune` | global reference tables — deferred to the buyer file (module 3); free text until then |
+| Wilaya / Commune | `wilaya` / `commune` | free text on projects, leads and buyers; global reference tables deferred until a form needs a strict list |
 
 ## 7. Domain rules & invariants
 
@@ -329,9 +344,9 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 - A commercial's new lead is assigned to them; managers assign or leave unassigned. Reassignment moves the previous owner's open follow-ups. Overdue follow-ups are derived (`due_at < now()` in SQL).
 
 ### Payment plans & quotations
-- A plan's step shares (basis points) sum to exactly 10 000; `buildSchedule(price, steps, signingOn, milestones)` splits with `allocate()` and dates each line (signing day, signing + N months, milestone planned date). Construction milestones are planned per project here; module 4 validates them.
+- A plan's step shares (basis points) sum to exactly 10 000; `buildSchedule(price, steps, signingOn, milestones)` splits with `allocate()` and dates each line (signing day, signing + N months, milestone planned date). Construction milestones are planned per project with a construction `stage` (VSP limit check); module 3 validates them (payment calls), module 4 will add the construction follow-up.
 - A quotation is issued for a lead and an `available`/`optioned`, priced unit, with a plan of the unit's project: number `DEV-YYYY-NNNNNN`, snapshots of list price, discount, net price and lines; `valid_until` = issue day + company validity. Only managers discount (≤ list price). Issued quotations are never edited or deleted, only cancelled with a reason (audited); "expired" is derived from `valid_until`.
-- The bilingual PDF is rendered once by the `pdf.quotation` job (enqueued in the issuing transaction) and linked with `pdf_file_id`; the page offers a retry if it is missing.
+- The bilingual PDF is rendered once by the `pdf.document` job (kind `quotation`, enqueued in the issuing transaction) and linked with `pdf_file_id`; the page offers a retry if it is missing.
 
 ### Pricing
 - `unit.list_price` is the current asking price. It changes only through `updateUnitPrice` (one unit, reason required, audit `unit.price_change`) or by applying a **price list**.
@@ -339,22 +354,37 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 - `unit_status_history` and `unit_price_history` are append-only (no `UPDATE`/`DELETE` grant).
 - A reservation **snapshots** the agreed price and discount; later price-list changes never touch it.
 
-### Payment schedule, calls, payments
-- Sum of `installment.amount` == contract price exactly (built with `allocate`).
-- Installment trigger: `date` (fixed `due_date`) or `milestone` (`construction_milestone_id`; `due_date` = validation date + org-configured delay).
-- Validating a milestone enqueues one job that issues one numbered `payment_call` per concerned buyer, idempotently.
-- "Overdue" is **derived** (`due_date < today_algiers AND balance > 0`), never stored.
-- Each payment issues exactly one receipt. Allocation across installments: rule pending (§12).
-- Payments and receipts are **immutable**: no update, no delete. Cancel = `status = cancelled` + `cancelled_at`, `cancelled_by`, mandatory `cancellation_reason`; allocations reversed; audited.
+### Reservations and VSP
+- An option (`unit_option`, company duration) holds an `available` unit for one lead; its expiry job releases the unit. Only buyers of the holder's lead can reserve an optioned unit.
+- `createReservation` (`sale:create`): 1–3 visible buyers (main first), an `available` (or optioned-for-them) priced unit, a plan of its project, a date not in the future; only `sale:discount` may discount (≤ list price). In one transaction: number `RES-`, snapshot of list price / discount / net price, installments from the plan (`allocate`, sum == price), option converted, unit `reserved`, lead activity + stage `won`, audit, reservation sheet job. The commercial credited is the lead's owner (else the main buyer's follower).
+- Milestone installments have no due date until their milestone is validated: then `due_on = max(validation + company delay, reserved_on)` (`milestoneDueOn`); a milestone already reached at signing is due at signing.
+- VSP (`sale:sign`): reserved sale only, date ≥ reservation; number `VSP-`, unit `sold`, lead activity, commission earned at the commercial's rate (else the company default; none at 0), audited.
+- VSP limits: cumulative shares per construction stage are checked against the company limits — warnings only (form, sale page).
+- Contract notary/reference editable (`sale:update`, audited); signed scans attached (reservation contract; the deed once sold).
+
+### Payments, statement and reminders
+- **Statement is derived** (`computeStatement`, `src/lib/statement.ts`): the total of valid payments is allocated FIFO over installments by due date (unknown dates last), then position → paid / remaining / state (`paid`, `overdue`, `due`, `upcoming`, `pending`) per line, plus due, overdue and advance totals. "Overdue" = due before today (Algiers) and not covered; never stored.
+- Late penalty per overdue line (display only, never charged): `remaining × monthly rate × days late / 30` after the grace days, half-up, capped at `cap % × installment amount`.
+- `recordPayment` (`payment:create`): refused above the remaining balance and on a closed sale; issues receipt `REC-` in the same transaction with a snapshot of what it settled (`receipt.allocation`), audited; receipt PDF job. Cheques: receipt « sous réserve d'encaissement », clearance recorded later (`clearCheque`).
+- Payments and receipts are **immutable** (column grants): `cancelPayment` (`payment:cancel`, accountant) sets the payment and its receipt `cancelled` with a mandatory reason, audited; the installments become due again (derived).
+- Validating a milestone (`milestone:validate`, final, audited) dates its installments in live sales and enqueues `payment_call.issue`: one numbered call `ADF-` per installment still unpaid, with amount, already settled and called amounts; idempotent per installment (unique `(reservation, installment_position)`).
+- Overdue list (`/sales/overdue`), reminder letters (`sale:remind`: overdue lines and penalties snapshotted, pay-by date, bilingual PDF), daily 08:00 digest to cashiers and sales managers (nothing sent when nothing is overdue).
+
+### After the reservation
+- **Withdrawal** (`withdrawal`): reserved sales only; proposed (`sale:withdraw`) with a retention in basis points of the amount paid (company default prefilled) and a reason; one open proposal per sale. The gérant (`sale:approve`) rejects (note required) or approves: amounts recomputed on what is paid at approval, sale `withdrawn` (`ended_on`), unit `available`, earned commission cancelled, lead activity, audit. Payments stay valid; the refund (paid − retention) is recorded when paid out (`payment:create`).
+- **Transfer** (`reservation_transfer`): reserved sales only; buyers replaced (payments stay with the sale), history row, sheet rendered again, audited.
+- **Unit swap** (`unit_swap`): reserved sales only, within the project; target `available` (or optioned for the sale's lead); new price = list − discount (managers), must be ≥ paid; old unit `available`, new unit `reserved`; installments keep shares and dates, amounts split again with `allocate`; history row, sheet rendered again, audited.
+- **Bank loan** (`bank_loan`): one followed loan per sale (`preparing → submitted → approved | refused | cancelled`; approved needs the amount); disbursements are payments with method `bank_loan`.
+- **Commissions**: earned at the VSP; accountants mark them paid (`commission:update`); the gérant sets per-commercial rates (`organization:update`); each commission keeps its rate.
 
 ### Residence charges
 - `share` = integer weight per unit per residence (tantièmes, e.g. on a 10 000 basis).
 - Distribution keys: `equal`, `share`, `per_building`, `custom` (explicit unit list, weighted `equal` or `share`, e.g. RDC excluded from elevator). Every distribution uses `allocate()` → lines sum exactly to the charge.
 
 ### Audit & deletion
-- Audited: prices, payments, receipts, contracts (reservation, sale), installments/schedules, unit status, organization creation, invitations, member joins/role changes/removals.
+- Audited: prices, payments, receipts, contracts (reservation, sale, contract details), installments/schedules, unit status, milestone validation, withdrawals (propose / approve / reject / refund), transfers, unit swaps, commissions (paid, rates), organization creation, invitations, member joins/role changes/removals.
 - `audit_log(organization_id, actor_user_id, action, entity_type, entity_id, before jsonb, after jsonb, reason, created_at)` written by `recordAudit(tx, scope, entry)` in the same transaction as the change (bigint → string, Date → ISO). `action` is semantic: `<entity>.<verb>`, e.g. `receipt.cancel`, `member.update_roles`. `actor_user_id` null for jobs.
-- DB grants enforce it: app role has no `UPDATE`/`DELETE`/`TRUNCATE` on `audit_log` (payments/receipts: no `DELETE`, added with their tables in `post-migrate.sql`).
+- DB grants enforce it (`post-migrate.sql`): no `UPDATE`/`DELETE`/`TRUNCATE` on `audit_log`, `reservation_transfer`, `unit_swap`; payments and receipts: no `DELETE`, column-level `UPDATE` (cancellation, cheque clearance, PDF link) only; payment calls and reminder letters: only their PDF link; reservations and withdrawals: no `DELETE`.
 - Business records are soft-deleted (`softDelete()` helper: `deleted_at`, `deleted_by`); queries exclude them by default.
 
 ## 8. Coding conventions
@@ -395,7 +425,7 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 | Jobs/email | Vitest + Mailpit | handler delivers via SMTP (checked through Mailpit API); enqueue stores the job |
 | PDF | Vitest + Chromium | template HTML (RTL blocks, `<bdi>`, amounts in words) and one-page PDF |
 | Files | Vitest + SeaweedFS | magic-byte sniffing, file names, `Content-Disposition`, upload size cap and origin check (route helpers), floor plans stored/replaced/removed, presigned download |
-| E2E | Playwright, production build, `realestate_e2e` reset + seeded | anonymous redirect, sign-in error, members, org switch, FR→AR RTL, role-based UI; inventory: project → building → generated units → per-m² price list → block → floor plan, read-only commercial, Arabic unit sheet; CRM: lead (flagged duplicate) → call → visit → quotation → PDF by the worker, commercial scope, merge, discount + cancel, targets; Phase 1 golden path lead → option → reservation → schedule → payment → receipt PDF |
+| E2E | Playwright, production build, `realestate_e2e` reset + seeded | anonymous redirect, sign-in error, members, org switch, FR→AR RTL, role-based UI; inventory: project → building → generated units → per-m² price list → block → floor plan, read-only commercial, Arabic unit sheet; CRM: lead (flagged duplicate) → call → visit → quotation → PDF by the worker, commercial scope, merge, discount + cancel, targets; sales golden path: lead → option → buyer file → reservation of the optioned unit → sheet PDF → cashier payment → receipt PDF, commercial scope, overdue list; seeded VSP with payment call, bank loan and commission |
 
 - Vitest `globalSetup` migrates the test DB and creates the S3 bucket once; each test creates its own organization(s) (`tests/factories.ts`, `tests/auth-helpers.ts`) → isolation without truncation.
 - The e2e global setup starts `src/jobs/worker.ts` after the reset and stops its process tree at the end (documents render during e2e).
@@ -411,7 +441,7 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 - Check permissions in the service layer (`assertCan`), even if the UI hides the control.
 - Issue numbers, write audit and change status inside the same transaction as the business write.
 - Use `requireTenantCtx()` in pages, `defineAction` for mutations, `useAction` in client components.
-- Enqueue follow-up jobs with `enqueueInTx` inside the business transaction; go through `loadVisibleLead` for anything hanging off a lead.
+- Enqueue follow-up jobs with `enqueueInTx` inside the business transaction; go through `loadVisibleLead` for anything hanging off a lead and `loadVisibleReservation` for anything hanging off a sale.
 - Run `pnpm check` before calling a step done; add FR **and** AR keys together.
 - Ask the user before any ambiguous business rule; log the answer in §12.
 
@@ -431,7 +461,7 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 
 ## 11. Roadmap
 
-**Current: Phase 1 modules 1 and 2 done — `phase-1/inventory` (PR https://github.com/yurigami1939-oss/realestate/pull/2, stacked on #1) and `phase-1/crm` (stacked on #2). Next: module 3 (reservation & sale) — the open business questions below must be answered first.**
+**Current: Phase 1 modules 1–3 done — `phase-1/inventory` (PR https://github.com/yurigami1939-oss/realestate/pull/2), `phase-1/crm` (PR https://github.com/yurigami1939-oss/realestate/pull/3) and `phase-1/sales` (stacked on `phase-1/crm`). Next: owner dashboard and audit log viewer, then Phase 2.**
 
 ### Phase 0 — Foundations ✅
 - [x] `CLAUDE.md` approved (2026-09-30)
@@ -460,12 +490,20 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
   - [x] Pipeline board, follow-ups (overdue/today/upcoming), visits agenda, monthly activity targets
   - [x] Construction milestones (planned) + payment plan templates per project; simulator
   - [x] Quotations: numbered, discount by managers, cancel, bilingual PDF by the worker
-  - [ ] Commissions and reservation/sales targets → module 3 (§12)
-- [ ] Module 3 — Reservation & sale (buyer file, reservation, VSP, schedule, payments, receipts, reminders, penalties, withdrawal, transfer, swap, bank loans)
+  - [x] Commissions and reservation/sales targets (built with module 3)
+- [x] Module 3 — Reservation & sale
+  - [x] Company sales settings; buyer files with documents checklist; options with automatic expiry
+  - [x] Reservations (schedule from the plan, price snapshot, co-buyers), bilingual reservation sheet, contract details and signed scans; VSP with commission
+  - [x] Derived statement (FIFO, overdue, advance, penalties shown); payments and receipts (cheques, cancellation, immutability)
+  - [x] Milestone validation and payment calls; VSP limit warnings
+  - [x] Overdue list, reminder letters, daily 08:00 digest
+  - [x] Withdrawal (proposal → approval → refund), transfer, unit swap, bank loans
+  - [x] Commissions page (paid, rates per commercial); targets for reservations and VSP
+  - [x] Seed and e2e golden path
 - [ ] Owner dashboard
 - [ ] Audit log viewer
 - [ ] Organization settings page — legal identity + quotation validity done (`/settings/company`); logo upload pending
-- [ ] Seed: ~~2 projects, 3 buildings, ~120 units~~ · ~~leads, visits, follow-ups, plans, quotations, targets~~ · buyers · payments
+- [x] Seed: 2 projects, 3 buildings, ~120 units · leads, visits, follow-ups, plans, quotations, targets · buyers, sales, payments, VSP, loan, calls, reminder
 
 ### Phase 2
 - [ ] Module 6 — Residence management
@@ -533,6 +571,13 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 | 2026-10-01 | **Documents language (user)**: receipts, reservation sheets, payment calls and reminder letters are bilingual FR + AR. |
 | 2026-10-01 | **Reminders (user)**: overdue list, daily 08:00 (Algiers) digest e-mail to cashiers and the directeur commercial, printable bilingual reminder letter per buyer; WhatsApp/SMS in Phase 3. |
 | 2026-10-01 | **Buyer file (user)**: document checklist (missing / received / verified, optional scan), never blocking; missing items highlighted on the reservation and the VSP. |
+| 2026-10-01 | One generic `pdf.document` queue (`{ kind, id }`) replaces `pdf.quotation`; every sale document is filed under its `reservation` so file readers follow the sale's visibility; a missing PDF can be requested again from the page. |
+| 2026-10-01 | A milestone installment falls due on the validation date + the company payment-call delay, **never before the reservation date** (a milestone already reached when the buyer signs is due at signing). Validation is final. |
+| 2026-10-01 | Payment calls: one numbered call per installment of the validated milestone with something left to pay (advances deducted), issued by a job; immutable once issued. |
+| 2026-10-01 | Reminder letters are issued on demand (`sale:remind`: gérant, directeur commercial, comptable, caissier) with an editable pay-by date (default 8 days); their overdue lines and penalties are kept as printed. The daily digest goes to cashiers and sales managers, only when something is overdue, at most once a day per recipient (throttled jobs: pg-boss standard queues ignore a bare `singletonKey`). |
+| 2026-10-01 | Withdrawal, transfer and unit swap apply to reservations before the VSP only; a swap stays within the project and keeps the reservation number (a new reservation sheet is rendered). Withdrawal approval recomputes the amounts on what is paid at that moment; payments stay valid and the refund is recorded separately. |
+| 2026-10-01 | Bank loans: one followed loan per sale; disbursements are recorded as payments with method `bank_loan` (no separate disbursement table). |
+| 2026-10-01 | Per-commercial commission rates are set by the gérant (`organization:update`); accountants mark commissions paid; each commission keeps the rate it was earned at. Monthly targets also count reservations signed (not withdrawn) and VSP signed, credited to the sale's commercial. |
 
 ### Open items
 - **GitHub**: repo `yurigami1939-oss/realestate` is **public** — make it private before real client data or configuration lands. Work happens on branches merged through PRs; CI must be green.
