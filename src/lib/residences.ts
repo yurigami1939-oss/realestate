@@ -22,3 +22,18 @@ export type ResidentKind = (typeof residentKinds)[number];
 /** Tantièmes are integers on a basis set per residence (e.g. 10 000). */
 export const DEFAULT_SHARE_BASIS = 10_000;
 export const MAX_SHARE_BASIS = 1_000_000;
+
+/**
+ * How a charge category is split over the units: by tantièmes, equally, over the units of one
+ * building, or over an explicit list of units (CLAUDE.md §7 Residence charges).
+ */
+export const distributionKeys = ["share", "equal", "per_building", "custom"] as const;
+export type DistributionKey = (typeof distributionKeys)[number];
+
+/** Weight of each unit for the `per_building` and `custom` keys. */
+export const distributionWeightings = ["share", "equal"] as const;
+export type DistributionWeighting = (typeof distributionWeightings)[number];
+
+/** A budget is prepared as a draft, then approved: calls are issued from approved budgets. */
+export const budgetStatuses = ["draft", "approved"] as const;
+export type BudgetStatus = (typeof budgetStatuses)[number];

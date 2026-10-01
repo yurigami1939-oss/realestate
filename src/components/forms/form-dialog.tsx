@@ -43,7 +43,7 @@ export function FormDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent closeLabel={tc("close")}>
+      <DialogContent closeLabel={tc("close")} className="max-h-[calc(100dvh-2rem)] overflow-y-auto">
         <form className="space-y-4" onSubmit={onSubmit} noValidate>
           <DialogHeader>
             <DialogTitle>{title}</DialogTitle>

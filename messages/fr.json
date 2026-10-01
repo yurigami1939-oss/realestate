@@ -1421,7 +1421,9 @@
       "reservation": "Réservation / vente",
       "payment": "Paiement",
       "commission": "Commission",
-      "residence": "Résidence"
+      "residence": "Résidence",
+      "charge_category": "Catégorie de charges",
+      "budget": "Budget"
     },
     "actions": {
       "organization": {
@@ -1483,6 +1485,14 @@
         "create": "Résidence créée",
         "update": "Résidence modifiée",
         "shares": "Tantièmes modifiés"
+      },
+      "charge_category": {
+        "create": "Catégorie de charges créée",
+        "update": "Catégorie de charges modifiée",
+        "delete": "Catégorie de charges supprimée"
+      },
+      "budget": {
+        "approve": "Budget approuvé"
       }
     }
   },
@@ -1636,6 +1646,97 @@
       "alreadyEnded": "Déjà terminé.",
       "endBeforeStart": "La fin ne peut précéder le début.",
       "noArea": "Aucun lot n'a de surface renseignée."
+    },
+    "tabs": {
+      "label": "Rubriques de la résidence",
+      "units": "Lots et copropriétaires",
+      "charges": "Charges et budget"
+    }
+  },
+  "charges": {
+    "title": "Charges et budget",
+    "categories": {
+      "title": "Catégories de charges",
+      "empty": "Aucune catégorie : ajoutez-en une pour préparer le budget.",
+      "new": "Nouvelle catégorie",
+      "newTitle": "Nouvelle catégorie de charges",
+      "editTitle": "Modifier « {name} »",
+      "created": "Catégorie créée.",
+      "updated": "Catégorie modifiée.",
+      "delete": "Supprimer",
+      "deleteTitle": "Supprimer « {name} » ?",
+      "deleteDescription": "Elle disparaît des budgets en préparation ; les appels déjà émis ne changent pas.",
+      "deleted": "Catégorie supprimée.",
+      "columns": {
+        "name": "Catégorie",
+        "key": "Répartition",
+        "actions": "Actions"
+      }
+    },
+    "fields": {
+      "name": "Nom",
+      "nameAr": "Nom en arabe",
+      "key": "Clé de répartition",
+      "weighting": "Pondération",
+      "buildingId": "Bâtiment",
+      "unitIds": "Lots concernés"
+    },
+    "key": {
+      "share": "Tantièmes",
+      "equal": "Parts égales",
+      "per_building": "Par bâtiment",
+      "custom": "Lots choisis"
+    },
+    "weighting": {
+      "share": "Selon les tantièmes",
+      "equal": "À parts égales"
+    },
+    "weightingInline": {
+      "share": "selon les tantièmes",
+      "equal": "à parts égales"
+    },
+    "keyDescription": {
+      "share": "Tous les lots, selon leurs tantièmes",
+      "equal": "Tous les lots, à parts égales",
+      "per_building": "Bâtiment {building}, {weighting}",
+      "custom": "{count, plural, one {# lot} other {# lots}}, {weighting}"
+    },
+    "budget": {
+      "title": "Budget {year}",
+      "status": {
+        "draft": "En préparation",
+        "approved": "Approuvé"
+      },
+      "none": "Pas encore de budget pour {year}.",
+      "fromYear": "Montants repris du budget {year}, à ajuster.",
+      "approvedOn": "Approuvé le {date}",
+      "columns": {
+        "category": "Catégorie",
+        "annual": "Montant annuel",
+        "perCall": "Par appel"
+      },
+      "amountOf": "Montant annuel de {name}",
+      "total": "Total du budget",
+      "reserve": "Fonds de réserve ({rate})",
+      "called": "Total appelé",
+      "callsHint": "{count, plural, one {Un appel par an} other {# appels par an}}",
+      "notes": "Remarques sur le budget",
+      "save": "Enregistrer le budget",
+      "saved": "Budget enregistré.",
+      "saveBeforeApprove": "Enregistrez le budget pour pouvoir l'approuver.",
+      "approve": "Approuver le budget",
+      "approveTitle": "Approuver le budget {year} ?",
+      "approveDescription": "Le budget ne pourra plus être modifié. Les appels de charges sont émis sur sa base, au rythme et au taux de fonds de réserve actuels de la résidence.",
+      "approved": "Budget approuvé.",
+      "noCategories": "Créez d'abord les catégories de charges."
+    },
+    "errors": {
+      "noUnitsSelected": "Choisissez au moins un lot.",
+      "buildingNotInResidence": "Ce bâtiment n'appartient pas à la résidence.",
+      "categoryInBudget": "Cette catégorie figure dans un budget approuvé.",
+      "categoryNotFound": "Catégorie introuvable.",
+      "budgetApproved": "Ce budget est déjà approuvé.",
+      "emptyBudget": "Le budget est vide."
     }
   }
 }

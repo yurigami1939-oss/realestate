@@ -5,6 +5,8 @@ import { and, desc, eq, gte, inArray, lt, sql } from "drizzle-orm";
 import type { Tx } from "@/db/client";
 import {
   auditLog,
+  budget,
+  chargeCategory,
   commission,
   constructionMilestone,
   member,
@@ -138,6 +140,26 @@ async function recordLinks(
       .from(commission)
       .where(inArray(commission.id, commissionIds));
     for (const c of commissions) links.set(`commission:${c.id}`, `/sales/${c.reservationId}`);
+  }
+  const categoryIds = ids("charge_category");
+  if (categoryIds.length > 0) {
+    const categories = await tx
+      .select({ id: chargeCategory.id, residenceId: chargeCategory.residenceId })
+      .from(chargeCategory)
+      .where(inArray(chargeCategory.id, categoryIds));
+    for (const c of categories) {
+      links.set(`charge_category:${c.id}`, `/residences/${c.residenceId}/charges`);
+    }
+  }
+  const budgetIds = ids("budget");
+  if (budgetIds.length > 0) {
+    const budgets = await tx
+      .select({ id: budget.id, residenceId: budget.residenceId, year: budget.year })
+      .from(budget)
+      .where(inArray(budget.id, budgetIds));
+    for (const b of budgets) {
+      links.set(`budget:${b.id}`, `/residences/${b.residenceId}/charges?year=${b.year}`);
+    }
   }
   return links;
 }

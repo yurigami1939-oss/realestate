@@ -14,6 +14,7 @@ import { can } from "@/lib/permissions";
 import { requirePermission } from "@/server/auth/page-guard";
 import { getResidence, listUnitResidents } from "@/server/residences/queries";
 
+import { ResidenceNav } from "./_components/residence-nav";
 import { SharesEditor } from "./_components/shares-editor";
 
 export async function generateMetadata({
@@ -59,6 +60,7 @@ export default async function ResidencePage({
           ) : null
         }
       />
+      <ResidenceNav residenceId={residence.id} current="units" roles={ctx.roles} />
       <dl className="grid gap-2 text-sm sm:grid-cols-4" data-testid="residence-settings">
         <div className="rounded-md border p-2">
           <dt className="text-muted-foreground">{t("fields.chargeFrequency")}</dt>

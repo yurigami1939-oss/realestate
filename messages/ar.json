@@ -1421,7 +1421,9 @@
       "reservation": "حجز / بيع",
       "payment": "دفعة",
       "commission": "عمولة",
-      "residence": "إقامة"
+      "residence": "إقامة",
+      "charge_category": "فئة أعباء",
+      "budget": "ميزانية"
     },
     "actions": {
       "organization": {
@@ -1483,6 +1485,14 @@
         "create": "إنشاء إقامة",
         "update": "تعديل إقامة",
         "shares": "تعديل الحصص"
+      },
+      "charge_category": {
+        "create": "إنشاء فئة أعباء",
+        "update": "تعديل فئة أعباء",
+        "delete": "حذف فئة أعباء"
+      },
+      "budget": {
+        "approve": "اعتماد ميزانية"
       }
     }
   },
@@ -1636,6 +1646,97 @@
       "alreadyEnded": "منتهٍ مسبقاً.",
       "endBeforeStart": "لا يمكن أن تسبق النهاية البداية.",
       "noArea": "لا توجد وحدة بمساحة محددة."
+    },
+    "tabs": {
+      "label": "أقسام الإقامة",
+      "units": "الوحدات والملاك",
+      "charges": "الأعباء والميزانية"
+    }
+  },
+  "charges": {
+    "title": "الأعباء والميزانية",
+    "categories": {
+      "title": "فئات الأعباء",
+      "empty": "لا توجد فئات: أضف فئة لإعداد الميزانية.",
+      "new": "فئة جديدة",
+      "newTitle": "فئة أعباء جديدة",
+      "editTitle": "تعديل «{name}»",
+      "created": "تم إنشاء الفئة.",
+      "updated": "تم تعديل الفئة.",
+      "delete": "حذف",
+      "deleteTitle": "حذف «{name}»؟",
+      "deleteDescription": "تُحذف من الميزانيات قيد الإعداد؛ ولا تتغير الطلبات الصادرة.",
+      "deleted": "تم حذف الفئة.",
+      "columns": {
+        "name": "الفئة",
+        "key": "التوزيع",
+        "actions": "إجراءات"
+      }
+    },
+    "fields": {
+      "name": "الاسم",
+      "nameAr": "الاسم بالعربية",
+      "key": "مفتاح التوزيع",
+      "weighting": "الترجيح",
+      "buildingId": "العمارة",
+      "unitIds": "الوحدات المعنية"
+    },
+    "key": {
+      "share": "الحصص",
+      "equal": "حصص متساوية",
+      "per_building": "حسب العمارة",
+      "custom": "وحدات مختارة"
+    },
+    "weighting": {
+      "share": "حسب الحصص",
+      "equal": "بالتساوي"
+    },
+    "weightingInline": {
+      "share": "حسب الحصص",
+      "equal": "بالتساوي"
+    },
+    "keyDescription": {
+      "share": "كل الوحدات، حسب حصصها",
+      "equal": "كل الوحدات، بالتساوي",
+      "per_building": "العمارة {building}، {weighting}",
+      "custom": "{count, plural, zero {لا وحدة} one {وحدة واحدة} two {وحدتان} few {# وحدات} many {# وحدة} other {# وحدة}}، {weighting}"
+    },
+    "budget": {
+      "title": "ميزانية {year}",
+      "status": {
+        "draft": "قيد الإعداد",
+        "approved": "معتمدة"
+      },
+      "none": "لا توجد ميزانية لسنة {year} بعد.",
+      "fromYear": "مبالغ مأخوذة من ميزانية {year}، يمكن تعديلها.",
+      "approvedOn": "اعتُمدت في {date}",
+      "columns": {
+        "category": "الفئة",
+        "annual": "المبلغ السنوي",
+        "perCall": "لكل طلب"
+      },
+      "amountOf": "المبلغ السنوي لـ {name}",
+      "total": "مجموع الميزانية",
+      "reserve": "صندوق الاحتياط ({rate})",
+      "called": "المجموع المطلوب",
+      "callsHint": "{count, plural, zero {لا طلب} one {طلب واحد في السنة} two {طلبان في السنة} few {# طلبات في السنة} many {# طلبًا في السنة} other {# طلب في السنة}}",
+      "notes": "ملاحظات حول الميزانية",
+      "save": "حفظ الميزانية",
+      "saved": "تم حفظ الميزانية.",
+      "saveBeforeApprove": "احفظ الميزانية لتتمكن من اعتمادها.",
+      "approve": "اعتماد الميزانية",
+      "approveTitle": "اعتماد ميزانية {year}؟",
+      "approveDescription": "لن يمكن تعديل الميزانية بعد ذلك. تصدر طلبات الأعباء على أساسها، وفق وتيرة الطلبات ونسبة صندوق الاحتياط الحاليتين للإقامة.",
+      "approved": "تم اعتماد الميزانية.",
+      "noCategories": "أنشئ فئات الأعباء أولاً."
+    },
+    "errors": {
+      "noUnitsSelected": "اختر وحدة واحدة على الأقل.",
+      "buildingNotInResidence": "هذه العمارة لا تنتمي إلى الإقامة.",
+      "categoryInBudget": "هذه الفئة واردة في ميزانية معتمدة.",
+      "categoryNotFound": "الفئة غير موجودة.",
+      "budgetApproved": "هذه الميزانية معتمدة مسبقاً.",
+      "emptyBudget": "الميزانية فارغة."
     }
   }
 }
