@@ -94,6 +94,9 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
     : [];
   const { withdrawalRetentionBp } = await getSalesSettings(ctx);
   const openWithdrawal = withdrawals.find((w) => w.status !== "rejected");
+  const canProposeWithdrawal =
+    sale.status === "reserved" && !openWithdrawal && can(ctx.roles, "sale:withdraw");
+  const showWithdrawals = withdrawals.length > 0 || canProposeWithdrawal;
   const followedLoan = loans.find((l) => l.status !== "refused" && l.status !== "cancelled");
   /** Money as typed in amount inputs ("8000000,00"). */
   const moneyInput = (v: bigint) => toDecimalString(v).replace(".", ",");
@@ -103,6 +106,7 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
   const st = sale.statement;
   const live = sale.status !== "withdrawn";
   const canUpdate = live && can(ctx.roles, "sale:update");
+  const showLoans = loans.length > 0 || canUpdate;
   const seesCommission =
     sale.commission !== null &&
     (can(ctx.roles, "commission:read_all") ||
@@ -599,78 +603,74 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
             </CardContent>
           </Card>
 
-          {withdrawals.length > 0 ||
-          loans.length > 0 ||
-          changeable ||
-          (sale.status === "reserved" && can(ctx.roles, "sale:withdraw")) ? (
+          {showWithdrawals || showLoans || changeable ? (
             <Card data-testid="after-sale">
               <CardHeader>
                 <CardTitle className="text-base">{t("sales.sections.afterSale")}</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4 text-sm">
-                <div className="space-y-2" data-testid="withdrawals">
-                  <div className="font-medium">{t("sales.withdrawal.title")}</div>
-                  {withdrawals.map((w) => (
-                    <div key={w.id} className="space-y-1 rounded-md border p-2">
-                      <Badge variant="outline">{t(`sales.withdrawal.status.${w.status}`)}</Badge>
-                      <div className="text-muted-foreground">
-                        {t("sales.withdrawal.summary", {
-                          paid: money(w.paid),
-                          rate: formatShare(w.retentionBp),
-                          retention: money(w.retention),
-                          refund: money(w.refund),
-                        })}
-                      </div>
-                      <div className="whitespace-pre-line">{w.reason}</div>
-                      {w.decisionNote ? (
-                        <div className="text-muted-foreground">{w.decisionNote}</div>
-                      ) : null}
-                      {w.status === "approved" && w.refund > 0n ? (
-                        w.refundedOn ? (
-                          <div className="text-emerald-800">
-                            {t("sales.withdrawal.refundDone", { date: formatDate(w.refundedOn) })}
-                          </div>
-                        ) : (
-                          <div className="flex flex-wrap items-center gap-2">
-                            <span className="text-amber-800">
-                              {t("sales.withdrawal.refundPending")}
-                            </span>
-                            {can(ctx.roles, "payment:create") ? (
-                              <WithdrawalRefundDialog
-                                withdrawalId={w.id}
-                                refund={w.refund}
-                                today={today}
-                              />
-                            ) : null}
-                          </div>
-                        )
-                      ) : null}
-                      {w.status === "proposed" && can(ctx.roles, "sale:approve") ? (
-                        <div className="flex flex-wrap gap-2">
-                          <DecideWithdrawalDialog withdrawalId={w.id} approve refund={w.refund} />
-                          <DecideWithdrawalDialog
-                            withdrawalId={w.id}
-                            approve={false}
-                            refund={w.refund}
-                          />
+              <CardContent className="divide-y text-sm">
+                {showWithdrawals ? (
+                  <div className="space-y-2 py-3 first:pt-0 last:pb-0" data-testid="withdrawals">
+                    <div className="font-medium">{t("sales.withdrawal.title")}</div>
+                    {withdrawals.map((w) => (
+                      <div key={w.id} className="space-y-1 rounded-md border p-2">
+                        <Badge variant="outline">{t(`sales.withdrawal.status.${w.status}`)}</Badge>
+                        <div className="text-muted-foreground">
+                          {t("sales.withdrawal.summary", {
+                            paid: money(w.paid),
+                            rate: formatShare(w.retentionBp),
+                            retention: money(w.retention),
+                            refund: money(w.refund),
+                          })}
                         </div>
-                      ) : null}
-                    </div>
-                  ))}
-                  {sale.status === "reserved" &&
-                  !openWithdrawal &&
-                  can(ctx.roles, "sale:withdraw") ? (
-                    <ProposeWithdrawalDialog
-                      reservationId={sale.id}
-                      paid={st.paid}
-                      defaultRetention={formatShare(withdrawalRetentionBp).slice(0, -2)}
-                    />
-                  ) : null}
-                </div>
-                {loans.length > 0 || (live && can(ctx.roles, "sale:update")) ? (
+                        <div className="whitespace-pre-line">{w.reason}</div>
+                        {w.decisionNote ? (
+                          <div className="text-muted-foreground">{w.decisionNote}</div>
+                        ) : null}
+                        {w.status === "approved" && w.refund > 0n ? (
+                          w.refundedOn ? (
+                            <div className="text-emerald-800">
+                              {t("sales.withdrawal.refundDone", { date: formatDate(w.refundedOn) })}
+                            </div>
+                          ) : (
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="text-amber-800">
+                                {t("sales.withdrawal.refundPending")}
+                              </span>
+                              {can(ctx.roles, "payment:create") ? (
+                                <WithdrawalRefundDialog
+                                  withdrawalId={w.id}
+                                  refund={w.refund}
+                                  today={today}
+                                />
+                              ) : null}
+                            </div>
+                          )
+                        ) : null}
+                        {w.status === "proposed" && can(ctx.roles, "sale:approve") ? (
+                          <div className="flex flex-wrap gap-2">
+                            <DecideWithdrawalDialog withdrawalId={w.id} approve refund={w.refund} />
+                            <DecideWithdrawalDialog
+                              withdrawalId={w.id}
+                              approve={false}
+                              refund={w.refund}
+                            />
+                          </div>
+                        ) : null}
+                      </div>
+                    ))}
+                    {canProposeWithdrawal ? (
+                      <ProposeWithdrawalDialog
+                        reservationId={sale.id}
+                        paid={st.paid}
+                        defaultRetention={formatShare(withdrawalRetentionBp).slice(0, -2)}
+                      />
+                    ) : null}
+                  </div>
+                ) : null}
+                {showLoans ? (
                   <>
-                    <Separator />
-                    <div className="space-y-2" data-testid="bank-loans">
+                    <div className="space-y-2 py-3 first:pt-0 last:pb-0" data-testid="bank-loans">
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <span className="font-medium">{t("sales.loan.title")}</span>
                         {live && can(ctx.roles, "sale:update") ? (
@@ -725,8 +725,7 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
                 ) : null}
                 {changeable ? (
                   <>
-                    <Separator />
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-2 py-3 first:pt-0 last:pb-0">
                       <TransferDialog
                         reservationId={sale.id}
                         buyers={buyerChoices}

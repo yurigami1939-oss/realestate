@@ -136,8 +136,7 @@ export function ReservationForm({
     !unit?.option ||
     buyerIds.some((id) => buyers.find((b) => b.id === id)?.leadId === unit.option?.leadId);
 
-  const buyerLabel = (b: BuyerChoice) =>
-    `${b.lastName} ${b.firstName} · ${formatPhone(b.phone)}`;
+  const buyerLabel = (b: BuyerChoice) => `${b.lastName} ${b.firstName} · ${formatPhone(b.phone)}`;
   const dueText = (line: ScheduleLine, index: number) => {
     if (line.trigger === "signing") return t("atSigning");
     if (line.trigger === "months_after_signing") return line.dueOn ? formatDate(line.dueOn) : "—";
@@ -195,7 +194,8 @@ export function ReservationForm({
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
                 <FieldLabel htmlFor="unitId">{t("fields.unitId")}</FieldLabel>
-                <Select value={field.value} onValueChange={field.onChange}>
+                {/* Remounted per project: Radix clears a value whose options change. */}
+                <Select key={projectId} value={field.value} onValueChange={field.onChange}>
                   <SelectTrigger id="unitId" className="w-full" aria-invalid={fieldState.invalid}>
                     <SelectValue placeholder={tq("chooseUnit")} />
                   </SelectTrigger>
@@ -238,7 +238,9 @@ export function ReservationForm({
                             aria-label={index === 0 ? t("fields.mainBuyer") : t("fields.coBuyer")}
                           >
                             <SelectValue
-                              placeholder={index === 0 ? t("fields.mainBuyer") : t("fields.coBuyer")}
+                              placeholder={
+                                index === 0 ? t("fields.mainBuyer") : t("fields.coBuyer")
+                              }
                             />
                           </SelectTrigger>
                           <SelectContent>
@@ -296,7 +298,7 @@ export function ReservationForm({
               ) : (
                 <Field data-invalid={fieldState.invalid}>
                   <FieldLabel htmlFor="paymentPlanId">{t("fields.paymentPlanId")}</FieldLabel>
-                  <Select value={field.value} onValueChange={field.onChange}>
+                  <Select key={projectId} value={field.value} onValueChange={field.onChange}>
                     <SelectTrigger id="paymentPlanId" className="w-full">
                       <SelectValue />
                     </SelectTrigger>

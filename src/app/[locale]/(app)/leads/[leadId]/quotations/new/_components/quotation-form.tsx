@@ -115,7 +115,12 @@ export function QuotationForm({
   ) => (
     <div className="space-y-1.5">
       <Label htmlFor={id}>{label}</Label>
-      <Select value={value || undefined} onValueChange={onChange}>
+      {/* Remounted per project: Radix clears a value whose options change. */}
+      <Select
+        key={id === "quotation-project" ? id : projectId}
+        value={value || undefined}
+        onValueChange={onChange}
+      >
         <SelectTrigger id={id} className="w-full">
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
