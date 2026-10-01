@@ -109,7 +109,7 @@ export function TargetsTable({
                         <Input
                           value={values[r.userId]?.[metric] ?? ""}
                           onChange={(e) => edit(r.userId, metric, e.target.value)}
-                          aria-label={`${t("target")} · ${t(`columns.${metric}`)} · ${r.name}`}
+                          aria-label={`${t(`columns.${metric}`)} ${r.name}`}
                           inputMode="numeric"
                           dir="ltr"
                           className="h-8 w-20"

@@ -9,6 +9,7 @@ import type { TenantCtx } from "@/server/auth/session";
 import { DEMO_PASSWORD, demoOrganizations, demoUsers } from "./demo";
 import { seedCrm } from "./crm";
 import { seedInventory } from "./inventory";
+import { seedSales } from "./reservations";
 import { seedPaymentPlans, seedQuotations } from "./sales";
 
 /** Refuses anything but a local database: seeding wipes data. */
@@ -85,6 +86,16 @@ export async function seedDemo(): Promise<void> {
     await seedQuotations(
       { manager: salesManager, agentA, agentB },
       { leads, units: unitIds, plans },
+    );
+    await seedSales(
+      {
+        owner: ctx("owner", ["owner"]),
+        manager: salesManager,
+        agentA,
+        agentB,
+        cashier: ctx("cashier", ["cashier"]),
+      },
+      { projects: projectIds, units: unitIds, leads, plans },
     );
   }
 }
