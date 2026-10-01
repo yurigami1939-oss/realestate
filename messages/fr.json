@@ -54,8 +54,7 @@
     }
   },
   "home": {
-    "title": "Bienvenue",
-    "subtitle": "Promotions immobilières, ventes et gestion des résidences."
+    "title": "Bienvenue"
   },
   "validation": {
     "required": "Champ obligatoire.",
@@ -1463,6 +1462,51 @@
         "pay": "Commission payée",
         "rates": "Taux de commission modifiés"
       }
+    }
+  },
+  "dashboard": {
+    "asOf": "Situation au {date} · mois en cours : {month}",
+    "todo": {
+      "title": "À traiter",
+      "withdrawal": "Désistement à valider : {number} · {buyer}",
+      "withdrawalRefund": "Remboursement prévu : {amount}",
+      "milestone": "Étape à valider : {project} · {name}",
+      "milestonePlanned": "Prévue le {date}",
+      "option": "Option qui expire : lot {unit} · {lead}",
+      "optionExpires": "Expire le {date}",
+      "cheques": "{count, plural, one {# chèque} other {# chèques}} à encaisser · {amount}",
+      "commissions": "{count, plural, one {# commission} other {# commissions}} à payer · {amount}"
+    },
+    "sales": {
+      "title": "Ventes",
+      "reservationsMonth": "Réservations du mois",
+      "vspMonth": "VSP signées du mois",
+      "reservationsYear": "Réservations de l'année",
+      "vspYear": "VSP signées de l'année",
+      "valueAndPrevious": "{value} · mois précédent : {previous}"
+    },
+    "collections": {
+      "title": "Encaissements",
+      "month": "Encaissé ce mois",
+      "previous": "Mois précédent : {amount}",
+      "remaining": "Reste à encaisser",
+      "due": "Exigible à ce jour : {amount}",
+      "overdue": "En retard",
+      "overdueSales": "{count, plural, =0 {Aucune vente en retard} one {# vente en retard} other {# ventes en retard}}",
+      "next30Days": "À échoir sous 30 jours"
+    },
+    "stock": {
+      "title": "Stock",
+      "empty": "Aucun projet pour le moment.",
+      "value": "Valeur du stock à vendre",
+      "availableOf": "Lots disponibles : {available} sur {units}"
+    },
+    "pipeline": {
+      "title": "Prospection",
+      "newLeads": "Nouveaux prospects du mois",
+      "lateFollowUps": "Relances en retard",
+      "won": "Prospects gagnés",
+      "lost": "Perdus : {count}"
     }
   }
 }

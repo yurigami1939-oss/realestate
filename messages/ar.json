@@ -54,8 +54,7 @@
     }
   },
   "home": {
-    "title": "مرحباً",
-    "subtitle": "المشاريع العقارية والمبيعات وتسيير الإقامات."
+    "title": "مرحباً"
   },
   "validation": {
     "required": "هذا الحقل إجباري.",
@@ -1463,6 +1462,51 @@
         "pay": "دفع عمولة",
         "rates": "تعديل نسب العمولات"
       }
+    }
+  },
+  "dashboard": {
+    "asOf": "الوضعية بتاريخ {date} · الشهر الجاري: {month}",
+    "todo": {
+      "title": "للمعالجة",
+      "withdrawal": "عدول للمصادقة: {number} · {buyer}",
+      "withdrawalRefund": "المبلغ المسترد المتوقع: {amount}",
+      "milestone": "مرحلة للتأكيد: {project} · {name}",
+      "milestonePlanned": "مقررة في {date}",
+      "option": "خيار ينتهي: الوحدة {unit} · {lead}",
+      "optionExpires": "ينتهي في {date}",
+      "cheques": "صكوك للتحصيل: {count} · {amount}",
+      "commissions": "عمولات للدفع: {count} · {amount}"
+    },
+    "sales": {
+      "title": "المبيعات",
+      "reservationsMonth": "حجوزات الشهر",
+      "vspMonth": "عقود البيع الموقعة هذا الشهر",
+      "reservationsYear": "حجوزات السنة",
+      "vspYear": "عقود البيع الموقعة هذه السنة",
+      "valueAndPrevious": "{value} · الشهر السابق: {previous}"
+    },
+    "collections": {
+      "title": "التحصيلات",
+      "month": "المحصّل هذا الشهر",
+      "previous": "الشهر السابق: {amount}",
+      "remaining": "الباقي للتحصيل",
+      "due": "المستحق إلى اليوم: {amount}",
+      "overdue": "متأخر",
+      "overdueSales": "{count, plural, zero {لا توجد مبيعات متأخرة} one {بيع واحد متأخر} two {بيعان متأخران} few {# مبيعات متأخرة} many {# بيعاً متأخراً} other {# بيع متأخر}}",
+      "next30Days": "يستحق خلال 30 يوماً"
+    },
+    "stock": {
+      "title": "المخزون",
+      "empty": "لا توجد مشاريع حالياً.",
+      "value": "قيمة المخزون المعروض للبيع",
+      "availableOf": "الوحدات المتاحة: {available} من {units}"
+    },
+    "pipeline": {
+      "title": "التنقيب التجاري",
+      "newLeads": "زبائن محتملون جدد هذا الشهر",
+      "lateFollowUps": "متابعات متأخرة",
+      "won": "زبائن محتملون مكسوبون",
+      "lost": "المفقودون: {count}"
     }
   }
 }
