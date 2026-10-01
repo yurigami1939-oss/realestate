@@ -25,6 +25,20 @@ export const statement = {
   quotation: ["create", "discount", "cancel"],
   /** Monthly activity targets of the commercials. */
   target: ["update"],
+  /** Buyer files and their documents. `read` = buyers I follow, `read_all` = every buyer. */
+  buyer: ["read", "read_all", "create", "update"],
+  /**
+   * Options, reservations, schedules and VSP. `read` = the sales I am the commercial of,
+   * `read_all` = every sale. `update`: contracts, transfers, swaps, bank loans.
+   * `withdraw` proposes a withdrawal, `approve` (gérant) approves it (CLAUDE.md §12).
+   */
+  sale: ["read", "read_all", "create", "update", "discount", "sign", "withdraw", "approve"],
+  /** Payments and receipts: cashiers record, accountants cancel (CLAUDE.md §5 roles). */
+  payment: ["read", "create", "cancel"],
+  /** Validating a construction milestone makes its installments due and issues payment calls. */
+  milestone: ["validate"],
+  /** `read` = my commissions, `read_all` = everyone's, `update` = mark paid / cancel. */
+  commission: ["read", "read_all", "update"],
 } as const;
 
 export const ac = createAccessControl(statement);
@@ -40,6 +54,11 @@ export const roles = {
     lead: ["read", "read_all", "create", "update", "assign", "merge", "delete"],
     quotation: ["create", "discount", "cancel"],
     target: ["update"],
+    buyer: ["read", "read_all", "create", "update"],
+    sale: ["read", "read_all", "create", "update", "discount", "sign", "withdraw", "approve"],
+    payment: ["read", "create", "cancel"],
+    milestone: ["validate"],
+    commission: ["read", "read_all", "update"],
   }),
   sales_manager: ac.newRole({
     inventory: ["read"],
@@ -49,14 +68,34 @@ export const roles = {
     lead: ["read", "read_all", "create", "update", "assign", "merge", "delete"],
     quotation: ["create", "discount", "cancel"],
     target: ["update"],
+    buyer: ["read", "read_all", "create", "update"],
+    sale: ["read", "read_all", "create", "update", "discount", "sign", "withdraw"],
+    payment: ["read"],
+    milestone: ["validate"],
+    commission: ["read", "read_all"],
   }),
   sales_agent: ac.newRole({
     inventory: ["read"],
     lead: ["read", "create", "update"],
     quotation: ["create"],
+    buyer: ["read", "create", "update"],
+    sale: ["read", "create"],
+    commission: ["read"],
   }),
-  accountant: ac.newRole({ audit: ["read"], inventory: ["read"] }),
-  cashier: ac.newRole({ inventory: ["read"] }),
+  accountant: ac.newRole({
+    audit: ["read"],
+    inventory: ["read"],
+    buyer: ["read", "read_all"],
+    sale: ["read", "read_all"],
+    payment: ["read", "create", "cancel"],
+    commission: ["read", "read_all", "update"],
+  }),
+  cashier: ac.newRole({
+    inventory: ["read"],
+    buyer: ["read", "read_all"],
+    sale: ["read", "read_all"],
+    payment: ["read", "create"],
+  }),
   property_manager: ac.newRole({ inventory: ["read"] }),
   resident: ac.newRole({}),
 };

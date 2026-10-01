@@ -1,4 +1,4 @@
-import { AlertTriangle, FileText, Pencil, Trash2 } from "lucide-react";
+import { AlertTriangle, FileText, IdCard, Pencil, Trash2 } from "lucide-react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
@@ -19,6 +19,7 @@ import { can } from "@/lib/permissions";
 import { quotationState } from "@/lib/quotations";
 import { cn } from "@/lib/utils";
 import { requirePermission } from "@/server/auth/page-guard";
+import { listBuyersOfLead } from "@/server/buyers/queries";
 import type { TenantCtx } from "@/server/auth/session";
 import { deleteLeadAction, mergeLeadsAction } from "@/server/crm/actions";
 import { getLead, listLeadOwners, type LeadDetail } from "@/server/crm/queries";
@@ -63,8 +64,10 @@ export default async function LeadPage({ params }: PageProps<"/[locale]/leads/[l
     typology: u.typology,
   }));
   const quotations = await listLeadQuotations(ctx, lead.id);
+  const buyers = can(ctx.roles, "buyer:read") ? await listBuyersOfLead(ctx, lead.id) : [];
   const t = await getTranslations("crm");
   const tc = await getTranslations("common");
+  const tb = await getTranslations("buyers");
   const editable = can(ctx.roles, "lead:update");
 
   return (
@@ -75,6 +78,24 @@ export default async function LeadPage({ params }: PageProps<"/[locale]/leads/[l
         crumbs={[{ label: t("leads.title"), href: "/leads" }]}
         actions={
           <>
+            {buyers.map((b) => (
+              <Button key={b.id} asChild variant="outline">
+                <Link href={`/buyers/${b.id}`}>
+                  <IdCard data-icon="inline-start" />
+                  {buyers.length > 1
+                    ? `${tb("openBuyer")} · ${b.firstName} ${b.lastName}`
+                    : tb("openBuyer")}
+                </Link>
+              </Button>
+            ))}
+            {buyers.length === 0 && can(ctx.roles, "buyer:create") ? (
+              <Button asChild variant="outline">
+                <Link href={{ pathname: "/buyers/new", query: { leadId: lead.id } }}>
+                  <IdCard data-icon="inline-start" />
+                  {tb("fromLead")}
+                </Link>
+              </Button>
+            ) : null}
             {editable ? (
               <Button asChild variant="outline">
                 <Link href={`/leads/${lead.id}/edit`}>

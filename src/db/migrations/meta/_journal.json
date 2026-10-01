@@ -36,6 +36,13 @@
       "when": 1790796337708,
       "tag": "0004_sales_targets",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1790818451897,
+      "tag": "0005_buyers_options",
+      "breakpoints": true
     }
   ]
 }

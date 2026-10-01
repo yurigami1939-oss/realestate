@@ -73,7 +73,8 @@
     "tooManyUnits": "Trop de lots en une fois (500 maximum).",
     "percent": "Pourcentage invalide (ex. 5 ou -2,5).",
     "phone": "Numéro de téléphone invalide (ex. 0550 12 34 56).",
-    "dateTime": "Date et heure invalides."
+    "dateTime": "Date et heure invalides.",
+    "nin": "NIN invalide (18 chiffres)."
   },
   "auth": {
     "fields": {
@@ -173,7 +174,9 @@
     "visits": "Visites",
     "duplicates": "Doublons",
     "company": "Société",
-    "targets": "Objectifs"
+    "targets": "Objectifs",
+    "buyers": "Acquéreurs",
+    "contracts": "Contrats et encaissements"
   },
   "shell": {
     "organizations": "Sociétés",
@@ -650,7 +653,7 @@
     "title": "Société",
     "description": "Identité légale imprimée sur les devis, reçus et contrats, et réglages commerciaux.",
     "identity": "Identité légale",
-    "sales": "Réglages commerciaux",
+    "sales": "Ventes",
     "saved": "Réglages enregistrés.",
     "fields": {
       "name": "Nom commercial",
@@ -662,8 +665,23 @@
       "nif": "NIF",
       "nis": "NIS",
       "aiNumber": "N° d'article d'imposition (AI)",
-      "quotationValidityDays": "Validité des devis (jours)"
-    }
+      "quotationValidityDays": "Validité des devis (jours)",
+      "optionHours": "Durée d'une option (heures)",
+      "withdrawalRetention": "Retenue en cas de désistement (%)",
+      "paymentCallDelayDays": "Délai de paiement d'un appel de fonds (jours)",
+      "defaultCommissionRate": "Commission par défaut (% du prix net)",
+      "penaltyMonthlyRate": "Pénalité de retard (% par mois)",
+      "penaltyGraceDays": "Délai de grâce (jours)",
+      "penaltyCap": "Plafond de pénalité (% de l’échéance)",
+      "vspLimitSigning": "À la signature (%)",
+      "vspLimitFoundations": "Fin des fondations (%)",
+      "vspLimitStructure": "Fin du gros œuvre (%)",
+      "vspLimitCompletion": "Fin des travaux (%)"
+    },
+    "collections": "Encaissements et commissions",
+    "penaltyHint": "Pénalités de retard : calculées et affichées sur les relevés et lettres de relance, jamais facturées automatiquement. 0 % = désactivées.",
+    "vspLimits": "Plafonds de paiement VSP (cumulés)",
+    "vspLimitsHint": "Selon le décret 13-431 tel que confirmé par votre notaire. Laissez vide pour ne pas contrôler ; un dépassement affiche un avertissement, sans bloquer."
   },
   "paymentPlans": {
     "title": "Échéanciers",
@@ -792,5 +810,99 @@
     "noTarget": "{actual} (sans objectif)",
     "hint": "Les objectifs de réservations et de ventes arriveront avec le module de réservation.",
     "empty": "Aucun commercial."
+  },
+  "buyers": {
+    "title": "Acquéreurs",
+    "description": "Dossiers des acquéreurs : identité, pièces et contrats.",
+    "new": "Nouvel acquéreur",
+    "newTitle": "Nouvel acquéreur",
+    "editTitle": "Modifier l'acquéreur",
+    "created": "Fiche acquéreur créée.",
+    "search": "Nom, NIN ou téléphone",
+    "empty": "Aucun acquéreur.",
+    "count": "{count, plural, =0 {Aucun acquéreur} one {# acquéreur} other {# acquéreurs}}",
+    "fromLead": "Créer la fiche acquéreur",
+    "openBuyer": "Fiche acquéreur",
+    "lead": "Prospect d'origine",
+    "owner": "Suivi par",
+    "columns": {
+      "name": "Acquéreur",
+      "phone": "Téléphone",
+      "nin": "NIN",
+      "place": "Commune / wilaya",
+      "owner": "Suivi par",
+      "documents": "Pièces"
+    },
+    "sections": {
+      "identity": "État civil",
+      "idCard": "Pièce d'identité",
+      "contact": "Coordonnées",
+      "situation": "Situation professionnelle et familiale"
+    },
+    "fields": {
+      "civility": "Civilité",
+      "lastName": "Nom",
+      "firstName": "Prénom",
+      "lastNameAr": "Nom (en arabe)",
+      "firstNameAr": "Prénom (en arabe)",
+      "birthDate": "Date de naissance",
+      "birthPlace": "Lieu de naissance",
+      "fatherFirstName": "Prénom du père",
+      "motherFullName": "Nom et prénom de la mère",
+      "nin": "NIN (18 chiffres)",
+      "idCardNumber": "N° de la pièce d'identité",
+      "idCardIssuedOn": "Délivrée le",
+      "idCardIssuedBy": "Délivrée par",
+      "phone": "Téléphone",
+      "phone2": "Second téléphone",
+      "email": "E-mail",
+      "address": "Adresse",
+      "commune": "Commune",
+      "wilaya": "Wilaya",
+      "profession": "Profession",
+      "employer": "Employeur",
+      "maritalStatus": "Situation familiale",
+      "notes": "Notes"
+    },
+    "civility": {
+      "mr": "M.",
+      "mrs": "Mme"
+    },
+    "maritalStatus": {
+      "single": "Célibataire",
+      "married": "Marié(e)",
+      "divorced": "Divorcé(e)",
+      "widowed": "Veuf (veuve)"
+    },
+    "filiation": "Fils/fille de {father} et de {mother}",
+    "born": "Né(e) le {date} à {place}",
+    "documents": {
+      "title": "Pièces du dossier",
+      "missing": "{count, plural, =0 {Dossier complet} one {# pièce manquante} other {# pièces manquantes}}",
+      "required": "Obligatoire",
+      "upload": "Joindre",
+      "replace": "Remplacer",
+      "view": "Voir",
+      "updated": "Pièce mise à jour.",
+      "uploaded": "Scan enregistré.",
+      "kind": {
+        "id_card": "Carte d'identité (CNI)",
+        "birth_certificate": "Extrait de naissance",
+        "family_record": "Fiche familiale",
+        "residence_certificate": "Certificat de résidence",
+        "employment_certificate": "Attestation de travail",
+        "payslips": "Fiches de paie",
+        "bank_statement": "Relevé bancaire",
+        "other": "Autre pièce"
+      },
+      "status": {
+        "missing": "Manquante",
+        "received": "Reçue",
+        "verified": "Vérifiée"
+      }
+    },
+    "errors": {
+      "ninTaken": "Ce NIN est déjà utilisé par un autre acquéreur."
+    }
   }
 }

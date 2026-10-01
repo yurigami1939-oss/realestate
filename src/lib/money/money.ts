@@ -137,6 +137,15 @@ export function parsePercentToBasisPoints(input: string): bigint | null {
   return sign === "-" ? -bp : bp;
 }
 
+/** Basis points as editable percent text: 1000 → "10", 250 → "2,5" (parsePercentToBasisPoints reads it back). */
+export function formatPercentInput(bp: number | bigint): string {
+  const value = BigInt(bp);
+  const sign = value < 0n ? "-" : "";
+  const abs = value < 0n ? -value : value;
+  const fraction = (abs % 100n).toString().padStart(2, "0").replace(/0+$/, "");
+  return `${sign}${abs / 100n}${fraction ? `,${fraction}` : ""}`;
+}
+
 /** Amount as editable text, e.g. "12 500 000,00" (French grouping, no currency); parseDZD reads it back. */
 export function formatAmountInput(amount: Centimes): string {
   return formatters.fr

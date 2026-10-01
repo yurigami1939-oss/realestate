@@ -58,3 +58,17 @@ export async function createSalesTeam() {
   ]);
   return { orgId: org.id, owner, manager, agentA, agentB };
 }
+
+/** Raw company settings form input (all fields), for `companySettingsSchema.parse`. */
+export const companySettingsInput = (overrides: Record<string, string> = {}) => ({
+  name: "El Bahdja",
+  quotationValidityDays: "15",
+  optionHours: "24",
+  paymentCallDelayDays: "15",
+  withdrawalRetention: "10",
+  penaltyMonthlyRate: "0",
+  penaltyGraceDays: "0",
+  penaltyCap: "10",
+  defaultCommissionRate: "0",
+  ...overrides,
+});

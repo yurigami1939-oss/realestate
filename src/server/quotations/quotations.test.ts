@@ -40,7 +40,7 @@ import {
   updatePaymentPlan,
 } from "@/server/payment-plans/service";
 
-import { createSalesTeam } from "../../../tests/factories";
+import { companySettingsInput, createSalesTeam } from "../../../tests/factories";
 
 import { renderAndStoreQuotationPdf } from "./pdf";
 import { getQuotation, loadQuotationDocument } from "./queries";
@@ -254,7 +254,7 @@ describe("quotations", () => {
     const { unitIds, planId } = await setup(team);
     await updateCompanySettings(
       team.owner,
-      companySettingsSchema.parse({ name: "El Bahdja", quotationValidityDays: "30" }),
+      companySettingsSchema.parse(companySettingsInput({ quotationValidityDays: "30" })),
     );
     const leadId = await newLead(team.agentA);
 
@@ -369,12 +369,12 @@ describe("quotations", () => {
     const { unitIds, planId } = await setup(team);
     await updateCompanySettings(
       team.owner,
-      companySettingsSchema.parse({
-        name: "El Bahdja",
-        legalName: "SARL El Bahdja Immobilier",
-        rcNumber: "16/00-1234567B19",
-        quotationValidityDays: "15",
-      }),
+      companySettingsSchema.parse(
+        companySettingsInput({
+          legalName: "SARL El Bahdja Immobilier",
+          rcNumber: "16/00-1234567B19",
+        }),
+      ),
     );
     const leadId = await newLead(team.agentA);
     const { id, number } = await issue(team.agentA, leadId, unitIds[0] ?? "", planId);

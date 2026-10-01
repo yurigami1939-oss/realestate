@@ -5,7 +5,6 @@ import { Separator } from "@/components/ui/separator";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { redirect } from "@/i18n/navigation";
 import { localeDirection, toLocale } from "@/i18n/locales";
-import { can } from "@/lib/permissions";
 import { getSession, getTenantCtx } from "@/server/auth/session";
 import { listUserOrganizations } from "@/server/organizations/queries";
 
@@ -30,10 +29,7 @@ export default async function AppLayout({ children, params }: LayoutProps<"/[loc
         organizations={organizations.map(({ id, name }) => ({ id, name }))}
         activeOrgId={activeOrgId}
         user={{ name: session.user.name, email: session.user.email }}
-        access={{
-          sales: can(ctx.roles, "lead:read"),
-          company: can(ctx.roles, "organization:update"),
-        }}
+        roles={ctx.roles}
       />
       {/* min-w-0: wide tables scroll inside their own container, not the page. */}
       <SidebarInset className="min-w-0">

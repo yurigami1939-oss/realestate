@@ -66,6 +66,11 @@ export const leadActivityTypes = [
   "quotation_issued",
   "quotation_cancelled",
   "merged",
+  "option_placed",
+  "option_ended",
+  "reserved",
+  "sale_signed",
+  "withdrawn",
 ] as const;
 export type LeadActivityType = (typeof leadActivityTypes)[number];
 

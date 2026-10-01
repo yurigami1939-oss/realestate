@@ -20,6 +20,11 @@ export const uploadPurposes = {
     accept: ["application/pdf", "image/png", "image/jpeg", "image/webp"],
     maxBytes: MAX_UPLOAD_BYTES,
   },
+  /** A buyer's document scan; `variant` = the document kind. */
+  "buyer.document": {
+    accept: ["application/pdf", "image/png", "image/jpeg", "image/webp"],
+    maxBytes: MAX_UPLOAD_BYTES,
+  },
 } as const satisfies Record<string, { accept: readonly FileContentType[]; maxBytes: number }>;
 
 export type UploadPurpose = keyof typeof uploadPurposes;

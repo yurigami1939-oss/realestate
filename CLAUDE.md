@@ -521,18 +521,22 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 | 2026-09-30 | Jobs that follow a write are enqueued inside the transaction (`enqueueInTx`, pg-boss `fromDrizzle`), with the record id as `singletonKey`; handlers are idempotent. |
 | 2026-09-30 | `db:migrate` starts pg-boss with the scheduler on so its internal `__pgboss__send-it` queue exists before the first worker (otherwise the worker logs "does not exist" while its cache catches up). |
 | 2026-09-30 | Demo seed has a second commercial (Lina Saadi) to exercise assignment and commercial scoping. |
+| 2026-10-01 | **Options (user)**: default 24 h (company setting), no limit per prospect; one active option per unit; only the holder's lead can reserve an optioned unit; expiry releases the unit automatically (job scheduled when the option is placed). |
+| 2026-10-01 | **Payment allocation (user)**: oldest due first; what exceeds the amount currently due goes to the next installments (shown as an advance); a payment above the remaining balance of the sale is refused. Allocation is derived (FIFO over installments by due date, then position), never stored; a receipt prints the allocation at issue. |
+| 2026-10-01 | **Cheques (user)**: receipt issued at reception, marked « sous réserve d'encaissement »; a bounced cheque = the accountant cancels the payment (and its receipt) with the reason, the installments are due again. |
+| 2026-10-01 | **Late-payment penalties (user)**: company settings (monthly rate on the overdue amount, grace days, cap as % of the installment), 0 % = off by default; computed and shown on statements and reminder letters, never charged automatically. |
+| 2026-10-01 | **Withdrawal (user)**: company default retention % of the amount paid, prefilled and editable with a reason, proposed by the directeur commercial and approved by the gérant; the unit becomes available; refund = paid − retention, recorded when paid out. |
+| 2026-10-01 | **VSP limits (user)**: warnings only, from cumulative limits per construction stage configured in company settings (empty = no check); nothing from décret 13-431 is hard-coded. |
+| 2026-10-01 | **Commissions (user)**: % of the net price, earned at VSP signing; company default rate, overridable per commercial; the commercial is the lead's owner at reservation; cancelled if the sale is undone. |
+| 2026-10-01 | **VAT (user)**: list prices are TTC; no VAT computation or line on documents. |
+| 2026-10-01 | **Contracts (user)**: reservation and VSP are recorded (date, notary, reference) with the signed scans attached; the app prints an internal bilingual reservation sheet for the notary, not the legal contract. |
+| 2026-10-01 | **Documents language (user)**: receipts, reservation sheets, payment calls and reminder letters are bilingual FR + AR. |
+| 2026-10-01 | **Reminders (user)**: overdue list, daily 08:00 (Algiers) digest e-mail to cashiers and the directeur commercial, printable bilingual reminder letter per buyer; WhatsApp/SMS in Phase 3. |
+| 2026-10-01 | **Buyer file (user)**: document checklist (missing / received / verified, optional scan), never blocking; missing items highlighted on the reservation and the VSP. |
 
 ### Open items
 - **GitHub**: repo `yurigami1939-oss/realestate` is **public** — make it private before real client data or configuration lands. Work happens on branches merged through PRs; CI must be green.
 
 ### Open business questions (ask before implementing)
-- Late penalty formula (rate, base, grace period, cap) — and check décret 13-431.
-- Withdrawal: refund vs retention (% or fixed), deadlines, who approves.
-- Allocation of a payment across installments (oldest due first?) and handling of overpayment.
-- Cheques: receipt issued on reception ("sous réserve d'encaissement") or on clearance; bounced cheque flow.
-- Default option duration; max simultaneous options per agent/lead.
-- Receipt/contract language: bilingual FR/AR on one document (current receipt template), or per-buyer choice.
-- VSP payment tranches: enforce legal percentages per milestone or free schedule?
-- Commission rules (base, rate, trigger: reservation, VSP, or full payment) — to decide when building module 3.
 - Hosting location (Loi 18-07 restricts cross-border transfer of personal data).
-- Are list prices **TTC** (TVA included) or HT? Quotations, reservation and VSP contracts will print the price; if TVA must be shown separately we need the rate(s) per unit type (housing vs. commercial).
+- Cumulative VSP payment limits per construction stage (décret 13-431), to configure once the notary confirms them.

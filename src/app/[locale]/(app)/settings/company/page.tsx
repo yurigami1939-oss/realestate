@@ -3,6 +3,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { PageHeader } from "@/components/app-shell/page-header";
 import { toLocale } from "@/i18n/locales";
+import { formatPercentInput } from "@/lib/money";
 import { requirePermission } from "@/server/auth/page-guard";
 import { getCompanySettings } from "@/server/organizations/settings";
 
@@ -18,6 +19,7 @@ export default async function CompanyPage({ params }: PageProps<"/[locale]/setti
   const ctx = await requirePermission("organization:update");
   const settings = await getCompanySettings(ctx);
   const t = await getTranslations("company");
+  const limit = (bp: number | undefined) => (bp === undefined ? "" : formatPercentInput(bp));
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
@@ -34,6 +36,17 @@ export default async function CompanyPage({ params }: PageProps<"/[locale]/setti
           nis: settings.nis ?? "",
           aiNumber: settings.aiNumber ?? "",
           quotationValidityDays: String(settings.quotationValidityDays),
+          optionHours: String(settings.optionHours),
+          paymentCallDelayDays: String(settings.paymentCallDelayDays),
+          withdrawalRetention: formatPercentInput(settings.withdrawalRetentionBp),
+          penaltyMonthlyRate: formatPercentInput(settings.penaltyMonthlyRateBp),
+          penaltyGraceDays: String(settings.penaltyGraceDays),
+          penaltyCap: formatPercentInput(settings.penaltyCapBp),
+          defaultCommissionRate: formatPercentInput(settings.defaultCommissionRateBp),
+          vspLimitSigning: limit(settings.vspLimits.signing),
+          vspLimitFoundations: limit(settings.vspLimits.foundations),
+          vspLimitStructure: limit(settings.vspLimits.structure),
+          vspLimitCompletion: limit(settings.vspLimits.completion),
         }}
       />
     </div>

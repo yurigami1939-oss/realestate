@@ -1,12 +1,10 @@
 "use client";
 
-import { Search } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useEffect, useState } from "react";
 
+import { SearchInput } from "@/components/data-table/search-input";
 import { useSearchParamsState } from "@/components/data-table/use-search-params-state";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -22,16 +20,6 @@ const ALL = "__all__";
 export function LeadFilters({ owners }: { owners: { id: string; name: string }[] | null }) {
   const t = useTranslations("crm");
   const params = useSearchParamsState();
-  const current = params.get("q");
-  const [q, setQ] = useState(current);
-
-  // Search as you type, once the user pauses.
-  useEffect(() => {
-    if (q === current) return;
-    const timer = setTimeout(() => params.set({ q }), 350);
-    return () => clearTimeout(timer);
-  }, [q, current, params]);
-
   const select = (
     key: string,
     label: string,
@@ -58,20 +46,7 @@ export function LeadFilters({ owners }: { owners: { id: string; name: string }[]
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <div className="relative w-full sm:w-64">
-        <Search
-          className="pointer-events-none absolute start-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
-          aria-hidden
-        />
-        <Input
-          type="search"
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder={t("leads.search")}
-          aria-label={t("leads.search")}
-          className="ps-8"
-        />
-      </div>
+      <SearchInput label={t("leads.search")} />
       {select(
         "stage",
         t("leads.columns.stage"),

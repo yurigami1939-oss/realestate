@@ -5,7 +5,7 @@
 import { z } from "zod";
 
 import { fromAlgiersDateTime } from "./dates";
-import { parseDZD } from "./money";
+import { parseDZD, parsePercentToBasisPoints } from "./money";
 import { normalizePhone } from "./phone";
 
 const blankToNull = (value: string) => (value.trim() === "" ? null : value.trim());
@@ -185,4 +185,46 @@ export const dateTimeText = () =>
         return z.NEVER;
       }
       return instant;
+    });
+
+/** Percentage as typed ("10", "2,5") → basis points, within [min, max] percent. */
+export const percentText = (min: number, max: number) =>
+  z.string().transform((v, ctx) => {
+    const bp = parsePercentToBasisPoints(v.trim());
+    if (bp === null || bp < BigInt(min * 100) || bp > BigInt(max * 100)) {
+      ctx.addIssue({ code: "custom", message: "validation.percent" });
+      return z.NEVER;
+    }
+    return Number(bp);
+  });
+
+/** Optional percentage: "" → null. */
+export const optionalPercentText = (min: number, max: number) =>
+  z
+    .string()
+    .optional()
+    .transform((raw, ctx) => {
+      const v = raw?.trim() ?? "";
+      if (v === "") return null;
+      const bp = parsePercentToBasisPoints(v);
+      if (bp === null || bp < BigInt(min * 100) || bp > BigInt(max * 100)) {
+        ctx.addIssue({ code: "custom", message: "validation.percent" });
+        return z.NEVER;
+      }
+      return Number(bp);
+    });
+
+/** Optional NIN (numéro d'identification national): 18 digits, spaces ignored; "" → null. */
+export const optionalNinText = () =>
+  z
+    .string()
+    .optional()
+    .transform((raw, ctx) => {
+      const v = (raw ?? "").replace(/\s/g, "");
+      if (v === "") return null;
+      if (!/^\d{18}$/.test(v)) {
+        ctx.addIssue({ code: "custom", message: "validation.nin" });
+        return z.NEVER;
+      }
+      return v;
     });

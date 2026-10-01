@@ -16,6 +16,7 @@ import type { Result } from "@/lib/result";
 export function UploadButton({
   purpose,
   entityId,
+  detail,
   label,
   icon,
   onUploaded,
@@ -23,6 +24,8 @@ export function UploadButton({
 }: {
   purpose: UploadPurpose;
   entityId: string;
+  /** Purpose-specific detail sent as `variant` (e.g. the document kind of a buyer scan). */
+  detail?: string;
   label: string;
   icon?: React.ReactNode;
   onUploaded?: (data: { fileId: string }) => void;
@@ -47,6 +50,7 @@ export function UploadButton({
       const body = new FormData();
       body.set("purpose", purpose);
       body.set("entityId", entityId);
+      if (detail) body.set("variant", detail);
       body.set("file", file);
       const response = await fetch("/api/files", { method: "POST", body });
       const result = (await response.json()) as Result<{ fileId: string }>;
@@ -66,7 +70,7 @@ export function UploadButton({
         type="file"
         accept={rules.accept.join(",")}
         className="hidden"
-        data-testid={`upload-${purpose}`}
+        data-testid={detail ? `upload-${purpose}-${detail}` : `upload-${purpose}`}
         onChange={(event) => {
           const file = event.target.files?.[0];
           event.target.value = "";

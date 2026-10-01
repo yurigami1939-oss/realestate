@@ -3,7 +3,7 @@ import "server-only";
 import { and, eq, isNull, sql } from "drizzle-orm";
 
 import type { Tx } from "@/db/client";
-import { file, lead, quotation } from "@/db/schema";
+import { buyer, file, lead, quotation } from "@/db/schema";
 import { withTenant } from "@/db/tenant";
 import {
   cleanFileName,
@@ -15,6 +15,7 @@ import {
 import { can } from "@/lib/permissions";
 import { AppError } from "@/lib/result";
 import type { TenantCtx } from "@/server/auth/session";
+import { visibleBuyers } from "@/server/buyers/access";
 import { visibleLeads } from "@/server/crm/access";
 
 import { presignDownload, putObject, storageKey } from "./storage";
@@ -27,6 +28,15 @@ type Reader = (tx: Tx, ctx: TenantCtx, entityId: string) => Promise<boolean>;
 /** Who may download a file, by the kind of record it belongs to. Unknown kinds: nobody. */
 const readers: Record<string, Reader> = {
   unit: async (_tx, ctx) => can(ctx.roles, "inventory:read"),
+  // A buyer's scans follow the buyer: commercials only see the buyers they follow.
+  buyer: async (tx, ctx, entityId) => {
+    if (!can(ctx.roles, "buyer:read")) return false;
+    const [row] = await tx
+      .select({ id: buyer.id })
+      .from(buyer)
+      .where(and(eq(buyer.id, entityId), visibleBuyers(ctx)));
+    return row !== undefined;
+  },
   // A quotation PDF follows its lead: commercials only see their own leads' quotations.
   quotation: async (tx, ctx, entityId) => {
     if (!can(ctx.roles, "lead:read")) return false;

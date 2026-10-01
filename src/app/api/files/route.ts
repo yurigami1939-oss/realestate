@@ -3,13 +3,17 @@ import { z } from "zod";
 
 import { MAX_UPLOAD_BYTES, uploadPurposeNames } from "@/lib/files";
 import { AppError } from "@/lib/result";
+import { buyerDocumentKinds } from "@/lib/sales";
 import { getTenantCtx } from "@/server/auth/session";
+import { setBuyerDocumentScan } from "@/server/buyers/service";
 import { setUnitFloorPlan } from "@/server/inventory/floor-plans";
 import { assertSameOrigin, jsonResult, readFormData } from "@/server/route-handler";
 
 const uploadFields = z.object({
   purpose: z.enum(uploadPurposeNames),
   entityId: z.uuid(),
+  /** Purpose-specific detail, e.g. the document kind of a buyer scan. */
+  variant: z.string().max(40).nullable(),
 });
 
 /** Room for the multipart boundaries and the text fields around the file. */
@@ -27,6 +31,7 @@ export async function POST(request: Request) {
     const fields = uploadFields.safeParse({
       purpose: form.get("purpose"),
       entityId: form.get("entityId"),
+      variant: form.get("variant"),
     });
     if (!fields.success) throw new AppError("VALIDATION");
     const blob = form.get("file");
@@ -41,6 +46,17 @@ export async function POST(request: Request) {
       case "unit.floor_plan": {
         const result = await setUnitFloorPlan(ctx, { unitId: fields.data.entityId, upload });
         revalidatePath("/[locale]/projects", "layout");
+        return result;
+      }
+      case "buyer.document": {
+        const kind = z.enum(buyerDocumentKinds).safeParse(fields.data.variant);
+        if (!kind.success) throw new AppError("VALIDATION");
+        const result = await setBuyerDocumentScan(ctx, {
+          buyerId: fields.data.entityId,
+          kind: kind.data,
+          upload,
+        });
+        revalidatePath("/[locale]/buyers", "layout");
         return result;
       }
     }

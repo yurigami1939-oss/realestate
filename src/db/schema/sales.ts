@@ -6,6 +6,7 @@ import {
   foreignKey,
   index,
   integer,
+  jsonb,
   pgEnum,
   pgTable,
   primaryKey,
@@ -16,6 +17,7 @@ import {
 } from "drizzle-orm/pg-core";
 
 import { planStepTriggers } from "../../lib/payment-plans";
+import { constructionStages, optionStatuses, type VspLimits } from "../../lib/sales";
 
 import {
   createdAt,
@@ -33,26 +35,59 @@ import { file } from "./files";
 import { project, unit } from "./inventory";
 
 export const planStepTrigger = pgEnum("plan_step_trigger", planStepTriggers);
+export const constructionStage = pgEnum("construction_stage", constructionStages);
+export const optionStatus = pgEnum("option_status", optionStatuses);
 export const quotationStatus = pgEnum("quotation_status", ["issued", "cancelled"]);
 
-/** Company-level settings of the promoter (one row per organization, created on first save). */
+/**
+ * Company-level settings of the promoter (one row per organization, created on first save).
+ * Rates are basis points. Defaults: `salesSettingDefaults` (src/lib/sales.ts, CLAUDE.md §12).
+ */
 export const organizationSetting = pgTable(
   "organization_setting",
   {
     organizationId: organizationId().primaryKey(),
-    /** Printed on quotations: valid N days from issue (CLAUDE.md §12, default 15). */
+    /** Printed on quotations: valid N days from issue. */
     quotationValidityDays: integer().notNull().default(15),
+    /** An option holds a unit this long, then the unit is released. */
+    optionHours: integer().notNull().default(24),
+    /** A milestone payment call is due N days after the milestone is validated. */
+    paymentCallDelayDays: integer().notNull().default(15),
+    /** Share of the amount paid kept on withdrawal (proposed, editable per case). */
+    withdrawalRetentionBp: integer().notNull().default(1000),
+    /** Late-payment penalty per month of delay on the overdue amount; 0 = off. */
+    penaltyMonthlyRateBp: integer().notNull().default(0),
+    penaltyGraceDays: integer().notNull().default(0),
+    /** Penalty cap, as a share of the installment. */
+    penaltyCapBp: integer().notNull().default(1000),
+    /** Commission on the net price, earned at the VSP; overridable per commercial. */
+    defaultCommissionRateBp: integer().notNull().default(0),
+    /** Cumulative VSP payment limits per stage (warnings only); empty = no check. */
+    vspLimits: jsonb()
+      .$type<VspLimits>()
+      .notNull()
+      .default(sql`'{}'::jsonb`),
     updatedAt: updatedAt(),
     updatedBy: userRef(),
   },
   (t) => [
     check("organization_setting_validity_range", sql`${t.quotationValidityDays} between 1 and 365`),
+    check("organization_setting_option_hours", sql`${t.optionHours} between 1 and 720`),
+    check("organization_setting_call_delay", sql`${t.paymentCallDelayDays} between 0 and 180`),
+    check(
+      "organization_setting_rates",
+      sql`${t.withdrawalRetentionBp} between 0 and 10000
+        and ${t.penaltyMonthlyRateBp} between 0 and 1000
+        and ${t.penaltyGraceDays} between 0 and 365
+        and ${t.penaltyCapBp} between 0 and 10000
+        and ${t.defaultCommissionRateBp} between 0 and 2000`,
+    ),
   ],
 );
 
 /**
- * Étape d'avancement des travaux. Module 2 plans them (name, planned date) for payment plans;
- * module 4 validates them (`validatedOn`) and triggers payment calls.
+ * Étape d'avancement des travaux: planned (name, date) for payment plans; validating it makes the
+ * linked installments due and issues the payment calls. `stage` classifies it for VSP limits.
  */
 export const constructionMilestone = pgTable(
   "construction_milestone",
@@ -62,8 +97,10 @@ export const constructionMilestone = pgTable(
     projectId: uuid().notNull(),
     position: integer().notNull(),
     name: text().notNull(),
+    stage: constructionStage(),
     plannedOn: date({ mode: "string" }),
     validatedOn: date({ mode: "string" }),
+    validatedBy: userRef(),
     ...timestamps(),
     ...softDelete(),
   },
@@ -243,5 +280,44 @@ export const quotationLine = pgTable(
       columns: [t.organizationId, t.quotationId],
       foreignColumns: [quotation.organizationId, quotation.id],
     }),
+  ],
+);
+
+/**
+ * Option: a unit held for a lead until `expiresAt` (unit status `optioned`). At most one active
+ * option per unit; only that lead can reserve it. A job ends it at expiry.
+ */
+export const unitOption = pgTable(
+  "unit_option",
+  {
+    id: id(),
+    organizationId: organizationId(),
+    unitId: uuid().notNull(),
+    leadId: uuid().notNull(),
+    placedBy: userRef().notNull(),
+    placedAt: instant().notNull().defaultNow(),
+    expiresAt: instant().notNull(),
+    status: optionStatus().notNull().default("active"),
+    endedAt: instant(),
+    endedBy: userRef(),
+    endReason: text(),
+  },
+  (t) => [
+    unique().on(t.organizationId, t.id),
+    foreignKey({
+      name: "unit_option_unit_fk",
+      columns: [t.organizationId, t.unitId],
+      foreignColumns: [unit.organizationId, unit.id],
+    }),
+    foreignKey({
+      name: "unit_option_lead_fk",
+      columns: [t.organizationId, t.leadId],
+      foreignColumns: [lead.organizationId, lead.id],
+    }),
+    uniqueIndex("unit_option_one_active")
+      .on(t.organizationId, t.unitId)
+      .where(sql`${t.status} = 'active'`),
+    index().on(t.organizationId, t.leadId),
+    check("unit_option_expiry", sql`${t.expiresAt} > ${t.placedAt}`),
   ],
 );
