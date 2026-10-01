@@ -320,6 +320,7 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 | Contrat VSP (internal ref) | `sale_contract` | `VSP` |
 | Appel de fonds | `payment_call` | `ADF` |
 | Appel de charges | `charge_call` | `ADC` |
+| Reçu de charges | `charge_receipt` | `RCH` |
 | Devis | `quotation` | `DEV` |
 - Format `{PREFIX}-{YYYY}-{NNNNNN}`, e.g. `REC-2026-000123`; sequence per organization, per `doc_type`, per Algiers year of the issue date.
 - `nextDocumentNumber(tx, scope, docType, issuedAt)` upserts the `document_sequence` row, then `UPDATE … SET last_value = last_value + 1 RETURNING` (row lock, same guarantee as `SELECT … FOR UPDATE`). It **must run in the transaction that inserts the document** — a rollback leaves no gap (tested, incl. 25 concurrent allocations).
@@ -466,7 +467,7 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 
 ## 11. Roadmap
 
-**Current: Phase 1 done — `phase-1/inventory` (PR https://github.com/yurigami1939-oss/realestate/pull/2), `phase-1/crm` (PR https://github.com/yurigami1939-oss/realestate/pull/3), `phase-1/sales` (PR https://github.com/yurigami1939-oss/realestate/pull/4) and `phase-1/wrap-up` (dashboard, audit log, logo; stacked on #4). Next: Phase 2 (module 6 residence management, module 7 portal) — its business questions must be answered first.**
+**Current: Phase 1 done (PRs #2–#5, stacked). Phase 2 module 6 (residence management) in progress on `phase-2/residences` (stacked on `phase-1/wrap-up`); its business rules are answered (§12, 2026-10-01).**
 
 ### Phase 0 — Foundations ✅
 - [x] `CLAUDE.md` approved (2026-09-30)
@@ -586,6 +587,10 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 | 2026-10-01 | Dashboard = one page whose sections follow the member's permissions (and the sale/lead visibility), not one dashboard per role. Figures are derived on the fly (no snapshots); "this month" is the Algiers calendar month. |
 | 2026-10-01 | Audit log viewer for `audit:read` (gérant, comptable); details show the stored JSON as is (amounts in centimes, rates in basis points). |
 | 2026-10-01 | Company logo: PNG/JPEG only (no SVG: scripts), 2 MB, stored like other files; printed on documents issued after the upload (issued PDFs are never re-rendered). |
+| 2026-10-01 | **Residence management (user)**: run by the promoter's own service (same organization, `property_manager` role); a residence is set up on a project, its co-owners come from the buyers of sold units or are entered by hand (residences delivered before the app). Handover (module 4) stays in Phase 3. |
+| 2026-10-01 | **Charges (user)**: annual budget per residence, then calls of provisions at a frequency set per residence (monthly, quarterly, half-yearly, yearly); default distribution key = tantièmes (a category can use equal, per building or a custom unit list); charges are always billed to the co-owner (never the occupant). |
+| 2026-10-01 | **Charges collection (user)**: overdue charges get reminders only (list, letters, digest), never penalties; a reserve fund = % of the annual budget per residence, added to each call and tracked as a balance (0 % = none); charge receipts have their own numbering `RCH-` (separate from sales receipts `REC-`). |
+| 2026-10-01 | **Residence operations (user)**: suppliers, contracts and invoices booked to charge categories with a budget vs actual report; staff files, attendance, salary advances and monthly pay entered as net amounts (no IRG/CNAS computation); tickets opened by residents (portal, module 7) and staff, assigned to staff or a supplier; full general assemblies (bilingual convocation, attendance and proxies, votes by tantièmes with a majority chosen per resolution, bilingual PV). |
 
 ### Open items
 - **GitHub**: repo `yurigami1939-oss/realestate` is **public** — make it private before real client data or configuration lands. Work happens on branches merged through PRs; CI must be green.
