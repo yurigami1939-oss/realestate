@@ -1,0 +1,142 @@
+/** Isomorphic: shared by the sales forms (options, reservations, VSP…) and their actions. */
+import { z } from "zod";
+
+import { bankLoanStatuses, MAX_BUYERS_PER_SALE, paymentMethods } from "@/lib/sales";
+import {
+  dateText,
+  moneyText,
+  optionalDateText,
+  optionalMoneyText,
+  optionalText,
+  percentText,
+  requiredText,
+} from "@/lib/zod";
+
+// ── Options ─────────────────────────────────────────────────────────────────
+
+export const placeOptionSchema = z.object({ unitId: z.uuid(), leadId: z.uuid() });
+
+export const cancelOptionSchema = z.object({
+  optionId: z.uuid(),
+  reason: optionalText(300),
+});
+
+export const optionIdSchema = z.object({ optionId: z.uuid() });
+
+/** Reason text reused by several sales actions (withdrawal, transfer, swap…). */
+export const reasonText = () => requiredText(500);
+
+// ── Reservations & sales ────────────────────────────────────────────────────
+
+/** Main buyer first; co-buyers (spouse…) after. */
+const buyerIdsField = () =>
+  z
+    .array(z.uuid())
+    .min(1, "sales.errors.buyerRequired")
+    .max(MAX_BUYERS_PER_SALE)
+    .refine((ids) => new Set(ids).size === ids.length, "sales.errors.buyerTwice");
+
+export const createReservationSchema = z.object({
+  unitId: z.uuid(),
+  buyerIds: buyerIdsField(),
+  paymentPlanId: z.uuid(),
+  /** Only managers may discount (CLAUDE.md §12); "" = none. */
+  discount: optionalMoneyText().transform((v) => v ?? 0n),
+  /** Day the reservation contract was signed (not in the future). */
+  reservedOn: dateText(),
+  notary: optionalText(120),
+  reference: optionalText(80),
+  notes: optionalText(1000),
+});
+
+export const reservationIdSchema = z.object({ reservationId: z.uuid() });
+
+/** Notary and reference of the reservation contract. */
+export const reservationContractSchema = z.object({
+  reservationId: z.uuid(),
+  notary: optionalText(120),
+  reference: optionalText(80),
+});
+
+/** VSP signed at the notary: the unit is sold, the commission earned. */
+export const recordSaleSchema = z.object({
+  reservationId: z.uuid(),
+  signedOn: dateText(),
+  notary: requiredText(120),
+  reference: optionalText(80),
+});
+
+// ── After the reservation ───────────────────────────────────────────────────
+
+/** Désistement proposed with a retention on the amount paid (company default prefilled). */
+export const proposeWithdrawalSchema = z.object({
+  reservationId: z.uuid(),
+  retention: percentText(0, 100),
+  reason: reasonText(),
+});
+
+/** The gérant approves or rejects a proposed withdrawal. */
+export const decideWithdrawalSchema = z.object({
+  withdrawalId: z.uuid(),
+  approve: z.boolean(),
+  note: optionalText(500),
+});
+
+/** The refund of an approved withdrawal was paid out. */
+export const recordWithdrawalRefundSchema = z.object({
+  withdrawalId: z.uuid(),
+  refundedOn: dateText(),
+  method: z.enum(paymentMethods),
+  reference: optionalText(60),
+});
+
+/** Cession: new buyers take the reservation over. */
+export const transferReservationSchema = z.object({
+  reservationId: z.uuid(),
+  buyerIds: buyerIdsField(),
+  transferredOn: dateText(),
+  notes: optionalText(1000),
+});
+
+/** Changement de lot within the project, at the new unit's price (managers may discount). */
+export const swapUnitSchema = z.object({
+  reservationId: z.uuid(),
+  unitId: z.uuid(),
+  discount: optionalMoneyText().transform((v) => v ?? 0n),
+  swappedOn: dateText(),
+  reason: reasonText(),
+});
+
+const bankLoanFields = {
+  bank: requiredText(120),
+  requested: moneyText(),
+  approved: optionalMoneyText(),
+  status: z.enum(bankLoanStatuses),
+  submittedOn: optionalDateText(),
+  decidedOn: optionalDateText(),
+  reference: optionalText(80),
+  notes: optionalText(1000),
+};
+export const createBankLoanSchema = z.object({ reservationId: z.uuid(), ...bankLoanFields });
+export const updateBankLoanSchema = z.object({ bankLoanId: z.uuid(), ...bankLoanFields });
+
+/** Documents of a sale whose PDF can be requested again (worker was down…). */
+export const saleDocumentKinds = [
+  "reservation_sheet",
+  "receipt",
+  "payment_call",
+  "reminder_letter",
+] as const;
+export const requestSaleDocumentSchema = z.object({
+  kind: z.enum(saleDocumentKinds),
+  id: z.uuid(),
+});
+
+export const SALES_PAGE_SIZE = 25;
+
+export const saleListParams = z.object({
+  q: z.string().trim().max(100).optional().catch(undefined),
+  status: z.enum(["reserved", "sold", "withdrawn"]).optional().catch(undefined),
+  page: z.coerce.number().int().min(1).max(10_000).optional().catch(undefined),
+});
+export type SaleListParams = z.output<typeof saleListParams>;

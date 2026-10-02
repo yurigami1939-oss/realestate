@@ -7,6 +7,7 @@
 /coverage
 /test-results/
 /playwright-report/
+/e2e/.auth/
 /blob-report/
 /playwright/.cache/
 
@@ -34,3 +35,6 @@ next-env.d.ts
 
 # local artifacts
 /tmp/
+
+# local Claude Code launch config
+.claude/launch.json

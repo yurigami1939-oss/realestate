@@ -1,0 +1,2 @@
+ALTER TABLE "organization_setting" ADD COLUMN "logo_file_id" uuid;--> statement-breakpoint
+ALTER TABLE "organization_setting" ADD CONSTRAINT "organization_setting_logo_fk" FOREIGN KEY ("organization_id","logo_file_id") REFERENCES "public"."file"("organization_id","id") ON DELETE no action ON UPDATE no action;

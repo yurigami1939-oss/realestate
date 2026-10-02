@@ -1,0 +1,1814 @@
+{
+  "metadata": {
+    "title": "PRODUCT_NAME",
+    "description": "Gestion des promotions immobilières et des résidences"
+  },
+  "common": {
+    "appName": "PRODUCT_NAME",
+    "language": "Langue",
+    "backHome": "Retour à l'accueil",
+    "signOut": "Se déconnecter",
+    "or": "ou",
+    "continue": "Continuer",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "create": "Créer",
+    "back": "Retour",
+    "confirm": "Confirmer",
+    "actions": "Actions",
+    "saved": "Modifications enregistrées.",
+    "breadcrumb": "Fil d'Ariane",
+    "close": "Fermer",
+    "pagination": {
+      "label": "Pagination",
+      "page": "Page {page} sur {pages}",
+      "previous": "Précédent",
+      "next": "Suivant"
+    },
+    "total": "Total"
+  },
+  "locale": {
+    "fr": "Français",
+    "ar": "العربية"
+  },
+  "errors": {
+    "VALIDATION": "Certaines informations sont invalides.",
+    "UNAUTHENTICATED": "Veuillez vous connecter pour continuer.",
+    "FORBIDDEN": "Vous n'avez pas l'autorisation d'effectuer cette action.",
+    "NOT_FOUND": "Élément introuvable.",
+    "CONFLICT": "Cette opération entre en conflit avec des données existantes.",
+    "INVALID_TRANSITION": "Ce changement de statut n'est pas autorisé.",
+    "UNEXPECTED": "Une erreur inattendue est survenue. Veuillez réessayer.",
+    "notFoundTitle": "Page introuvable",
+    "notFoundText": "La page demandée n'existe pas ou a été déplacée.",
+    "noActiveOrganization": "Aucune société n'est sélectionnée.",
+    "tooManyRequests": "Trop de tentatives. Réessayez dans quelques secondes."
+  },
+  "files": {
+    "errors": {
+      "empty": "Aucun fichier reçu, ou fichier vide.",
+      "tooLarge": "Le fichier dépasse la taille maximale de 20 Mo.",
+      "type": "Format non accepté. Formats acceptés : PDF, PNG, JPEG, WebP."
+    }
+  },
+  "home": {
+    "title": "Bienvenue"
+  },
+  "validation": {
+    "required": "Champ obligatoire.",
+    "email": "Adresse e-mail invalide.",
+    "passwordMin": "10 caractères minimum.",
+    "slug": "Lettres minuscules, chiffres et tirets uniquement.",
+    "tooLong": "Texte trop long.",
+    "rolesRequired": "Choisissez au moins un rôle.",
+    "integer": "Nombre entier attendu.",
+    "outOfRange": "Valeur hors limites.",
+    "area": "Surface invalide (ex. 85,50).",
+    "amount": "Montant invalide (ex. 12 500 000,00).",
+    "date": "Date invalide.",
+    "code": "Lettres, chiffres et tirets uniquement.",
+    "floorRange": "L'étage le plus haut doit être au-dessus du plus bas.",
+    "tooManyUnits": "Trop de lots en une fois (500 maximum).",
+    "percent": "Pourcentage invalide (ex. 5 ou -2,5).",
+    "phone": "Numéro de téléphone invalide (ex. 0550 12 34 56).",
+    "dateTime": "Date et heure invalides.",
+    "nin": "NIN invalide (18 chiffres)."
+  },
+  "auth": {
+    "fields": {
+      "name": "Nom complet",
+      "email": "E-mail",
+      "password": "Mot de passe",
+      "newPassword": "Nouveau mot de passe"
+    },
+    "signIn": {
+      "title": "Connexion",
+      "description": "Accédez à votre espace.",
+      "submit": "Se connecter",
+      "noAccount": "Pas encore de compte ?",
+      "signUpLink": "Créer un compte",
+      "forgotPassword": "Mot de passe oublié ?",
+      "invalidCredentials": "E-mail ou mot de passe incorrect."
+    },
+    "signUp": {
+      "title": "Créer un compte",
+      "description": "Pour les promoteurs immobiliers et leurs équipes.",
+      "submit": "Créer mon compte",
+      "haveAccount": "Déjà un compte ?",
+      "signInLink": "Se connecter",
+      "emailTaken": "Un compte existe déjà avec cet e-mail."
+    },
+    "forgotPassword": {
+      "title": "Mot de passe oublié",
+      "description": "Recevez un lien de réinitialisation par e-mail.",
+      "submit": "Envoyer le lien",
+      "sent": "Si un compte existe pour cette adresse, un e-mail vient d'être envoyé.",
+      "backToSignIn": "Retour à la connexion"
+    },
+    "resetPassword": {
+      "title": "Nouveau mot de passe",
+      "description": "Choisissez un nouveau mot de passe.",
+      "submit": "Enregistrer",
+      "success": "Mot de passe modifié. Vous pouvez vous connecter.",
+      "invalidToken": "Ce lien est invalide ou a expiré."
+    }
+  },
+  "onboarding": {
+    "title": "Créer votre société",
+    "description": "Votre société de promotion immobilière. Les informations légales pourront être complétées plus tard.",
+    "name": "Nom commercial",
+    "legalName": "Raison sociale (optionnel)",
+    "slug": "Identifiant",
+    "slugHint": "Utilisé dans les liens, ex. : promo-el-bahdja",
+    "submit": "Créer la société",
+    "slugTaken": "Cet identifiant est déjà utilisé.",
+    "existing": "Vos sociétés",
+    "open": "Ouvrir",
+    "createNew": "Ou créez une nouvelle société"
+  },
+  "invitation": {
+    "title": "Invitation",
+    "description": "{inviter} vous invite à rejoindre {organization}.",
+    "roles": "Rôle(s) : {roles}",
+    "accept": "Accepter l'invitation",
+    "reject": "Refuser",
+    "signInToAccept": "Connectez-vous ou créez un compte avec {email} pour accepter.",
+    "invalid": "Cette invitation n'est plus valide.",
+    "wrongAccount": "Cette invitation est destinée à {email}. Connectez-vous avec ce compte."
+  },
+  "roles": {
+    "owner": "Gérant",
+    "sales_manager": "Directeur commercial",
+    "sales_agent": "Commercial",
+    "accountant": "Comptable",
+    "cashier": "Caissier",
+    "property_manager": "Gestionnaire de résidence",
+    "resident": "Acquéreur / résident"
+  },
+  "emails": {
+    "invitation": {
+      "subject": "Invitation à rejoindre {organization}",
+      "body": "{inviter} vous invite à rejoindre {organization} sur PRODUCT_NAME.",
+      "notice": "Ce lien est valable 7 jours.",
+      "cta": "Accepter l'invitation"
+    },
+    "resetPassword": {
+      "subject": "Réinitialisation du mot de passe",
+      "body": "Une réinitialisation du mot de passe a été demandée pour votre compte PRODUCT_NAME.",
+      "notice": "Si vous n'êtes pas à l'origine de cette demande, ignorez cet e-mail.",
+      "cta": "Choisir un nouveau mot de passe"
+    },
+    "overdueDigest": {
+      "subject": "Échéances impayées au {date} — {organization}",
+      "intro": "{count, plural, one {# vente présente} other {# ventes présentent}} des échéances impayées au {date}, pour un total de {total}.",
+      "columns": {
+        "sale": "Vente",
+        "buyers": "Acquéreur(s)",
+        "unit": "Lot",
+        "overdue": "Impayé",
+        "late": "Retard"
+      },
+      "days": "{days} j",
+      "more": "… et {count} autres ventes (voir la liste complète).",
+      "cta": "Voir les impayés"
+    }
+  },
+  "nav": {
+    "main": "Navigation",
+    "dashboard": "Tableau de bord",
+    "settings": "Paramètres",
+    "members": "Membres",
+    "projects": "Projets",
+    "sales": "Prospection",
+    "leads": "Prospects",
+    "pipeline": "Pipeline",
+    "followUps": "Relances",
+    "visits": "Visites",
+    "duplicates": "Doublons",
+    "company": "Société",
+    "targets": "Objectifs",
+    "buyers": "Acquéreurs",
+    "contracts": "Contrats et encaissements",
+    "saleList": "Réservations et ventes",
+    "overdue": "Impayés",
+    "commissions": "Commissions",
+    "audit": "Journal d'audit",
+    "residenceGroup": "Gestion des résidences",
+    "residences": "Résidences"
+  },
+  "shell": {
+    "organizations": "Sociétés",
+    "newOrganization": "Nouvelle société",
+    "language": "Langue",
+    "account": "Compte",
+    "toggleSidebar": "Afficher / masquer le menu"
+  },
+  "members": {
+    "title": "Membres",
+    "description": "Les personnes qui ont accès à cette société et leurs rôles.",
+    "you": "vous",
+    "columns": {
+      "name": "Nom",
+      "email": "E-mail",
+      "roles": "Rôles",
+      "joined": "Depuis",
+      "actions": "Actions"
+    },
+    "actions": "Actions pour {name}",
+    "editRoles": "Rôles",
+    "remove": "Retirer de la société",
+    "removeTitle": "Retirer {name} ?",
+    "removeDescription": "Cette personne n'aura plus accès à la société. Son historique reste dans le journal d'audit.",
+    "confirmRemove": "Retirer",
+    "cancel": "Annuler",
+    "ownerLocked": "Le rôle du gérant ne peut pas être modifié.",
+    "alreadyMember": "Cette personne est déjà membre de la société.",
+    "updated": "Rôles mis à jour.",
+    "removed": "Membre retiré.",
+    "invite": {
+      "title": "Inviter un membre",
+      "description": "Un e-mail d'invitation en français et en arabe sera envoyé.",
+      "email": "E-mail",
+      "roles": "Rôles",
+      "submit": "Envoyer l'invitation",
+      "sent": "Invitation envoyée à {email}."
+    },
+    "pending": {
+      "title": "Invitations en attente",
+      "empty": "Aucune invitation en attente.",
+      "expires": "Expire le {date}",
+      "cancel": "Annuler l'invitation",
+      "cancelled": "Invitation annulée."
+    }
+  },
+  "inventory": {
+    "projectStatus": {
+      "planning": "En étude",
+      "under_construction": "En construction",
+      "delivered": "Livré"
+    },
+    "unitStatus": {
+      "available": "Disponible",
+      "optioned": "Optionné",
+      "reserved": "Réservé",
+      "sold": "Vendu",
+      "delivered": "Livré",
+      "rented": "Loué",
+      "blocked": "Bloqué"
+    },
+    "unitType": {
+      "apartment": "Appartement",
+      "commercial": "Local commercial",
+      "office": "Bureau",
+      "parking": "Parking / box",
+      "storage": "Cave",
+      "villa": "Villa"
+    },
+    "orientation": {
+      "N": "Nord",
+      "NE": "Nord-Est",
+      "E": "Est",
+      "SE": "Sud-Est",
+      "S": "Sud",
+      "SW": "Sud-Ouest",
+      "W": "Ouest",
+      "NW": "Nord-Ouest"
+    },
+    "stats": {
+      "units": "Lots",
+      "available": "Disponibles",
+      "engaged": "Optionnés / réservés",
+      "sold": "Vendus",
+      "unavailable": "Bloqués / loués"
+    },
+    "floor": {
+      "ground": "RDC",
+      "upper": "Étage {floor}",
+      "basement": "Sous-sol {level}"
+    },
+    "projects": {
+      "title": "Projets",
+      "description": "Vos promotions immobilières et leur stock de lots.",
+      "new": "Nouveau projet",
+      "empty": "Aucun projet pour le moment.",
+      "editTitle": "Modifier le projet",
+      "created": "Projet créé.",
+      "deleted": "Projet supprimé.",
+      "deleteTitle": "Supprimer le projet {name} ?",
+      "deleteDescription": "Seul un projet sans lots peut être supprimé.",
+      "information": "Informations",
+      "fields": {
+        "code": "Code",
+        "codeHint": "Court et unique, ex. OLIV",
+        "name": "Nom",
+        "status": "État",
+        "address": "Adresse",
+        "wilaya": "Wilaya",
+        "commune": "Commune",
+        "buildingPermitNumber": "N° du permis de construire",
+        "buildingPermitDate": "Date du permis",
+        "launchedOn": "Lancement",
+        "plannedDeliveryOn": "Livraison prévue",
+        "description": "Description"
+      }
+    },
+    "buildings": {
+      "title": "Bâtiments",
+      "new": "Ajouter un bâtiment",
+      "empty": "Aucun bâtiment. Ajoutez un bloc pour créer ses lots.",
+      "created": "Bâtiment créé.",
+      "deleted": "Bâtiment supprimé.",
+      "editTitle": "Modifier le bâtiment",
+      "deleteTitle": "Supprimer le bâtiment {name} ?",
+      "deleteDescription": "Seul un bâtiment sans lots peut être supprimé.",
+      "floors": "{count, plural, one {# niveau} other {# niveaux}}",
+      "openGrid": "Voir la grille",
+      "fields": {
+        "code": "Code",
+        "codeHint": "Ex. A — utilisé dans les codes des lots",
+        "name": "Nom",
+        "lowestFloor": "Niveau le plus bas",
+        "lowestFloorHint": "0 = RDC, -1 = premier sous-sol",
+        "topFloor": "Dernier étage"
+      }
+    },
+    "grid": {
+      "title": "Grille de disponibilité",
+      "legend": "Légende",
+      "empty": "Aucun lot dans ce bâtiment.",
+      "all": "Tous"
+    },
+    "generate": {
+      "title": "Générer des lots",
+      "description": "Crée les lots étage par étage avec des codes du type <code>{example}</code>. Les codes existants sont ignorés.",
+      "fromFloor": "Du niveau",
+      "toFloor": "Au niveau",
+      "unitsPerFloor": "Lots par étage",
+      "submit": "Générer",
+      "result": "{created, plural, =0 {Aucun lot créé} one {# lot créé} other {# lots créés}} · {skipped} ignoré(s)."
+    },
+    "units": {
+      "new": "Nouveau lot",
+      "editTitle": "Modifier le lot {code}",
+      "created": "Lot créé.",
+      "deleted": "Lot supprimé.",
+      "deleteTitle": "Supprimer le lot {code} ?",
+      "deleteDescription": "Seul un lot disponible ou bloqué peut être supprimé.",
+      "details": "Caractéristiques",
+      "noPrice": "Non tarifé",
+      "pricePerSqm": "{price} / m²",
+      "fields": {
+        "building": "Bâtiment",
+        "code": "Code",
+        "floor": "Niveau",
+        "type": "Type",
+        "typology": "Typologie",
+        "isDuplex": "Duplex",
+        "livingArea": "Surface habitable (m²)",
+        "usableArea": "Surface utile (m²)",
+        "outdoorArea": "Balcon / terrasse (m²)",
+        "orientations": "Orientation",
+        "share": "Quote-part (tantièmes)",
+        "notes": "Notes",
+        "listPrice": "Prix de vente",
+        "status": "Statut"
+      },
+      "block": "Bloquer",
+      "unblock": "Débloquer",
+      "blockTitle": "Bloquer le lot {code}",
+      "unblockTitle": "Débloquer le lot {code}",
+      "reason": "Motif",
+      "blocked": "Lot bloqué.",
+      "unblocked": "Lot débloqué.",
+      "changePrice": "Modifier le prix",
+      "changePriceTitle": "Prix de vente du lot {code}",
+      "newPrice": "Nouveau prix (DA)",
+      "priceChanged": "Prix mis à jour.",
+      "statusHistory": "Historique des statuts",
+      "priceHistory": "Historique des prix",
+      "noHistory": "Aucun changement.",
+      "historyColumns": {
+        "date": "Date",
+        "change": "Changement",
+        "reason": "Motif",
+        "by": "Par"
+      },
+      "createdEvent": "Création",
+      "priceListRef": "Grille V{version}",
+      "floorPlan": {
+        "title": "Plan du lot",
+        "empty": "Aucun plan pour ce lot.",
+        "upload": "Ajouter un plan",
+        "replace": "Remplacer",
+        "download": "Télécharger",
+        "open": "Ouvrir le plan",
+        "remove": "Supprimer le plan",
+        "removeTitle": "Supprimer le plan du lot {code} ?",
+        "removeDescription": "Le plan ne sera plus affiché sur la fiche du lot.",
+        "uploaded": "Plan enregistré.",
+        "removed": "Plan supprimé.",
+        "hint": "PDF, PNG, JPEG ou WebP, 20 Mo maximum.",
+        "alt": "Plan du lot {code}"
+      }
+    },
+    "priceLists": {
+      "title": "Grilles de prix",
+      "description": "Préparez une nouvelle grille, vérifiez-la, puis appliquez-la en une fois.",
+      "new": "Nouvelle grille",
+      "newTitle": "Nouvelle grille de prix",
+      "name": "Nom",
+      "nameHint": "Ex. Grille 2027",
+      "empty": "Aucune grille pour ce projet.",
+      "version": "V{version}",
+      "status": {
+        "draft": "Brouillon",
+        "applied": "Appliquée",
+        "discarded": "Abandonnée"
+      },
+      "columns": {
+        "unit": "Lot",
+        "floor": "Niveau",
+        "typology": "Typologie",
+        "area": "Surface",
+        "current": "Prix actuel",
+        "new": "Nouveau prix",
+        "change": "Variation"
+      },
+      "items": "{count, plural, =0 {Aucun lot tarifé} one {# lot tarifé} other {# lots tarifés}}",
+      "save": "Enregistrer le brouillon",
+      "saved": "Brouillon enregistré.",
+      "apply": "Appliquer la grille",
+      "applyTitle": "Appliquer « {name} » ?",
+      "applyDescription": "Les prix de vente des lots modifiés seront remplacés. Les réservations existantes gardent leur prix.",
+      "applied": "{changed, plural, =0 {Aucun prix modifié} one {# prix modifié} other {# prix modifiés}}.",
+      "discard": "Abandonner",
+      "discarded": "Grille abandonnée.",
+      "readOnly": "Cette grille est en lecture seule.",
+      "bulk": {
+        "title": "Remplissage rapide",
+        "percent": "Variation (%) sur le prix actuel",
+        "perSqm": "Prix au m² (DA)",
+        "applyPercent": "Appliquer la variation",
+        "applyPerSqm": "Surface × prix au m²"
+      },
+      "discardDescription": "Le brouillon est abandonné ; les prix de vente actuels ne changent pas.",
+      "unsaved": "Modifications non enregistrées"
+    },
+    "errors": {
+      "codeTaken": "Ce code est déjà utilisé.",
+      "projectHasUnits": "Le projet contient des lots.",
+      "buildingHasUnits": "Le bâtiment contient des lots.",
+      "unitNotDeletable": "Ce lot est engagé dans une vente.",
+      "floorOutOfRange": "Niveau hors du bâtiment.",
+      "unitsOutsideFloors": "Des lots existent en dehors de ces niveaux.",
+      "priceListNotDraft": "Cette grille n'est plus modifiable.",
+      "unitNotInProject": "Un lot n'appartient pas à ce projet."
+    }
+  },
+  "crm": {
+    "source": {
+      "facebook": "Facebook",
+      "instagram": "Instagram",
+      "whatsapp": "WhatsApp",
+      "ouedkniss": "Ouedkniss",
+      "walk_in": "Passage au bureau",
+      "referral": "Recommandation",
+      "phone": "Appel entrant",
+      "website": "Site web",
+      "other": "Autre"
+    },
+    "stage": {
+      "new": "Nouveau",
+      "contacted": "Contacté",
+      "visit_scheduled": "Visite planifiée",
+      "visited": "Visité",
+      "negotiation": "Négociation",
+      "won": "Gagné",
+      "lost": "Perdu"
+    },
+    "lostReason": {
+      "price": "Prix",
+      "financing": "Financement",
+      "location": "Emplacement",
+      "typology": "Typologie",
+      "delivery_date": "Date de livraison",
+      "competitor": "Concurrent",
+      "no_response": "Injoignable",
+      "other": "Autre"
+    },
+    "financing": {
+      "cash": "Comptant",
+      "bank_loan": "Crédit bancaire",
+      "mixed": "Mixte",
+      "unknown": "Non précisé"
+    },
+    "visitStatus": {
+      "planned": "Planifiée",
+      "done": "Effectuée",
+      "cancelled": "Annulée",
+      "no_show": "Absent"
+    },
+    "channel": {
+      "call": "Appel",
+      "whatsapp": "WhatsApp",
+      "sms": "SMS",
+      "email": "E-mail",
+      "meeting": "Rendez-vous",
+      "other": "Autre"
+    },
+    "leads": {
+      "title": "Prospects",
+      "description": "Vos contacts commerciaux et leur avancement.",
+      "new": "Nouveau prospect",
+      "editTitle": "Modifier le prospect",
+      "created": "Prospect créé.",
+      "createdDuplicate": "Prospect créé. Ce numéro existe déjà sur {count, plural, one {# autre fiche} other {# autres fiches}}.",
+      "deleted": "Prospect supprimé.",
+      "deleteTitle": "Supprimer {name} ?",
+      "deleteDescription": "La fiche disparaît des listes ; son historique est conservé.",
+      "empty": "Aucun prospect pour le moment.",
+      "emptyFiltered": "Aucun prospect ne correspond à ces filtres.",
+      "search": "Nom ou téléphone",
+      "allStages": "Toutes les étapes",
+      "allSources": "Toutes les sources",
+      "allAssignees": "Tous les commerciaux",
+      "unassigned": "Non assigné",
+      "duplicatesOnly": "Doublons possibles",
+      "duplicate": "Doublon possible",
+      "count": "{count, plural, =0 {Aucun prospect} one {# prospect} other {# prospects}}",
+      "columns": {
+        "name": "Prospect",
+        "phone": "Téléphone",
+        "stage": "Étape",
+        "source": "Source",
+        "project": "Projet",
+        "assignee": "Commercial",
+        "lastActivity": "Dernière activité",
+        "nextFollowUp": "Prochaine relance"
+      },
+      "fields": {
+        "fullName": "Nom complet",
+        "phone": "Téléphone",
+        "phone2": "Second téléphone",
+        "email": "E-mail",
+        "city": "Ville / wilaya",
+        "source": "Source",
+        "sourceDetail": "Précision (campagne, parrain…)",
+        "projectId": "Projet souhaité",
+        "typologies": "Typologies recherchées",
+        "budget": "Budget (DA)",
+        "financing": "Financement",
+        "notes": "Notes",
+        "assignedTo": "Commercial"
+      },
+      "sections": {
+        "contact": "Contact",
+        "interest": "Intérêt"
+      },
+      "call": "Appeler",
+      "whatsapp": "WhatsApp",
+      "changeStage": "Changer l'étape",
+      "stageTitle": "Étape de {name}",
+      "stageChanged": "Étape mise à jour.",
+      "lostReason": "Motif de perte",
+      "lostNote": "Précision",
+      "assign": "Attribuer",
+      "assignTitle": "Attribuer {name}",
+      "assigned": "Prospect attribué.",
+      "duplicatesAlert": "{count, plural, one {Ce numéro figure sur # autre fiche.} other {Ce numéro figure sur # autres fiches.}}",
+      "duplicatesAgentHint": "La direction commerciale peut les fusionner.",
+      "merge": "Fusionner ici",
+      "mergeTitle": "Fusionner « {source} » dans cette fiche ?",
+      "mergeDescription": "Ses visites et relances passent sur cette fiche, les champs vides sont complétés, puis elle disparaît des listes. Son historique reste visible ici.",
+      "merged": "Fiches fusionnées.",
+      "timeline": "Historique",
+      "addNote": "Ajouter une note",
+      "notePlaceholder": "Compte rendu d'appel, remarque…",
+      "noteAdded": "Note ajoutée.",
+      "activity": {
+        "created": "Fiche créée",
+        "updated": "Fiche modifiée",
+        "stage_changed": "Étape : {from} → {to}",
+        "assigned": "Attribution modifiée",
+        "note": "Note",
+        "visit_scheduled": "Visite planifiée le {date}",
+        "visit_updated": "Visite : {status}",
+        "follow_up_created": "Relance planifiée le {date}",
+        "follow_up_done": "Relance effectuée",
+        "quotation_issued": "Devis {number} émis",
+        "quotation_cancelled": "Devis {number} annulé",
+        "merged": "Fiche « {name} » fusionnée ici",
+        "option_placed": "Option sur le lot {unit} jusqu'au {date}",
+        "option_ended": "Option sur le lot {unit} : {reason}",
+        "option_reason": {
+          "expired": "expirée",
+          "cancelled": "levée",
+          "converted": "réservation signée"
+        },
+        "reserved": "Réservation {number} signée (lot {unit})",
+        "sale_signed": "VSP signée (lot {unit})",
+        "withdrawn": "Désistement (réservation {number})"
+      }
+    },
+    "pipeline": {
+      "title": "Pipeline",
+      "description": "Prospects en cours, par étape.",
+      "closed": "Clôturés : {won} gagnés · {lost} perdus",
+      "more": "+ {count} autres",
+      "empty": "Aucun prospect"
+    },
+    "followUps": {
+      "title": "Relances",
+      "description": "Les relances à faire, les plus urgentes d'abord.",
+      "new": "Planifier une relance",
+      "newTitle": "Nouvelle relance",
+      "created": "Relance planifiée.",
+      "fields": {
+        "dueAt": "Date et heure",
+        "channel": "Canal",
+        "note": "Objet",
+        "assignedTo": "Pour"
+      },
+      "overdue": "En retard",
+      "today": "Aujourd'hui",
+      "upcoming": "À venir",
+      "empty": "Aucune relance en attente.",
+      "complete": "Fait",
+      "completeTitle": "Relance effectuée",
+      "outcome": "Résultat",
+      "completed": "Relance effectuée.",
+      "doneOn": "Effectuée le {date}",
+      "none": "Aucune relance."
+    },
+    "visits": {
+      "title": "Visites",
+      "description": "Agenda des visites des 14 prochains jours.",
+      "new": "Planifier une visite",
+      "newTitle": "Nouvelle visite",
+      "created": "Visite planifiée.",
+      "fields": {
+        "scheduledAt": "Date et heure",
+        "projectId": "Projet",
+        "unitId": "Lot",
+        "agentUserId": "Accompagnée par",
+        "notes": "Notes",
+        "status": "Statut",
+        "outcome": "Compte rendu"
+      },
+      "record": "Compte rendu",
+      "recordTitle": "Visite du {date}",
+      "updated": "Visite mise à jour.",
+      "empty": "Aucune visite prévue.",
+      "none": "Aucune visite.",
+      "anyUnit": "Sans lot précis"
+    },
+    "duplicates": {
+      "title": "Doublons",
+      "description": "Fiches partageant un même numéro. Fusionnez-les dans la fiche à conserver.",
+      "empty": "Aucun doublon.",
+      "keep": "Conserver",
+      "keepTitle": "Conserver la fiche de {name} ?",
+      "keepDescription": "Les autres fiches de ce numéro y sont fusionnées (visites, relances et historique)."
+    },
+    "errors": {
+      "notAssignable": "Ce membre ne suit pas de prospects (commercial ou direction commerciale uniquement).",
+      "projectNotFound": "Projet introuvable.",
+      "unitNotFound": "Lot introuvable dans ce projet.",
+      "mergeSelf": "Choisissez une autre fiche à fusionner."
+    }
+  },
+  "company": {
+    "title": "Société",
+    "description": "Identité légale imprimée sur les devis, reçus et contrats, et réglages commerciaux.",
+    "identity": "Identité légale",
+    "sales": "Ventes",
+    "saved": "Réglages enregistrés.",
+    "fields": {
+      "name": "Nom commercial",
+      "legalName": "Raison sociale",
+      "address": "Adresse du siège",
+      "wilaya": "Wilaya",
+      "phone": "Téléphone",
+      "rcNumber": "N° RC",
+      "nif": "NIF",
+      "nis": "NIS",
+      "aiNumber": "N° d'article d'imposition (AI)",
+      "quotationValidityDays": "Validité des devis (jours)",
+      "optionHours": "Durée d'une option (heures)",
+      "withdrawalRetention": "Retenue en cas de désistement (%)",
+      "paymentCallDelayDays": "Délai de paiement d'un appel de fonds (jours)",
+      "defaultCommissionRate": "Commission par défaut (% du prix net)",
+      "penaltyMonthlyRate": "Pénalité de retard (% par mois)",
+      "penaltyGraceDays": "Délai de grâce (jours)",
+      "penaltyCap": "Plafond de pénalité (% de l’échéance)",
+      "vspLimitSigning": "À la signature (%)",
+      "vspLimitFoundations": "Fin des fondations (%)",
+      "vspLimitStructure": "Fin du gros œuvre (%)",
+      "vspLimitCompletion": "Fin des travaux (%)"
+    },
+    "collections": "Encaissements et commissions",
+    "penaltyHint": "Pénalités de retard : calculées et affichées sur les relevés et lettres de relance, jamais facturées automatiquement. 0 % = désactivées.",
+    "vspLimits": "Plafonds de paiement VSP (cumulés)",
+    "vspLimitsHint": "Selon le décret 13-431 tel que confirmé par votre notaire. Laissez vide pour ne pas contrôler ; un dépassement affiche un avertissement, sans bloquer.",
+    "logo": {
+      "title": "Logo",
+      "alt": "Logo de la société",
+      "none": "Aucun logo.",
+      "upload": "Ajouter le logo",
+      "replace": "Remplacer",
+      "uploaded": "Logo enregistré.",
+      "remove": "Retirer",
+      "removeTitle": "Retirer le logo ?",
+      "removeDescription": "Les documents émis ensuite n'auront plus de logo ; ceux déjà émis restent inchangés.",
+      "removed": "Logo retiré.",
+      "hint": "PNG ou JPEG, 2 Mo au plus. Imprimé en tête des devis, fiches de réservation, reçus, appels de fonds et lettres de relance émis ensuite."
+    }
+  },
+  "paymentPlans": {
+    "title": "Échéanciers",
+    "description": "Étapes des travaux prévues et échéanciers types proposés aux acquéreurs.",
+    "milestones": "Avancement des travaux (prévisionnel)",
+    "milestonesHint": "Les échéances liées à une étape sont dues à sa réalisation ; la date prévue sert aux simulations, le stade au contrôle des plafonds VSP.",
+    "milestoneName": "Étape",
+    "plannedOn": "Date prévue",
+    "addMilestone": "Ajouter une étape",
+    "saveMilestones": "Enregistrer les étapes",
+    "milestonesSaved": "Étapes enregistrées.",
+    "noMilestones": "Aucune étape prévue.",
+    "plans": "Échéanciers types",
+    "noPlans": "Aucun échéancier. Créez-en un pour pouvoir émettre des devis.",
+    "new": "Nouvel échéancier",
+    "edit": "Modifier",
+    "newTitle": "Nouvel échéancier",
+    "editTitle": "Modifier « {name} »",
+    "name": "Nom",
+    "isDefault": "Échéancier par défaut du projet",
+    "default": "Par défaut",
+    "notes": "Notes",
+    "steps": "Tranches",
+    "addStep": "Ajouter une tranche",
+    "removeStep": "Retirer la tranche",
+    "step": {
+      "label": "Libellé",
+      "share": "Part (%)",
+      "trigger": "Exigible",
+      "months": "Mois après signature",
+      "milestoneId": "Étape des travaux"
+    },
+    "trigger": {
+      "signing": "À la signature",
+      "months_after_signing": "N mois après signature",
+      "milestone": "À une étape des travaux"
+    },
+    "total": "Total : {total}",
+    "created": "Échéancier créé.",
+    "updated": "Échéancier enregistré.",
+    "deleted": "Échéancier supprimé.",
+    "deleteTitle": "Supprimer « {name} » ?",
+    "deleteDescription": "Les devis déjà émis gardent leur échéancier.",
+    "monthsAfter": "{months, plural, =0 {À la signature} one {# mois après signature} other {# mois après signature}}",
+    "errors": {
+      "total": "La somme des tranches doit faire exactement 100 %.",
+      "noSteps": "Ajoutez au moins une tranche.",
+      "milestoneInUse": "Cette étape est utilisée par un échéancier : retirez-la d'abord de l'échéancier.",
+      "milestoneNotFound": "Étape inconnue pour ce projet.",
+      "milestoneValidated": "Une étape réalisée ne peut pas être retirée.",
+      "milestoneInSale": "Cette étape figure dans l'échéancier d'une réservation.",
+      "alreadyValidated": "Cette étape est déjà validée."
+    },
+    "defaultSteps": {
+      "signing": "Réservation",
+      "handover": "Remise des clés"
+    },
+    "stage": "Stade des travaux",
+    "stages": {
+      "none": "Non classée",
+      "foundations": "Fin des fondations",
+      "structure": "Fin du gros œuvre",
+      "completion": "Fin des travaux",
+      "handover": "Remise des clés"
+    },
+    "validatedOn": "Réalisée le {date}",
+    "validate": {
+      "open": "Valider",
+      "title": "Étape « {name} » réalisée",
+      "description": "Les échéances liées à cette étape deviennent exigibles {days, plural, =0 {dès la date de réalisation} one {# jour après la date de réalisation} other {# jours après la date de réalisation}}, jamais avant la signature de la réservation, et un appel de fonds numéroté est émis pour chaque vente concernée. Cette validation est définitive.",
+      "date": "Date de réalisation",
+      "submit": "Valider l'étape",
+      "done": "Étape validée. {count, plural, =0 {Aucune échéance concernée.} one {# échéance devient exigible ; l'appel de fonds est en préparation.} other {# échéances deviennent exigibles ; les appels de fonds sont en préparation.}}"
+    }
+  },
+  "quotations": {
+    "title": "Devis",
+    "new": "Nouveau devis",
+    "newTitle": "Devis pour {name}",
+    "simulator": "Simulation",
+    "project": "Projet",
+    "unit": "Lot",
+    "plan": "Échéancier",
+    "discount": "Remise (DA)",
+    "discountHint": "Réservée à la direction commerciale.",
+    "notes": "Remarques imprimées sur le devis",
+    "listPrice": "Prix de vente",
+    "net": "Prix net",
+    "issue": "Émettre le devis",
+    "issued": "Devis {number} émis.",
+    "noPlan": "Ce projet n'a pas encore d'échéancier.",
+    "noUnits": "Aucun lot disponible et tarifé dans ce projet.",
+    "chooseUnit": "Choisissez un lot pour voir la simulation.",
+    "columns": {
+      "step": "Tranche",
+      "due": "Exigible",
+      "share": "%",
+      "amount": "Montant"
+    },
+    "atSigning": "À la signature",
+    "plannedMilestone": "{name} (prévu le {date})",
+    "unplannedMilestone": "{name} (date non prévue)",
+    "validUntil": "Valable jusqu'au {date}",
+    "issuedBy": "Émis le {date} par {name}",
+    "status": {
+      "issued": "Émis",
+      "cancelled": "Annulé",
+      "expired": "Expiré"
+    },
+    "pdf": "PDF",
+    "pdfPending": "PDF en préparation…",
+    "pdfRetry": "Relancer la génération",
+    "pdfRequested": "Génération relancée.",
+    "download": "Télécharger le PDF",
+    "cancel": "Annuler le devis",
+    "cancelTitle": "Annuler le devis {number} ?",
+    "cancelDescription": "Le devis reste consultable avec son numéro ; il ne peut plus servir.",
+    "cancelReason": "Motif",
+    "cancelled": "Devis annulé.",
+    "cancelledBy": "Annulé le {date} par {name} : {reason}",
+    "none": "Aucun devis.",
+    "lead": "Prospect",
+    "errors": {
+      "discountForbidden": "Seule la direction commerciale peut accorder une remise.",
+      "discountTooHigh": "La remise dépasse le prix du lot.",
+      "unitNotAvailable": "Ce lot n'est plus disponible.",
+      "unitNotPriced": "Ce lot n'a pas de prix de vente.",
+      "planNotFound": "Échéancier introuvable pour ce projet.",
+      "alreadyCancelled": "Ce devis est déjà annulé."
+    }
+  },
+  "targets": {
+    "title": "Objectifs",
+    "description": "Objectifs mensuels des commerciaux : visites effectuées, devis émis, réservations et VSP signées.",
+    "previous": "Mois précédent",
+    "next": "Mois suivant",
+    "columns": {
+      "member": "Commercial",
+      "visits": "Visites effectuées",
+      "quotations": "Devis émis",
+      "reservations": "Réservations signées",
+      "sales": "VSP signées"
+    },
+    "target": "Objectif",
+    "save": "Enregistrer les objectifs",
+    "saved": "Objectifs enregistrés.",
+    "progress": "{actual} / {target}",
+    "noTarget": "{actual} (sans objectif)",
+    "hint": "Les réservations et les ventes sont comptées au commercial de la vente ; une réservation désistée ne compte plus.",
+    "empty": "Aucun commercial."
+  },
+  "buyers": {
+    "title": "Acquéreurs",
+    "description": "Dossiers des acquéreurs : identité, pièces et contrats.",
+    "new": "Nouvel acquéreur",
+    "newTitle": "Nouvel acquéreur",
+    "editTitle": "Modifier l'acquéreur",
+    "created": "Fiche acquéreur créée.",
+    "search": "Nom, NIN ou téléphone",
+    "empty": "Aucun acquéreur.",
+    "count": "{count, plural, =0 {Aucun acquéreur} one {# acquéreur} other {# acquéreurs}}",
+    "fromLead": "Créer la fiche acquéreur",
+    "openBuyer": "Fiche acquéreur",
+    "lead": "Prospect d'origine",
+    "owner": "Suivi par",
+    "columns": {
+      "name": "Acquéreur",
+      "phone": "Téléphone",
+      "nin": "NIN",
+      "place": "Commune / wilaya",
+      "owner": "Suivi par",
+      "documents": "Pièces"
+    },
+    "sections": {
+      "identity": "État civil",
+      "idCard": "Pièce d'identité",
+      "contact": "Coordonnées",
+      "situation": "Situation professionnelle et familiale"
+    },
+    "fields": {
+      "civility": "Civilité",
+      "lastName": "Nom",
+      "firstName": "Prénom",
+      "lastNameAr": "Nom (en arabe)",
+      "firstNameAr": "Prénom (en arabe)",
+      "birthDate": "Date de naissance",
+      "birthPlace": "Lieu de naissance",
+      "fatherFirstName": "Prénom du père",
+      "motherFullName": "Nom et prénom de la mère",
+      "nin": "NIN (18 chiffres)",
+      "idCardNumber": "N° de la pièce d'identité",
+      "idCardIssuedOn": "Délivrée le",
+      "idCardIssuedBy": "Délivrée par",
+      "phone": "Téléphone",
+      "phone2": "Second téléphone",
+      "email": "E-mail",
+      "address": "Adresse",
+      "commune": "Commune",
+      "wilaya": "Wilaya",
+      "profession": "Profession",
+      "employer": "Employeur",
+      "maritalStatus": "Situation familiale",
+      "notes": "Notes"
+    },
+    "civility": {
+      "mr": "M.",
+      "mrs": "Mme"
+    },
+    "maritalStatus": {
+      "single": "Célibataire",
+      "married": "Marié(e)",
+      "divorced": "Divorcé(e)",
+      "widowed": "Veuf (veuve)"
+    },
+    "filiation": "Fils/fille de {father} et de {mother}",
+    "born": "Né(e) le {date} à {place}",
+    "documents": {
+      "title": "Pièces du dossier",
+      "missing": "{count, plural, =0 {Dossier complet} one {# pièce manquante} other {# pièces manquantes}}",
+      "required": "Obligatoire",
+      "upload": "Joindre",
+      "replace": "Remplacer",
+      "view": "Voir",
+      "updated": "Pièce mise à jour.",
+      "uploaded": "Scan enregistré.",
+      "kind": {
+        "id_card": "Carte d'identité (CNI)",
+        "birth_certificate": "Extrait de naissance",
+        "family_record": "Fiche familiale",
+        "residence_certificate": "Certificat de résidence",
+        "employment_certificate": "Attestation de travail",
+        "payslips": "Fiches de paie",
+        "bank_statement": "Relevé bancaire",
+        "other": "Autre pièce"
+      },
+      "status": {
+        "missing": "Manquante",
+        "received": "Reçue",
+        "verified": "Vérifiée"
+      }
+    },
+    "errors": {
+      "ninTaken": "Ce NIN est déjà utilisé par un autre acquéreur."
+    }
+  },
+  "sales": {
+    "options": {
+      "title": "Options",
+      "place": "Poser une option",
+      "placeTitle": "Poser une option",
+      "placed": "Option posée jusqu'au {date}.",
+      "lead": "Prospect",
+      "unit": "Lot",
+      "heldFor": "Optionné pour <lead>{name}</lead> jusqu'au {date}",
+      "heldUntil": "Optionné jusqu'au {date}",
+      "cancel": "Lever l'option",
+      "cancelTitle": "Lever l'option sur le lot {code} ?",
+      "cancelDescription": "Le lot redevient disponible pour tous.",
+      "cancelled": "Option levée.",
+      "none": "Aucune option.",
+      "hint": "L'option dure {hours, plural, one {# heure} other {# heures}} ; le lot est ensuite libéré automatiquement.",
+      "state": {
+        "active": "Active",
+        "expired": "Expirée",
+        "cancelled": "Levée",
+        "converted": "Réservée"
+      }
+    },
+    "errors": {
+      "unitNotAvailable": "Ce lot n'est plus disponible.",
+      "optionNotActive": "Cette option n'est plus active.",
+      "buyerRequired": "Choisissez au moins un acquéreur.",
+      "buyerTwice": "Un acquéreur ne peut figurer deux fois.",
+      "optionedForAnother": "Ce lot est en option pour un autre prospect.",
+      "futureDate": "La date ne peut pas être dans le futur.",
+      "notReserved": "Seule une réservation en cours peut être signée en VSP.",
+      "beforeReservation": "La VSP ne peut précéder la réservation.",
+      "closed": "Cette réservation est close (désistement).",
+      "notSold": "L'acte de vente ne peut être joint qu'après la signature de la VSP."
+    },
+    "title": "Réservations et ventes",
+    "description": "Réservations signées, ventes sur plans et suivi des encaissements.",
+    "new": "Nouvelle réservation",
+    "newTitle": "Nouvelle réservation",
+    "reserve": "Réserver",
+    "openSale": "Voir la réservation {number}",
+    "created": "Réservation {number} enregistrée.",
+    "search": "N°, lot ou acquéreur",
+    "allStatuses": "Tous les statuts",
+    "empty": "Aucune réservation.",
+    "count": "{count, plural, =0 {Aucune réservation} one {# réservation} other {# réservations}}",
+    "status": {
+      "reserved": "Réservé",
+      "sold": "Vendu (VSP)",
+      "withdrawn": "Désisté"
+    },
+    "columns": {
+      "number": "N°",
+      "buyers": "Acquéreur(s)",
+      "unit": "Lot",
+      "status": "Statut",
+      "price": "Prix",
+      "paid": "Encaissé",
+      "reservedOn": "Réservé le",
+      "commercial": "Commercial"
+    },
+    "fields": {
+      "unitId": "Lot",
+      "buyerIds": "Acquéreur(s)",
+      "addBuyer": "Ajouter un co-acquéreur",
+      "removeBuyer": "Retirer",
+      "mainBuyer": "Acquéreur principal",
+      "coBuyer": "Co-acquéreur",
+      "paymentPlanId": "Échéancier",
+      "discount": "Remise (DA)",
+      "reservedOn": "Date du contrat de réservation",
+      "notary": "Notaire",
+      "reference": "Référence de l'acte",
+      "notes": "Remarques"
+    },
+    "newBuyer": "Nouvel acquéreur",
+    "noBuyer": "Aucun acquéreur : créez d'abord la fiche acquéreur.",
+    "schedule": "Échéancier",
+    "atSigning": "À la signature",
+    "atMilestone": "À l'achèvement : {name}",
+    "plannedOn": "prévu le {date}",
+    "warnings": {
+      "title": "Contrôle des plafonds VSP",
+      "over_limit": "{stage} : {cumulative} demandés pour un plafond de {limit}.",
+      "unclassified": "{share} ne sont pas liés à une étape des travaux classée.",
+      "stage": {
+        "signing": "À la signature",
+        "foundations": "Fin des fondations",
+        "structure": "Fin du gros œuvre",
+        "completion": "Fin des travaux"
+      }
+    },
+    "missingDocuments": "{count, plural, =0 {Dossier acquéreur complet} one {# pièce manquante au dossier} other {# pièces manquantes au dossier}}",
+    "sections": {
+      "summary": "Résumé",
+      "buyers": "Acquéreurs",
+      "documents": "Documents",
+      "statement": "Échéancier et paiements",
+      "payments": "Encaissements",
+      "commission": "Commission",
+      "afterSale": "Suivi du dossier"
+    },
+    "sheet": "Fiche de réservation",
+    "contractScan": "Contrat de réservation signé",
+    "deedScan": "Acte de vente (VSP) signé",
+    "attach": "Joindre le scan",
+    "replace": "Remplacer",
+    "scanSaved": "Scan enregistré.",
+    "pdfPending": "En préparation…",
+    "notaryRef": "Notaire : {notary}",
+    "vsp": {
+      "record": "Enregistrer la VSP",
+      "title": "Vente sur plans signée",
+      "description": "Le lot passe à « vendu », la commission du commercial est acquise.",
+      "signedOn": "Date de signature",
+      "notary": "Notaire",
+      "reference": "N° de l'acte",
+      "recorded": "VSP {number} enregistrée.",
+      "signed": "VSP {number} signée le {date} chez {notary}"
+    },
+    "statement": {
+      "price": "Prix",
+      "paid": "Encaissé",
+      "remaining": "Reste à payer",
+      "due": "Exigible",
+      "overdue": "En retard",
+      "advance": "Avance sur échéances à venir",
+      "penalties": "Pénalités calculées",
+      "penaltiesHint": "Calculées selon les réglages, affichées pour information ; jamais facturées automatiquement.",
+      "columns": {
+        "step": "Échéance",
+        "due": "Exigible le",
+        "amount": "Montant",
+        "paid": "Payé",
+        "remaining": "Reste",
+        "state": "État",
+        "penalty": "Pénalité"
+      },
+      "state": {
+        "paid": "Payée",
+        "overdue": "En retard",
+        "due": "Exigible",
+        "upcoming": "À venir",
+        "pending": "Étape non atteinte"
+      },
+      "daysLate": "{days} j de retard"
+    },
+    "commission": {
+      "line": "{name} · {rate} du prix net · {amount}",
+      "status": {
+        "earned": "Acquise",
+        "paid": "Payée",
+        "cancelled": "Annulée"
+      }
+    },
+    "optionFor": "option de {name}",
+    "optionHeld": "Ce lot est en option pour {name} : l'option sera convertie en réservation.",
+    "optionHolderMissing": "Ce lot est en option pour {name} : ajoutez un acquéreur issu de ce prospect, sinon la réservation sera refusée.",
+    "submit": "Enregistrer la réservation",
+    "noUnits": "Aucun lot disponible à la réservation (lots disponibles et prix renseigné, ou en option pour vos prospects).",
+    "noScan": "Aucun scan joint.",
+    "missingDocumentsHint": "Complétez le dossier depuis la fiche de chaque acquéreur ; la réservation n'est pas bloquée.",
+    "detail": {
+      "title": "Réservation {number}",
+      "unit": "Lot",
+      "project": "Projet",
+      "listPrice": "Prix catalogue",
+      "discount": "Remise",
+      "price": "Prix convenu",
+      "reservedOn": "Réservé le",
+      "plan": "Échéancier",
+      "commercial": "Commercial"
+    },
+    "contract": {
+      "title": "Contrat de réservation",
+      "saved": "Contrat enregistré.",
+      "none": "Notaire non renseigné."
+    },
+    "documents": {
+      "pending": "En préparation…",
+      "retry": "Relancer la génération",
+      "requested": "Génération relancée."
+    },
+    "unitCardTitle": "Commercialisation",
+    "milestoneReached": "{name} (réalisée) : exigible le {date}",
+    "withdrawal": {
+      "title": "Désistement",
+      "propose": "Proposer un désistement",
+      "proposeTitle": "Proposer un désistement",
+      "proposeDescription": "La retenue s'applique au montant encaissé. Le gérant valide le désistement ; le lot redevient alors disponible.",
+      "retention": "Retenue (%)",
+      "paid": "Encaissé : {amount}",
+      "preview": "Encaissé {paid} · retenue {retention} · à rembourser {refund}",
+      "reason": "Motif",
+      "proposed": "Désistement proposé au gérant.",
+      "approve": "Valider le désistement",
+      "reject": "Refuser",
+      "approveTitle": "Valider le désistement ?",
+      "approveDescription": "La réservation est close et le lot redevient disponible. Remboursement prévu : {refund}, recalculé sur les encaissements à ce jour.",
+      "rejectTitle": "Refuser le désistement ?",
+      "rejectDescription": "La réservation continue. Indiquez la raison du refus.",
+      "note": "Commentaire",
+      "approved": "Désistement validé.",
+      "rejected": "Désistement refusé.",
+      "recordRefund": "Remboursement effectué",
+      "refundTitle": "Remboursement de {amount}",
+      "refundedOn": "Remboursé le",
+      "refunded": "Remboursement enregistré.",
+      "status": {
+        "proposed": "Proposé · en attente du gérant",
+        "approved": "Validé",
+        "rejected": "Refusé"
+      },
+      "summary": "Encaissé {paid} · retenue {rate} ({retention}) · à rembourser {refund}",
+      "refundDone": "Remboursé le {date}",
+      "refundPending": "Remboursement à effectuer",
+      "errors": {
+        "alreadyOpen": "Un désistement est déjà en cours pour cette réservation.",
+        "notProposed": "Ce désistement a déjà été traité.",
+        "noRefundDue": "Aucun remboursement n'est dû pour ce désistement."
+      }
+    },
+    "transfer": {
+      "open": "Cession",
+      "title": "Cession de la réservation",
+      "description": "Les nouveaux acquéreurs reprennent la réservation et ses paiements ; le lot reste réservé.",
+      "transferredOn": "Date de la cession",
+      "notes": "Remarques",
+      "submit": "Enregistrer la cession",
+      "done": "Cession enregistrée ; une nouvelle fiche de réservation est en préparation.",
+      "errors": {
+        "sameBuyers": "Les acquéreurs sont inchangés."
+      }
+    },
+    "swap": {
+      "open": "Changement de lot",
+      "title": "Changement de lot",
+      "description": "Le lot actuel est libéré et la vente passe sur le lot choisi, à son prix. Les tranches gardent leurs parts ; déjà encaissé : {paid}.",
+      "unit": "Nouveau lot",
+      "discount": "Remise (DA)",
+      "newPrice": "Nouveau prix : {price}",
+      "swappedOn": "Date du changement",
+      "reason": "Motif",
+      "submit": "Changer de lot",
+      "done": "Lot changé, nouveau prix {price}.",
+      "errors": {
+        "sameUnit": "Choisissez un autre lot.",
+        "otherProject": "Le nouveau lot doit appartenir au même projet.",
+        "paidAbovePrice": "Les encaissements dépassent le prix du nouveau lot."
+      }
+    },
+    "loan": {
+      "title": "Crédit bancaire",
+      "open": "Dossier de crédit",
+      "bank": "Banque",
+      "requested": "Montant demandé (DA)",
+      "approved": "Montant accordé (DA)",
+      "status": "État du dossier",
+      "statuses": {
+        "preparing": "En préparation",
+        "submitted": "Déposé à la banque",
+        "approved": "Accordé",
+        "refused": "Refusé",
+        "cancelled": "Abandonné"
+      },
+      "submittedOn": "Déposé le",
+      "decidedOn": "Réponse de la banque le",
+      "reference": "Référence du dossier",
+      "notes": "Remarques",
+      "saved": "Dossier de crédit enregistré.",
+      "line": "{bank} · demandé {requested}",
+      "approvedLine": "Accordé {approved}",
+      "disbursed": "Débloqué par la banque : {amount}",
+      "errors": {
+        "alreadyOpen": "Un dossier de crédit est déjà suivi pour cette vente."
+      }
+    },
+    "withdrawnNotice": "Réservation close par désistement le {date}. Encaissé : {paid} ; l'échéancier est conservé pour mémoire."
+  },
+  "payments": {
+    "record": "Enregistrer un paiement",
+    "recordTitle": "Paiement · {number}",
+    "recorded": "Paiement enregistré, reçu {number}.",
+    "fields": {
+      "amount": "Montant (DA)",
+      "method": "Mode de paiement",
+      "paidOn": "Reçu le",
+      "reference": "N° de chèque / référence",
+      "bank": "Banque",
+      "payerName": "Versé par",
+      "notes": "Remarques"
+    },
+    "method": {
+      "cash": "Espèces",
+      "cheque": "Chèque",
+      "bank_transfer": "Virement",
+      "ccp": "CCP",
+      "bank_loan": "Crédit bancaire"
+    },
+    "columns": {
+      "date": "Date",
+      "amount": "Montant",
+      "method": "Mode",
+      "receipt": "Reçu",
+      "status": "État"
+    },
+    "remainingHint": "Reste à payer : {amount}",
+    "none": "Aucun paiement.",
+    "cancelled": "Annulé",
+    "cancelledBy": "Annulé : {reason}",
+    "cancel": "Annuler",
+    "cancelTitle": "Annuler le paiement et le reçu {number} ?",
+    "cancelDescription": "Le reçu reste numéroté et consultable ; les échéances qu'il réglait redeviennent dues.",
+    "cancelReason": "Motif (ex. chèque impayé)",
+    "cancelDone": "Paiement annulé.",
+    "pendingCheque": "Chèque à encaisser",
+    "clear": "Encaissé",
+    "clearTitle": "Chèque encaissé",
+    "clearedOn": "Encaissé le",
+    "cleared": "Encaissement du chèque enregistré.",
+    "chequeCleared": "Chèque encaissé le {date}",
+    "errors": {
+      "aboveBalance": "Le montant dépasse le reste à payer de la vente.",
+      "chequeDetails": "Indiquez le numéro du chèque et la banque.",
+      "saleClosed": "Cette vente n'accepte plus de paiements.",
+      "alreadyCancelled": "Ce paiement est déjà annulé.",
+      "notPendingCheque": "Ce paiement n'est pas un chèque en attente d'encaissement.",
+      "beforePayment": "L'encaissement ne peut précéder la remise du chèque."
+    },
+    "valid": "Valide"
+  },
+  "paymentCalls": {
+    "title": "Appels de fonds",
+    "none": "Aucun appel de fonds.",
+    "columns": {
+      "number": "N°",
+      "milestone": "Étape",
+      "called": "Montant appelé",
+      "dueOn": "À régler le",
+      "issuedAt": "Émis le"
+    }
+  },
+  "collections": {
+    "title": "Impayés",
+    "description": "Ventes dont des échéances exigibles restent impayées, les plus en retard d'abord.",
+    "empty": "Aucune échéance impayée.",
+    "count": "{count, plural, =0 {Aucune vente en retard} one {# vente en retard} other {# ventes en retard}}",
+    "totalOverdue": "Total impayé",
+    "totalPenalties": "Pénalités calculées (information)",
+    "columns": {
+      "sale": "Vente",
+      "buyers": "Acquéreur(s)",
+      "unit": "Lot",
+      "overdue": "Impayé",
+      "since": "Exigible depuis",
+      "reminded": "Dernière relance",
+      "commercial": "Commercial"
+    },
+    "days": "{days} j de retard",
+    "reminder": {
+      "open": "Lettre de relance",
+      "title": "Lettre de relance",
+      "description": "La lettre reprend les échéances impayées à ce jour ({amount}) et, s'il y en a, les pénalités calculées. Elle est générée en PDF bilingue.",
+      "payBy": "À régler au plus tard le",
+      "submit": "Préparer la lettre",
+      "issued": "Lettre de relance en préparation."
+    },
+    "reminders": {
+      "title": "Relances",
+      "line": "{date} · {amount} · {name}"
+    },
+    "errors": {
+      "payByPast": "La date limite ne peut pas être passée.",
+      "nothingOverdue": "Aucune échéance n'est en retard sur cette vente."
+    }
+  },
+  "commissions": {
+    "title": "Commissions",
+    "description": "Commissions des commerciaux : un pourcentage du prix net, acquis à la signature de la VSP.",
+    "toPay": "À payer",
+    "paidTotal": "Déjà payées",
+    "empty": "Aucune commission.",
+    "allStatuses": "Tous les états",
+    "allCommercials": "Tous les commerciaux",
+    "columns": {
+      "sale": "Vente",
+      "commercial": "Commercial",
+      "base": "Prix net",
+      "rate": "Taux",
+      "amount": "Commission",
+      "earnedOn": "Acquise le",
+      "status": "État"
+    },
+    "paidOnDate": "Payée le {date}",
+    "pay": "Marquer payée",
+    "payTitle": "Commission payée",
+    "paidOn": "Payée le",
+    "paid": "Commission marquée payée.",
+    "errors": {
+      "notEarned": "Seule une commission acquise et non payée peut être payée.",
+      "beforeEarned": "Le paiement ne peut précéder l'acquisition de la commission."
+    },
+    "rates": {
+      "title": "Taux par commercial",
+      "commercial": "Commercial",
+      "rate": "Taux (%)",
+      "hint": "Laissez vide pour appliquer le taux de la société ({rate}). Un taux s'applique aux VSP signées ensuite ; chaque commission garde son taux.",
+      "save": "Enregistrer les taux",
+      "saved": "Taux enregistrés."
+    }
+  },
+  "audit": {
+    "title": "Journal d'audit",
+    "description": "Les opérations sensibles avec leur auteur, leur date et l'état avant / après. Le journal ne peut être ni modifié ni supprimé.",
+    "count": "{count, plural, =0 {Aucune opération} one {# opération} other {# opérations}}",
+    "empty": "Aucune opération pour ces critères.",
+    "columns": {
+      "date": "Date",
+      "actor": "Utilisateur",
+      "action": "Opération",
+      "record": "Élément",
+      "details": "Détails"
+    },
+    "system": "Système (tâche automatique)",
+    "reason": "Motif : {reason}",
+    "history": "Historique de l'élément",
+    "showDetails": "Voir avant / après",
+    "before": "Avant",
+    "after": "Après",
+    "hint": "Dans les détails, les montants sont en centimes de dinar (1300000000 = 13 000 000,00 DA) et les taux en points de base (150 = 1,5 %).",
+    "filters": {
+      "entityType": "Élément",
+      "allEntities": "Tous les éléments",
+      "actor": "Utilisateur",
+      "allActors": "Tous les utilisateurs",
+      "from": "Du",
+      "to": "Au",
+      "oneRecord": "Un seul élément · tout afficher"
+    },
+    "entities": {
+      "organization": "Société",
+      "member": "Membre",
+      "invitation": "Invitation",
+      "unit": "Lot",
+      "price_list": "Grille de prix",
+      "lead": "Prospect",
+      "quotation": "Devis",
+      "construction_milestone": "Étape des travaux",
+      "reservation": "Réservation / vente",
+      "payment": "Paiement",
+      "commission": "Commission",
+      "residence": "Résidence",
+      "charge_category": "Catégorie de charges",
+      "budget": "Budget",
+      "charge_period": "Appels de charges"
+    },
+    "actions": {
+      "organization": {
+        "create": "Création de la société",
+        "update": "Paramètres de la société modifiés",
+        "logo": "Logo de la société modifié"
+      },
+      "member": {
+        "join": "Arrivée d'un membre",
+        "remove": "Retrait d'un membre",
+        "update_roles": "Rôles modifiés"
+      },
+      "invitation": {
+        "create": "Invitation envoyée",
+        "cancel": "Invitation annulée"
+      },
+      "unit": {
+        "price_change": "Prix du lot modifié",
+        "status_change": "Statut du lot modifié"
+      },
+      "price_list": {
+        "apply": "Grille de prix appliquée"
+      },
+      "lead": {
+        "merge": "Fusion de prospects"
+      },
+      "quotation": {
+        "issue": "Devis émis",
+        "cancel": "Devis annulé"
+      },
+      "milestone": {
+        "validate": "Étape des travaux validée"
+      },
+      "reservation": {
+        "create": "Réservation enregistrée",
+        "update_contract": "Contrat de réservation modifié",
+        "transfer": "Cession de réservation",
+        "swap_unit": "Changement de lot"
+      },
+      "sale": {
+        "sign": "VSP signée"
+      },
+      "payment": {
+        "create": "Paiement enregistré",
+        "cancel": "Paiement annulé",
+        "cheque_cleared": "Chèque encaissé"
+      },
+      "withdrawal": {
+        "propose": "Désistement proposé",
+        "approve": "Désistement validé",
+        "reject": "Désistement refusé",
+        "refund": "Remboursement de désistement"
+      },
+      "commission": {
+        "pay": "Commission payée",
+        "rates": "Taux de commission modifiés"
+      },
+      "residence": {
+        "create": "Résidence créée",
+        "update": "Résidence modifiée",
+        "shares": "Tantièmes modifiés"
+      },
+      "charge_category": {
+        "create": "Catégorie de charges créée",
+        "update": "Catégorie de charges modifiée",
+        "delete": "Catégorie de charges supprimée"
+      },
+      "budget": {
+        "approve": "Budget approuvé"
+      },
+      "charge_period": {
+        "issue": "Appels de charges émis",
+        "cancel": "Appels de charges annulés"
+      }
+    }
+  },
+  "dashboard": {
+    "asOf": "Situation au {date} · mois en cours : {month}",
+    "todo": {
+      "title": "À traiter",
+      "withdrawal": "Désistement à valider : {number} · {buyer}",
+      "withdrawalRefund": "Remboursement prévu : {amount}",
+      "milestone": "Étape à valider : {project} · {name}",
+      "milestonePlanned": "Prévue le {date}",
+      "option": "Option qui expire : lot {unit} · {lead}",
+      "optionExpires": "Expire le {date}",
+      "cheques": "{count, plural, one {# chèque} other {# chèques}} à encaisser · {amount}",
+      "commissions": "{count, plural, one {# commission} other {# commissions}} à payer · {amount}"
+    },
+    "sales": {
+      "title": "Ventes",
+      "reservationsMonth": "Réservations du mois",
+      "vspMonth": "VSP signées du mois",
+      "reservationsYear": "Réservations de l'année",
+      "vspYear": "VSP signées de l'année",
+      "valueAndPrevious": "{value} · mois précédent : {previous}"
+    },
+    "collections": {
+      "title": "Encaissements",
+      "month": "Encaissé ce mois",
+      "previous": "Mois précédent : {amount}",
+      "remaining": "Reste à encaisser",
+      "due": "Exigible à ce jour : {amount}",
+      "overdue": "En retard",
+      "overdueSales": "{count, plural, =0 {Aucune vente en retard} one {# vente en retard} other {# ventes en retard}}",
+      "next30Days": "À échoir sous 30 jours"
+    },
+    "stock": {
+      "title": "Stock",
+      "empty": "Aucun projet pour le moment.",
+      "value": "Valeur du stock à vendre",
+      "availableOf": "Lots disponibles : {available} sur {units}"
+    },
+    "pipeline": {
+      "title": "Prospection",
+      "newLeads": "Nouveaux prospects du mois",
+      "lateFollowUps": "Relances en retard",
+      "won": "Prospects gagnés",
+      "lost": "Perdus : {count}"
+    }
+  },
+  "residences": {
+    "title": "Résidences",
+    "description": "Résidences livrées gérées par la société : lots, tantièmes, copropriétaires et occupants.",
+    "new": "Nouvelle résidence",
+    "newTitle": "Nouvelle résidence",
+    "editTitle": "Modifier la résidence",
+    "empty": "Aucune résidence.",
+    "created": "{count, plural, =0 {Résidence créée (aucun lot libre dans ce projet).} one {Résidence créée avec # lot.} other {Résidence créée avec # lots.}}",
+    "days": "{days, plural, one {# jour} other {# jours}}",
+    "columns": {
+      "name": "Résidence",
+      "project": "Projet",
+      "units": "Lots",
+      "shares": "Tantièmes",
+      "coOwners": "Lots avec copropriétaire",
+      "frequency": "Appels de charges"
+    },
+    "fields": {
+      "projectId": "Projet",
+      "projectHint": "Les lots du projet qui ne sont dans aucune autre résidence la rejoignent.",
+      "name": "Nom",
+      "address": "Adresse",
+      "commune": "Commune",
+      "wilaya": "Wilaya",
+      "shareBasis": "Base des tantièmes",
+      "shareBasisHint": "Total des quotes-parts (ex. 10 000).",
+      "chargeFrequency": "Appels de charges",
+      "reserveFund": "Fonds de réserve (% du budget)",
+      "reserveFundHint": "Ajouté à chaque appel ; 0 = aucun.",
+      "callDueDays": "Délai de paiement d'un appel (jours)",
+      "notes": "Remarques"
+    },
+    "frequency": {
+      "monthly": "Mensuels",
+      "quarterly": "Trimestriels",
+      "half_yearly": "Semestriels",
+      "yearly": "Annuels"
+    },
+    "units": {
+      "title": "Lots et tantièmes",
+      "unit": "Lot",
+      "area": "Surface",
+      "share": "Tantièmes",
+      "shareOf": "Tantièmes du lot {code}",
+      "coOwners": "Copropriétaire(s)",
+      "occupant": "Occupant",
+      "residents": "Copropriétaires et occupants",
+      "noCoOwner": "Sans copropriétaire",
+      "total": "Total"
+    },
+    "shares": {
+      "save": "Enregistrer les tantièmes",
+      "saved": "Tantièmes enregistrés.",
+      "savedCount": "{count, plural, =0 {Aucun changement.} one {# lot modifié.} other {# lots modifiés.}}",
+      "byArea": "Répartir selon la surface",
+      "byAreaTitle": "Répartir les tantièmes selon la surface ?",
+      "byAreaDescription": "Les {basis} tantièmes sont répartis au prorata de la surface des lots (habitable, à défaut utile) ; les tantièmes actuels sont remplacés.",
+      "unbalanced": "Le total doit faire {basis} pour une répartition exacte."
+    },
+    "import": {
+      "open": "Importer les acquéreurs",
+      "title": "Importer les acquéreurs des lots vendus ?",
+      "description": "Pour chaque lot vendu (VSP signée) sans copropriétaire, ses acquéreurs deviennent copropriétaires à la date de la VSP.",
+      "submit": "Importer",
+      "done": "{units, plural, =0 {Aucun lot à compléter.} one {# lot complété ({coOwners} copropriétaires).} other {# lots complétés ({coOwners} copropriétaires).}}"
+    },
+    "residents": {
+      "open": "Copropriétaires",
+      "title": "Lot {code} : copropriétaires et occupants",
+      "description": "Historique des copropriétaires et occupants ; le copropriétaire principal reçoit les appels de charges.",
+      "none": "Aucun copropriétaire ni occupant.",
+      "kind": {
+        "co_owner": "Copropriétaire",
+        "occupant": "Occupant"
+      },
+      "main": "Principal",
+      "period": "Du {since} au {until}",
+      "fromSale": "issu de la vente",
+      "untilOn": "Fin le",
+      "end": "Terminer",
+      "ended": "Fin enregistrée.",
+      "add": "Ajouter un copropriétaire ou un occupant",
+      "addSubmit": "Ajouter",
+      "added": "Ajouté.",
+      "fields": {
+        "kind": "Qualité",
+        "sinceOn": "Depuis le",
+        "lastName": "Nom",
+        "firstName": "Prénom",
+        "lastNameAr": "Nom (en arabe)",
+        "firstNameAr": "Prénom (en arabe)",
+        "phone": "Téléphone",
+        "email": "E-mail",
+        "address": "Adresse postale",
+        "isMain": "Principal (reçoit les appels de charges)"
+      },
+      "periodSince": "Depuis le {since}",
+      "periodUntil": "Jusqu'au {until}"
+    },
+    "errors": {
+      "projectNotFound": "Projet introuvable.",
+      "unitNotInResidence": "Ce lot n'appartient pas à la résidence.",
+      "alreadyEnded": "Déjà terminé.",
+      "endBeforeStart": "La fin ne peut précéder le début.",
+      "noArea": "Aucun lot n'a de surface renseignée."
+    },
+    "tabs": {
+      "label": "Rubriques de la résidence",
+      "units": "Lots et copropriétaires",
+      "charges": "Charges et budget",
+      "calls": "Appels de charges"
+    }
+  },
+  "charges": {
+    "title": "Charges et budget",
+    "categories": {
+      "title": "Catégories de charges",
+      "empty": "Aucune catégorie : ajoutez-en une pour préparer le budget.",
+      "new": "Nouvelle catégorie",
+      "newTitle": "Nouvelle catégorie de charges",
+      "editTitle": "Modifier « {name} »",
+      "created": "Catégorie créée.",
+      "updated": "Catégorie modifiée.",
+      "delete": "Supprimer",
+      "deleteTitle": "Supprimer « {name} » ?",
+      "deleteDescription": "Elle disparaît des budgets en préparation ; les appels déjà émis ne changent pas.",
+      "deleted": "Catégorie supprimée.",
+      "columns": {
+        "name": "Catégorie",
+        "key": "Répartition",
+        "actions": "Actions"
+      }
+    },
+    "fields": {
+      "name": "Nom",
+      "nameAr": "Nom en arabe",
+      "key": "Clé de répartition",
+      "weighting": "Pondération",
+      "buildingId": "Bâtiment",
+      "unitIds": "Lots concernés"
+    },
+    "key": {
+      "share": "Tantièmes",
+      "equal": "Parts égales",
+      "per_building": "Par bâtiment",
+      "custom": "Lots choisis"
+    },
+    "weighting": {
+      "share": "Selon les tantièmes",
+      "equal": "À parts égales"
+    },
+    "weightingInline": {
+      "share": "selon les tantièmes",
+      "equal": "à parts égales"
+    },
+    "keyDescription": {
+      "share": "Tous les lots, selon leurs tantièmes",
+      "equal": "Tous les lots, à parts égales",
+      "per_building": "Bâtiment {building}, {weighting}",
+      "custom": "{count, plural, one {# lot} other {# lots}}, {weighting}"
+    },
+    "budget": {
+      "title": "Budget {year}",
+      "status": {
+        "draft": "En préparation",
+        "approved": "Approuvé"
+      },
+      "none": "Pas encore de budget pour {year}.",
+      "fromYear": "Montants repris du budget {year}, à ajuster.",
+      "approvedOn": "Approuvé le {date}",
+      "columns": {
+        "category": "Catégorie",
+        "annual": "Montant annuel",
+        "perCall": "Par appel"
+      },
+      "amountOf": "Montant annuel de {name}",
+      "total": "Total du budget",
+      "reserve": "Fonds de réserve ({rate})",
+      "called": "Total appelé",
+      "callsHint": "{count, plural, one {Un appel par an} other {# appels par an}}",
+      "notes": "Remarques sur le budget",
+      "save": "Enregistrer le budget",
+      "saved": "Budget enregistré.",
+      "saveBeforeApprove": "Enregistrez le budget pour pouvoir l'approuver.",
+      "approve": "Approuver le budget",
+      "approveTitle": "Approuver le budget {year} ?",
+      "approveDescription": "Le budget ne pourra plus être modifié. Les appels de charges sont émis sur sa base, au rythme et au taux de fonds de réserve actuels de la résidence.",
+      "approved": "Budget approuvé.",
+      "noCategories": "Créez d'abord les catégories de charges."
+    },
+    "errors": {
+      "noUnitsSelected": "Choisissez au moins un lot.",
+      "buildingNotInResidence": "Ce bâtiment n'appartient pas à la résidence.",
+      "categoryInBudget": "Cette catégorie figure dans un budget approuvé.",
+      "categoryNotFound": "Catégorie introuvable.",
+      "budgetApproved": "Ce budget est déjà approuvé.",
+      "emptyBudget": "Le budget est vide.",
+      "futureDate": "La date ne peut pas être dans le futur.",
+      "dueBeforeIssue": "La date limite précède la date d'émission.",
+      "budgetNotApproved": "Le budget n'est pas approuvé.",
+      "periodOutOfRange": "Période invalide pour ce budget.",
+      "periodIssued": "Les appels de cette période sont déjà émis.",
+      "cannotSplit": "Une partie des charges ne peut pas être répartie : vérifiez les clés et les tantièmes.",
+      "nothingToCall": "Rien à appeler pour cette période.",
+      "periodCancelled": "Cette période est déjà annulée."
+    },
+    "period": {
+      "monthly": "{index, select, 1 {Janvier} 2 {Février} 3 {Mars} 4 {Avril} 5 {Mai} 6 {Juin} 7 {Juillet} 8 {Août} 9 {Septembre} 10 {Octobre} 11 {Novembre} other {Décembre}} {year}",
+      "quarterly": "{index, selectordinal, one {#er} other {#e}} trimestre {year}",
+      "half_yearly": "{index, selectordinal, one {#er} other {#e}} semestre {year}",
+      "yearly": "Année {year}"
+    },
+    "calls": {
+      "title": "Appels de charges",
+      "empty": "Aucun appel émis.",
+      "issue": "Émettre des appels",
+      "issueTitle": "Émettre les appels de charges",
+      "issueDescription": "Un appel numéroté par lot, adressé à son copropriétaire principal ; les PDF sont préparés en arrière-plan.",
+      "nothingToIssue": "Aucune période à émettre : approuvez d'abord un budget.",
+      "fields": {
+        "period": "Période",
+        "issuedOn": "Date d'émission",
+        "dueOn": "Date limite de paiement"
+      },
+      "preview": "{calls, plural, one {# appel} other {# appels}} pour {total}, dont {reserve} de fonds de réserve.",
+      "withoutCoOwner": "{count, plural, one {# lot sans copropriétaire : son appel sera adressé au promoteur.} other {# lots sans copropriétaire : leurs appels seront adressés au promoteur.}}",
+      "problem": {
+        "noUnits": "« {category} » ne concerne aucun lot.",
+        "noShares": "« {category} » : les lots concernés n'ont pas de tantièmes.",
+        "reserve": "Fonds de réserve : aucun lot n'a de tantièmes."
+      },
+      "issued": "{count, plural, one {# appel émis.} other {# appels émis.}}",
+      "columns": {
+        "period": "Période",
+        "issuedOn": "Émis le",
+        "dueOn": "À payer avant le",
+        "calls": "Appels",
+        "total": "Montant",
+        "status": "Statut",
+        "number": "N°",
+        "unit": "Lot",
+        "addressee": "Destinataire",
+        "reserve": "Dont réserve",
+        "document": "Document"
+      },
+      "status": {
+        "issued": "Émis",
+        "cancelled": "Annulé"
+      },
+      "summary": {
+        "issuedOn": "Émis le",
+        "dueOn": "À payer avant le",
+        "total": "Total appelé",
+        "reserve": "Dont fonds de réserve"
+      },
+      "promoter": "Promoteur (lot non attribué)",
+      "cancel": "Annuler la période",
+      "cancelTitle": "Annuler les appels de « {period} » ?",
+      "cancelDescription": "Les appels ne comptent plus dans les comptes des lots ; ce qui a été payé devient une avance. La période pourra être émise à nouveau.",
+      "cancelReason": "Motif",
+      "cancelled": "Période annulée.",
+      "cancelledNotice": "Annulée le {date} par {name} : {reason}",
+      "pdf": "Appel {number}"
+    }
+  }
+}
