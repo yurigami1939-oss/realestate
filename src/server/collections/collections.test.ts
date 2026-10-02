@@ -57,8 +57,20 @@ async function scenario() {
     team.owner,
     companySettingsSchema.parse(companySettingsInput({ penaltyMonthlyRate: "1,5" })),
   );
-  const late = await sale(team.agentA, unitIds[0], planId, "109085198500200001", addDays(today, -60));
-  const partly = await sale(team.agentA, unitIds[1], planId, "109085198500200002", addDays(today, -10));
+  const late = await sale(
+    team.agentA,
+    unitIds[0],
+    planId,
+    "109085198500200001",
+    addDays(today, -60),
+  );
+  const partly = await sale(
+    team.agentA,
+    unitIds[1],
+    planId,
+    "109085198500200002",
+    addDays(today, -10),
+  );
   const fresh = await sale(team.agentA, unitIds[2], planId, "109085198500200003", today);
   await recordPayment(
     cashier,
@@ -85,7 +97,10 @@ describe("overdue installments", () => {
     // 1,5 % a month: 2 602 000 DA × 1,5 % × 60 / 30 = 78 060 DA (shown, never charged).
     expect(list.rows[0]?.penalties).toBe(7_806_000n);
     expect(list.overdue).toBe(460_200_000n);
-    expect(list.rows[0]).toMatchObject({ buyers: "Mansouri Lyes", oldestDueOn: addDays(today, -60) });
+    expect(list.rows[0]).toMatchObject({
+      buyers: "Mansouri Lyes",
+      oldestDueOn: addDays(today, -60),
+    });
     expect((await listOverdueSales(team.agentA, {})).total).toBe(2);
     expect((await listOverdueSales(team.agentB, {})).total).toBe(0);
   });

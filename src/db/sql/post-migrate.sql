@@ -67,3 +67,11 @@ GRANT UPDATE (pdf_file_id) ON public.reminder_letter TO realestate_app;
 REVOKE UPDATE, DELETE, TRUNCATE ON public.reservation_transfer FROM realestate_app;
 REVOKE UPDATE, DELETE, TRUNCATE ON public.unit_swap FROM realestate_app;
 REVOKE DELETE, TRUNCATE ON public.withdrawal FROM realestate_app;
+-- Charge calls are issued once: a period only changes when it is cancelled (with a reason),
+-- its calls only get their PDF link, their lines never change.
+REVOKE UPDATE, DELETE, TRUNCATE ON public.charge_period FROM realestate_app;
+GRANT UPDATE (status, cancelled_at, cancelled_by, cancellation_reason)
+  ON public.charge_period TO realestate_app;
+REVOKE UPDATE, DELETE, TRUNCATE ON public.charge_call FROM realestate_app;
+GRANT UPDATE (pdf_file_id) ON public.charge_call TO realestate_app;
+REVOKE UPDATE, DELETE, TRUNCATE ON public.charge_call_line FROM realestate_app;

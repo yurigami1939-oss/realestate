@@ -49,6 +49,8 @@ const readers: Record<string, Reader> = {
       .where(and(eq(reservation.id, entityId), visibleSales(ctx)));
     return row !== undefined;
   },
+  // Residence documents (charge calls, receipts, reminders): residence finance readers.
+  residence: async (_tx, ctx) => can(ctx.roles, "charge:read"),
   // A quotation PDF follows its lead: commercials only see their own leads' quotations.
   quotation: async (tx, ctx, entityId) => {
     if (!can(ctx.roles, "lead:read")) return false;

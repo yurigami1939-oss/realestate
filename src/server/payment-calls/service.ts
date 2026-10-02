@@ -3,13 +3,7 @@ import "server-only";
 import { and, asc, eq, isNull, ne, sql } from "drizzle-orm";
 import type { z } from "zod";
 
-import {
-  constructionMilestone,
-  installment,
-  paymentCall,
-  project,
-  reservation,
-} from "@/db/schema";
+import { constructionMilestone, installment, paymentCall, project, reservation } from "@/db/schema";
 import { withTenant } from "@/db/tenant";
 import { enqueueInTx } from "@/jobs/enqueue";
 import { addDays, todayInAlgiers } from "@/lib/dates";

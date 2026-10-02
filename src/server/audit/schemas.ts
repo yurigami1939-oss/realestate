@@ -19,6 +19,7 @@ export const auditEntityTypes = [
   "residence",
   "charge_category",
   "budget",
+  "charge_period",
 ] as const;
 export type AuditEntityType = (typeof auditEntityTypes)[number];
 

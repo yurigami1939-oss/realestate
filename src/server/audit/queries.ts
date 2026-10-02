@@ -7,6 +7,7 @@ import {
   auditLog,
   budget,
   chargeCategory,
+  chargePeriod,
   commission,
   constructionMilestone,
   member,
@@ -159,6 +160,16 @@ async function recordLinks(
       .where(inArray(budget.id, budgetIds));
     for (const b of budgets) {
       links.set(`budget:${b.id}`, `/residences/${b.residenceId}/charges?year=${b.year}`);
+    }
+  }
+  const periodIds = ids("charge_period");
+  if (periodIds.length > 0) {
+    const periods = await tx
+      .select({ id: chargePeriod.id, residenceId: chargePeriod.residenceId })
+      .from(chargePeriod)
+      .where(inArray(chargePeriod.id, periodIds));
+    for (const p of periods) {
+      links.set(`charge_period:${p.id}`, `/residences/${p.residenceId}/calls/${p.id}`);
     }
   }
   return links;

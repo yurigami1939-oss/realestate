@@ -512,9 +512,7 @@ describe("sale lists", () => {
     expect((await listSales(team.agentB, saleListParams.parse({}))).total).toBe(0);
     expect((await listSales(team.manager, saleListParams.parse({ q: "bensal" }))).total).toBe(1);
     expect((await listSales(team.manager, saleListParams.parse({ q: "A-04" }))).total).toBe(0);
-    expect(
-      (await listSales(team.manager, saleListParams.parse({ status: "sold" }))).total,
-    ).toBe(0);
+    expect((await listSales(team.manager, saleListParams.parse({ status: "sold" }))).total).toBe(0);
 
     expect((await listBuyerOptions(team.agentA)).map((b) => b.id)).toEqual([buyerId]);
     expect(await listBuyerOptions(team.agentB)).toEqual([]);

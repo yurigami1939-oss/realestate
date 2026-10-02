@@ -2,7 +2,7 @@
 import { z } from "zod";
 
 import { type DistributionKey, distributionKeys, distributionWeightings } from "@/lib/residences";
-import { intText, optionalMoneyText, optionalText, requiredText } from "@/lib/zod";
+import { dateText, intText, optionalMoneyText, optionalText, requiredText } from "@/lib/zod";
 
 const categoryFields = {
   name: requiredText(80),
@@ -44,3 +44,32 @@ export const saveBudgetSchema = z.object({
   notes: optionalText(1000),
 });
 export const budgetIdSchema = z.object({ budgetId: z.uuid() });
+
+/**
+ * Charge calls of one period of an approved budget. The form sends the period as
+ * "budgetId:index"; the issue date is not in the future and the due date not before it.
+ */
+export const issueChargePeriodSchema = z.object({
+  period: z
+    .string()
+    .regex(/^[0-9a-f-]{36}:\d{1,2}$/i, "validation.required")
+    .transform((v) => {
+      const [budgetId = "", index = "0"] = v.split(":");
+      return { budgetId, periodIndex: Number(index) };
+    }),
+  issuedOn: dateText(),
+  dueOn: dateText(),
+});
+
+/** Voids the calls of a period (wrong budget, wrong co-owners…); it can then be issued again. */
+export const cancelChargePeriodSchema = z.object({
+  periodId: z.uuid(),
+  reason: requiredText(300),
+});
+
+/** Residence documents rendered by the worker. */
+export const chargeDocumentKinds = ["charge_call"] as const;
+export const requestChargeDocumentSchema = z.object({
+  kind: z.enum(chargeDocumentKinds),
+  id: z.uuid(),
+});

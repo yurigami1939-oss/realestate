@@ -5,11 +5,16 @@ import { revalidatePath } from "next/cache";
 import { defineAction } from "@/server/action";
 
 import { approveBudget, saveBudget } from "./budgets";
+import { cancelChargePeriod, issueChargePeriod } from "./calls";
 import { createChargeCategory, deleteChargeCategory, updateChargeCategory } from "./categories";
+import { requestChargeDocument } from "./document-requests";
 import {
   budgetIdSchema,
+  cancelChargePeriodSchema,
   chargeCategoryIdSchema,
   createChargeCategorySchema,
+  issueChargePeriodSchema,
+  requestChargeDocumentSchema,
   saveBudgetSchema,
   updateChargeCategorySchema,
 } from "./schemas";
@@ -40,4 +45,16 @@ export const saveBudgetAction = defineAction(
 export const approveBudgetAction = defineAction(
   { input: budgetIdSchema, permission: "charge:create" },
   (input, ctx) => mutation(() => approveBudget(ctx, input.budgetId)),
+);
+export const issueChargePeriodAction = defineAction(
+  { input: issueChargePeriodSchema, permission: "charge:create" },
+  (input, ctx) => mutation(() => issueChargePeriod(ctx, input)),
+);
+export const cancelChargePeriodAction = defineAction(
+  { input: cancelChargePeriodSchema, permission: "charge:cancel" },
+  (input, ctx) => mutation(() => cancelChargePeriod(ctx, input)),
+);
+export const requestChargeDocumentAction = defineAction(
+  { input: requestChargeDocumentSchema, permission: "charge:read" },
+  (input, ctx) => mutation(() => requestChargeDocument(ctx, input)),
 );

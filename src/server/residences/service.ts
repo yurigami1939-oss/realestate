@@ -98,16 +98,14 @@ export async function createResidence(ctx: TenantCtx, input: In<typeof createRes
         ),
       );
     if (units.length > 0) {
-      await tx
-        .insert(residenceUnit)
-        .values(
-          units.map((u) => ({
-            organizationId: ctx.orgId,
-            residenceId: row.id,
-            unitId: u.id,
-            share: u.share ?? 0,
-          })),
-        );
+      await tx.insert(residenceUnit).values(
+        units.map((u) => ({
+          organizationId: ctx.orgId,
+          residenceId: row.id,
+          unitId: u.id,
+          share: u.share ?? 0,
+        })),
+      );
     }
     await recordAudit(tx, ctx, {
       actorUserId: ctx.userId,

@@ -1,24 +1,35 @@
 import { and, eq } from "drizzle-orm";
 import { describe, expect, it } from "vitest";
 
-import { auditLog } from "@/db/schema";
+import { auditLog, chargeCall, chargeCallLine } from "@/db/schema";
 import { withTenant } from "@/db/tenant";
+import { addDays, todayInAlgiers } from "@/lib/dates";
 import { createBuildingSchema, createProjectSchema } from "@/server/inventory/schemas";
 import { createBuilding, createProject } from "@/server/inventory/service";
-import { createResidenceSchema, saveSharesSchema } from "@/server/residences/schemas";
-import { createResidence, saveShares } from "@/server/residences/service";
+import {
+  addResidentSchema,
+  createResidenceSchema,
+  saveSharesSchema,
+} from "@/server/residences/schemas";
+import { addResident, createResidence, saveShares } from "@/server/residences/service";
 
 import { addMember, createSalesTeam } from "../../../tests/factories";
 import { createSaleSetup } from "../../../tests/sales-fixtures";
 
 import { approveBudget, saveBudget } from "./budgets";
+import { cancelChargePeriod, issueChargePeriod } from "./calls";
 import { createChargeCategory, deleteChargeCategory, updateChargeCategory } from "./categories";
-import { getChargesSetup } from "./queries";
+import { chargeCallHtml, loadChargeCallData, renderAndStoreChargeCall } from "./documents";
+import { getCallsSetup, getChargePeriod, getChargesSetup } from "./queries";
 import {
+  cancelChargePeriodSchema,
   createChargeCategorySchema,
+  issueChargePeriodSchema,
   saveBudgetSchema,
   updateChargeCategorySchema,
 } from "./schemas";
+
+const today = todayInAlgiers();
 
 /** A residence of three units (A-03-01, A-03-02, A-04-01) at 4000 / 3000 / 3000 tantièmes. */
 async function scenario() {
@@ -221,5 +232,180 @@ describe("budgets", () => {
         after: { year: 2026, total: "60000000", frequency: "quarterly" },
       },
     ]);
+  });
+});
+
+/** The scenario with an approved 2026 budget: cleaning 400 000 DA (tantièmes), guarding 120 000 DA (equal). */
+async function budgetScenario() {
+  const base = await scenario();
+  const { manager, residenceId } = base;
+  const { id: cleaning } = await createChargeCategory(manager, categoryInput(residenceId));
+  const { id: guarding } = await createChargeCategory(
+    manager,
+    categoryInput(residenceId, { name: "Gardiennage", nameAr: "الحراسة", key: "equal" }),
+  );
+  const { budgetId } = await saveBudget(
+    manager,
+    saveBudgetSchema.parse({
+      residenceId,
+      year: "2026",
+      lines: [
+        { categoryId: cleaning, amount: "400 000" },
+        { categoryId: guarding, amount: "120 000" },
+      ],
+      notes: "",
+    }),
+  );
+  await approveBudget(manager, budgetId);
+  return { ...base, budgetId };
+}
+
+const coOwner = (residenceId: string, unitId: string, lastName: string, isMain: boolean) =>
+  addResidentSchema.parse({
+    residenceId,
+    unitId,
+    kind: "co_owner",
+    isMain,
+    lastName,
+    firstName: "Yasmine",
+    lastNameAr: "سعيدي",
+    firstNameAr: "ياسمين",
+    sinceOn: "2026-01-01",
+  });
+
+describe("charge calls", () => {
+  it("are issued per period to the units' main co-owners, numbered and immutable", async () => {
+    const { team, manager, residenceId, budgetId, unitIds } = await budgetScenario();
+    const accountant = await addMember(team.orgId, ["accountant"]);
+    await addResident(manager, coOwner(residenceId, unitIds[0], "Saïdi", true));
+    await addResident(manager, coOwner(residenceId, unitIds[1], "Benali", false));
+
+    const input = (index: number, issuedOn = today, dueOn = addDays(today, 30)) =>
+      issueChargePeriodSchema.parse({ period: `${budgetId}:${index}`, issuedOn, dueOn });
+    await expect(issueChargePeriod(accountant, input(2))).rejects.toMatchObject({
+      code: "FORBIDDEN",
+    });
+    await expect(
+      issueChargePeriod(manager, input(2, addDays(today, 1), addDays(today, 30))),
+    ).rejects.toMatchObject({ messageKey: "charges.errors.futureDate" });
+    await expect(
+      issueChargePeriod(manager, input(2, today, addDays(today, -1))),
+    ).rejects.toMatchObject({ messageKey: "charges.errors.dueBeforeIssue" });
+    await expect(issueChargePeriod(manager, input(5))).rejects.toMatchObject({
+      messageKey: "charges.errors.periodOutOfRange",
+    });
+
+    // Quarter 2: cleaning 100 000 (4/3/3), guarding 30 000 (equal), reserve 5 % of 520 000 / 4.
+    const { periodId, calls, total } = await issueChargePeriod(manager, input(2));
+    expect({ calls, total }).toEqual({ calls: 3, total: 136_500_00n });
+    await expect(issueChargePeriod(manager, input(2))).rejects.toMatchObject({
+      messageKey: "charges.errors.periodIssued",
+    });
+
+    const period = await getChargePeriod(accountant, periodId);
+    const year = today.slice(0, 4);
+    expect(
+      period?.calls.map((c) => [c.number, c.unitCode, c.addresseeName, c.amount, c.reserve]),
+    ).toEqual([
+      [`ADC-${year}-000001`, "A-03-01", "Saïdi Yasmine", 52_600_00n, 2_600_00n],
+      [`ADC-${year}-000002`, "A-03-02", "Benali Yasmine", 41_950_00n, 1_950_00n],
+      [`ADC-${year}-000003`, "A-04-01", null, 41_950_00n, 1_950_00n],
+    ]);
+    const firstCall = period?.calls[0]?.id ?? "";
+    const lines = await withTenant(team.owner, (tx) =>
+      tx
+        .select({ label: chargeCallLine.label, amount: chargeCallLine.amount })
+        .from(chargeCallLine)
+        .where(eq(chargeCallLine.callId, firstCall))
+        .orderBy(chargeCallLine.position),
+    );
+    expect(lines).toEqual([
+      { label: "Nettoyage", amount: 40_000_00n },
+      { label: "Gardiennage", amount: 10_000_00n },
+      { label: "Fonds de réserve", amount: 2_600_00n },
+    ]);
+
+    // The other quarters are still to issue.
+    const setup = await getCallsSetup(manager, residenceId);
+    expect(setup?.toIssue.map((p) => [p.periodIndex, p.calls, p.withoutCoOwner])).toEqual([
+      [1, 3, 1],
+      [3, 3, 1],
+      [4, 3, 1],
+    ]);
+
+    // Issued calls are never edited or deleted.
+    await expect(
+      withTenant(team.owner, (tx) =>
+        tx.update(chargeCall).set({ amount: 1n }).where(eq(chargeCall.id, firstCall)),
+      ),
+    ).rejects.toThrow();
+    await expect(
+      withTenant(team.owner, (tx) => tx.delete(chargeCall).where(eq(chargeCall.id, firstCall))),
+    ).rejects.toThrow();
+
+    // Cancelling the period voids its calls; it can then be issued again.
+    const cancel = cancelChargePeriodSchema.parse({ periodId, reason: "Tantièmes erronés" });
+    await expect(cancelChargePeriod(manager, cancel)).rejects.toMatchObject({ code: "FORBIDDEN" });
+    await cancelChargePeriod(accountant, cancel);
+    await expect(cancelChargePeriod(accountant, cancel)).rejects.toMatchObject({
+      messageKey: "charges.errors.periodCancelled",
+    });
+    expect((await getChargePeriod(manager, periodId))?.status).toBe("cancelled");
+    const again = await issueChargePeriod(manager, input(2));
+    expect((await getChargePeriod(manager, again.periodId))?.calls[0]?.number).toBe(
+      `ADC-${year}-000004`,
+    );
+
+    const audit = await withTenant(team.owner, (tx) =>
+      tx
+        .select({ action: auditLog.action })
+        .from(auditLog)
+        .where(and(eq(auditLog.entityType, "charge_period"), eq(auditLog.entityId, periodId))),
+    );
+    expect(audit.map((a) => a.action).sort()).toEqual([
+      "charge_period.cancel",
+      "charge_period.issue",
+    ]);
+  });
+
+  it("render a bilingual charge call once", async () => {
+    const { team, manager, residenceId, budgetId, unitIds } = await budgetScenario();
+    await addResident(manager, coOwner(residenceId, unitIds[0], "Saïdi", true));
+    const { periodId } = await issueChargePeriod(
+      manager,
+      issueChargePeriodSchema.parse({
+        period: `${budgetId}:1`,
+        issuedOn: today,
+        dueOn: addDays(today, 30),
+      }),
+    );
+    const callId = (await getChargePeriod(manager, periodId))?.calls[0]?.id ?? "";
+    const loaded = await withTenant(team.owner, (tx) => loadChargeCallData(tx, callId));
+    if (!loaded) throw new Error("charge call not found");
+    expect(loaded.data).toMatchObject({
+      period: { fr: "1er trimestre 2026", ar: "الثلاثي الأول 2026" },
+      share: 4000,
+      shareBasis: 10_000,
+      addressee: { name: "Saïdi Yasmine", nameAr: "سعيدي ياسمين" },
+    });
+    const html = chargeCallHtml(loaded.data, {
+      name: "Promo",
+      legalName: "SARL Promo",
+      address: null,
+      wilaya: null,
+      phone: null,
+      rcNumber: null,
+      nif: null,
+      nis: null,
+      aiNumber: null,
+      logo: null,
+    });
+    expect(html).toContain("APPEL DE CHARGES");
+    expect(html).toContain("طلب تسديد الأعباء");
+    expect(html).toContain("cinquante-deux mille six cents dinars");
+
+    expect(await renderAndStoreChargeCall(team.orgId, callId)).toBe("stored");
+    expect(await renderAndStoreChargeCall(team.orgId, callId)).toBe("skipped");
+    expect((await getChargePeriod(manager, periodId))?.calls[0]?.pdfFileId).not.toBeNull();
   });
 });

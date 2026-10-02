@@ -1,25 +1,39 @@
 import { sql } from "drizzle-orm";
 import {
   check,
+  date,
   foreignKey,
+  index,
   integer,
   pgEnum,
   pgTable,
   primaryKey,
   text,
   unique,
+  uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
 
 import { budgetStatuses, distributionKeys, distributionWeightings } from "../../lib/residences";
 
-import { id, instant, money, organizationId, softDelete, timestamps, userRef } from "./_columns";
+import {
+  createdAt,
+  id,
+  instant,
+  money,
+  organizationId,
+  softDelete,
+  timestamps,
+  userRef,
+} from "./_columns";
+import { file } from "./files";
 import { building } from "./inventory";
-import { chargeFrequency, residence, residenceUnit } from "./residences";
+import { chargeFrequency, residence, residenceUnit, resident } from "./residences";
 
 export const distributionKey = pgEnum("distribution_key", distributionKeys);
 export const distributionWeighting = pgEnum("distribution_weighting", distributionWeightings);
 export const budgetStatus = pgEnum("budget_status", budgetStatuses);
+export const chargePeriodStatus = pgEnum("charge_period_status", ["issued", "cancelled"]);
 
 /**
  * Catégorie de charges of a residence (water tank, common electricity, lift…) with its
@@ -155,5 +169,140 @@ export const budgetLine = pgTable(
       ],
     }),
     check("budget_line_amount", sql`${t.amount} >= 0`),
+  ],
+);
+
+/**
+ * One issue of charge calls: period `period_index` (1…n at the budget's frequency) of an
+ * approved budget, one numbered call per unit with something to pay. Immutable once issued:
+ * only its cancellation (with a reason, which voids its calls) can change, and the period can
+ * then be issued again.
+ */
+export const chargePeriod = pgTable(
+  "charge_period",
+  {
+    id: id(),
+    organizationId: organizationId(),
+    residenceId: uuid().notNull(),
+    budgetId: uuid().notNull(),
+    year: integer().notNull(),
+    frequency: chargeFrequency().notNull(),
+    periodIndex: integer().notNull(),
+    issuedOn: date({ mode: "string" }).notNull(),
+    dueOn: date({ mode: "string" }).notNull(),
+    /** Sum of the calls, reserve fund included, and the reserve fund part. */
+    total: money().notNull(),
+    reserve: money().notNull(),
+    callCount: integer().notNull(),
+    status: chargePeriodStatus().notNull().default("issued"),
+    issuedBy: userRef().notNull(),
+    issuedAt: createdAt(),
+    cancelledAt: instant(),
+    cancelledBy: userRef(),
+    cancellationReason: text(),
+  },
+  (t) => [
+    unique().on(t.organizationId, t.id),
+    unique("charge_period_residence_key").on(t.organizationId, t.residenceId, t.id),
+    foreignKey({
+      name: "charge_period_budget_fk",
+      columns: [t.organizationId, t.residenceId, t.budgetId],
+      foreignColumns: [budget.organizationId, budget.residenceId, budget.id],
+    }),
+    uniqueIndex("charge_period_live_key")
+      .on(t.organizationId, t.budgetId, t.periodIndex)
+      .where(sql`${t.status} = 'issued'`),
+    check("charge_period_index", sql`${t.periodIndex} between 1 and 12`),
+    check("charge_period_dates", sql`${t.dueOn} >= ${t.issuedOn}`),
+    check("charge_period_amounts", sql`${t.total} > 0 and ${t.reserve} >= 0`),
+    check(
+      "charge_period_cancellation",
+      sql`(${t.status} = 'cancelled') = (${t.cancelledAt} is not null and ${t.cancellationReason} is not null)`,
+    ),
+  ],
+);
+
+/**
+ * Appel de charges ADC-… of one unit for a period, addressed to its main co-owner at issue
+ * (snapshot; none = a unit the company still owns). Lines in `charge_call_line`; the PDF is
+ * rendered once. Live while its period is issued.
+ */
+export const chargeCall = pgTable(
+  "charge_call",
+  {
+    id: id(),
+    organizationId: organizationId(),
+    residenceId: uuid().notNull(),
+    periodId: uuid().notNull(),
+    unitId: uuid().notNull(),
+    number: text().notNull(),
+    dueOn: date({ mode: "string" }).notNull(),
+    amount: money().notNull(),
+    reserve: money().notNull(),
+    residentId: uuid(),
+    addresseeName: text(),
+    addresseeNameAr: text(),
+    addresseeAddress: text(),
+    pdfFileId: uuid(),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    unique().on(t.organizationId, t.id),
+    unique().on(t.organizationId, t.number),
+    unique("charge_call_unit_key").on(t.organizationId, t.periodId, t.unitId),
+    foreignKey({
+      name: "charge_call_period_fk",
+      columns: [t.organizationId, t.residenceId, t.periodId],
+      foreignColumns: [chargePeriod.organizationId, chargePeriod.residenceId, chargePeriod.id],
+    }),
+    foreignKey({
+      name: "charge_call_unit_fk",
+      columns: [t.residenceId, t.unitId],
+      foreignColumns: [residenceUnit.residenceId, residenceUnit.unitId],
+    }),
+    foreignKey({
+      name: "charge_call_resident_fk",
+      columns: [t.organizationId, t.residentId],
+      foreignColumns: [resident.organizationId, resident.id],
+    }),
+    foreignKey({
+      name: "charge_call_pdf_fk",
+      columns: [t.organizationId, t.pdfFileId],
+      foreignColumns: [file.organizationId, file.id],
+    }),
+    index().on(t.organizationId, t.residenceId, t.unitId),
+    check(
+      "charge_call_amounts",
+      sql`${t.amount} > 0 and ${t.reserve} >= 0 and ${t.reserve} <= ${t.amount}`,
+    ),
+  ],
+);
+
+/** What a call asks for: one line per category the unit bears, then the reserve fund. */
+export const chargeCallLine = pgTable(
+  "charge_call_line",
+  {
+    organizationId: organizationId(),
+    callId: uuid().notNull(),
+    position: integer().notNull(),
+    /** Null for the reserve fund line. */
+    categoryId: uuid(),
+    label: text().notNull(),
+    labelAr: text(),
+    amount: money().notNull(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.callId, t.position] }),
+    foreignKey({
+      name: "charge_call_line_call_fk",
+      columns: [t.organizationId, t.callId],
+      foreignColumns: [chargeCall.organizationId, chargeCall.id],
+    }),
+    foreignKey({
+      name: "charge_call_line_category_fk",
+      columns: [t.organizationId, t.categoryId],
+      foreignColumns: [chargeCategory.organizationId, chargeCategory.id],
+    }),
+    check("charge_call_line_amount", sql`${t.amount} > 0`),
   ],
 );

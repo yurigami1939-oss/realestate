@@ -1423,7 +1423,8 @@
       "commission": "Commission",
       "residence": "Résidence",
       "charge_category": "Catégorie de charges",
-      "budget": "Budget"
+      "budget": "Budget",
+      "charge_period": "Appels de charges"
     },
     "actions": {
       "organization": {
@@ -1493,6 +1494,10 @@
       },
       "budget": {
         "approve": "Budget approuvé"
+      },
+      "charge_period": {
+        "issue": "Appels de charges émis",
+        "cancel": "Appels de charges annulés"
       }
     }
   },
@@ -1650,7 +1655,8 @@
     "tabs": {
       "label": "Rubriques de la résidence",
       "units": "Lots et copropriétaires",
-      "charges": "Charges et budget"
+      "charges": "Charges et budget",
+      "calls": "Appels de charges"
     }
   },
   "charges": {
@@ -1736,7 +1742,73 @@
       "categoryInBudget": "Cette catégorie figure dans un budget approuvé.",
       "categoryNotFound": "Catégorie introuvable.",
       "budgetApproved": "Ce budget est déjà approuvé.",
-      "emptyBudget": "Le budget est vide."
+      "emptyBudget": "Le budget est vide.",
+      "futureDate": "La date ne peut pas être dans le futur.",
+      "dueBeforeIssue": "La date limite précède la date d'émission.",
+      "budgetNotApproved": "Le budget n'est pas approuvé.",
+      "periodOutOfRange": "Période invalide pour ce budget.",
+      "periodIssued": "Les appels de cette période sont déjà émis.",
+      "cannotSplit": "Une partie des charges ne peut pas être répartie : vérifiez les clés et les tantièmes.",
+      "nothingToCall": "Rien à appeler pour cette période.",
+      "periodCancelled": "Cette période est déjà annulée."
+    },
+    "period": {
+      "monthly": "{index, select, 1 {Janvier} 2 {Février} 3 {Mars} 4 {Avril} 5 {Mai} 6 {Juin} 7 {Juillet} 8 {Août} 9 {Septembre} 10 {Octobre} 11 {Novembre} other {Décembre}} {year}",
+      "quarterly": "{index, selectordinal, one {#er} other {#e}} trimestre {year}",
+      "half_yearly": "{index, selectordinal, one {#er} other {#e}} semestre {year}",
+      "yearly": "Année {year}"
+    },
+    "calls": {
+      "title": "Appels de charges",
+      "empty": "Aucun appel émis.",
+      "issue": "Émettre des appels",
+      "issueTitle": "Émettre les appels de charges",
+      "issueDescription": "Un appel numéroté par lot, adressé à son copropriétaire principal ; les PDF sont préparés en arrière-plan.",
+      "nothingToIssue": "Aucune période à émettre : approuvez d'abord un budget.",
+      "fields": {
+        "period": "Période",
+        "issuedOn": "Date d'émission",
+        "dueOn": "Date limite de paiement"
+      },
+      "preview": "{calls, plural, one {# appel} other {# appels}} pour {total}, dont {reserve} de fonds de réserve.",
+      "withoutCoOwner": "{count, plural, one {# lot sans copropriétaire : son appel sera adressé au promoteur.} other {# lots sans copropriétaire : leurs appels seront adressés au promoteur.}}",
+      "problem": {
+        "noUnits": "« {category} » ne concerne aucun lot.",
+        "noShares": "« {category} » : les lots concernés n'ont pas de tantièmes.",
+        "reserve": "Fonds de réserve : aucun lot n'a de tantièmes."
+      },
+      "issued": "{count, plural, one {# appel émis.} other {# appels émis.}}",
+      "columns": {
+        "period": "Période",
+        "issuedOn": "Émis le",
+        "dueOn": "À payer avant le",
+        "calls": "Appels",
+        "total": "Montant",
+        "status": "Statut",
+        "number": "N°",
+        "unit": "Lot",
+        "addressee": "Destinataire",
+        "reserve": "Dont réserve",
+        "document": "Document"
+      },
+      "status": {
+        "issued": "Émis",
+        "cancelled": "Annulé"
+      },
+      "summary": {
+        "issuedOn": "Émis le",
+        "dueOn": "À payer avant le",
+        "total": "Total appelé",
+        "reserve": "Dont fonds de réserve"
+      },
+      "promoter": "Promoteur (lot non attribué)",
+      "cancel": "Annuler la période",
+      "cancelTitle": "Annuler les appels de « {period} » ?",
+      "cancelDescription": "Les appels ne comptent plus dans les comptes des lots ; ce qui a été payé devient une avance. La période pourra être émise à nouveau.",
+      "cancelReason": "Motif",
+      "cancelled": "Période annulée.",
+      "cancelledNotice": "Annulée le {date} par {name} : {reason}",
+      "pdf": "Appel {number}"
     }
   }
 }

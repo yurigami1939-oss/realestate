@@ -40,7 +40,9 @@ export async function createBankLoan(ctx: TenantCtx, input: In<typeof createBank
     const [open] = await tx
       .select({ id: bankLoan.id })
       .from(bankLoan)
-      .where(and(eq(bankLoan.reservationId, sale.id), notInArray(bankLoan.status, [...closedLoan])));
+      .where(
+        and(eq(bankLoan.reservationId, sale.id), notInArray(bankLoan.status, [...closedLoan])),
+      );
     if (open) throw new AppError("CONFLICT", "sales.loan.errors.alreadyOpen");
     const { reservationId: _reservationId, ...fields } = input;
     const [row] = await tx

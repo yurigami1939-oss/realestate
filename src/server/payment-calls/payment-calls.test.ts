@@ -65,7 +65,9 @@ const dueOn = async (ctx: TenantCtx, reservationId: string, position: number) =>
       tx
         .select({ dueOn: installment.dueOn })
         .from(installment)
-        .where(and(eq(installment.reservationId, reservationId), eq(installment.position, position))),
+        .where(
+          and(eq(installment.reservationId, reservationId), eq(installment.position, position)),
+        ),
     )
   )[0]?.dueOn;
 
