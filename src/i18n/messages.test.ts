@@ -16,11 +16,14 @@ function flatten(tree: Tree, prefix = ""): Map<string, string> {
 }
 
 /**
- * ICU argument names used by a message: {name}, {count, plural, …} → name, count. A set:
- * Arabic has more plural branches than French, each of which may repeat an argument.
+ * ICU argument names used by a message: {name}, {count, plural, …} → name, count. Branch bodies
+ * (`other {Décembre}`, `=0 {Aucun}`, `1 {Janvier}`) are not arguments. A set: Arabic has more
+ * plural branches than French, each of which may repeat an argument.
  */
 function argumentsOf(message: string): string[] {
-  const names = [...message.matchAll(/\{\s*([a-zA-Z_][\w]*)\s*[,}]/g)].map((m) => m[1] ?? "");
+  const argument =
+    /(?<!(?:\b(?:zero|one|two|few|many|other)|=\d+|\b\d+)\s*)\{\s*([a-zA-Z_]\w*)\s*[,}]/g;
+  const names = [...message.matchAll(argument)].map((m) => m[1] ?? "");
   return [...new Set(names)].sort();
 }
 
