@@ -1,0 +1,1 @@
+ALTER TABLE "general_assembly" ADD COLUMN "end_time" text;

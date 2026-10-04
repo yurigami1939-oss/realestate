@@ -11,6 +11,7 @@ import {
   chargePeriod,
   commission,
   constructionMilestone,
+  generalAssembly,
   member,
   payment,
   priceList,
@@ -207,6 +208,16 @@ async function recordLinks(
       .where(inArray(staffMember.id, staffIds));
     for (const a of agents) {
       links.set(`staff_member:${a.id}`, `/residences/${a.residenceId}/staff/${a.id}`);
+    }
+  }
+  const assemblyIds = ids("general_assembly");
+  if (assemblyIds.length > 0) {
+    const assemblies = await tx
+      .select({ id: generalAssembly.id, residenceId: generalAssembly.residenceId })
+      .from(generalAssembly)
+      .where(inArray(generalAssembly.id, assemblyIds));
+    for (const a of assemblies) {
+      links.set(`general_assembly:${a.id}`, `/residences/${a.residenceId}/assemblies/${a.id}`);
     }
   }
   return links;

@@ -1446,7 +1446,8 @@
       "charge_period": "Appels de charges",
       "charge_payment": "Paiement de charges",
       "supplier_invoice": "Facture fournisseur",
-      "staff_member": "Agent de résidence"
+      "staff_member": "Agent de résidence",
+      "general_assembly": "Assemblée générale"
     },
     "actions": {
       "organization": {
@@ -1545,6 +1546,10 @@
         "save": "Paie enregistrée",
         "pay": "Paie payée",
         "delete": "Paie supprimée"
+      },
+      "assembly": {
+        "convene": "Assemblée générale convoquée",
+        "close": "Assemblée générale clôturée"
       }
     }
   },
@@ -1707,7 +1712,8 @@
       "accounts": "Comptes des lots",
       "expenses": "Dépenses",
       "report": "Bilan",
-      "staff": "Personnel"
+      "staff": "Personnel",
+      "assemblies": "Assemblées générales"
     }
   },
   "charges": {
@@ -2326,9 +2332,166 @@
     }
   },
   "assemblies": {
+    "title": "Assemblées générales",
+    "description": "Convocations, feuille de présence, votes en tantièmes et procès-verbaux des assemblées des copropriétaires.",
+    "new": "Nouvelle assemblée",
+    "newTitle": "Nouvelle assemblée générale",
+    "newDescription": "L'assemblée est créée en brouillon : préparez l'ordre du jour, puis convoquez les copropriétaires.",
+    "editTitle": "Modifier l'assemblée",
+    "created": "Assemblée créée.",
+    "empty": "Aucune assemblée générale.",
+    "heading": "Assemblée générale {kind} du {date}",
+    "kind": {
+      "ordinary": "ordinaire",
+      "extraordinary": "extraordinaire"
+    },
+    "kindLabel": {
+      "ordinary": "Ordinaire",
+      "extraordinary": "Extraordinaire"
+    },
+    "status": {
+      "draft": "Brouillon",
+      "convened": "Convoquée",
+      "closed": "Clôturée"
+    },
+    "majority": {
+      "simple": "Majorité des voix exprimées",
+      "absolute": "Majorité absolue des tantièmes",
+      "two_thirds": "Majorité des deux tiers des tantièmes",
+      "unanimity": "Unanimité"
+    },
+    "majorityHint": "Voix exprimées : plus de « pour » que de « contre ». Les autres majorités se comptent sur tous les tantièmes de la résidence, absents compris.",
+    "columns": {
+      "date": "Date",
+      "kind": "Type",
+      "place": "Lieu",
+      "agenda": "Ordre du jour",
+      "status": "Statut"
+    },
+    "resolutionsCount": "{count, plural, =0 {Aucune résolution} one {# résolution} other {# résolutions}}",
+    "adoptedCount": "{adopted, plural, =0 {Aucune résolution adoptée} one {# résolution adoptée} other {# résolutions adoptées}} sur {count}",
+    "fields": {
+      "kind": "Type d'assemblée",
+      "heldOn": "Date",
+      "startTime": "Heure",
+      "place": "Lieu",
+      "notes": "Remarques internes (non imprimées)",
+      "chairName": "Président de séance",
+      "secretaryName": "Secrétaire de séance",
+      "endTime": "Heure de fin de séance",
+      "title": "Intitulé",
+      "titleAr": "Intitulé en arabe",
+      "description": "Texte de la résolution",
+      "majority": "Majorité requise"
+    },
+    "details": {
+      "when": "Date et heure",
+      "place": "Lieu",
+      "convocation": "Convocation",
+      "minutes": "Procès-verbal",
+      "convenedOn": "Convoquée le {date}",
+      "closedOn": "Clôturée le {date}",
+      "notConvened": "Pas encore convoquée",
+      "notClosed": "Après la clôture",
+      "bureau": "Président de séance : {chair} · Secrétaire : {secretary}"
+    },
+    "draftNotice": "Brouillon : préparez l'ordre du jour, puis convoquez les copropriétaires. La convocation fige l'ordre du jour.",
+    "notHeldNotice": "La feuille de présence et les mandats peuvent être saisis dès maintenant ; l'assemblée pourra être clôturée à partir du {date}.",
+    "delete": {
+      "title": "Supprimer ce brouillon ?",
+      "description": "L'assemblée et son ordre du jour sont supprimés.",
+      "done": "Brouillon supprimé."
+    },
+    "convene": {
+      "label": "Convoquer",
+      "title": "Convoquer l'assemblée ?",
+      "description": "L'ordre du jour est figé et la convocation bilingue est générée ; elle ne pourra plus être modifiée.",
+      "done": "Assemblée convoquée : la convocation est en cours de génération."
+    },
+    "close": {
+      "label": "Clôturer",
+      "title": "Clôturer l'assemblée",
+      "description": "La feuille de présence, les votes et les résultats sont figés et le procès-verbal bilingue est généré. Opération définitive.",
+      "submit": "Clôturer et générer le PV",
+      "done": "{adopted, plural, =0 {Assemblée clôturée : aucune résolution adoptée sur {count}.} one {Assemblée clôturée : # résolution adoptée sur {count}.} other {Assemblée clôturée : # résolutions adoptées sur {count}.}}"
+    },
+    "pdf": {
+      "convocation": "Convocation (PDF)",
+      "minutes": "Procès-verbal (PDF)"
+    },
+    "agenda": {
+      "title": "Ordre du jour",
+      "empty": "Aucune résolution : ajoutez-en avant de convoquer.",
+      "add": "Ajouter une résolution",
+      "addTitle": "Nouvelle résolution",
+      "addSubmit": "Ajouter",
+      "editTitle": "Modifier la résolution",
+      "added": "Résolution ajoutée.",
+      "number": "Résolution n° {position}",
+      "remove": "Retirer",
+      "deleteTitle": "Retirer cette résolution ?",
+      "deleteDescription": "Les résolutions suivantes sont renumérotées.",
+      "deleted": "Résolution retirée."
+    },
+    "attendance": {
+      "title": "Feuille de présence",
+      "description": "Chaque lot vote avec ses tantièmes. Un copropriétaire empêché peut être représenté par un mandataire ; le promoteur vote pour les lots non attribués.",
+      "noUnits": "La résidence n'a aucun lot.",
+      "unit": "Lot",
+      "coOwner": "Copropriétaire",
+      "promoter": "Promoteur (lot non attribué)",
+      "share": "Tantièmes",
+      "kind": "Présence",
+      "proxy": "Mandataire",
+      "kindOf": "Présence du lot {code}",
+      "proxyOf": "Mandataire du lot {code}",
+      "kinds": {
+        "present": "Présent",
+        "represented": "Représenté",
+        "absent": "Absent"
+      },
+      "notRecorded": "Non saisie",
+      "summary": "Présents ou représentés : {voters} sur {units} lots, {shares} tantièmes sur {total} ({percent}).",
+      "save": "Enregistrer la feuille de présence",
+      "saved": "Feuille de présence enregistrée."
+    },
+    "votes": {
+      "title": "Votes",
+      "legend": "Cliquez sur une case pour passer de « pour » à « contre », « abstention » puis « n'a pas voté ». Les résultats se calculent en tantièmes.",
+      "noVoters": "Aucun lot présent ou représenté : personne ne vote.",
+      "needAttendance": "Enregistrez d'abord la feuille de présence.",
+      "unit": "Lot",
+      "share": "Tantièmes",
+      "resolution": "Résolution {position}",
+      "allFor": "Tous pour",
+      "allForLabel": "Tous pour la résolution {position}",
+      "cellLabel": "Lot {code}, résolution {position} : {choice}",
+      "choice": {
+        "for": "Pour",
+        "against": "Contre",
+        "abstain": "Abstention"
+      },
+      "notVoted": "n'a pas voté",
+      "results": "Résultat (sur {total} tantièmes)",
+      "tally": "Pour {yes} · Contre {no} · Abst. {abstain}",
+      "save": "Enregistrer les votes",
+      "saved": "Votes enregistrés."
+    },
+    "result": {
+      "adopted": "Adoptée",
+      "rejected": "Rejetée"
+    },
     "errors": {
       "notDraft": "La convocation est partie : l'ordre du jour ne change plus.",
-      "emptyAgenda": "L'ordre du jour est vide."
+      "emptyAgenda": "L'ordre du jour est vide.",
+      "notConvened": "Convoquez d'abord l'assemblée.",
+      "closed": "L'assemblée est clôturée : ses résultats ne changent plus.",
+      "notHeldYet": "L'assemblée ne peut être clôturée avant sa date.",
+      "noAttendance": "Enregistrez d'abord la feuille de présence.",
+      "proxyRequired": "Indiquez le mandataire de chaque copropriétaire représenté.",
+      "duplicateUnit": "Un lot figure deux fois sur la feuille de présence.",
+      "notVoting": "Seuls les lots présents ou représentés votent.",
+      "duplicateVote": "Un lot ne vote qu'une fois par résolution."
     }
   }
 }

@@ -169,6 +169,13 @@
       "when": 1791135109101,
       "tag": "0023_assemblies",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1791147491037,
+      "tag": "0024_assembly_minutes",
+      "breakpoints": true
     }
   ]
 }

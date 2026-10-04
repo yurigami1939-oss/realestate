@@ -51,12 +51,20 @@ async function currentPdf(
           .where(eq(generalAssembly.id, id));
         return row;
       });
+    case "assembly_minutes":
+      return withTenant(ctx, async (tx) => {
+        const [row] = await tx
+          .select({ pdfFileId: generalAssembly.minutesFileId })
+          .from(generalAssembly)
+          .where(eq(generalAssembly.id, id));
+        return row;
+      });
   }
 }
 
 /** Requests a residence document's PDF again when it is still missing (idempotent job). */
 export async function requestChargeDocument(ctx: TenantCtx, input: DocumentRequest) {
-  assertCan(ctx, "charge:read");
+  assertCan(ctx, input.kind.startsWith("assembly_") ? "assembly:read" : "charge:read");
   const current = await currentPdf(ctx, input);
   if (!current) throw new AppError("NOT_FOUND");
   if (current.pdfFileId) return;

@@ -61,7 +61,8 @@ export const cancelChargePeriodAction = defineAction(
   (input, ctx) => mutation(() => cancelChargePeriod(ctx, input)),
 );
 export const requestChargeDocumentAction = defineAction(
-  { input: requestChargeDocumentSchema, permission: "charge:read" },
+  // The service checks charge:read, or assembly:read for assembly documents.
+  { input: requestChargeDocumentSchema },
   (input, ctx) => mutation(() => requestChargeDocument(ctx, input)),
 );
 export const recordChargePaymentAction = defineAction(

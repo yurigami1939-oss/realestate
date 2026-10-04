@@ -25,6 +25,11 @@ export const assemblyKindLabels: Record<AssemblyKind, { fr: string; ar: string }
   extraordinary: { fr: "extraordinaire", ar: "غير العادية" },
 };
 
+/** "la résidence Les Oliviers", or "la Résidence Les Oliviers" when the name already says so. */
+export function theResidence(name: string): string {
+  return /^r[ée]sidence\s/i.test(name) ? `la ${name}` : `la résidence ${name}`;
+}
+
 export const majorityLabels: Record<Majority, { fr: string; ar: string }> = {
   simple: { fr: "Majorité des voix exprimées", ar: "أغلبية الأصوات المعبر عنها" },
   absolute: { fr: "Majorité absolue des tantièmes", ar: "الأغلبية المطلقة للحصص" },
@@ -68,7 +73,7 @@ export function AssemblyConvocationTemplate({
       </div>
 
       <p>
-        <b>Mesdames et Messieurs les copropriétaires de la résidence {data.residenceName}</b>
+        <b>Mesdames et Messieurs les copropriétaires de {theResidence(data.residenceName)}</b>
         {data.residenceAddress ? ` (${data.residenceAddress})` : ""},
       </p>
       <p>

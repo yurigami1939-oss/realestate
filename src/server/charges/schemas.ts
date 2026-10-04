@@ -85,6 +85,7 @@ export const chargeDocumentKinds = [
   "charge_receipt",
   "charge_reminder",
   "assembly_convocation",
+  "assembly_minutes",
 ] as const;
 export const requestChargeDocumentSchema = z.object({
   kind: z.enum(chargeDocumentKinds),

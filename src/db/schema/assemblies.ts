@@ -46,6 +46,8 @@ export const generalAssembly = pgTable(
     heldOn: date({ mode: "string" }).notNull(),
     /** "18:30" */
     startTime: text().notNull(),
+    /** When the meeting ended ("20:15"), printed on the minutes. */
+    endTime: text(),
     place: text().notNull(),
     status: assemblyStatus().notNull().default("draft"),
     /** Total tantièmes of the residence, frozen when the assembly closes. */

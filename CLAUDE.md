@@ -107,6 +107,8 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
     │   ├── crm/              # stage/visit badges, phone text + call/WhatsApp, follow-up/visit dialogs
     │   ├── inventory/        # unit/project status badges, stats bar, floor labels
     │   ├── sales/            # sale/installment badges, option dialogs, DocumentPdf (+ refresher), VSP warnings
+    │   ├── residences/ · staff/ · suppliers/ · tickets/ · assemblies/  # residence module: dialogs,
+    │   │                     # ChargeDocumentPdf, attendance grid, payroll, attendance sheet, vote grid
     │   └── auth/ · i18n/     # sign-out, locale switcher
     ├── db/
     │   ├── schema/           # auth.ts (GENERATED) · platform.ts · _columns.ts helpers · index.ts
@@ -151,18 +153,22 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
     │   ├── staff/            # residence agents (role, net salary, charge category), salary advances,
     │   │                     # monthly attendance (attendance.ts), monthly pay (pay.ts)
     │   ├── tickets/          # réclamations: workflow, assignment (agent or supplier), history
+    │   ├── assemblies/       # general assemblies: agenda, convening, attendance and proxies, votes,
+    │   │                     # closing (frozen results), convocation and minutes PDFs (documents.ts)
     │   ├── documents/        # render.ts: `pdf.document` dispatcher (one renderer per kind)
     │   └── <module>/         # schemas.ts (isomorphic) · queries.ts · service.ts · actions.ts · *.test.ts
     ├── jobs/                 # queues.ts (names, retry policy, payload types), enqueue.ts, worker.ts, handlers/
     ├── pdf/                  # render.ts (Chromium), document.tsx (shell + fonts), receipt.ts, quotation.ts,
     │                         # templates/ (letterhead, quotation, receipt, reservation-sheet, payment-call,
-    │                         # reminder-letter, charge-call, charge-reminder)
+    │                         # reminder-letter, charge-call, charge-reminder, assembly-convocation,
+    │                         # assembly-minutes)
     ├── i18n/                 # locales, routing, navigation, request config, typed messages
     ├── hooks/                # client hooks (use-mobile)
     └── lib/                  # isomorphic: result, permissions, money/, dates, document-types, safe-next, auth-client,
                               # inventory, crm (stages), phone, payment-plans (buildSchedule, VSP limits, milestone
                               # due date), statement (FIFO allocation, overdue, penalties), sales, quotations, files, zod, ids,
-                              # residences (frequencies, keys), charges (period parts, splits, period names)
+                              # residences (frequencies, keys), charges (period parts, splits, period names),
+                              # assemblies (majorities, vote tallies)
 ```
 
 ## 5. Architecture rules
@@ -218,7 +224,7 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 - Worker = separate process (`pnpm worker`), graceful shutdown. Next.js only calls `enqueue()` (send-only instance).
 - Tenant jobs carry `organizationId` and run inside `withTenant`; platform jobs (auth emails) do not. Handlers are idempotent. Money in payloads = decimal string of centimes.
 - A job that follows a business write is enqueued **in the same transaction** with `enqueueInTx(tx, …)` (pg-boss `fromDrizzle`): it exists only if the write commits. `singletonKey` = the record id — on standard queues pg-boss only deduplicates **throttled** jobs (`singletonSeconds`), so handlers must be idempotent; once-a-day jobs use `singletonSeconds: 86_400`.
-- Queues today: `email.send`; `pdf.document` (`{ organizationId, kind, id }`, kinds `quotation`, `reservation_sheet`, `receipt`, `payment_call`, `reminder_letter`, `charge_call`, `charge_receipt`, `charge_reminder`: one renderer per kind in `src/server/documents/render.ts`, each renders once and links the stored file); `option.expire` (scheduled at the option's expiry); `payment_call.issue` (after a milestone validation); `reminders.daily` (cron 08:00 Africa/Algiers, declared in `schedules` in `queues.ts` and installed by `db:migrate`) → one `reminders.digest` per organization, which sends both the overdue sales digest and the overdue charges digest. Planned: charge calls, lease alerts.
+- Queues today: `email.send`; `pdf.document` (`{ organizationId, kind, id }`, kinds `quotation`, `reservation_sheet`, `receipt`, `payment_call`, `reminder_letter`, `charge_call`, `charge_receipt`, `charge_reminder`, `assembly_convocation`, `assembly_minutes`: one renderer per kind in `src/server/documents/render.ts`, each renders once and links the stored file; a running worker must be restarted to know a new kind); `option.expire` (scheduled at the option's expiry); `payment_call.issue` (after a milestone validation); `reminders.daily` (cron 08:00 Africa/Algiers, declared in `schedules` in `queues.ts` and installed by `db:migrate`) → one `reminders.digest` per organization, which sends both the overdue sales digest and the overdue charges digest. Planned: charge calls, lease alerts.
 - `db:migrate` starts pg-boss once with the scheduler on so its internal cron queue exists before any worker (see §12). Stop dev workers by killing the node process tree (Windows keeps children of a stopped shell).
 
 ### Email
@@ -229,7 +235,7 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 - Private bucket. Key: `org/{orgId}/{entityType}/{entityId}/{fileId}.{ext}`; a tenant-scoped `file` row holds metadata (`entity_type` + `entity_id` = owner record).
 - **Upload**: `POST /api/files` (multipart `purpose`, `entityId`, `file`) → `Result<{ fileId }>`. Same-origin check, body capped while streaming (`readFormData`), then a switch on `purpose` calls the owning service (e.g. `setUnitFloorPlan`), which asserts the permission, runs `checkUpload` (size + **magic-byte** format check against `uploadPurposes` in `src/lib/files.ts`; the browser's MIME type is ignored) and `storeFile(tx, …)` (row insert, then S3 put, inside the tenant transaction). Client: `UploadButton`.
 - **Download**: `GET /api/files/{id}[?download]` → access check by `entity_type` (`readers` in `src/server/files/service.ts`: a unit plan needs `inventory:read`, a quotation PDF needs its lead to be visible, a buyer document its buyer, a sale's files its sale) → 302 to a 5-min presigned URL with the original name (`Content-Disposition` with UTF-8 `filename*`).
-- Upload purposes today: `unit.floor_plan`, `buyer.document` (variant = document kind), `reservation.contract`, `reservation.deed`, `organization.logo` (PNG/JPEG only, 2 MB; readable by any member of the organization). Every document of a sale (reservation sheet, receipts, payment calls, reminder letters, signed scans) is filed under entity `reservation`, so its readers follow the sale's visibility. Residence documents (charge calls, charge receipts) are filed under entity `residence`; readers need `charge:read`.
+- Upload purposes today: `unit.floor_plan`, `buyer.document` (variant = document kind), `reservation.contract`, `reservation.deed`, `organization.logo` (PNG/JPEG only, 2 MB; readable by any member of the organization). Every document of a sale (reservation sheet, receipts, payment calls, reminder letters, signed scans) is filed under entity `reservation`, so its readers follow the sale's visibility. Residence documents (charge calls, receipts and reminders, assembly convocations and minutes) are filed under entity `residence`; readers need `charge:read` or `assembly:read`.
 - Replacing/removing a file soft-deletes the old row (`deleted_at`); the object stays in the bucket. New purpose = entry in `uploadPurposes` + service function + `case` in `src/app/api/files/route.ts` (+ a `readers` entry for a new entity type). Generated documents are stored with `storeFile(tx, { orgId, userId: null }, …)` by their job.
 - Issued documents are rendered once at issue; the stored PDF is served for reprints.
 
@@ -301,7 +307,9 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 | Agent de sécurité, femme de ménage… | `staff_member` | `staff_role` enum |
 | Pointage / Paie / Avance sur salaire | `attendance` / `payroll` / `salary_advance` | |
 | Annonce | `announcement` | |
-| Assemblée générale, PV, résolution, vote | `general_assembly` / `assembly_minutes` / `resolution` / `vote` | |
+| Assemblée générale, résolution, feuille de présence, vote | `general_assembly` / `assembly_resolution` / `assembly_attendance` / `assembly_vote` | `assembly_kind`: `ordinary`, `extraordinary`; attendance `present`, `represented` (with `proxy_name`), `absent` |
+| Procès-verbal (PV) / Convocation | `general_assembly.minutes_file_id` / `convocation_file_id` | bilingual PDFs |
+| Majorité | `majority` | `simple` (votes cast), `absolute`, `two_thirds`, `unanimity` (of all tantièmes) |
 | Caisse / Compte bancaire | `cash_register` / `bank_account` | |
 | Journal d'audit | `audit_log` | |
 | Société (SARL) | `organization` | Better Auth table + legal fields below |
@@ -405,10 +413,11 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 - **Staff** (`staff_member`, `staff:update`: gérant, comptable, gestionnaire): agents of a residence (role, net monthly salary, charge category their pay is booked to, hire/departure dates); salary advances deducted from a month's pay; monthly attendance grid (marked days: absence, leave, sick, day off; unmarked = worked; Friday/Saturday shaded); monthly pay entered as net amounts (no IRG/CNAS): base + bonus − deduction − the month's advances = net (never negative), editable/deletable until paid; a month's advances are locked once its pay is recorded; audited.
 - **Tickets** (`ticket`, `ticket:create`/`ticket:update`: gérant, gestionnaire): on a unit or the common areas of a residence, category and priority; workflow `open → in_progress → resolved → closed` (`in_progress ↔ open`, `resolved → in_progress` reopens, `cancelled` from open/in progress; closed and cancelled are final, `ticketTransitions` in `src/lib/tickets.ts`); assigned to an employed agent of the residence or a supplier (not both); every change goes to the append-only `ticket_event` history (grants). Residents will open them from the portal (module 7).
 - **Budget vs actual** (`getBudgetReport`, `charge:read`): per category and calendar year, budget, called (lines of the year's live calls), spent (invoices dated that year, paid or not, plus the staff pay of the year: base + bonus − deduction) and paid; reserve fund (all years): called, collected (derived), spent on works (reserve invoices), balance.
+- **General assemblies** (`assembly:read` / `assembly:update`: gérant, gestionnaire): `draft → convened → closed`. A draft (date, time, place, kind) gets its agenda of resolutions, each with its majority; it can be edited or deleted. Convening (needs one resolution) fixes the agenda and renders the bilingual convocation (`assembly_convocation`), audited `assembly.convene`. Then the attendance sheet is saved as a whole: every unit of the residence is present, represented (proxy name required) or absent (left out = absent; the promoter votes for units without a co-owner); votes are saved as a whole, one choice (for / against / abstain) per present or represented unit and resolution (no choice = did not vote); a unit made absent loses its votes. Results by tantièmes (`isAdopted`, `src/lib/assemblies.ts`): `simple` = more for than against among votes cast; `absolute` (> ½), `two_thirds` (≥ ⅔) and `unanimity` count over all the residence's tantièmes, absent units included. No quorum is enforced (the share present or represented is shown and printed). Closing (from the meeting day, with the attendance recorded; chair, optional secretary and end time) freezes the sheet (tantièmes, co-owner names), the total, each resolution's tallies and result, renders the bilingual minutes (`assembly_minutes`: bureau, attendance summary, each vote with opponents and abstainers, attendance sheet annex) and is final; audited `assembly.close`.
 - **Overdue charges** (reminders only, never penalties): `/residences/overdue` lists every unit with calls due before today and not covered, most late first; reminder letters (`charge:remind`: gérant, comptable, caissier, gestionnaire) keep the overdue calls as printed, a pay-by date (default 8 days) and the addressee, bilingual PDF; the daily digest e-mails property managers and cashiers when something is overdue.
 
 ### Audit & deletion
-- Audited: prices, payments, receipts, charge categories, budgets, charge periods, charge payments, supplier invoices, contracts (reservation, sale, contract details), installments/schedules, unit status, milestone validation, withdrawals (propose / approve / reject / refund), transfers, unit swaps, commissions (paid, rates), organization creation, invitations, member joins/role changes/removals.
+- Audited: prices, payments, receipts, charge categories, budgets, charge periods, charge payments, supplier invoices, general assemblies (convening, closing with results), contracts (reservation, sale, contract details), installments/schedules, unit status, milestone validation, withdrawals (propose / approve / reject / refund), transfers, unit swaps, commissions (paid, rates), organization creation, invitations, member joins/role changes/removals.
 - `audit_log(organization_id, actor_user_id, action, entity_type, entity_id, before jsonb, after jsonb, reason, created_at)` written by `recordAudit(tx, scope, entry)` in the same transaction as the change (bigint → string, Date → ISO). `action` is semantic: `<entity>.<verb>`, e.g. `receipt.cancel`, `member.update_roles`. `actor_user_id` null for jobs.
 - DB grants enforce it (`post-migrate.sql`): no `UPDATE`/`DELETE`/`TRUNCATE` on `audit_log`, `reservation_transfer`, `unit_swap`; payments and receipts: no `DELETE`, column-level `UPDATE` (cancellation, cheque clearance, PDF link) only; payment calls and reminder letters: only their PDF link; reservations and withdrawals: no `DELETE`; charge periods: only their cancellation; charge calls: only their PDF link; charge call lines: append-only; charge payments: cancellation, cheque clearance and PDF link only; charge reminders: only their PDF link; ticket events: append-only.
 - Business records are soft-deleted (`softDelete()` helper: `deleted_at`, `deleted_by`); queries exclude them by default.
@@ -480,6 +489,7 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 - Don't connect the app as table owner/superuser (RLS bypass); don't add an `organization_id` table to the RLS exemption list.
 - Don't cache tenant data without `orgId` in the key.
 - Don't `Promise.all` queries on one transaction; don't trust a browser's MIME type (sniff with `checkUpload`).
+- Don't interpolate an outer column (`${table.id}`) inside a correlated subquery of a single-table select: Drizzle then renders it unqualified (`"id"`) and it binds to the subquery's own column — write `outer_table.id` by hand (joined selects are qualified).
 - Don't use physical-direction Tailwind classes (`ml-`, `pr-`, `left-`, `text-right`…).
 - Don't send email or render PDFs inside a request — enqueue a job.
 - Don't edit generated files (`src/db/schema/auth.ts`, applied migrations); regenerate instead.
@@ -540,8 +550,8 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
   - [x] Suppliers, contracts, invoices; budget vs actual and reserve fund balance (scans of contracts and invoices pending)
   - [x] Staff, attendance, salary advances, monthly pay (net amounts)
   - [x] Tickets (back office; residents through the portal in module 7)
-  - [ ] General assemblies (server: schema, agenda, convening, convocation PDF done; UI, attendance and proxies, votes, results and PV pending)
-  - [ ] Announcements, seed, e2e
+  - [x] General assemblies: agenda, bilingual convocation, attendance and proxies, votes by tantièmes, closing with frozen results, bilingual PV
+  - [ ] Announcements, seed, e2e (next: announcements, then the residence-module seed and its e2e golden path, incl. an assembly)
 - [ ] Module 7 — Buyer/resident portal
 
 ### Phase 3
@@ -630,6 +640,9 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 | 2026-10-04 | Staff: one residence per agent; pay is one record per agent and month (net amounts), its cost (base + bonus − deduction) counts in the budget vs actual of the agent's category; advances are deducted from the month they are assigned to and locked once that month's pay is recorded. |
 | 2026-10-04 | Tickets have no number (title + date); the list shows active tickets (open, in progress) by default, urgent first; no e-mail notifications yet. |
 | 2026-10-04 | **Workflow (user)**: each finished step is committed and pushed straight to `main` (after `pnpm check`); no feature branches or PRs. |
+| 2026-10-04 | General assemblies: votes are recorded per unit (one vote per unit, weighted by its tantièmes); the promoter votes for the units it still owns; absent units count in the total of the absolute / two-thirds / unanimity majorities. No quorum rule is encoded (nothing verified in law yet): the share present or represented is shown and printed on the PV. |
+| 2026-10-04 | An assembly is closed from its meeting day only, once the attendance is recorded; closing freezes the sheet (tantièmes and co-owners as on that day), tallies and results, and is final (no reopening). Drafts can be deleted (hard delete: nothing was sent); a convened assembly cannot be cancelled yet (a postponed meeting = a new assembly; cancellation / PV de carence later if needed). |
+| 2026-10-04 | The PV names the units that voted against or abstained on each resolution and carries the attendance sheet as an annex; the convocation and the PV are filed under the residence. |
 
 ### Open items
 - **GitHub**: repo `yurigami1939-oss/realestate` is **public** — make it private before real client data or configuration lands. Steps are committed straight to `main` (CI runs on every push).
