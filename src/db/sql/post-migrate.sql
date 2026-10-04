@@ -83,3 +83,5 @@ GRANT UPDATE (status, cancelled_at, cancelled_by, cancellation_reason, cheque_cl
 -- Charge reminder letters are issued once; only their PDF link is set afterwards.
 REVOKE UPDATE, DELETE, TRUNCATE ON public.charge_reminder FROM realestate_app;
 GRANT UPDATE (pdf_file_id) ON public.charge_reminder TO realestate_app;
+-- A ticket's history is append-only.
+REVOKE UPDATE, DELETE, TRUNCATE ON public.ticket_event FROM realestate_app;

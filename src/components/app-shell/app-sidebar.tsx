@@ -18,6 +18,7 @@ import {
   Truck,
   type LucideIcon,
   Users,
+  Wrench,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 
@@ -57,7 +58,8 @@ type NavKey =
   | "audit"
   | "residences"
   | "chargesOverdue"
-  | "suppliers";
+  | "suppliers"
+  | "tickets";
 /** `permission`: shown only to roles that have it (display only; services enforce). */
 type NavItem = { href: string; key: NavKey; icon: LucideIcon; permission?: Permission };
 
@@ -88,6 +90,7 @@ const residenceNav: NavItem[] = [
     permission: "charge:read",
   },
   { href: "/suppliers", key: "suppliers", icon: Truck, permission: "supplier:read" },
+  { href: "/tickets", key: "tickets", icon: Wrench, permission: "ticket:read" },
 ];
 const settingsNav: NavItem[] = [
   { href: "/settings/members", key: "members", icon: Users },

@@ -150,6 +150,7 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
     │   ├── suppliers/        # suppliers (per organization), contracts per residence, invoices (invoices.ts)
     │   ├── staff/            # residence agents (role, net salary, charge category), salary advances,
     │   │                     # monthly attendance (attendance.ts), monthly pay (pay.ts)
+    │   ├── tickets/          # réclamations: workflow, assignment (agent or supplier), history
     │   ├── documents/        # render.ts: `pdf.document` dispatcher (one renderer per kind)
     │   └── <module>/         # schemas.ts (isomorphic) · queries.ts · service.ts · actions.ts · *.test.ts
     ├── jobs/                 # queues.ts (names, retry policy, payload types), enqueue.ts, worker.ts, handlers/
@@ -402,13 +403,14 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 - **Unit account** (`chargeStatement`, derived): valid payments applied FIFO to the live calls (due date, then number), no penalties; what exceeds every call issued so far is an advance for the next ones; reserve collected = each call's reserve part × paid / amount.
 - **Suppliers** (`supplier`, per organization; `supplier:update`: gérant, comptable, gestionnaire): contracts per residence (period, optional category, indicative annual amount); invoices (`supplier_invoice`) booked to a charge category of the residence (a contract's category by default) or paid from the reserve fund (works); number unique per supplier; editable and deletable while unpaid, then read-only once paid (date, method, reference); audited.
 - **Staff** (`staff_member`, `staff:update`: gérant, comptable, gestionnaire): agents of a residence (role, net monthly salary, charge category their pay is booked to, hire/departure dates); salary advances deducted from a month's pay; monthly attendance grid (marked days: absence, leave, sick, day off; unmarked = worked; Friday/Saturday shaded); monthly pay entered as net amounts (no IRG/CNAS): base + bonus − deduction − the month's advances = net (never negative), editable/deletable until paid; a month's advances are locked once its pay is recorded; audited.
+- **Tickets** (`ticket`, `ticket:create`/`ticket:update`: gérant, gestionnaire): on a unit or the common areas of a residence, category and priority; workflow `open → in_progress → resolved → closed` (`in_progress ↔ open`, `resolved → in_progress` reopens, `cancelled` from open/in progress; closed and cancelled are final, `ticketTransitions` in `src/lib/tickets.ts`); assigned to an employed agent of the residence or a supplier (not both); every change goes to the append-only `ticket_event` history (grants). Residents will open them from the portal (module 7).
 - **Budget vs actual** (`getBudgetReport`, `charge:read`): per category and calendar year, budget, called (lines of the year's live calls), spent (invoices dated that year, paid or not, plus the staff pay of the year: base + bonus − deduction) and paid; reserve fund (all years): called, collected (derived), spent on works (reserve invoices), balance.
 - **Overdue charges** (reminders only, never penalties): `/residences/overdue` lists every unit with calls due before today and not covered, most late first; reminder letters (`charge:remind`: gérant, comptable, caissier, gestionnaire) keep the overdue calls as printed, a pay-by date (default 8 days) and the addressee, bilingual PDF; the daily digest e-mails property managers and cashiers when something is overdue.
 
 ### Audit & deletion
 - Audited: prices, payments, receipts, charge categories, budgets, charge periods, charge payments, supplier invoices, contracts (reservation, sale, contract details), installments/schedules, unit status, milestone validation, withdrawals (propose / approve / reject / refund), transfers, unit swaps, commissions (paid, rates), organization creation, invitations, member joins/role changes/removals.
 - `audit_log(organization_id, actor_user_id, action, entity_type, entity_id, before jsonb, after jsonb, reason, created_at)` written by `recordAudit(tx, scope, entry)` in the same transaction as the change (bigint → string, Date → ISO). `action` is semantic: `<entity>.<verb>`, e.g. `receipt.cancel`, `member.update_roles`. `actor_user_id` null for jobs.
-- DB grants enforce it (`post-migrate.sql`): no `UPDATE`/`DELETE`/`TRUNCATE` on `audit_log`, `reservation_transfer`, `unit_swap`; payments and receipts: no `DELETE`, column-level `UPDATE` (cancellation, cheque clearance, PDF link) only; payment calls and reminder letters: only their PDF link; reservations and withdrawals: no `DELETE`; charge periods: only their cancellation; charge calls: only their PDF link; charge call lines: append-only; charge payments: cancellation, cheque clearance and PDF link only; charge reminders: only their PDF link.
+- DB grants enforce it (`post-migrate.sql`): no `UPDATE`/`DELETE`/`TRUNCATE` on `audit_log`, `reservation_transfer`, `unit_swap`; payments and receipts: no `DELETE`, column-level `UPDATE` (cancellation, cheque clearance, PDF link) only; payment calls and reminder letters: only their PDF link; reservations and withdrawals: no `DELETE`; charge periods: only their cancellation; charge calls: only their PDF link; charge call lines: append-only; charge payments: cancellation, cheque clearance and PDF link only; charge reminders: only their PDF link; ticket events: append-only.
 - Business records are soft-deleted (`softDelete()` helper: `deleted_at`, `deleted_by`); queries exclude them by default.
 
 ## 8. Coding conventions
@@ -537,7 +539,7 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
   - [x] Overdue charges: list, reminder letters, digest
   - [x] Suppliers, contracts, invoices; budget vs actual and reserve fund balance (scans of contracts and invoices pending)
   - [x] Staff, attendance, salary advances, monthly pay (net amounts)
-  - [ ] Tickets
+  - [x] Tickets (back office; residents through the portal in module 7)
   - [ ] General assemblies
   - [ ] Announcements, seed, e2e
 - [ ] Module 7 — Buyer/resident portal
@@ -626,6 +628,7 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 | 2026-10-04 | Overdue charges: reminder letters by `charge:remind` (gérant, comptable, caissier, gestionnaire), pay-by date 8 days by default; the daily digest goes to property managers and cashiers and rides on the existing `reminders.digest` job (one job per organization and day). |
 | 2026-10-04 | Suppliers are shared by the organization's residences. An invoice is booked to one charge category of its residence or to the reserve fund (works); spending counts at the invoice date, paid or not ("dont payé" shown apart); the reserve fund balance = collected − works invoices. Invoices are read-only once paid. |
 | 2026-10-04 | Staff: one residence per agent; pay is one record per agent and month (net amounts), its cost (base + bonus − deduction) counts in the budget vs actual of the agent's category; advances are deducted from the month they are assigned to and locked once that month's pay is recorded. |
+| 2026-10-04 | Tickets have no number (title + date); the list shows active tickets (open, in progress) by default, urgent first; no e-mail notifications yet. |
 | 2026-10-04 | **Workflow (user)**: each finished step is committed and pushed straight to `main` (after `pnpm check`); no feature branches or PRs. |
 
 ### Open items

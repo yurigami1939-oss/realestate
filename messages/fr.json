@@ -213,7 +213,8 @@
     "residenceGroup": "Gestion des résidences",
     "residences": "Résidences",
     "chargesOverdue": "Charges impayées",
-    "suppliers": "Fournisseurs"
+    "suppliers": "Fournisseurs",
+    "tickets": "Réclamations"
   },
   "shell": {
     "organizations": "Sociétés",
@@ -2234,6 +2235,93 @@
         "actions": "Actions",
         "month": "Mois"
       }
+    }
+  },
+  "tickets": {
+    "title": "Réclamations",
+    "description": "Signalements des résidences (lots ou parties communes), suivis jusqu'à leur résolution.",
+    "empty": "Aucune réclamation.",
+    "new": "Nouvelle réclamation",
+    "newTitle": "Nouvelle réclamation",
+    "create": "Enregistrer",
+    "created": "Réclamation enregistrée.",
+    "allResidences": "Toutes les résidences",
+    "allStatuses": "Tous les statuts",
+    "active": "En cours de traitement",
+    "commonAreas": "Parties communes",
+    "unit": "Lot {code}",
+    "nobody": "Personne",
+    "system": "Système",
+    "history": "Historique",
+    "assign": "Affecter",
+    "assignTitle": "Affecter la réclamation",
+    "assignDescription": "À un agent de la résidence ou à un fournisseur (un seul des deux).",
+    "assigned": "Affectation enregistrée.",
+    "comment": "Commenter",
+    "commented": "Commentaire ajouté.",
+    "moved": "Statut mis à jour.",
+    "move": {
+      "open": "Remettre en attente",
+      "in_progress": "Prendre en charge",
+      "resolved": "Marquer résolue",
+      "closed": "Clôturer",
+      "cancelled": "Annuler"
+    },
+    "status": {
+      "open": "Ouverte",
+      "in_progress": "En cours",
+      "resolved": "Résolue",
+      "closed": "Clôturée",
+      "cancelled": "Annulée"
+    },
+    "priority": {
+      "low": "Basse",
+      "normal": "Normale",
+      "high": "Haute",
+      "urgent": "Urgente"
+    },
+    "category": {
+      "plumbing": "Plomberie",
+      "electricity": "Électricité",
+      "elevator": "Ascenseur",
+      "cleaning": "Propreté",
+      "security": "Sécurité",
+      "common_areas": "Parties communes",
+      "other": "Autre"
+    },
+    "event": {
+      "created": "Réclamation ouverte",
+      "status": "Statut : {status}",
+      "assigned": "Affectée à {name}",
+      "unassigned": "Affectation retirée",
+      "comment": "Commentaire"
+    },
+    "fields": {
+      "residenceId": "Résidence",
+      "unitId": "Lot",
+      "title": "Objet",
+      "description": "Description",
+      "category": "Catégorie",
+      "priority": "Priorité",
+      "reporterName": "Signalée par",
+      "comment": "Commentaire",
+      "staffId": "Agent de la résidence",
+      "supplierId": "Fournisseur"
+    },
+    "columns": {
+      "title": "Réclamation",
+      "residence": "Résidence",
+      "place": "Lieu",
+      "priority": "Priorité",
+      "status": "Statut",
+      "assignee": "Affectée à",
+      "openedOn": "Ouverte le"
+    },
+    "errors": {
+      "oneAssignee": "Choisissez un agent ou un fournisseur, pas les deux.",
+      "assigneeNotFound": "Intervenant introuvable.",
+      "invalidTransition": "Ce changement de statut n'est pas possible.",
+      "ticketClosed": "Cette réclamation est close."
     }
   }
 }

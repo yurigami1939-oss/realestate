@@ -213,7 +213,8 @@
     "residenceGroup": "تسيير الإقامات",
     "residences": "الإقامات",
     "chargesOverdue": "الأعباء غير المسددة",
-    "suppliers": "الموردون"
+    "suppliers": "الموردون",
+    "tickets": "الشكاوى"
   },
   "shell": {
     "organizations": "الشركات",
@@ -2234,6 +2235,93 @@
         "actions": "إجراءات",
         "month": "الشهر"
       }
+    }
+  },
+  "tickets": {
+    "title": "الشكاوى",
+    "description": "بلاغات الإقامات (الوحدات أو الأجزاء المشتركة)، تُتابع حتى حلها.",
+    "empty": "لا توجد شكوى.",
+    "new": "شكوى جديدة",
+    "newTitle": "شكوى جديدة",
+    "create": "تسجيل",
+    "created": "تم تسجيل الشكوى.",
+    "allResidences": "كل الإقامات",
+    "allStatuses": "كل الحالات",
+    "active": "قيد المعالجة",
+    "commonAreas": "الأجزاء المشتركة",
+    "unit": "الوحدة {code}",
+    "nobody": "لا أحد",
+    "system": "النظام",
+    "history": "السجل",
+    "assign": "إسناد",
+    "assignTitle": "إسناد الشكوى",
+    "assignDescription": "إلى عون من الإقامة أو إلى مورد (واحد منهما فقط).",
+    "assigned": "تم تسجيل الإسناد.",
+    "comment": "تعليق",
+    "commented": "تمت إضافة التعليق.",
+    "moved": "تم تحديث الحالة.",
+    "move": {
+      "open": "إعادة إلى الانتظار",
+      "in_progress": "التكفل",
+      "resolved": "تأشير كمحلولة",
+      "closed": "إغلاق",
+      "cancelled": "إلغاء"
+    },
+    "status": {
+      "open": "مفتوحة",
+      "in_progress": "قيد المعالجة",
+      "resolved": "محلولة",
+      "closed": "مغلقة",
+      "cancelled": "ملغاة"
+    },
+    "priority": {
+      "low": "منخفضة",
+      "normal": "عادية",
+      "high": "مرتفعة",
+      "urgent": "عاجلة"
+    },
+    "category": {
+      "plumbing": "السباكة",
+      "electricity": "الكهرباء",
+      "elevator": "المصعد",
+      "cleaning": "النظافة",
+      "security": "الأمن",
+      "common_areas": "الأجزاء المشتركة",
+      "other": "أخرى"
+    },
+    "event": {
+      "created": "فتح الشكوى",
+      "status": "الحالة: {status}",
+      "assigned": "أُسندت إلى {name}",
+      "unassigned": "سُحب الإسناد",
+      "comment": "تعليق"
+    },
+    "fields": {
+      "residenceId": "الإقامة",
+      "unitId": "الوحدة",
+      "title": "الموضوع",
+      "description": "الوصف",
+      "category": "الفئة",
+      "priority": "الأولوية",
+      "reporterName": "المُبلغ",
+      "comment": "التعليق",
+      "staffId": "عون الإقامة",
+      "supplierId": "المورد"
+    },
+    "columns": {
+      "title": "الشكوى",
+      "residence": "الإقامة",
+      "place": "المكان",
+      "priority": "الأولوية",
+      "status": "الحالة",
+      "assignee": "مُسندة إلى",
+      "openedOn": "فُتحت في"
+    },
+    "errors": {
+      "oneAssignee": "اختر عونًا أو موردًا، وليس الاثنين.",
+      "assigneeNotFound": "المتدخل غير موجود.",
+      "invalidTransition": "تغيير الحالة هذا غير ممكن.",
+      "ticketClosed": "هذه الشكوى مغلقة."
     }
   }
 }
