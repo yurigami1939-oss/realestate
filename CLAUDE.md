@@ -117,7 +117,9 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
     │   ├── sql/post-migrate.sql # RLS on every organization_id table, grants, revokes
     │   ├── seed/             # demo.ts (users, SARLs), inventory.ts (118 units), crm.ts (25 leads,
     │   │                     # visits, follow-ups, targets), sales.ts (plans, quotations), reservations.ts
-    │   │                     # (settings, buyers, sales, payments, VSP, loan, calls, letter); grows per module
+    │   │                     # (settings, buyers, sales, payments, VSP, loan, calls, letter), residences.ts
+    │   │                     # (delivered « Résidence El Yasmine »: co-owners, charges, calls, payments,
+    │   │                     # suppliers, staff, tickets, assemblies, announcements); grows per module
     │   ├── client.ts         # pg Pool + drizzle (app role)
     │   ├── tenant.ts         # withTenant(scope, fn, tx?)
     │   └── migrate.ts        # migrateDatabase(): migrations + post-migrate + pg-boss
@@ -463,7 +465,7 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 | Jobs/email | Vitest + Mailpit | handler delivers via SMTP (checked through Mailpit API); enqueue stores the job |
 | PDF | Vitest + Chromium | template HTML (RTL blocks, `<bdi>`, amounts in words) and one-page PDF |
 | Files | Vitest + SeaweedFS | magic-byte sniffing, file names, `Content-Disposition`, upload size cap and origin check (route helpers), floor plans stored/replaced/removed, presigned download |
-| E2E | Playwright, production build, `realestate_e2e` reset + seeded | anonymous redirect, sign-in error, members, org switch, FR→AR RTL, role-based UI; inventory: project → building → generated units → per-m² price list → block → floor plan, read-only commercial, Arabic unit sheet; CRM: lead (flagged duplicate) → call → visit → quotation → PDF by the worker, commercial scope, merge, discount + cancel, targets; sales golden path: lead → option → buyer file → reservation of the optioned unit → sheet PDF → cashier payment → receipt PDF, commercial scope, overdue list; seeded VSP with payment call, bank loan and commission; dashboard sections and overdue link |
+| E2E | Playwright, production build, `realestate_e2e` reset + seeded | anonymous redirect, sign-in error, members, org switch, FR→AR RTL, role-based UI; inventory: project → building → generated units → per-m² price list → block → floor plan, read-only commercial, Arabic unit sheet; CRM: lead (flagged duplicate) → call → visit → quotation → PDF by the worker, commercial scope, merge, discount + cancel, targets; sales golden path: lead → option → buyer file → reservation of the optioned unit → sheet PDF → cashier payment → receipt PDF, commercial scope, overdue list; seeded VSP with payment call, bank loan and commission; dashboard sections and overdue link; residence (gestionnaire): next quarter's charge calls → ADC PDF, overdue co-owner → charge receipt RCH PDF, lift ticket resolved, general assembly draft → convocation PDF → attendance with a proxy → votes → closing → PV PDF, announcement published → notice PDF, Arabic residence |
 
 - Vitest `globalSetup` migrates the test DB and creates the S3 bucket once; each test creates its own organization(s) (`tests/factories.ts`, `tests/auth-helpers.ts`) → isolation without truncation.
 - The e2e global setup starts `src/jobs/worker.ts` after the reset and stops its process tree at the end (documents render during e2e).
@@ -500,7 +502,7 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 
 ## 11. Roadmap
 
-**Current: Phase 1 done and merged into `main`. Phase 2 module 6 (residence management) in progress, committed straight to `main` step by step (§12, 2026-10-04); its business rules are answered (§12, 2026-10-01).**
+**Current: Phase 1 done. Phase 2 module 6 (residence management) done, with its seed and e2e; next: module 7 (buyer/resident portal). Steps are committed straight to `main` (§12, 2026-10-04).**
 
 ### Phase 0 — Foundations ✅
 - [x] `CLAUDE.md` approved (2026-09-30)
@@ -545,7 +547,7 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 - [x] Seed: 2 projects, 3 buildings, ~120 units · leads, visits, follow-ups, plans, quotations, targets · buyers, sales, payments, VSP, loan, calls, reminder
 
 ### Phase 2
-- [ ] Module 6 — Residence management
+- [x] Module 6 — Residence management
   - [x] Residences, tantièmes (quote-parts, area split), co-owners and occupants (sales buyers imported)
   - [x] Charge categories and distribution keys; annual budgets (draft → approved)
   - [x] Charge calls per period (ADC, bilingual PDF, cancellation); unit accounts; charge payments and receipts (RCH)
@@ -555,7 +557,7 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
   - [x] Tickets (back office; residents through the portal in module 7)
   - [x] General assemblies: agenda, bilingual convocation, attendance and proxies, votes by tantièmes, closing with frozen results, bilingual PV
   - [x] Announcements: drafts, publication with a printable bilingual notice, withdrawal, expiry
-  - [ ] Seed and e2e (next: a delivered demo residence with co-owners, charges, payments, overdue, suppliers, staff, tickets, assemblies and announcements; its e2e golden path)
+  - [x] Seed (delivered « Résidence El Yasmine »: co-owners, charges, calls, payments, overdue, suppliers, staff, tickets, assemblies, announcements) and e2e golden path
 - [ ] Module 7 — Buyer/resident portal
 
 ### Phase 3
@@ -648,6 +650,7 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 | 2026-10-04 | An assembly is closed from its meeting day only, once the attendance is recorded; closing freezes the sheet (tantièmes and co-owners as on that day), tallies and results, and is final (no reopening). Drafts can be deleted (hard delete: nothing was sent); a convened assembly cannot be cancelled yet (a postponed meeting = a new assembly; cancellation / PV de carence later if needed). |
 | 2026-10-04 | The PV names the units that voted against or abstained on each resolution and carries the attendance sheet as an annex; the convocation and the PV are filed under the residence. |
 | 2026-10-04 | Announcements: per residence, written as drafts by the gérant or the gestionnaire; publishing renders a bilingual notice to post in the building and (module 7) shows it on the residents' portal; published announcements no longer change (withdraw and rewrite instead); an optional last day hides them automatically. No e-mail or SMS to residents (WhatsApp is Phase 3). |
+| 2026-10-05 | Demo residence: a separate project delivered in 2023, before the app (« Résidence El Yasmine », status `delivered`), whose units are **blocked** with that reason so they never count as stock for sale, and whose co-owners are entered by hand. Product gap to settle with module 4: a project delivered before the app has no unit status of its own (`delivered` only comes from a handover). |
 
 ### Open items
 - **GitHub**: repo `yurigami1939-oss/realestate` is **public** — make it private before real client data or configuration lands. Steps are committed straight to `main` (CI runs on every push).

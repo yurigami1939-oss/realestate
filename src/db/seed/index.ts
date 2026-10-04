@@ -10,6 +10,7 @@ import { DEMO_PASSWORD, demoOrganizations, demoUsers } from "./demo";
 import { seedCrm } from "./crm";
 import { seedInventory } from "./inventory";
 import { seedSales } from "./reservations";
+import { seedResidences } from "./residences";
 import { seedPaymentPlans, seedQuotations } from "./sales";
 
 /** Refuses anything but a local database: seeding wipes data. */
@@ -97,5 +98,10 @@ export async function seedDemo(): Promise<void> {
       },
       { projects: projectIds, units: unitIds, leads, plans },
     );
+    await seedResidences({
+      owner: ctx("owner", ["owner"]),
+      manager: ctx("propertyManager", ["property_manager"]),
+      cashier: ctx("cashier", ["cashier"]),
+    });
   }
 }

@@ -1,0 +1,183 @@
+import { expect, type Locator, type Page, test } from "@playwright/test";
+
+import { authFile } from "./helpers";
+
+/** The seeded delivered residence (src/db/seed/residences.ts), from the residences list. */
+async function openResidence(page: Page, locale: "fr" | "ar" = "fr") {
+  await page.goto(`/${locale}/residences`);
+  await page.getByTestId("residences").getByRole("link", { name: "Résidence El Yasmine" }).click();
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Résidence El Yasmine");
+}
+
+/**
+ * A generated PDF: the worker renders documents one at a time (those of the previous test may
+ * still be queued), so the page is reloaded until its link appears.
+ */
+async function expectPdf(page: Page, link: Locator) {
+  await expect(async () => {
+    if (!(await link.isVisible())) await page.reload();
+    await expect(link).toBeVisible({ timeout: 3_000 });
+  }).toPass({ timeout: 90_000 });
+  const pdf = await page.request.get((await link.getAttribute("href")) ?? "");
+  expect(pdf.headers()["content-type"]).toBe("application/pdf");
+  expect((await pdf.body()).subarray(0, 5).toString()).toBe("%PDF-");
+}
+
+test.describe("gestionnaire", () => {
+  test.use({ storageState: authFile("propertyManager") });
+  // Documents render in the background behind each other: allow for the queue.
+  test.describe.configure({ timeout: 150_000 });
+
+  test("issues the next quarter's charge calls of the residence", async ({ page }) => {
+    await openResidence(page);
+    await expect(page.getByTestId("shares-total")).toHaveText("10000 / 10000");
+    await expect(page.getByTestId("residence-units")).toContainText("Cherif Mohamed");
+
+    await page.getByRole("link", { name: "Appels de charges" }).click();
+    await page.getByRole("button", { name: "Émettre des appels" }).click();
+    const dialog = page.getByRole("dialog");
+    await expect(dialog.getByTestId("issue-preview")).toContainText("14 appels");
+    await dialog.getByRole("button", { name: "Émettre des appels" }).click();
+    await expect(page.getByText("14 appels émis.")).toBeVisible();
+
+    // The dialog opens the new period.
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(/^3e trimestre \d{4}$/);
+    await expect(page.getByTestId("charge-calls").getByRole("row")).toHaveCount(15);
+    await expect(page.getByTestId("charge-calls")).toContainText("Promoteur (lot non attribué)");
+    const pdfs = page.getByTestId("charge-calls").getByRole("link", { name: /^Appel ADC-/ });
+    await expectPdf(page, pdfs.first());
+    // Every call gets its PDF; waiting for all of them keeps the next tests' documents unqueued.
+    await expect(async () => {
+      await page.reload();
+      await expect(pdfs).toHaveCount(14, { timeout: 3_000 });
+    }).toPass({ timeout: 120_000 });
+  });
+
+  test("collects an overdue co-owner's charges against a numbered receipt", async ({ page }) => {
+    await page.goto("/fr/residences/overdue");
+    const overdue = page.getByTestId("overdue-charges");
+    await expect(overdue).toContainText("Brahimi Omar");
+    await overdue.locator('[data-unit="Y-02-03"]').getByRole("link", { name: "Y-02-03" }).click();
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Lot Y-02-03");
+    await expect(page.getByTestId("account-reminders")).not.toBeEmpty();
+
+    await page.getByRole("button", { name: "Enregistrer un paiement" }).click();
+    const dialog = page.getByRole("dialog");
+    await expect(dialog.getByLabel("Versé par")).toHaveValue("Mebarki Farid");
+    await dialog.getByLabel("Montant (DA)").fill("10 000");
+    await dialog.getByRole("button", { name: "Enregistrer un paiement" }).click();
+    await expect(page.getByText(/^Paiement enregistré, reçu RCH-\d{4}-\d{6}\.$/)).toBeVisible();
+    await expectPdf(
+      page,
+      page.getByTestId("account-payments").getByRole("link", { name: /^RCH-\d{4}-\d{6}$/ }),
+    );
+  });
+
+  test("takes charge of the lift breakdown and solves it", async ({ page }) => {
+    await page.goto("/fr/tickets");
+    await page
+      .getByTestId("tickets")
+      .getByRole("link", { name: "Ascenseur bloqué au 3e étage" })
+      .click();
+    await expect(page.getByTestId("ticket-events")).toContainText("Ascenseurs Hamma");
+    await page.getByRole("button", { name: "Marquer résolue" }).click();
+    const dialog = page.getByRole("dialog");
+    await dialog.getByLabel("Commentaire").fill("Câble remplacé, ascenseur remis en service.");
+    await dialog.getByRole("button", { name: "Marquer résolue" }).click();
+    await expect(page.getByTestId("ticket-events")).toContainText("Câble remplacé");
+    await expect(page.getByRole("button", { name: "Clôturer" })).toBeVisible();
+  });
+
+  test("holds a general assembly, votes by tantièmes and gets its PV", async ({ page }) => {
+    await openResidence(page);
+    await page.getByRole("link", { name: "Assemblées générales" }).click();
+    // The seeded ordinary assembly is closed with its results.
+    await expect(page.getByTestId("assemblies")).toContainText("3 résolutions adoptées sur 4");
+
+    await page.getByRole("button", { name: "Nouvelle assemblée" }).click();
+    let dialog = page.getByRole("dialog");
+    await dialog.getByLabel("Lieu").fill("Hall du bloc Y");
+    await dialog.getByRole("button", { name: "Créer" }).click();
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+      /^Assemblée générale ordinaire du \d{2}\/\d{2}\/\d{4}$/,
+    );
+
+    await page.getByRole("button", { name: "Ajouter une résolution" }).click();
+    dialog = page.getByRole("dialog");
+    await dialog
+      .getByLabel("Intitulé", { exact: true })
+      .fill("Changement du prestataire de nettoyage");
+    await dialog.getByRole("button", { name: "Ajouter" }).click();
+    await expect(page.getByTestId("agenda")).toContainText("Changement du prestataire");
+
+    await page.getByRole("button", { name: "Convoquer" }).click();
+    await page.getByRole("alertdialog").getByRole("button", { name: "Convoquer" }).click();
+    await expect(page.getByText("Convoquée", { exact: true })).toBeVisible();
+    await expectPdf(page, page.getByRole("link", { name: "Convocation (PDF)" }));
+
+    // Two co-owners come, a third is represented.
+    const sheet = page.getByTestId("attendance-sheet");
+    await sheet
+      .getByRole("radiogroup", { name: "Présence du lot Y-01-01" })
+      .getByRole("radio", { name: "Présent", exact: true })
+      .click();
+    await sheet
+      .getByRole("radiogroup", { name: "Présence du lot Y-02-01" })
+      .getByRole("radio", { name: "Présent", exact: true })
+      .click();
+    await sheet
+      .getByRole("radiogroup", { name: "Présence du lot Y-03-02" })
+      .getByRole("radio", { name: "Représenté", exact: true })
+      .click();
+    await sheet.getByLabel("Mandataire du lot Y-03-02").fill("Zitouni Karim");
+    await expect(page.getByTestId("attendance-summary")).toContainText("3 sur 14 lots");
+    await page.getByRole("button", { name: "Enregistrer la feuille de présence" }).click();
+    await expect(page.getByText("Feuille de présence enregistrée.")).toBeVisible();
+
+    await page.getByRole("button", { name: "Tous pour la résolution 1" }).click();
+    await page.getByRole("button", { name: /^Lot Y-03-02, résolution 1/ }).click();
+    await expect(page.getByTestId("result-1")).toContainText("Adoptée");
+    await page.getByRole("button", { name: "Enregistrer les votes" }).click();
+    await expect(page.getByText("Votes enregistrés.")).toBeVisible();
+
+    await page.getByRole("button", { name: "Clôturer" }).click();
+    dialog = page.getByRole("dialog");
+    await dialog.getByLabel("Président de séance").fill("Hadjadj Lamia");
+    await dialog.getByLabel("Secrétaire de séance").fill("Rachid Ouali");
+    await dialog.getByRole("button", { name: "Clôturer et générer le PV" }).click();
+    await expect(page.getByText("Clôturée", { exact: true })).toBeVisible();
+    await expect(page.getByTestId("agenda")).toContainText("Adoptée");
+    await expectPdf(page, page.getByRole("link", { name: "Procès-verbal (PDF)" }));
+  });
+
+  test("publishes an announcement with its notice to post", async ({ page }) => {
+    await openResidence(page);
+    await page.getByRole("link", { name: "Annonces" }).click();
+    const list = page.getByTestId("announcements");
+    await expect(list.locator('[data-state="published"]').first()).toContainText(
+      "Assemblée générale extraordinaire",
+    );
+
+    await page.getByRole("button", { name: "Nouvelle annonce" }).click();
+    const dialog = page.getByRole("dialog");
+    await dialog.getByLabel("Titre", { exact: true }).fill("Entretien de l'ascenseur");
+    await dialog
+      .getByLabel("Texte", { exact: true })
+      .fill("L'ascenseur sera à l'arrêt mardi matin.");
+    await dialog.getByRole("button", { name: "Créer" }).click();
+    const draft = list.locator("li").filter({ hasText: "Entretien de l'ascenseur" });
+    await expect(draft).toHaveAttribute("data-state", "draft");
+
+    await draft.getByRole("button", { name: "Publier" }).click();
+    await page.getByRole("alertdialog").getByRole("button", { name: "Publier" }).click();
+    await expect(draft).toHaveAttribute("data-state", "published");
+    await expectPdf(page, draft.getByRole("link", { name: "Avis à afficher (PDF)" }));
+  });
+
+  test("reads the residence in Arabic, right to left", async ({ page }) => {
+    await openResidence(page, "ar");
+    await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
+    await page.getByRole("link", { name: "الجمعيات العامة" }).click();
+    await expect(page.getByTestId("assemblies")).toContainText("مختتمة");
+  });
+});
