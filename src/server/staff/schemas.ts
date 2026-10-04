@@ -1,10 +1,11 @@
 /** Isomorphic: shared by the staff forms and their actions. */
 import { z } from "zod";
 
-import { attendanceStatuses, staffRoles } from "@/lib/residences";
+import { attendanceStatuses, chargePaymentMethods, staffRoles } from "@/lib/residences";
 import {
   dateText,
   moneyText,
+  optionalMoneyText,
   optionalNinText,
   optionalPhoneText,
   optionalText,
@@ -61,3 +62,21 @@ export const saveAttendanceSchema = z.object({
     .array(z.object({ staffId: z.uuid(), day: dateText(), status: z.enum(attendanceStatuses) }))
     .max(5000),
 });
+
+/** Monthly pay of an agent, entered as net amounts; the month's advances are deducted. */
+export const savePaySchema = z.object({
+  staffId: z.uuid(),
+  month: monthText(),
+  baseAmount: moneyText(),
+  bonus: optionalMoneyText(),
+  deduction: optionalMoneyText(),
+  notes: optionalText(500),
+});
+
+/** Payment of a recorded pay. */
+export const payStaffSchema = z.object({
+  payId: z.uuid(),
+  paidOn: dateText(),
+  method: z.enum(chargePaymentMethods),
+});
+export const payIdSchema = z.object({ payId: z.uuid() });

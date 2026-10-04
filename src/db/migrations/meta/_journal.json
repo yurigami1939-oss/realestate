@@ -148,6 +148,13 @@
       "when": 1791132679418,
       "tag": "0020_staff_attendance",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1791133362744,
+      "tag": "0021_staff_pay",
+      "breakpoints": true
     }
   ]
 }

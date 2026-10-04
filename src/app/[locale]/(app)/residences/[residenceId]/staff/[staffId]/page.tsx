@@ -24,6 +24,7 @@ import { requirePermission } from "@/server/auth/page-guard";
 import { getChargesSetup } from "@/server/charges/queries";
 import { getResidence } from "@/server/residences/queries";
 import { deleteAdvanceAction } from "@/server/staff/actions";
+import { listStaffPays } from "@/server/staff/pay";
 import { getStaffMember } from "@/server/staff/queries";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -41,6 +42,8 @@ export default async function StaffMemberPage({
   const home = await getResidence(ctx, residenceId);
   if (!agent || !home) notFound();
   const today = todayInAlgiers();
+  const pays = await listStaffPays(ctx, staffId);
+  const tp = await getTranslations("charges.period");
   const categories = can(ctx.roles, "charge:read")
     ? ((await getChargesSetup(ctx, residenceId, Number(today.slice(0, 4))))?.categories ?? [])
     : [];
@@ -154,6 +157,56 @@ export default async function StaffMemberPage({
                           />
                         </TableCell>
                       ) : null}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">{t("payroll.history")}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {pays.length === 0 ? (
+            <p className="text-sm text-muted-foreground">{t("payroll.noHistory")}</p>
+          ) : (
+            <div className="overflow-x-auto rounded-lg border">
+              <Table data-testid="pays">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>{t("payroll.columns.month")}</TableHead>
+                    <TableHead className="text-end">{t("payroll.columns.base")}</TableHead>
+                    <TableHead className="text-end">{t("payroll.columns.advances")}</TableHead>
+                    <TableHead className="text-end">{t("payroll.columns.net")}</TableHead>
+                    <TableHead>{t("payroll.columns.state")}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {pays.map((p) => (
+                    <TableRow key={p.id}>
+                      <TableCell>
+                        {tp("monthly", {
+                          year: Number(p.month.slice(0, 4)),
+                          index: Number(p.month.slice(5, 7)),
+                        })}
+                      </TableCell>
+                      <TableCell className="text-end tabular-nums" dir="ltr">
+                        {money(p.baseAmount + p.bonus - p.deduction)}
+                      </TableCell>
+                      <TableCell className="text-end tabular-nums" dir="ltr">
+                        {money(p.advances)}
+                      </TableCell>
+                      <TableCell className="text-end font-medium tabular-nums" dir="ltr">
+                        {money(p.netAmount)}
+                      </TableCell>
+                      <TableCell>
+                        {p.paidOn
+                          ? t("payroll.paidOn", { date: formatDate(p.paidOn) })
+                          : t("payroll.recorded")}
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

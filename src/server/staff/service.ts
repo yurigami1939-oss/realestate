@@ -4,7 +4,7 @@ import { and, eq, isNull } from "drizzle-orm";
 import type { z } from "zod";
 
 import type { Tx } from "@/db/client";
-import { salaryAdvance, staffMember } from "@/db/schema";
+import { salaryAdvance, staffMember, staffPay } from "@/db/schema";
 import { withTenant } from "@/db/tenant";
 import { todayInAlgiers } from "@/lib/dates";
 import { AppError } from "@/lib/result";
@@ -105,6 +105,15 @@ export async function endStaff(ctx: TenantCtx, input: In<typeof endStaffSchema>)
   });
 }
 
+/** Advances of a month are locked once its pay is recorded (the pay deducts their total). */
+async function assertNoPay(tx: Tx, staffId: string, month: string) {
+  const [pay] = await tx
+    .select({ id: staffPay.id })
+    .from(staffPay)
+    .where(and(eq(staffPay.staffId, staffId), eq(staffPay.month, month)));
+  if (pay) throw new AppError("CONFLICT", "staff.errors.payRecorded");
+}
+
 /** Salary advance paid to an agent, deducted from a month's pay. Audited. */
 export async function recordAdvance(ctx: TenantCtx, input: In<typeof recordAdvanceSchema>) {
   assertCan(ctx, "staff:update");
@@ -114,6 +123,7 @@ export async function recordAdvance(ctx: TenantCtx, input: In<typeof recordAdvan
     if (input.paidOn < agent.hiredOn || (agent.leftOn && input.paidOn > agent.leftOn)) {
       throw invalid("paidOn", "staff.errors.notEmployed");
     }
+    await assertNoPay(tx, agent.id, input.month);
     const [row] = await tx
       .insert(salaryAdvance)
       .values({ ...input, organizationId: ctx.orgId, recordedBy: ctx.userId })
@@ -140,6 +150,7 @@ export async function deleteAdvance(ctx: TenantCtx, advanceId: string) {
       .where(and(eq(salaryAdvance.id, advanceId), isNull(salaryAdvance.deletedAt)))
       .for("update");
     if (!current) throw new AppError("NOT_FOUND");
+    await assertNoPay(tx, current.staffId, current.month);
     await tx
       .update(salaryAdvance)
       .set({ deletedAt: new Date(), deletedBy: ctx.userId })

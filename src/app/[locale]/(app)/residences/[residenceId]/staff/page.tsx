@@ -1,4 +1,4 @@
-import { CalendarCheck } from "lucide-react";
+import { CalendarCheck, Wallet } from "lucide-react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getLocale, getTranslations, setRequestLocale } from "next-intl/server";
@@ -69,6 +69,14 @@ export default async function ResidenceStaffPage({
                 <Link href={`/residences/${residenceId}/staff/attendance`}>
                   <CalendarCheck data-icon="inline-start" />
                   {t("attendance.open")}
+                </Link>
+              </Button>
+            ) : null}
+            {staff.length > 0 ? (
+              <Button asChild variant="outline">
+                <Link href={`/residences/${residenceId}/staff/payroll`}>
+                  <Wallet data-icon="inline-start" />
+                  {t("payroll.open")}
                 </Link>
               </Button>
             ) : null}

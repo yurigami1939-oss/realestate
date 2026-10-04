@@ -14,9 +14,19 @@ import {
 
 import { attendanceStatuses, staffRoles } from "../../lib/residences";
 
-import { createdAt, id, money, organizationId, softDelete, timestamps, userRef } from "./_columns";
+import {
+  createdAt,
+  id,
+  money,
+  organizationId,
+  softDelete,
+  timestamps,
+  updatedAt,
+  userRef,
+} from "./_columns";
 import { chargeCategory } from "./charges";
 import { residence } from "./residences";
+import { paymentMethod } from "./sales";
 
 export const staffRole = pgEnum("staff_role", staffRoles);
 export const attendanceStatus = pgEnum("attendance_status", attendanceStatuses);
@@ -123,5 +133,62 @@ export const staffAttendance = pgTable(
       foreignColumns: [staffMember.organizationId, staffMember.id],
     }),
     index().on(t.organizationId, t.day),
+  ],
+);
+
+/**
+ * Paie of an agent for a month (first day of the month), entered as net amounts (no IRG/CNAS
+ * computation, CLAUDE.md §12): base + bonus − deduction − the month's advances = net to pay.
+ * Editable and deletable until paid; its cost (base + bonus − deduction) is booked to the
+ * agent's charge category.
+ */
+export const staffPay = pgTable(
+  "staff_pay",
+  {
+    id: id(),
+    organizationId: organizationId(),
+    staffId: uuid().notNull(),
+    month: date({ mode: "string" }).notNull(),
+    baseAmount: money().notNull(),
+    bonus: money()
+      .notNull()
+      .default(sql`0`),
+    deduction: money()
+      .notNull()
+      .default(sql`0`),
+    /** Advances of the month, deducted (snapshot when the pay is saved). */
+    advances: money()
+      .notNull()
+      .default(sql`0`),
+    netAmount: money().notNull(),
+    paidOn: date({ mode: "string" }),
+    paymentMethod: paymentMethod(),
+    notes: text(),
+    recordedBy: userRef().notNull(),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [
+    unique().on(t.organizationId, t.id),
+    unique("staff_pay_month_key").on(t.organizationId, t.staffId, t.month),
+    foreignKey({
+      name: "staff_pay_staff_fk",
+      columns: [t.organizationId, t.staffId],
+      foreignColumns: [staffMember.organizationId, staffMember.id],
+    }),
+    index().on(t.organizationId, t.month),
+    check(
+      "staff_pay_amounts",
+      sql`${t.baseAmount} >= 0 and ${t.bonus} >= 0 and ${t.deduction} >= 0 and ${t.advances} >= 0 and ${t.netAmount} >= 0`,
+    ),
+    check(
+      "staff_pay_net",
+      sql`${t.netAmount} = ${t.baseAmount} + ${t.bonus} - ${t.deduction} - ${t.advances}`,
+    ),
+    check(
+      "staff_pay_payment",
+      sql`(${t.paidOn} is null) = (${t.paymentMethod} is null) and (${t.paymentMethod} is null or ${t.paymentMethod} <> 'bank_loan')`,
+    ),
+    check("staff_pay_month", sql`extract(day from ${t.month}) = 1`),
   ],
 );

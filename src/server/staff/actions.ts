@@ -5,12 +5,16 @@ import { revalidatePath } from "next/cache";
 import { defineAction } from "@/server/action";
 
 import { saveAttendance } from "./attendance";
+import { deletePay, payStaff, savePay } from "./pay";
 import {
   advanceIdSchema,
   createStaffSchema,
   endStaffSchema,
+  payIdSchema,
+  payStaffSchema,
   recordAdvanceSchema,
   saveAttendanceSchema,
+  savePaySchema,
   updateStaffSchema,
 } from "./schemas";
 import { createStaff, deleteAdvance, endStaff, recordAdvance, updateStaff } from "./service";
@@ -45,4 +49,16 @@ export const deleteAdvanceAction = defineAction(
 export const saveAttendanceAction = defineAction(
   { input: saveAttendanceSchema, permission: "staff:update" },
   (input, ctx) => mutation(() => saveAttendance(ctx, input)),
+);
+export const savePayAction = defineAction(
+  { input: savePaySchema, permission: "staff:update" },
+  (input, ctx) => mutation(() => savePay(ctx, input)),
+);
+export const payStaffAction = defineAction(
+  { input: payStaffSchema, permission: "staff:update" },
+  (input, ctx) => mutation(() => payStaff(ctx, input)),
+);
+export const deletePayAction = defineAction(
+  { input: payIdSchema, permission: "staff:update" },
+  (input, ctx) => mutation(() => deletePay(ctx, input.payId)),
 );

@@ -149,7 +149,7 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
     │   │                     # and reserve fund (report.ts), PDFs
     │   ├── suppliers/        # suppliers (per organization), contracts per residence, invoices (invoices.ts)
     │   ├── staff/            # residence agents (role, net salary, charge category), salary advances,
-    │   │                     # monthly attendance (attendance.ts)
+    │   │                     # monthly attendance (attendance.ts), monthly pay (pay.ts)
     │   ├── documents/        # render.ts: `pdf.document` dispatcher (one renderer per kind)
     │   └── <module>/         # schemas.ts (isomorphic) · queries.ts · service.ts · actions.ts · *.test.ts
     ├── jobs/                 # queues.ts (names, retry policy, payload types), enqueue.ts, worker.ts, handlers/
@@ -401,7 +401,8 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 - **Payments** (`charge_payment`, `payment:create`): receipt `RCH-` on the same row with a snapshot of the calls it settled; methods cash, cheque, transfer, CCP (no bank loan); cheques « sous réserve », cleared later; cancelled by accountants with a reason (`payment:cancel`), never deleted; audited.
 - **Unit account** (`chargeStatement`, derived): valid payments applied FIFO to the live calls (due date, then number), no penalties; what exceeds every call issued so far is an advance for the next ones; reserve collected = each call's reserve part × paid / amount.
 - **Suppliers** (`supplier`, per organization; `supplier:update`: gérant, comptable, gestionnaire): contracts per residence (period, optional category, indicative annual amount); invoices (`supplier_invoice`) booked to a charge category of the residence (a contract's category by default) or paid from the reserve fund (works); number unique per supplier; editable and deletable while unpaid, then read-only once paid (date, method, reference); audited.
-- **Budget vs actual** (`getBudgetReport`, `charge:read`): per category and calendar year, budget, called (lines of the year's live calls), spent (invoices dated that year, paid or not) and paid; reserve fund (all years): called, collected (derived), spent on works (reserve invoices), balance.
+- **Staff** (`staff_member`, `staff:update`: gérant, comptable, gestionnaire): agents of a residence (role, net monthly salary, charge category their pay is booked to, hire/departure dates); salary advances deducted from a month's pay; monthly attendance grid (marked days: absence, leave, sick, day off; unmarked = worked; Friday/Saturday shaded); monthly pay entered as net amounts (no IRG/CNAS): base + bonus − deduction − the month's advances = net (never negative), editable/deletable until paid; a month's advances are locked once its pay is recorded; audited.
+- **Budget vs actual** (`getBudgetReport`, `charge:read`): per category and calendar year, budget, called (lines of the year's live calls), spent (invoices dated that year, paid or not, plus the staff pay of the year: base + bonus − deduction) and paid; reserve fund (all years): called, collected (derived), spent on works (reserve invoices), balance.
 - **Overdue charges** (reminders only, never penalties): `/residences/overdue` lists every unit with calls due before today and not covered, most late first; reminder letters (`charge:remind`: gérant, comptable, caissier, gestionnaire) keep the overdue calls as printed, a pay-by date (default 8 days) and the addressee, bilingual PDF; the daily digest e-mails property managers and cashiers when something is overdue.
 
 ### Audit & deletion
@@ -535,7 +536,7 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
   - [x] Charge calls per period (ADC, bilingual PDF, cancellation); unit accounts; charge payments and receipts (RCH)
   - [x] Overdue charges: list, reminder letters, digest
   - [x] Suppliers, contracts, invoices; budget vs actual and reserve fund balance (scans of contracts and invoices pending)
-  - [ ] Staff, attendance, salary advances, pay (staff files, advances and attendance done)
+  - [x] Staff, attendance, salary advances, monthly pay (net amounts)
   - [ ] Tickets
   - [ ] General assemblies
   - [ ] Announcements, seed, e2e
@@ -624,6 +625,7 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 | 2026-10-04 | Charge payments may exceed what has been called: the excess is an advance for the next calls (derived, FIFO); no penalties on charges. The reserve fund collected is derived pro rata of each call's payments. |
 | 2026-10-04 | Overdue charges: reminder letters by `charge:remind` (gérant, comptable, caissier, gestionnaire), pay-by date 8 days by default; the daily digest goes to property managers and cashiers and rides on the existing `reminders.digest` job (one job per organization and day). |
 | 2026-10-04 | Suppliers are shared by the organization's residences. An invoice is booked to one charge category of its residence or to the reserve fund (works); spending counts at the invoice date, paid or not ("dont payé" shown apart); the reserve fund balance = collected − works invoices. Invoices are read-only once paid. |
+| 2026-10-04 | Staff: one residence per agent; pay is one record per agent and month (net amounts), its cost (base + bonus − deduction) counts in the budget vs actual of the agent's category; advances are deducted from the month they are assigned to and locked once that month's pay is recorded. |
 | 2026-10-04 | **Workflow (user)**: each finished step is committed and pushed straight to `main` (after `pnpm check`); no feature branches or PRs. |
 
 ### Open items

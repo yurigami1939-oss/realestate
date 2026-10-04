@@ -5,6 +5,7 @@ import { auditLog } from "@/db/schema";
 import { withTenant } from "@/db/tenant";
 import { addDays, todayInAlgiers } from "@/lib/dates";
 import { createChargeCategory } from "@/server/charges/categories";
+import { getBudgetReport } from "@/server/charges/report";
 import { createChargeCategorySchema } from "@/server/charges/schemas";
 import { createResidenceSchema } from "@/server/residences/schemas";
 import { createResidence } from "@/server/residences/service";
@@ -13,12 +14,15 @@ import { addMember, createSalesTeam } from "../../../tests/factories";
 import { createSaleSetup } from "../../../tests/sales-fixtures";
 
 import { getAttendanceMonth, monthDays, saveAttendance } from "./attendance";
+import { deletePay, getPayrollMonth, payStaff, savePay } from "./pay";
 import { getStaffMember, listStaff } from "./queries";
 import {
   createStaffSchema,
   endStaffSchema,
+  payStaffSchema,
   recordAdvanceSchema,
   saveAttendanceSchema,
+  savePaySchema,
   updateStaffSchema,
 } from "./schemas";
 import { createStaff, deleteAdvance, endStaff, recordAdvance, updateStaff } from "./service";
@@ -214,5 +218,92 @@ describe("attendance", () => {
     sheet = await getAttendanceMonth(manager, residenceId, "2026-03-01");
     expect(sheet?.marks).toEqual([{ staffId: guard, day: "2026-03-12", status: "off" }]);
     expect((await getAttendanceMonth(manager, residenceId, "2026-04-01"))?.staff).toHaveLength(1);
+  });
+});
+
+describe("monthly pay", () => {
+  it("deducts the month's advances, is paid once and counts in the budget report", async () => {
+    const { manager, residenceId, categoryId } = await scenario();
+    const { id: guard } = await createStaff(manager, staffInput(residenceId, categoryId));
+    const { id: cleaner } = await createStaff(
+      manager,
+      staffInput(residenceId, "", { role: "cleaning", lastName: "Haddad", firstName: "Nadia" }),
+    );
+    await endStaff(manager, endStaffSchema.parse({ staffId: cleaner, leftOn: "2026-03-31" }));
+    const advance = recordAdvanceSchema.parse({
+      staffId: guard,
+      paidOn: "2026-03-10",
+      month: "2026-03",
+      amount: "10 000",
+    });
+    const { id: advanceId } = await recordAdvance(manager, advance);
+    await saveAttendance(
+      manager,
+      saveAttendanceSchema.parse({
+        residenceId,
+        month: "2026-03",
+        marks: [{ staffId: guard, day: "2026-03-10", status: "absent" }],
+      }),
+    );
+
+    let sheet = await getPayrollMonth(manager, residenceId, "2026-03-01");
+    expect(sheet?.rows.map((r) => [r.lastName, r.workedDays, r.advances, r.pay])).toEqual([
+      ["Haddad", 31, 0n, null],
+      ["Mansouri", 30, 10_000_00n, null],
+    ]);
+
+    const pay = (
+      staffId: string,
+      month: string,
+      base: string,
+      extra: Record<string, string> = {},
+    ) =>
+      savePaySchema.parse({ staffId, month, baseAmount: base, bonus: "", deduction: "", ...extra });
+    await expect(savePay(manager, pay(guard, "2026-03", "5 000"))).rejects.toMatchObject({
+      messageKey: "staff.errors.negativeNet",
+    });
+    await expect(savePay(manager, pay(cleaner, "2026-04", "45 000"))).rejects.toMatchObject({
+      messageKey: "staff.errors.notEmployed",
+    });
+    const { payId, netAmount } = await savePay(
+      manager,
+      pay(guard, "2026-03", "45 000", { bonus: "5 000", deduction: "1 500" }),
+    );
+    expect(netAmount).toBe(38_500_00n);
+
+    // Advances of a month with a recorded pay are locked.
+    await expect(recordAdvance(manager, advance)).rejects.toMatchObject({
+      messageKey: "staff.errors.payRecorded",
+    });
+    await expect(deleteAdvance(manager, advanceId)).rejects.toMatchObject({
+      messageKey: "staff.errors.payRecorded",
+    });
+
+    const paid = (paidOn: string) => payStaffSchema.parse({ payId, paidOn, method: "cash" });
+    await expect(payStaff(manager, paid("2026-02-28"))).rejects.toMatchObject({
+      messageKey: "staff.errors.paidBeforeMonth",
+    });
+    await payStaff(manager, paid("2026-03-31"));
+    await expect(payStaff(manager, paid("2026-04-01"))).rejects.toMatchObject({
+      messageKey: "staff.errors.payPaid",
+    });
+    await expect(savePay(manager, pay(guard, "2026-03", "45 000"))).rejects.toMatchObject({
+      messageKey: "staff.errors.payPaid",
+    });
+    await expect(deletePay(manager, payId)).rejects.toMatchObject({
+      messageKey: "staff.errors.payPaid",
+    });
+
+    // An unpaid pay can be removed.
+    const { payId: draft } = await savePay(manager, pay(cleaner, "2026-03", "30 000"));
+    await deletePay(manager, draft);
+    sheet = await getPayrollMonth(manager, residenceId, "2026-03-01");
+    expect(sheet?.rows.map((r) => r.pay?.netAmount ?? null)).toEqual([null, 38_500_00n]);
+
+    // Its cost (base + bonus − deduction) is spent on the agent's category.
+    const report = await getBudgetReport(manager, residenceId, 2026);
+    expect(report?.lines).toMatchObject([
+      { name: "Gardiennage", spent: 48_500_00n, paid: 48_500_00n },
+    ]);
   });
 });

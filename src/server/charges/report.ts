@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, asc, eq, isNull, sql } from "drizzle-orm";
+import { and, asc, eq, isNotNull, isNull, sql } from "drizzle-orm";
 
 import {
   budget,
@@ -11,6 +11,8 @@ import {
   chargePeriod,
   project,
   residence,
+  staffMember,
+  staffPay,
   supplierInvoice,
 } from "@/db/schema";
 import { withTenant } from "@/db/tenant";
@@ -84,6 +86,26 @@ export async function getBudgetReport(ctx: TenantCtx, residenceId: string, year:
         ),
       )
       .groupBy(supplierInvoice.categoryId);
+    // Staff pay of the year, booked to each agent's category (cost = base + bonus − deduction).
+    const cost = sql`${staffPay.baseAmount} + ${staffPay.bonus} - ${staffPay.deduction}`;
+    const payroll = await tx
+      .select({
+        categoryId: staffMember.categoryId,
+        amount: sql<string>`coalesce(sum(${cost}), 0)`.mapWith((v: string) => BigInt(v)),
+        paid: sql<string>`coalesce(sum(${cost}) filter (where ${staffPay.paidOn} is not null), 0)`.mapWith(
+          (v: string) => BigInt(v),
+        ),
+      })
+      .from(staffPay)
+      .innerJoin(staffMember, eq(staffMember.id, staffPay.staffId))
+      .where(
+        and(
+          eq(staffMember.residenceId, residenceId),
+          isNotNull(staffMember.categoryId),
+          sql`extract(year from ${staffPay.month}) = ${year}`,
+        ),
+      )
+      .groupBy(staffMember.categoryId);
 
     // Categories: live ones, plus deleted ones that still carry figures this year.
     const categories = await tx
@@ -99,16 +121,19 @@ export async function getBudgetReport(ctx: TenantCtx, residenceId: string, year:
       .map((c) => {
         const budgetAmount = budgeted.find((b) => b.categoryId === c.id)?.amount ?? 0n;
         const calledAmount = called.find((x) => x.categoryId === c.id)?.amount ?? 0n;
-        const spentRow = spent.find((x) => x.categoryId === c.id);
+        const invoices = spent.find((x) => x.categoryId === c.id);
+        const pay = payroll.find((x) => x.categoryId === c.id);
+        const spentAmount = (invoices?.amount ?? 0n) + (pay?.amount ?? 0n);
         return {
           categoryId: c.id,
           name: c.name,
           budget: budgetAmount,
           called: calledAmount,
-          spent: spentRow?.amount ?? 0n,
-          paid: spentRow?.paid ?? 0n,
+          /** Supplier invoices and staff pay of the year. */
+          spent: spentAmount,
+          paid: (invoices?.paid ?? 0n) + (pay?.paid ?? 0n),
           /** Budget left (negative = overrun). */
-          variance: budgetAmount - (spentRow?.amount ?? 0n),
+          variance: budgetAmount - spentAmount,
           live: c.deletedAt === null,
         };
       })

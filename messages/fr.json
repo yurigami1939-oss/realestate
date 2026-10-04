@@ -1538,6 +1538,11 @@
       "salary_advance": {
         "create": "Avance sur salaire",
         "delete": "Avance sur salaire supprimée"
+      },
+      "staff_pay": {
+        "save": "Paie enregistrée",
+        "pay": "Paie payée",
+        "delete": "Paie supprimée"
       }
     }
   },
@@ -2156,7 +2161,11 @@
     "errors": {
       "leftBeforeHired": "La fin ne peut précéder l'embauche.",
       "notEmployed": "L'agent n'était pas en poste à cette date.",
-      "attendanceOutOfMonth": "Jour hors du mois, ou agent absent de la feuille de ce mois."
+      "attendanceOutOfMonth": "Jour hors du mois, ou agent absent de la feuille de ce mois.",
+      "negativeNet": "Le net à payer serait négatif (avances ou retenue trop élevées).",
+      "payPaid": "Cette paie est déjà payée.",
+      "paidBeforeMonth": "Le paiement précède le mois de la paie.",
+      "payRecorded": "La paie de ce mois est déjà enregistrée : supprimez-la pour modifier ses avances."
     },
     "attendance": {
       "open": "Pointage",
@@ -2187,6 +2196,44 @@
       "dayLabel": "{agent}, {date} : {status}",
       "save": "Enregistrer le pointage",
       "saved": "Pointage enregistré."
+    },
+    "payroll": {
+      "open": "Paie",
+      "title": "Paie · {month}",
+      "description": "Montants nets saisis (sans calcul IRG/CNAS) : base + prime − retenue − avances du mois = net à payer. Modifiable jusqu'au paiement.",
+      "empty": "Aucun agent en poste ce mois-ci.",
+      "marked": "{count, plural, one {# jour marqué} other {# jours marqués}}",
+      "baseOf": "Base de {name}",
+      "bonusOf": "Prime de {name}",
+      "deductionOf": "Retenue de {name}",
+      "save": "Enregistrer",
+      "saved": "Paie de {name} enregistrée.",
+      "recorded": "Enregistrée",
+      "notRecorded": "Non enregistrée",
+      "paidOn": "Payée le {date}",
+      "pay": "Payer",
+      "payTitle": "Paiement de la paie",
+      "paidOnField": "Payée le",
+      "paid": "Paiement enregistré.",
+      "delete": "Supprimer",
+      "deleteTitle": "Supprimer la paie de {name} ?",
+      "deleteDescription": "Les avances du mois pourront de nouveau être modifiées.",
+      "deleted": "Paie supprimée.",
+      "totals": "{count, plural, one {# paie enregistrée} other {# paies enregistrées}}, net total {net}.",
+      "history": "Paies",
+      "noHistory": "Aucune paie enregistrée.",
+      "columns": {
+        "agent": "Agent",
+        "worked": "Jours travaillés",
+        "base": "Base nette",
+        "bonus": "Prime",
+        "deduction": "Retenue",
+        "advances": "Avances",
+        "net": "Net à payer",
+        "state": "État",
+        "actions": "Actions",
+        "month": "Mois"
+      }
     }
   }
 }
