@@ -3,9 +3,16 @@ import "server-only";
 import { eq } from "drizzle-orm";
 import type { z } from "zod";
 
-import { chargeCall, chargePayment, chargeReminder, generalAssembly } from "@/db/schema";
+import {
+  announcement,
+  chargeCall,
+  chargePayment,
+  chargeReminder,
+  generalAssembly,
+} from "@/db/schema";
 import { withTenant } from "@/db/tenant";
 import { enqueueInTx } from "@/jobs/enqueue";
+import type { Permission } from "@/lib/permissions";
 import { AppError } from "@/lib/result";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
 
@@ -59,12 +66,26 @@ async function currentPdf(
           .where(eq(generalAssembly.id, id));
         return row;
       });
+    case "announcement":
+      return withTenant(ctx, async (tx) => {
+        const [row] = await tx
+          .select({ pdfFileId: announcement.pdfFileId })
+          .from(announcement)
+          .where(eq(announcement.id, id));
+        return row;
+      });
   }
+}
+
+/** Who may ask for a residence document again. */
+function readPermission(kind: DocumentRequest["kind"]): Permission {
+  if (kind === "announcement") return "announcement:read";
+  return kind.startsWith("assembly_") ? "assembly:read" : "charge:read";
 }
 
 /** Requests a residence document's PDF again when it is still missing (idempotent job). */
 export async function requestChargeDocument(ctx: TenantCtx, input: DocumentRequest) {
-  assertCan(ctx, input.kind.startsWith("assembly_") ? "assembly:read" : "charge:read");
+  assertCan(ctx, readPermission(input.kind));
   const current = await currentPdf(ctx, input);
   if (!current) throw new AppError("NOT_FOUND");
   if (current.pdfFileId) return;

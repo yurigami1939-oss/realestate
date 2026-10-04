@@ -1713,7 +1713,8 @@
       "expenses": "Dépenses",
       "report": "Bilan",
       "staff": "Personnel",
-      "assemblies": "Assemblées générales"
+      "assemblies": "Assemblées générales",
+      "announcements": "Annonces"
     }
   },
   "charges": {
@@ -2492,6 +2493,67 @@
       "duplicateUnit": "Un lot figure deux fois sur la feuille de présence.",
       "notVoting": "Seuls les lots présents ou représentés votent.",
       "duplicateVote": "Un lot ne vote qu'une fois par résolution."
+    }
+  },
+  "announcements": {
+    "title": "Annonces",
+    "description": "Avis aux résidents : une fois publiée, l'annonce est imprimée en avis bilingue à afficher dans l'immeuble et sera visible sur le portail des résidents.",
+    "new": "Nouvelle annonce",
+    "newTitle": "Nouvelle annonce",
+    "newDescription": "Enregistrée en brouillon : relisez-la, puis publiez-la.",
+    "editTitle": "Modifier l'annonce",
+    "created": "Annonce enregistrée en brouillon.",
+    "empty": "Aucune annonce.",
+    "pinned": "Épinglée",
+    "publishedOn": "Publiée le {date} par {name}",
+    "createdOn": "Brouillon créé le {date}",
+    "until": "jusqu'au {date}",
+    "pdf": "Avis à afficher (PDF)",
+    "fields": {
+      "category": "Catégorie",
+      "title": "Titre",
+      "titleAr": "Titre en arabe",
+      "body": "Texte",
+      "bodyAr": "Texte en arabe",
+      "expiresOn": "Affichée jusqu'au",
+      "expiresOnHint": "Facultatif : passé ce jour, elle n'est plus affichée.",
+      "pinned": "Épingler en tête de liste"
+    },
+    "category": {
+      "general": "Information",
+      "works": "Travaux",
+      "outage": "Coupure (eau, électricité, gaz)",
+      "meeting": "Réunion",
+      "safety": "Sécurité"
+    },
+    "state": {
+      "draft": "Brouillon",
+      "published": "Publiée",
+      "expired": "Expirée",
+      "archived": "Retirée"
+    },
+    "publish": {
+      "label": "Publier",
+      "title": "Publier cette annonce ?",
+      "description": "Elle ne pourra plus être modifiée ; l'avis bilingue à afficher dans l'immeuble est généré.",
+      "done": "Annonce publiée : l'avis est en cours de génération."
+    },
+    "archive": {
+      "label": "Retirer",
+      "title": "Retirer cette annonce ?",
+      "description": "Elle n'est plus affichée aux résidents et reste dans l'historique.",
+      "done": "Annonce retirée."
+    },
+    "delete": {
+      "title": "Supprimer ce brouillon ?",
+      "description": "Le brouillon est supprimé définitivement.",
+      "done": "Brouillon supprimé."
+    },
+    "errors": {
+      "published": "Cette annonce est publiée : elle ne change plus.",
+      "notPublished": "Cette annonce n'est pas publiée.",
+      "archived": "Cette annonce est déjà retirée.",
+      "expiresPast": "La date de fin d'affichage est passée."
     }
   }
 }

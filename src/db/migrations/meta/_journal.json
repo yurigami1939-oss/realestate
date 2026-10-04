@@ -176,6 +176,13 @@
       "when": 1791147491037,
       "tag": "0024_assembly_minutes",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1791152456302,
+      "tag": "0025_announcements",
+      "breakpoints": true
     }
   ]
 }

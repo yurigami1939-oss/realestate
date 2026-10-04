@@ -65,6 +65,8 @@ export const statement = {
   ticket: ["read", "create", "update"],
   /** General assemblies: convocations, attendance, resolutions and votes. */
   assembly: ["read", "update"],
+  /** Announcements to the residents of a residence (notices, portal). */
+  announcement: ["read", "update"],
 } as const;
 
 export const ac = createAccessControl(statement);
@@ -101,6 +103,7 @@ export const roles = {
     staff: ["read", "update"],
     ticket: ["read", "create", "update"],
     assembly: ["read", "update"],
+    announcement: ["read", "update"],
   }),
   sales_manager: ac.newRole({
     inventory: ["read"],
@@ -153,6 +156,7 @@ export const roles = {
     staff: ["read", "update"],
     ticket: ["read", "create", "update"],
     assembly: ["read", "update"],
+    announcement: ["read", "update"],
   }),
   resident: ac.newRole({}),
 };

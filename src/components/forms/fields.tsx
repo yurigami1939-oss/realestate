@@ -86,7 +86,8 @@ export function TextareaField<T extends FieldValues>({
   label,
   description,
   rows = 3,
-}: BaseProps<T> & { rows?: number }) {
+  dir,
+}: BaseProps<T> & { rows?: number; dir?: "ltr" | "rtl" }) {
   return (
     <Controller
       control={control}
@@ -97,6 +98,7 @@ export function TextareaField<T extends FieldValues>({
           <Textarea
             id={field.name}
             rows={rows}
+            dir={dir}
             aria-invalid={fieldState.invalid}
             {...field}
             value={field.value ?? ""}

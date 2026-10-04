@@ -107,8 +107,9 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
     │   ├── crm/              # stage/visit badges, phone text + call/WhatsApp, follow-up/visit dialogs
     │   ├── inventory/        # unit/project status badges, stats bar, floor labels
     │   ├── sales/            # sale/installment badges, option dialogs, DocumentPdf (+ refresher), VSP warnings
-    │   ├── residences/ · staff/ · suppliers/ · tickets/ · assemblies/  # residence module: dialogs,
-    │   │                     # ChargeDocumentPdf, attendance grid, payroll, attendance sheet, vote grid
+    │   ├── residences/ · staff/ · suppliers/ · tickets/ · assemblies/ · announcements/  # residence
+    │   │                     # module: dialogs, ChargeDocumentPdf, attendance grid, payroll, attendance
+    │   │                     # sheet, vote grid
     │   └── auth/ · i18n/     # sign-out, locale switcher
     ├── db/
     │   ├── schema/           # auth.ts (GENERATED) · platform.ts · _columns.ts helpers · index.ts
@@ -155,20 +156,21 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
     │   ├── tickets/          # réclamations: workflow, assignment (agent or supplier), history
     │   ├── assemblies/       # general assemblies: agenda, convening, attendance and proxies, votes,
     │   │                     # closing (frozen results), convocation and minutes PDFs (documents.ts)
+    │   ├── announcements/    # residence announcements: drafts, publication (printable notice), withdrawal
     │   ├── documents/        # render.ts: `pdf.document` dispatcher (one renderer per kind)
     │   └── <module>/         # schemas.ts (isomorphic) · queries.ts · service.ts · actions.ts · *.test.ts
     ├── jobs/                 # queues.ts (names, retry policy, payload types), enqueue.ts, worker.ts, handlers/
     ├── pdf/                  # render.ts (Chromium), document.tsx (shell + fonts), receipt.ts, quotation.ts,
     │                         # templates/ (letterhead, quotation, receipt, reservation-sheet, payment-call,
     │                         # reminder-letter, charge-call, charge-reminder, assembly-convocation,
-    │                         # assembly-minutes)
+    │                         # assembly-minutes, announcement-notice)
     ├── i18n/                 # locales, routing, navigation, request config, typed messages
     ├── hooks/                # client hooks (use-mobile)
     └── lib/                  # isomorphic: result, permissions, money/, dates, document-types, safe-next, auth-client,
                               # inventory, crm (stages), phone, payment-plans (buildSchedule, VSP limits, milestone
                               # due date), statement (FIFO allocation, overdue, penalties), sales, quotations, files, zod, ids,
                               # residences (frequencies, keys), charges (period parts, splits, period names),
-                              # assemblies (majorities, vote tallies)
+                              # assemblies (majorities, vote tallies), announcements (categories, state)
 ```
 
 ## 5. Architecture rules
@@ -224,7 +226,7 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 - Worker = separate process (`pnpm worker`), graceful shutdown. Next.js only calls `enqueue()` (send-only instance).
 - Tenant jobs carry `organizationId` and run inside `withTenant`; platform jobs (auth emails) do not. Handlers are idempotent. Money in payloads = decimal string of centimes.
 - A job that follows a business write is enqueued **in the same transaction** with `enqueueInTx(tx, …)` (pg-boss `fromDrizzle`): it exists only if the write commits. `singletonKey` = the record id — on standard queues pg-boss only deduplicates **throttled** jobs (`singletonSeconds`), so handlers must be idempotent; once-a-day jobs use `singletonSeconds: 86_400`.
-- Queues today: `email.send`; `pdf.document` (`{ organizationId, kind, id }`, kinds `quotation`, `reservation_sheet`, `receipt`, `payment_call`, `reminder_letter`, `charge_call`, `charge_receipt`, `charge_reminder`, `assembly_convocation`, `assembly_minutes`: one renderer per kind in `src/server/documents/render.ts`, each renders once and links the stored file; a running worker must be restarted to know a new kind); `option.expire` (scheduled at the option's expiry); `payment_call.issue` (after a milestone validation); `reminders.daily` (cron 08:00 Africa/Algiers, declared in `schedules` in `queues.ts` and installed by `db:migrate`) → one `reminders.digest` per organization, which sends both the overdue sales digest and the overdue charges digest. Planned: charge calls, lease alerts.
+- Queues today: `email.send`; `pdf.document` (`{ organizationId, kind, id }`, kinds `quotation`, `reservation_sheet`, `receipt`, `payment_call`, `reminder_letter`, `charge_call`, `charge_receipt`, `charge_reminder`, `assembly_convocation`, `assembly_minutes`, `announcement`: one renderer per kind in `src/server/documents/render.ts`, each renders once and links the stored file; a running worker must be restarted to know a new kind); `option.expire` (scheduled at the option's expiry); `payment_call.issue` (after a milestone validation); `reminders.daily` (cron 08:00 Africa/Algiers, declared in `schedules` in `queues.ts` and installed by `db:migrate`) → one `reminders.digest` per organization, which sends both the overdue sales digest and the overdue charges digest. Planned: charge calls, lease alerts.
 - `db:migrate` starts pg-boss once with the scheduler on so its internal cron queue exists before any worker (see §12). Stop dev workers by killing the node process tree (Windows keeps children of a stopped shell).
 
 ### Email
@@ -235,7 +237,7 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 - Private bucket. Key: `org/{orgId}/{entityType}/{entityId}/{fileId}.{ext}`; a tenant-scoped `file` row holds metadata (`entity_type` + `entity_id` = owner record).
 - **Upload**: `POST /api/files` (multipart `purpose`, `entityId`, `file`) → `Result<{ fileId }>`. Same-origin check, body capped while streaming (`readFormData`), then a switch on `purpose` calls the owning service (e.g. `setUnitFloorPlan`), which asserts the permission, runs `checkUpload` (size + **magic-byte** format check against `uploadPurposes` in `src/lib/files.ts`; the browser's MIME type is ignored) and `storeFile(tx, …)` (row insert, then S3 put, inside the tenant transaction). Client: `UploadButton`.
 - **Download**: `GET /api/files/{id}[?download]` → access check by `entity_type` (`readers` in `src/server/files/service.ts`: a unit plan needs `inventory:read`, a quotation PDF needs its lead to be visible, a buyer document its buyer, a sale's files its sale) → 302 to a 5-min presigned URL with the original name (`Content-Disposition` with UTF-8 `filename*`).
-- Upload purposes today: `unit.floor_plan`, `buyer.document` (variant = document kind), `reservation.contract`, `reservation.deed`, `organization.logo` (PNG/JPEG only, 2 MB; readable by any member of the organization). Every document of a sale (reservation sheet, receipts, payment calls, reminder letters, signed scans) is filed under entity `reservation`, so its readers follow the sale's visibility. Residence documents (charge calls, receipts and reminders, assembly convocations and minutes) are filed under entity `residence`; readers need `charge:read` or `assembly:read`.
+- Upload purposes today: `unit.floor_plan`, `buyer.document` (variant = document kind), `reservation.contract`, `reservation.deed`, `organization.logo` (PNG/JPEG only, 2 MB; readable by any member of the organization). Every document of a sale (reservation sheet, receipts, payment calls, reminder letters, signed scans) is filed under entity `reservation`, so its readers follow the sale's visibility. Residence documents (charge calls, receipts and reminders, assembly convocations and minutes, announcement notices) are filed under entity `residence`; readers need `charge:read`, `assembly:read` or `announcement:read`.
 - Replacing/removing a file soft-deletes the old row (`deleted_at`); the object stays in the bucket. New purpose = entry in `uploadPurposes` + service function + `case` in `src/app/api/files/route.ts` (+ a `readers` entry for a new entity type). Generated documents are stored with `storeFile(tx, { orgId, userId: null }, …)` by their job.
 - Issued documents are rendered once at issue; the stored PDF is served for reprints.
 
@@ -306,7 +308,7 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 | Fournisseur / Prestataire, contrat, facture | `supplier` / `supplier_contract` / `supplier_invoice` | |
 | Agent de sécurité, femme de ménage… | `staff_member` | `staff_role` enum |
 | Pointage / Paie / Avance sur salaire | `attendance` / `payroll` / `salary_advance` | |
-| Annonce | `announcement` | |
+| Annonce / avis aux résidents | `announcement` | `announcement_category`: `general`, `works`, `outage`, `meeting`, `safety`; state `draft` → `published` → `archived` (`expired` derived) |
 | Assemblée générale, résolution, feuille de présence, vote | `general_assembly` / `assembly_resolution` / `assembly_attendance` / `assembly_vote` | `assembly_kind`: `ordinary`, `extraordinary`; attendance `present`, `represented` (with `proxy_name`), `absent` |
 | Procès-verbal (PV) / Convocation | `general_assembly.minutes_file_id` / `convocation_file_id` | bilingual PDFs |
 | Majorité | `majority` | `simple` (votes cast), `absolute`, `two_thirds`, `unanimity` (of all tantièmes) |
@@ -414,6 +416,7 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 - **Tickets** (`ticket`, `ticket:create`/`ticket:update`: gérant, gestionnaire): on a unit or the common areas of a residence, category and priority; workflow `open → in_progress → resolved → closed` (`in_progress ↔ open`, `resolved → in_progress` reopens, `cancelled` from open/in progress; closed and cancelled are final, `ticketTransitions` in `src/lib/tickets.ts`); assigned to an employed agent of the residence or a supplier (not both); every change goes to the append-only `ticket_event` history (grants). Residents will open them from the portal (module 7).
 - **Budget vs actual** (`getBudgetReport`, `charge:read`): per category and calendar year, budget, called (lines of the year's live calls), spent (invoices dated that year, paid or not, plus the staff pay of the year: base + bonus − deduction) and paid; reserve fund (all years): called, collected (derived), spent on works (reserve invoices), balance.
 - **General assemblies** (`assembly:read` / `assembly:update`: gérant, gestionnaire): `draft → convened → closed`. A draft (date, time, place, kind) gets its agenda of resolutions, each with its majority; it can be edited or deleted. Convening (needs one resolution) fixes the agenda and renders the bilingual convocation (`assembly_convocation`), audited `assembly.convene`. Then the attendance sheet is saved as a whole: every unit of the residence is present, represented (proxy name required) or absent (left out = absent; the promoter votes for units without a co-owner); votes are saved as a whole, one choice (for / against / abstain) per present or represented unit and resolution (no choice = did not vote); a unit made absent loses its votes. Results by tantièmes (`isAdopted`, `src/lib/assemblies.ts`): `simple` = more for than against among votes cast; `absolute` (> ½), `two_thirds` (≥ ⅔) and `unanimity` count over all the residence's tantièmes, absent units included. No quorum is enforced (the share present or represented is shown and printed). Closing (from the meeting day, with the attendance recorded; chair, optional secretary and end time) freezes the sheet (tantièmes, co-owner names), the total, each resolution's tallies and result, renders the bilingual minutes (`assembly_minutes`: bureau, attendance summary, each vote with opponents and abstainers, attendance sheet annex) and is final; audited `assembly.close`.
+- **Announcements** (`announcement:read` / `announcement:update`: gérant, gestionnaire): per residence, bilingual (French required, Arabic optional), a category, an optional last day shown (`expires_on`) and a pin. A draft is edited or deleted; publishing (expiry not past) makes it read-only, shown to residents (portal, module 7) and renders the bilingual notice to post in the building (`pdf.document` kind `announcement`, filed under the residence); withdrawing (`archived`) hides it and keeps it in the history; past its last day it is `expired` (derived). Nothing is e-mailed or texted.
 - **Overdue charges** (reminders only, never penalties): `/residences/overdue` lists every unit with calls due before today and not covered, most late first; reminder letters (`charge:remind`: gérant, comptable, caissier, gestionnaire) keep the overdue calls as printed, a pay-by date (default 8 days) and the addressee, bilingual PDF; the daily digest e-mails property managers and cashiers when something is overdue.
 
 ### Audit & deletion
@@ -551,7 +554,8 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
   - [x] Staff, attendance, salary advances, monthly pay (net amounts)
   - [x] Tickets (back office; residents through the portal in module 7)
   - [x] General assemblies: agenda, bilingual convocation, attendance and proxies, votes by tantièmes, closing with frozen results, bilingual PV
-  - [ ] Announcements, seed, e2e (next: announcements, then the residence-module seed and its e2e golden path, incl. an assembly)
+  - [x] Announcements: drafts, publication with a printable bilingual notice, withdrawal, expiry
+  - [ ] Seed and e2e (next: a delivered demo residence with co-owners, charges, payments, overdue, suppliers, staff, tickets, assemblies and announcements; its e2e golden path)
 - [ ] Module 7 — Buyer/resident portal
 
 ### Phase 3
@@ -643,6 +647,7 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 | 2026-10-04 | General assemblies: votes are recorded per unit (one vote per unit, weighted by its tantièmes); the promoter votes for the units it still owns; absent units count in the total of the absolute / two-thirds / unanimity majorities. No quorum rule is encoded (nothing verified in law yet): the share present or represented is shown and printed on the PV. |
 | 2026-10-04 | An assembly is closed from its meeting day only, once the attendance is recorded; closing freezes the sheet (tantièmes and co-owners as on that day), tallies and results, and is final (no reopening). Drafts can be deleted (hard delete: nothing was sent); a convened assembly cannot be cancelled yet (a postponed meeting = a new assembly; cancellation / PV de carence later if needed). |
 | 2026-10-04 | The PV names the units that voted against or abstained on each resolution and carries the attendance sheet as an annex; the convocation and the PV are filed under the residence. |
+| 2026-10-04 | Announcements: per residence, written as drafts by the gérant or the gestionnaire; publishing renders a bilingual notice to post in the building and (module 7) shows it on the residents' portal; published announcements no longer change (withdraw and rewrite instead); an optional last day hides them automatically. No e-mail or SMS to residents (WhatsApp is Phase 3). |
 
 ### Open items
 - **GitHub**: repo `yurigami1939-oss/realestate` is **public** — make it private before real client data or configuration lands. Steps are committed straight to `main` (CI runs on every push).
