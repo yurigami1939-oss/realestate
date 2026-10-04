@@ -489,7 +489,7 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 - Don't connect the app as table owner/superuser (RLS bypass); don't add an `organization_id` table to the RLS exemption list.
 - Don't cache tenant data without `orgId` in the key.
 - Don't `Promise.all` queries on one transaction; don't trust a browser's MIME type (sniff with `checkUpload`).
-- Don't interpolate an outer column (`${table.id}`) inside a correlated subquery of a single-table select: Drizzle then renders it unqualified (`"id"`) and it binds to the subquery's own column — write `outer_table.id` by hand (joined selects are qualified).
+- Don't interpolate an outer column (`${table.id}`) in a correlated subquery placed in the **select list** of a single-table select: Drizzle renders select-list columns unqualified there (`"id"`), so it binds to the subquery's own column — write `outer_table.id` by hand. `WHERE` clauses and selects with a join are qualified.
 - Don't use physical-direction Tailwind classes (`ml-`, `pr-`, `left-`, `text-right`…).
 - Don't send email or render PDFs inside a request — enqueue a job.
 - Don't edit generated files (`src/db/schema/auth.ts`, applied migrations); regenerate instead.

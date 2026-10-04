@@ -109,8 +109,12 @@ describe("leads", () => {
     const managerView = await getLead(manager, second.id);
     expect(managerView?.duplicates.map((d) => d.id)).toEqual([first.id]);
 
+    await newLead(agentA, { fullName: "Nadia Ouali", phone: "0661 23 45 67" });
+    expect((await listLeads(manager, {})).total).toBe(3);
     const flagged = await listLeads(manager, { duplicates: "1" });
     expect(flagged.rows.map((r) => r.duplicate)).toEqual([true, true]);
+    // The count runs without the joins of the rows query: it must agree with them.
+    expect(flagged.total).toBe(2);
     const groups = await listDuplicateGroups(manager);
     expect(groups).toEqual([
       { phone: "+213550123456", leads: expect.arrayContaining([expect.anything()]) },
