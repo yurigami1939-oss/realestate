@@ -173,6 +173,21 @@
       "days": "{days} j",
       "more": "… et {count} autres ventes (voir la liste complète).",
       "cta": "Voir les impayés"
+    },
+    "chargesDigest": {
+      "subject": "Charges impayées au {date} · {organization}",
+      "intro": "{count, plural, one {# lot présente} other {# lots présentent}} des charges impayées au {date}, pour un total de {total}.",
+      "columns": {
+        "residence": "Résidence",
+        "unit": "Lot",
+        "coOwner": "Copropriétaire",
+        "overdue": "Impayé",
+        "late": "Retard"
+      },
+      "days": "{days} j",
+      "more": "… et {count} autres lots (voir la liste complète).",
+      "cta": "Voir les charges impayées",
+      "promoter": "Promoteur"
     }
   },
   "nav": {
@@ -196,7 +211,8 @@
     "commissions": "Commissions",
     "audit": "Journal d'audit",
     "residenceGroup": "Gestion des résidences",
-    "residences": "Résidences"
+    "residences": "Résidences",
+    "chargesOverdue": "Charges impayées"
   },
   "shell": {
     "organizations": "Sociétés",
@@ -1757,7 +1773,8 @@
       "periodIssued": "Les appels de cette période sont déjà émis.",
       "cannotSplit": "Une partie des charges ne peut pas être répartie : vérifiez les clés et les tantièmes.",
       "nothingToCall": "Rien à appeler pour cette période.",
-      "periodCancelled": "Cette période est déjà annulée."
+      "periodCancelled": "Cette période est déjà annulée.",
+      "nothingOverdue": "Aucun appel n'est en retard sur ce lot."
     },
     "period": {
       "monthly": "{index, select, 1 {Janvier} 2 {Février} 3 {Mars} 4 {Avril} 5 {Mai} 6 {Juin} 7 {Juillet} 8 {Août} 9 {Septembre} 10 {Octobre} 11 {Novembre} other {Décembre}} {year}",
@@ -1860,6 +1877,38 @@
       "recordTitle": "Paiement de charges · lot {code}",
       "recordHint": "Reste à payer : {amount}. Au-delà, le paiement est gardé en avance sur les prochains appels.",
       "cancelDescription": "Le reçu reste numéroté et consultable ; les appels qu'il réglait redeviennent dus."
+    },
+    "overdue": {
+      "title": "Charges impayées",
+      "description": "Lots dont des appels de charges échus restent impayés, les plus en retard d'abord. Relances uniquement, sans pénalités.",
+      "empty": "Aucune charge impayée.",
+      "total": "Total impayé",
+      "count": "{count, plural, =0 {Aucun lot en retard} one {# lot en retard} other {# lots en retard}}",
+      "columns": {
+        "residence": "Résidence",
+        "unit": "Lot",
+        "coOwner": "Copropriétaire",
+        "overdue": "Impayé",
+        "since": "Échu depuis",
+        "reminded": "Dernière relance",
+        "actions": "Actions"
+      },
+      "days": "{days} j de retard",
+      "never": "Aucune",
+      "promoter": "Promoteur (lot non attribué)"
+    },
+    "reminder": {
+      "open": "Lettre de relance",
+      "title": "Lettre de relance · lot {code}",
+      "description": "La lettre reprend les appels échus impayés à ce jour ({amount}), sans pénalités. Elle est générée en PDF bilingue.",
+      "payBy": "À régler au plus tard le",
+      "submit": "Préparer la lettre",
+      "issued": "Lettre de relance en préparation."
+    },
+    "reminders": {
+      "title": "Relances",
+      "line": "{date} · {amount} · {name}",
+      "pdf": "Lettre du {date}"
     }
   }
 }

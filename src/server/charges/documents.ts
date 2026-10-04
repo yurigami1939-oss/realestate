@@ -11,6 +11,7 @@ import {
   chargeCallLine,
   chargePayment,
   chargePeriod,
+  chargeReminder,
   residence,
   residenceUnit,
   unit,
@@ -23,6 +24,7 @@ import type { ChargePaymentMethod } from "@/lib/residences";
 import { type ReceiptData, receiptHtml } from "@/pdf/receipt";
 import { renderPdf } from "@/pdf/render";
 import { type ChargeCallData, ChargeCallTemplate } from "@/pdf/templates/charge-call";
+import { type ChargeReminderData, ChargeReminderTemplate } from "@/pdf/templates/charge-reminder";
 import { storeFile } from "@/server/files/service";
 import { type CompanyIdentity, loadCompanyLetterhead } from "@/server/organizations/settings";
 
@@ -236,6 +238,96 @@ export async function renderAndStoreChargeReceipt(
       .update(chargePayment)
       .set({ pdfFileId: stored.id })
       .where(eq(chargePayment.id, paymentId));
+    return "stored";
+  });
+}
+
+/** Everything printed on a charges reminder letter (null if unknown). */
+export async function loadChargeReminderData(
+  tx: Tx,
+  reminderId: string,
+): Promise<{ data: ChargeReminderData; pdfFileId: string | null; residenceId: string } | null> {
+  const [row] = await tx
+    .select({
+      reminder: chargeReminder,
+      residenceName: residence.name,
+      residenceAddress: residence.address,
+      commune: residence.commune,
+      wilaya: residence.wilaya,
+      unitCode: unit.code,
+    })
+    .from(chargeReminder)
+    .innerJoin(residence, eq(residence.id, chargeReminder.residenceId))
+    .innerJoin(unit, eq(unit.id, chargeReminder.unitId))
+    .where(eq(chargeReminder.id, reminderId));
+  if (!row) return null;
+  const r = row.reminder;
+  return {
+    pdfFileId: r.pdfFileId,
+    residenceId: r.residenceId,
+    data: {
+      issuedAt: r.issuedAt,
+      residenceName: row.residenceName,
+      residenceAddress: [row.residenceAddress, row.commune, row.wilaya].filter(Boolean).join(", "),
+      unitCode: row.unitCode,
+      payBy: r.payBy,
+      overdue: r.overdue,
+      lines: r.lines.map((line) => ({ ...line, remaining: BigInt(line.remaining) })),
+      addressee: r.addresseeName
+        ? { name: r.addresseeName, nameAr: r.addresseeNameAr, address: r.addresseeAddress }
+        : null,
+    },
+  };
+}
+
+export function chargeReminderHtml(data: ChargeReminderData, company: CompanyIdentity): string {
+  return `<!doctype html>${renderToStaticMarkup(
+    createElement(ChargeReminderTemplate, { data, company }),
+  )}`;
+}
+
+/** `pdf.document` (charge_reminder): rendered once, filed under its residence. */
+export async function renderAndStoreChargeReminder(
+  organizationId: string,
+  reminderId: string,
+): Promise<"stored" | "skipped"> {
+  const scope = { orgId: organizationId };
+  const loaded = await withTenant(scope, async (tx) => {
+    const reminder = await loadChargeReminderData(tx, reminderId);
+    if (!reminder || reminder.pdfFileId) return null;
+    return { reminder, company: await loadCompanyLetterhead(tx, organizationId) };
+  });
+  if (!loaded) return "skipped";
+  const bytes = new Uint8Array(
+    await renderPdf(chargeReminderHtml(loaded.reminder.data, loaded.company)),
+  );
+
+  return withTenant(scope, async (tx) => {
+    const [current] = await tx
+      .select({ pdfFileId: chargeReminder.pdfFileId })
+      .from(chargeReminder)
+      .where(eq(chargeReminder.id, reminderId))
+      .for("update");
+    if (!current || current.pdfFileId) return "skipped";
+    const stored = await storeFile(
+      tx,
+      { orgId: organizationId, userId: null },
+      {
+        entityType: "residence",
+        entityId: loaded.reminder.residenceId,
+        upload: {
+          fileName: `relance-${loaded.reminder.data.unitCode}-${loaded.reminder.data.issuedAt
+            .toISOString()
+            .slice(0, 10)}.pdf`,
+          bytes,
+        },
+        contentType: "application/pdf",
+      },
+    );
+    await tx
+      .update(chargeReminder)
+      .set({ pdfFileId: stored.id })
+      .where(eq(chargeReminder.id, reminderId));
     return "stored";
   });
 }

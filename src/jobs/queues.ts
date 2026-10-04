@@ -19,7 +19,10 @@ export const queues = {
   },
   /** Cron (08:00 Algiers): fans out one overdue digest per organization. */
   "reminders.daily": { retryLimit: 3, retryDelay: 60, retryBackoff: true, expireInSeconds: 300 },
-  /** Overdue digest of one organization, e-mailed to its cashiers and sales managers. */
+  /**
+   * Overdue digests of one organization: sales (cashiers, sales managers) and charges (property
+   * managers, cashiers).
+   */
   "reminders.digest": { retryLimit: 3, retryDelay: 60, retryBackoff: true, expireInSeconds: 300 },
 } as const satisfies Record<string, QueueOptions>;
 
@@ -39,6 +42,7 @@ export const pdfDocumentKinds = [
   "reminder_letter",
   "charge_call",
   "charge_receipt",
+  "charge_reminder",
 ] as const;
 export type PdfDocumentKind = (typeof pdfDocumentKinds)[number];
 

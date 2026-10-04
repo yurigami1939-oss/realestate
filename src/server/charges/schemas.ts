@@ -80,7 +80,7 @@ export const cancelChargePeriodSchema = z.object({
 });
 
 /** Residence documents rendered by the worker. */
-export const chargeDocumentKinds = ["charge_call", "charge_receipt"] as const;
+export const chargeDocumentKinds = ["charge_call", "charge_receipt", "charge_reminder"] as const;
 export const requestChargeDocumentSchema = z.object({
   kind: z.enum(chargeDocumentKinds),
   id: z.uuid(),
@@ -113,4 +113,11 @@ export const cancelChargePaymentSchema = z.object({
 export const clearChargeChequeSchema = z.object({
   paymentId: z.uuid(),
   clearedOn: dateText(),
+});
+
+/** Reminder letter for a unit's overdue charges, with the date asked for payment. */
+export const issueChargeReminderSchema = z.object({
+  residenceId: z.uuid(),
+  unitId: z.uuid(),
+  payBy: dateText(),
 });

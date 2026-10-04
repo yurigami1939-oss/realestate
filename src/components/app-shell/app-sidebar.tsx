@@ -54,7 +54,8 @@ type NavKey =
   | "overdue"
   | "commissions"
   | "audit"
-  | "residences";
+  | "residences"
+  | "chargesOverdue";
 /** `permission`: shown only to roles that have it (display only; services enforce). */
 type NavItem = { href: string; key: NavKey; icon: LucideIcon; permission?: Permission };
 
@@ -78,6 +79,12 @@ const contractsNav: NavItem[] = [
 ];
 const residenceNav: NavItem[] = [
   { href: "/residences", key: "residences", icon: Hotel, permission: "residence:read" },
+  {
+    href: "/residences/overdue",
+    key: "chargesOverdue",
+    icon: AlarmClock,
+    permission: "charge:read",
+  },
 ];
 const settingsNav: NavItem[] = [
   { href: "/settings/members", key: "members", icon: Users },

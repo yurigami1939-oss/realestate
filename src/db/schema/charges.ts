@@ -374,3 +374,58 @@ export const chargePayment = pgTable(
     ),
   ],
 );
+
+/**
+ * Lettre de relance for a unit's overdue charges (reminders only, never penalties: CLAUDE.md
+ * §12). Keeps the overdue calls it printed (amounts as decimal strings of centimes) and its
+ * addressee; its PDF is rendered once.
+ */
+export const chargeReminder = pgTable(
+  "charge_reminder",
+  {
+    id: id(),
+    organizationId: organizationId(),
+    residenceId: uuid().notNull(),
+    unitId: uuid().notNull(),
+    issuedAt: createdAt(),
+    issuedBy: userRef().notNull(),
+    overdue: money().notNull(),
+    lines: jsonb()
+      .$type<
+        {
+          number: string;
+          period: { fr: string; ar: string };
+          dueOn: string;
+          remaining: string;
+          daysLate: number;
+        }[]
+      >()
+      .notNull(),
+    /** Date by which the co-owner is asked to settle. */
+    payBy: date({ mode: "string" }).notNull(),
+    addresseeName: text(),
+    addresseeNameAr: text(),
+    addresseeAddress: text(),
+    pdfFileId: uuid(),
+  },
+  (t) => [
+    unique().on(t.organizationId, t.id),
+    foreignKey({
+      name: "charge_reminder_residence_fk",
+      columns: [t.organizationId, t.residenceId],
+      foreignColumns: [residence.organizationId, residence.id],
+    }),
+    foreignKey({
+      name: "charge_reminder_unit_fk",
+      columns: [t.residenceId, t.unitId],
+      foreignColumns: [residenceUnit.residenceId, residenceUnit.unitId],
+    }),
+    foreignKey({
+      name: "charge_reminder_pdf_fk",
+      columns: [t.organizationId, t.pdfFileId],
+      foreignColumns: [file.organizationId, file.id],
+    }),
+    index().on(t.organizationId, t.residenceId, t.unitId),
+    check("charge_reminder_overdue", sql`${t.overdue} > 0`),
+  ],
+);

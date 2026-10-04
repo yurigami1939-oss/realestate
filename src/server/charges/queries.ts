@@ -11,6 +11,7 @@ import {
   chargeCategoryUnit,
   chargePayment,
   chargePeriod,
+  chargeReminder,
   project,
   residence,
   residenceUnit,
@@ -27,6 +28,7 @@ import { assertCan, type TenantCtx } from "@/server/auth/session";
 
 import { chargeStatement, liveCalls, paidByUnit } from "./accounts";
 import { loadSplitInput, mainCoOwners, RESERVE_LABEL } from "./calls";
+import { loadOverdueCharges } from "./collections";
 
 /**
  * Charges page of a residence: its categories (with their key's building or units), the
@@ -400,3 +402,30 @@ export async function getUnitAccount(ctx: TenantCtx, residenceId: string, unitId
 }
 
 export type UnitAccount = NonNullable<Awaited<ReturnType<typeof getUnitAccount>>>;
+
+/** Overdue charges of every residence (derived), most late first, with the last reminder. */
+export async function listOverdueCharges(ctx: TenantCtx) {
+  assertCan(ctx, "charge:read");
+  return withTenant(ctx, (tx) => loadOverdueCharges(tx));
+}
+
+/** Reminder letters of a unit, newest first. */
+export async function listUnitReminders(ctx: TenantCtx, residenceId: string, unitId: string) {
+  assertCan(ctx, "charge:read");
+  if (!isUuid(residenceId) || !isUuid(unitId)) return [];
+  return withTenant(ctx, (tx) =>
+    tx
+      .select({
+        id: chargeReminder.id,
+        issuedAt: chargeReminder.issuedAt,
+        overdue: chargeReminder.overdue,
+        payBy: chargeReminder.payBy,
+        pdfFileId: chargeReminder.pdfFileId,
+        issuedByName: user.name,
+      })
+      .from(chargeReminder)
+      .innerJoin(user, eq(user.id, chargeReminder.issuedBy))
+      .where(and(eq(chargeReminder.residenceId, residenceId), eq(chargeReminder.unitId, unitId)))
+      .orderBy(desc(chargeReminder.issuedAt)),
+  );
+}

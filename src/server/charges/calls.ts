@@ -100,6 +100,7 @@ export async function mainCoOwners(tx: Tx, residenceId: string, day: string) {
       lastNameAr: resident.lastNameAr,
       firstNameAr: resident.firstNameAr,
       address: resident.address,
+      phone: resident.phone,
     })
     .from(resident)
     .where(

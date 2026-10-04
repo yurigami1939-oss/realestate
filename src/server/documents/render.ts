@@ -1,7 +1,11 @@
 import "server-only";
 
 import type { JobPayloads, PdfDocumentKind } from "@/jobs/queues";
-import { renderAndStoreChargeCall, renderAndStoreChargeReceipt } from "@/server/charges/documents";
+import {
+  renderAndStoreChargeCall,
+  renderAndStoreChargeReceipt,
+  renderAndStoreChargeReminder,
+} from "@/server/charges/documents";
 import { renderAndStoreReminderLetter } from "@/server/collections/documents";
 import { renderAndStorePaymentCall } from "@/server/payment-calls/documents";
 import { renderAndStoreReceipt } from "@/server/payments/documents";
@@ -20,6 +24,7 @@ const renderers: Record<PdfDocumentKind, Renderer> = {
   reminder_letter: renderAndStoreReminderLetter,
   charge_call: renderAndStoreChargeCall,
   charge_receipt: renderAndStoreChargeReceipt,
+  charge_reminder: renderAndStoreChargeReminder,
 };
 
 /** Job `pdf.document`: dispatches to the document's renderer (idempotent). */

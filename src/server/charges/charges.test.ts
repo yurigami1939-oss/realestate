@@ -1,7 +1,15 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 import { describe, expect, it } from "vitest";
 
-import { auditLog, chargeCall, chargeCallLine, chargePayment } from "@/db/schema";
+import { db } from "@/db/client";
+import {
+  auditLog,
+  chargeCall,
+  chargeCallLine,
+  chargePayment,
+  chargeReminder,
+  user,
+} from "@/db/schema";
 import { withTenant } from "@/db/tenant";
 import { addDays, todayInAlgiers } from "@/lib/dates";
 import { createBuildingSchema, createProjectSchema } from "@/server/inventory/schemas";
@@ -18,13 +26,17 @@ import { createSaleSetup } from "../../../tests/sales-fixtures";
 
 import { approveBudget, saveBudget } from "./budgets";
 import { cancelChargePeriod, issueChargePeriod } from "./calls";
+import { issueChargeReminder, sendChargesDigest } from "./collections";
 import { createChargeCategory, deleteChargeCategory, updateChargeCategory } from "./categories";
 import {
   chargeCallHtml,
   loadChargeCallData,
+  chargeReminderHtml,
   loadChargeReceiptData,
+  loadChargeReminderData,
   renderAndStoreChargeCall,
   renderAndStoreChargeReceipt,
+  renderAndStoreChargeReminder,
 } from "./documents";
 import { cancelChargePayment, clearChargeCheque, recordChargePayment } from "./payments";
 import {
@@ -32,7 +44,9 @@ import {
   getChargePeriod,
   getChargesSetup,
   getUnitAccount,
+  listOverdueCharges,
   listUnitAccounts,
+  listUnitReminders,
 } from "./queries";
 import {
   cancelChargePaymentSchema,
@@ -40,6 +54,7 @@ import {
   clearChargeChequeSchema,
   createChargeCategorySchema,
   issueChargePeriodSchema,
+  issueChargeReminderSchema,
   recordChargePaymentSchema,
   saveBudgetSchema,
   updateChargeCategorySchema,
@@ -589,5 +604,117 @@ describe("charge payments", () => {
     expect(receipt?.data.reference.fr).toContain("Résidence Les Oliviers, lot A-03-01");
     expect(await renderAndStoreChargeReceipt(team.orgId, first.paymentId)).toBe("stored");
     expect(await renderAndStoreChargeReceipt(team.orgId, first.paymentId)).toBe("skipped");
+  });
+});
+
+describe("overdue charges", () => {
+  it("are listed, reminded by letter and e-mailed to property managers once a day", async () => {
+    const { team, manager, residenceId, budgetId, unitIds } = await budgetScenario();
+    const cashier = await addMember(team.orgId, ["cashier"]);
+    await addResident(manager, coOwner(residenceId, unitIds[0], "Saïdi", true));
+    // Quarter 1 is 30 days overdue; A-03-02 pays its share, the others do not.
+    await issueChargePeriod(
+      manager,
+      issueChargePeriodSchema.parse({
+        period: `${budgetId}:1`,
+        issuedOn: addDays(today, -60),
+        dueOn: addDays(today, -30),
+      }),
+    );
+    await recordChargePayment(
+      cashier,
+      recordChargePaymentSchema.parse({
+        residenceId,
+        unitId: unitIds[1],
+        amount: "41 950",
+        method: "cash",
+        paidOn: today,
+        payerName: "Benali Omar",
+      }),
+    );
+
+    let overdue = await listOverdueCharges(cashier);
+    expect(overdue.map((r) => [r.code, r.coOwner, r.overdue, r.daysLate])).toEqual([
+      ["A-03-01", "Saïdi Yasmine", 52_600_00n, 30],
+      ["A-04-01", null, 41_950_00n, 30],
+    ]);
+    expect(overdue[0]?.lastReminderAt).toBeNull();
+
+    const reminder = (unitId: string, payBy = addDays(today, 8)) =>
+      issueChargeReminderSchema.parse({ residenceId, unitId, payBy });
+    await expect(issueChargeReminder(team.agentA, reminder(unitIds[0]))).rejects.toMatchObject({
+      code: "FORBIDDEN",
+    });
+    await expect(
+      issueChargeReminder(cashier, reminder(unitIds[0], addDays(today, -1))),
+    ).rejects.toMatchObject({ messageKey: "collections.errors.payByPast" });
+    await expect(issueChargeReminder(cashier, reminder(unitIds[1]))).rejects.toMatchObject({
+      messageKey: "charges.errors.nothingOverdue",
+    });
+    const { id, overdue: amount } = await issueChargeReminder(cashier, reminder(unitIds[0]));
+    expect(amount).toBe(52_600_00n);
+
+    overdue = await listOverdueCharges(manager);
+    expect(overdue[0]?.lastReminderAt).not.toBeNull();
+    const letters = await listUnitReminders(manager, residenceId, unitIds[0]);
+    expect(letters).toMatchObject([{ id, overdue: 52_600_00n, payBy: addDays(today, 8) }]);
+
+    // The letter keeps what it printed and is rendered once.
+    const loaded = await withTenant(team.owner, (tx) => loadChargeReminderData(tx, id));
+    expect(loaded?.data).toMatchObject({
+      unitCode: "A-03-01",
+      addressee: { name: "Saïdi Yasmine" },
+      lines: [
+        {
+          period: { fr: "1er trimestre 2026", ar: "الثلاثي الأول 2026" },
+          remaining: 52_600_00n,
+          daysLate: 30,
+        },
+      ],
+    });
+    const html = chargeReminderHtml(loaded?.data ?? ({} as never), {
+      name: "Promo",
+      legalName: "SARL Promo",
+      address: null,
+      wilaya: null,
+      phone: null,
+      rcNumber: null,
+      nif: null,
+      nis: null,
+      aiNumber: null,
+      logo: null,
+    });
+    expect(html).toContain("LETTRE DE RELANCE");
+    expect(html).toContain("رسالة تذكير بالأعباء");
+    expect(await renderAndStoreChargeReminder(team.orgId, id)).toBe("stored");
+    expect(await renderAndStoreChargeReminder(team.orgId, id)).toBe("skipped");
+    await expect(
+      withTenant(team.owner, (tx) =>
+        tx.update(chargeReminder).set({ overdue: 1n }).where(eq(chargeReminder.id, id)),
+      ),
+    ).rejects.toThrow();
+
+    // Daily digest: property managers and cashiers, once a day each.
+    const expected = (
+      await db
+        .select({ email: user.email })
+        .from(user)
+        .where(inArray(user.id, [manager.userId, cashier.userId]))
+    ).map((u) => u.email);
+    const emails = async () =>
+      (
+        await db.execute<{ to: string; subject: string; html: string }>(
+          sql`select data->>'to' as to, data->>'subject' as subject, data->>'html' as html
+              from pgboss.job where name = 'email.send'
+              and singleton_key like ${`charges-digest:${team.orgId}:%`}`,
+        )
+      ).rows;
+    expect(await sendChargesDigest(team.orgId, today)).toBe(2);
+    const sent = await emails();
+    expect(sent.map((e) => e.to).sort()).toEqual(expected.sort());
+    expect(sent[0]?.subject).toContain("Charges impayées");
+    expect(sent[0]?.html).toContain("A-03-01");
+    await sendChargesDigest(team.orgId, today);
+    expect(await emails()).toHaveLength(2);
   });
 });

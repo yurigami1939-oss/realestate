@@ -80,3 +80,6 @@ REVOKE UPDATE, DELETE, TRUNCATE ON public.charge_call_line FROM realestate_app;
 REVOKE UPDATE, DELETE, TRUNCATE ON public.charge_payment FROM realestate_app;
 GRANT UPDATE (status, cancelled_at, cancelled_by, cancellation_reason, cheque_cleared_on, pdf_file_id)
   ON public.charge_payment TO realestate_app;
+-- Charge reminder letters are issued once; only their PDF link is set afterwards.
+REVOKE UPDATE, DELETE, TRUNCATE ON public.charge_reminder FROM realestate_app;
+GRANT UPDATE (pdf_file_id) ON public.charge_reminder TO realestate_app;

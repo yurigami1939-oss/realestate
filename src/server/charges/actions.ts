@@ -7,6 +7,7 @@ import { defineAction } from "@/server/action";
 import { approveBudget, saveBudget } from "./budgets";
 import { cancelChargePeriod, issueChargePeriod } from "./calls";
 import { createChargeCategory, deleteChargeCategory, updateChargeCategory } from "./categories";
+import { issueChargeReminder } from "./collections";
 import { requestChargeDocument } from "./document-requests";
 import { cancelChargePayment, clearChargeCheque, recordChargePayment } from "./payments";
 import {
@@ -17,6 +18,7 @@ import {
   clearChargeChequeSchema,
   createChargeCategorySchema,
   issueChargePeriodSchema,
+  issueChargeReminderSchema,
   recordChargePaymentSchema,
   requestChargeDocumentSchema,
   saveBudgetSchema,
@@ -73,4 +75,8 @@ export const cancelChargePaymentAction = defineAction(
 export const clearChargeChequeAction = defineAction(
   { input: clearChargeChequeSchema, permission: "payment:create" },
   (input, ctx) => mutation(() => clearChargeCheque(ctx, input)),
+);
+export const issueChargeReminderAction = defineAction(
+  { input: issueChargeReminderSchema, permission: "charge:remind" },
+  (input, ctx) => mutation(() => issueChargeReminder(ctx, input)),
 );

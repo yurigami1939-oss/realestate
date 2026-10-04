@@ -52,8 +52,11 @@ export const statement = {
   commission: ["read", "read_all", "update"],
   /** Residences after delivery (module 6): setup, units' shares, co-owners and occupants. */
   residence: ["read", "create", "update"],
-  /** Charge categories, budgets and calls; `cancel` voids an issued call. */
-  charge: ["read", "create", "cancel"],
+  /**
+   * Charge categories, budgets and calls; `cancel` voids an issued call; `remind`: reminder
+   * letters for overdue charges.
+   */
+  charge: ["read", "create", "cancel", "remind"],
   /** Suppliers, their contracts and invoices. */
   supplier: ["read", "update"],
   /** Residence staff, attendance, salary advances and pay. */
@@ -93,7 +96,7 @@ export const roles = {
     milestone: ["validate"],
     commission: ["read", "read_all", "update"],
     residence: ["read", "create", "update"],
-    charge: ["read", "create", "cancel"],
+    charge: ["read", "create", "cancel", "remind"],
     supplier: ["read", "update"],
     staff: ["read", "update"],
     ticket: ["read", "create", "update"],
@@ -129,7 +132,7 @@ export const roles = {
     payment: ["read", "create", "cancel"],
     commission: ["read", "read_all", "update"],
     residence: ["read"],
-    charge: ["read", "cancel"],
+    charge: ["read", "cancel", "remind"],
     supplier: ["read", "update"],
     staff: ["read", "update"],
   }),
@@ -139,13 +142,13 @@ export const roles = {
     sale: ["read", "read_all", "remind"],
     payment: ["read", "create"],
     residence: ["read"],
-    charge: ["read"],
+    charge: ["read", "remind"],
   }),
   property_manager: ac.newRole({
     inventory: ["read"],
     payment: ["read", "create"],
     residence: ["read", "create", "update"],
-    charge: ["read", "create"],
+    charge: ["read", "create", "remind"],
     supplier: ["read", "update"],
     staff: ["read", "update"],
     ticket: ["read", "create", "update"],

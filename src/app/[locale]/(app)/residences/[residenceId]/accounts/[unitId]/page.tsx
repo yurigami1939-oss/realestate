@@ -4,6 +4,7 @@ import { getLocale, getTranslations, setRequestLocale } from "next-intl/server";
 
 import { PageHeader } from "@/components/app-shell/page-header";
 import { ChargeDocumentPdf } from "@/components/residences/charge-document-pdf";
+import { ChargeReminderDialog } from "@/components/residences/charge-reminder-dialog";
 import { InstallmentStateBadge } from "@/components/sales/badges";
 import { PendingDocumentsRefresher } from "@/components/sales/document-pdf";
 import { Badge } from "@/components/ui/badge";
@@ -22,7 +23,7 @@ import { formatDZD } from "@/lib/money";
 import { can } from "@/lib/permissions";
 import { cn } from "@/lib/utils";
 import { requirePermission } from "@/server/auth/page-guard";
-import { getUnitAccount } from "@/server/charges/queries";
+import { getUnitAccount, listUnitReminders } from "@/server/charges/queries";
 
 import {
   CancelChargePaymentDialog,
@@ -43,10 +44,12 @@ export default async function UnitAccountPage({
   const ctx = await requirePermission("charge:read");
   const account = await getUnitAccount(ctx, residenceId, unitId);
   if (!account) notFound();
+  const reminders = await listUnitReminders(ctx, residenceId, unitId);
   const t = await getTranslations("charges.accounts");
   const tp = await getTranslations("charges.period");
   const tpay = await getTranslations("payments");
   const tr = await getTranslations("residences");
+  const trem = await getTranslations("charges.reminders");
   const moneyLocale = (await getLocale()) === "ar" ? "ar" : "fr";
   const money = (v: bigint) => formatDZD(v, moneyLocale);
   const today = todayInAlgiers();
@@ -77,16 +80,27 @@ export default async function UnitAccountPage({
           { label: t("title"), href: `/residences/${residenceId}/accounts` },
         ]}
         actions={
-          can(ctx.roles, "payment:create") ? (
-            <RecordChargePaymentDialog
-              residenceId={residenceId}
-              unitId={unitId}
-              code={account.code}
-              remaining={statement.remaining}
-              payerName={account.coOwner ?? ""}
-              today={today}
-            />
-          ) : null
+          <>
+            {statement.overdue > 0n && can(ctx.roles, "charge:remind") ? (
+              <ChargeReminderDialog
+                residenceId={residenceId}
+                unitId={unitId}
+                code={account.code}
+                overdue={statement.overdue}
+                today={today}
+              />
+            ) : null}
+            {can(ctx.roles, "payment:create") ? (
+              <RecordChargePaymentDialog
+                residenceId={residenceId}
+                unitId={unitId}
+                code={account.code}
+                remaining={statement.remaining}
+                payerName={account.coOwner ?? ""}
+                today={today}
+              />
+            ) : null}
+          </>
         }
       />
       <dl className="grid gap-2 text-sm sm:grid-cols-5" data-testid="account-totals">
@@ -261,10 +275,39 @@ export default async function UnitAccountPage({
           )}
         </CardContent>
       </Card>
+      {reminders.length > 0 ? (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">{trem("title")}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ul className="divide-y text-sm" data-testid="account-reminders">
+              {reminders.map((r) => (
+                <li key={r.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
+                  <span>
+                    {trem("line", {
+                      date: formatDate(r.issuedAt),
+                      amount: money(r.overdue),
+                      name: r.issuedByName,
+                    })}
+                  </span>
+                  <ChargeDocumentPdf
+                    fileId={r.pdfFileId}
+                    kind="charge_reminder"
+                    id={r.id}
+                    label={trem("pdf", { date: formatDate(r.issuedAt) })}
+                  />
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      ) : null}
       <PendingDocumentsRefresher
         pending={
           account.payments.some((p) => p.status === "valid" && p.pdfFileId === null) ||
-          statement.lines.some((l) => l.pdfFileId === null)
+          statement.lines.some((l) => l.pdfFileId === null) ||
+          reminders.some((r) => r.pdfFileId === null)
         }
       />
     </div>
