@@ -3,7 +3,7 @@ import "server-only";
 import { eq } from "drizzle-orm";
 import type { z } from "zod";
 
-import { chargeCall, chargePayment, chargeReminder } from "@/db/schema";
+import { chargeCall, chargePayment, chargeReminder, generalAssembly } from "@/db/schema";
 import { withTenant } from "@/db/tenant";
 import { enqueueInTx } from "@/jobs/enqueue";
 import { AppError } from "@/lib/result";
@@ -41,6 +41,14 @@ async function currentPdf(
           .select({ pdfFileId: chargeReminder.pdfFileId })
           .from(chargeReminder)
           .where(eq(chargeReminder.id, id));
+        return row;
+      });
+    case "assembly_convocation":
+      return withTenant(ctx, async (tx) => {
+        const [row] = await tx
+          .select({ pdfFileId: generalAssembly.convocationFileId })
+          .from(generalAssembly)
+          .where(eq(generalAssembly.id, id));
         return row;
       });
   }

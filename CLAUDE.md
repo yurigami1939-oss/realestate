@@ -540,7 +540,7 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
   - [x] Suppliers, contracts, invoices; budget vs actual and reserve fund balance (scans of contracts and invoices pending)
   - [x] Staff, attendance, salary advances, monthly pay (net amounts)
   - [x] Tickets (back office; residents through the portal in module 7)
-  - [ ] General assemblies
+  - [ ] General assemblies (server: schema, agenda, convening, convocation PDF done; UI, attendance and proxies, votes, results and PV pending)
   - [ ] Announcements, seed, e2e
 - [ ] Module 7 — Buyer/resident portal
 

@@ -1,6 +1,7 @@
 import "server-only";
 
 import type { JobPayloads, PdfDocumentKind } from "@/jobs/queues";
+import { renderAndStoreConvocation } from "@/server/assemblies/documents";
 import {
   renderAndStoreChargeCall,
   renderAndStoreChargeReceipt,
@@ -25,6 +26,7 @@ const renderers: Record<PdfDocumentKind, Renderer> = {
   charge_call: renderAndStoreChargeCall,
   charge_receipt: renderAndStoreChargeReceipt,
   charge_reminder: renderAndStoreChargeReminder,
+  assembly_convocation: renderAndStoreConvocation,
 };
 
 /** Job `pdf.document`: dispatches to the document's renderer (idempotent). */

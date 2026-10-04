@@ -74,7 +74,8 @@
     "percent": "Pourcentage invalide (ex. 5 ou -2,5).",
     "phone": "Numéro de téléphone invalide (ex. 0550 12 34 56).",
     "dateTime": "Date et heure invalides.",
-    "nin": "NIN invalide (18 chiffres)."
+    "nin": "NIN invalide (18 chiffres).",
+    "time": "Heure invalide (HH:MM)."
   },
   "auth": {
     "fields": {
@@ -2322,6 +2323,12 @@
       "assigneeNotFound": "Intervenant introuvable.",
       "invalidTransition": "Ce changement de statut n'est pas possible.",
       "ticketClosed": "Cette réclamation est close."
+    }
+  },
+  "assemblies": {
+    "errors": {
+      "notDraft": "La convocation est partie : l'ordre du jour ne change plus.",
+      "emptyAgenda": "L'ordre du jour est vide."
     }
   }
 }

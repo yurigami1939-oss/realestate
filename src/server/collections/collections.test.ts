@@ -240,5 +240,6 @@ describe("overdue digest", () => {
     expect(await queueOverdueDigests()).toBeGreaterThanOrEqual(1);
     await queueOverdueDigests();
     expect(await digests()).toBe(1);
-  });
+    // One job per organization of the test database, which grows with every run.
+  }, 180_000);
 });

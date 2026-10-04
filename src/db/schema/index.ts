@@ -1,3 +1,4 @@
+export * from "./assemblies";
 export * from "./auth";
 export * from "./buyers";
 export * from "./charges";

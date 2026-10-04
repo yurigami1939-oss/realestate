@@ -80,7 +80,12 @@ export const cancelChargePeriodSchema = z.object({
 });
 
 /** Residence documents rendered by the worker. */
-export const chargeDocumentKinds = ["charge_call", "charge_receipt", "charge_reminder"] as const;
+export const chargeDocumentKinds = [
+  "charge_call",
+  "charge_receipt",
+  "charge_reminder",
+  "assembly_convocation",
+] as const;
 export const requestChargeDocumentSchema = z.object({
   kind: z.enum(chargeDocumentKinds),
   id: z.uuid(),

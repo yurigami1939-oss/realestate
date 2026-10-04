@@ -162,6 +162,13 @@
       "when": 1791134195161,
       "tag": "0022_tickets",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1791135109101,
+      "tag": "0023_assemblies",
+      "breakpoints": true
     }
   ]
 }
