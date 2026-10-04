@@ -4,11 +4,13 @@ import { revalidatePath } from "next/cache";
 
 import { defineAction } from "@/server/action";
 
+import { saveAttendance } from "./attendance";
 import {
   advanceIdSchema,
   createStaffSchema,
   endStaffSchema,
   recordAdvanceSchema,
+  saveAttendanceSchema,
   updateStaffSchema,
 } from "./schemas";
 import { createStaff, deleteAdvance, endStaff, recordAdvance, updateStaff } from "./service";
@@ -39,4 +41,8 @@ export const recordAdvanceAction = defineAction(
 export const deleteAdvanceAction = defineAction(
   { input: advanceIdSchema, permission: "staff:update" },
   (input, ctx) => mutation(() => deleteAdvance(ctx, input.advanceId)),
+);
+export const saveAttendanceAction = defineAction(
+  { input: saveAttendanceSchema, permission: "staff:update" },
+  (input, ctx) => mutation(() => saveAttendance(ctx, input)),
 );

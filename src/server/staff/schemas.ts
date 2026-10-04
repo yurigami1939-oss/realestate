@@ -1,7 +1,7 @@
 /** Isomorphic: shared by the staff forms and their actions. */
 import { z } from "zod";
 
-import { staffRoles } from "@/lib/residences";
+import { attendanceStatuses, staffRoles } from "@/lib/residences";
 import {
   dateText,
   moneyText,
@@ -52,3 +52,12 @@ export const recordAdvanceSchema = z.object({
   notes: optionalText(500),
 });
 export const advanceIdSchema = z.object({ advanceId: z.uuid() });
+
+/** Marked days of a residence's agents for a month (unmarked days are worked), saved whole. */
+export const saveAttendanceSchema = z.object({
+  residenceId: z.uuid(),
+  month: monthText(),
+  marks: z
+    .array(z.object({ staffId: z.uuid(), day: dateText(), status: z.enum(attendanceStatuses) }))
+    .max(5000),
+});

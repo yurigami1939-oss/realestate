@@ -12,11 +12,13 @@ import { createResidence } from "@/server/residences/service";
 import { addMember, createSalesTeam } from "../../../tests/factories";
 import { createSaleSetup } from "../../../tests/sales-fixtures";
 
+import { getAttendanceMonth, monthDays, saveAttendance } from "./attendance";
 import { getStaffMember, listStaff } from "./queries";
 import {
   createStaffSchema,
   endStaffSchema,
   recordAdvanceSchema,
+  saveAttendanceSchema,
   updateStaffSchema,
 } from "./schemas";
 import { createStaff, deleteAdvance, endStaff, recordAdvance, updateStaff } from "./service";
@@ -158,5 +160,59 @@ describe("residence staff", () => {
       "staff_member.create",
       "staff_member.update",
     ]);
+  });
+});
+
+describe("attendance", () => {
+  it("is saved month by month within each agent's employment", async () => {
+    const { team, manager, residenceId, categoryId } = await scenario();
+    const cashier = await addMember(team.orgId, ["cashier"]);
+    const { id: guard } = await createStaff(manager, staffInput(residenceId, categoryId));
+    const { id: cleaner } = await createStaff(
+      manager,
+      staffInput(residenceId, "", { role: "cleaning", lastName: "Haddad", firstName: "Nadia" }),
+    );
+    await endStaff(manager, endStaffSchema.parse({ staffId: cleaner, leftOn: "2026-03-31" }));
+
+    expect(monthDays("2026-02-01")).toHaveLength(28);
+    const save = (month: string, marks: { staffId: string; day: string; status: string }[]) =>
+      saveAttendanceSchema.parse({ residenceId, month, marks });
+    await expect(saveAttendance(cashier, save("2026-03", []))).rejects.toMatchObject({
+      code: "FORBIDDEN",
+    });
+    await expect(
+      saveAttendance(
+        manager,
+        save("2026-03", [{ staffId: guard, day: "2026-04-01", status: "absent" }]),
+      ),
+    ).rejects.toMatchObject({ messageKey: "staff.errors.attendanceOutOfMonth" });
+    // The cleaner left at the end of March: not on April's sheet.
+    await expect(
+      saveAttendance(
+        manager,
+        save("2026-04", [{ staffId: cleaner, day: "2026-04-02", status: "absent" }]),
+      ),
+    ).rejects.toMatchObject({ messageKey: "staff.errors.attendanceOutOfMonth" });
+
+    await saveAttendance(
+      manager,
+      save("2026-03", [
+        { staffId: guard, day: "2026-03-10", status: "absent" },
+        { staffId: guard, day: "2026-03-11", status: "leave" },
+        { staffId: cleaner, day: "2026-03-31", status: "sick" },
+      ]),
+    );
+    let sheet = await getAttendanceMonth(manager, residenceId, "2026-03-01");
+    expect(sheet?.staff.map((a) => a.lastName)).toEqual(["Haddad", "Mansouri"]);
+    expect(sheet?.marks).toHaveLength(3);
+
+    // Saved as a whole: the month's marks are replaced.
+    await saveAttendance(
+      manager,
+      save("2026-03", [{ staffId: guard, day: "2026-03-12", status: "off" }]),
+    );
+    sheet = await getAttendanceMonth(manager, residenceId, "2026-03-01");
+    expect(sheet?.marks).toEqual([{ staffId: guard, day: "2026-03-12", status: "off" }]);
+    expect((await getAttendanceMonth(manager, residenceId, "2026-04-01"))?.staff).toHaveLength(1);
   });
 });

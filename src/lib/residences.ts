@@ -52,3 +52,7 @@ export const staffRoles = [
   "other",
 ] as const;
 export type StaffRole = (typeof staffRoles)[number];
+
+/** Attendance marks of a day; a day without mark is worked (present). */
+export const attendanceStatuses = ["absent", "leave", "sick", "off"] as const;
+export type AttendanceStatus = (typeof attendanceStatuses)[number];

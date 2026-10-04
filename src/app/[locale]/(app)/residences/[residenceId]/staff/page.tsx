@@ -1,3 +1,4 @@
+import { CalendarCheck } from "lucide-react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getLocale, getTranslations, setRequestLocale } from "next-intl/server";
@@ -6,6 +7,7 @@ import { PageHeader } from "@/components/app-shell/page-header";
 import { PhoneText } from "@/components/crm/phone";
 import { StaffDialog } from "@/components/staff/staff-dialogs";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -61,9 +63,19 @@ export default async function ResidenceStaffPage({
       <Card>
         <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
           <CardTitle className="text-base">{t("title")}</CardTitle>
-          {editable ? (
-            <StaffDialog residenceId={residenceId} categories={categories} today={today} />
-          ) : null}
+          <div className="flex flex-wrap gap-2">
+            {staff.length > 0 ? (
+              <Button asChild variant="outline">
+                <Link href={`/residences/${residenceId}/staff/attendance`}>
+                  <CalendarCheck data-icon="inline-start" />
+                  {t("attendance.open")}
+                </Link>
+              </Button>
+            ) : null}
+            {editable ? (
+              <StaffDialog residenceId={residenceId} categories={categories} today={today} />
+            ) : null}
+          </div>
         </CardHeader>
         <CardContent>
           {staff.length === 0 ? (

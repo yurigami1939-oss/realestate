@@ -6,18 +6,20 @@ import {
   index,
   pgEnum,
   pgTable,
+  primaryKey,
   text,
   unique,
   uuid,
 } from "drizzle-orm/pg-core";
 
-import { staffRoles } from "../../lib/residences";
+import { attendanceStatuses, staffRoles } from "../../lib/residences";
 
 import { createdAt, id, money, organizationId, softDelete, timestamps, userRef } from "./_columns";
 import { chargeCategory } from "./charges";
 import { residence } from "./residences";
 
 export const staffRole = pgEnum("staff_role", staffRoles);
+export const attendanceStatus = pgEnum("attendance_status", attendanceStatuses);
 
 /**
  * Agent of a residence (security, cleaning…) employed by the company. Pay is entered as net
@@ -98,5 +100,28 @@ export const salaryAdvance = pgTable(
     index().on(t.organizationId, t.staffId, t.month),
     check("salary_advance_amount", sql`${t.amount} > 0`),
     check("salary_advance_month", sql`extract(day from ${t.month}) = 1`),
+  ],
+);
+
+/**
+ * Pointage: the marked days of an agent (absence, leave, sick leave, day off); unmarked days
+ * are worked. Saved month by month for a residence.
+ */
+export const staffAttendance = pgTable(
+  "staff_attendance",
+  {
+    organizationId: organizationId(),
+    staffId: uuid().notNull(),
+    day: date({ mode: "string" }).notNull(),
+    status: attendanceStatus().notNull(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.staffId, t.day] }),
+    foreignKey({
+      name: "staff_attendance_staff_fk",
+      columns: [t.organizationId, t.staffId],
+      foreignColumns: [staffMember.organizationId, staffMember.id],
+    }),
+    index().on(t.organizationId, t.day),
   ],
 );

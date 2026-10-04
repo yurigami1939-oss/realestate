@@ -2155,7 +2155,38 @@
     },
     "errors": {
       "leftBeforeHired": "La fin ne peut précéder l'embauche.",
-      "notEmployed": "L'agent n'était pas en poste à cette date."
+      "notEmployed": "L'agent n'était pas en poste à cette date.",
+      "attendanceOutOfMonth": "Jour hors du mois, ou agent absent de la feuille de ce mois."
+    },
+    "attendance": {
+      "open": "Pointage",
+      "title": "Pointage · {month}",
+      "legend": "Cliquez sur un jour pour le marquer (absence, congé, maladie, repos) ; un jour sans marque est travaillé.",
+      "empty": "Aucun agent en poste ce mois-ci.",
+      "short": {
+        "absent": "A",
+        "leave": "C",
+        "sick": "M",
+        "off": "R"
+      },
+      "status": {
+        "present": "travaillé",
+        "absent": "Absence",
+        "leave": "Congé",
+        "sick": "Maladie",
+        "off": "Repos"
+      },
+      "columns": {
+        "agent": "Agent",
+        "worked": "Travaillés",
+        "absent": "Absences",
+        "leave": "Congés",
+        "sick": "Maladie",
+        "off": "Repos"
+      },
+      "dayLabel": "{agent}, {date} : {status}",
+      "save": "Enregistrer le pointage",
+      "saved": "Pointage enregistré."
     }
   }
 }
