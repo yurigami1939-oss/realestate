@@ -148,6 +148,7 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
     │   │                     # charges, reminder letters and digest (collections.ts), budget vs actual
     │   │                     # and reserve fund (report.ts), PDFs
     │   ├── suppliers/        # suppliers (per organization), contracts per residence, invoices (invoices.ts)
+    │   ├── staff/            # residence agents (role, net salary, charge category), salary advances
     │   ├── documents/        # render.ts: `pdf.document` dispatcher (one renderer per kind)
     │   └── <module>/         # schemas.ts (isomorphic) · queries.ts · service.ts · actions.ts · *.test.ts
     ├── jobs/                 # queues.ts (names, retry policy, payload types), enqueue.ts, worker.ts, handlers/
@@ -533,7 +534,7 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
   - [x] Charge calls per period (ADC, bilingual PDF, cancellation); unit accounts; charge payments and receipts (RCH)
   - [x] Overdue charges: list, reminder letters, digest
   - [x] Suppliers, contracts, invoices; budget vs actual and reserve fund balance (scans of contracts and invoices pending)
-  - [ ] Staff, attendance, salary advances, pay
+  - [ ] Staff, attendance, salary advances, pay (staff files and advances done)
   - [ ] Tickets
   - [ ] General assemblies
   - [ ] Announcements, seed, e2e

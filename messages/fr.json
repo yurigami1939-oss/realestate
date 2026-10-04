@@ -1443,7 +1443,8 @@
       "budget": "Budget",
       "charge_period": "Appels de charges",
       "charge_payment": "Paiement de charges",
-      "supplier_invoice": "Facture fournisseur"
+      "supplier_invoice": "Facture fournisseur",
+      "staff_member": "Agent de résidence"
     },
     "actions": {
       "organization": {
@@ -1528,6 +1529,15 @@
         "update": "Facture fournisseur modifiée",
         "pay": "Facture fournisseur payée",
         "delete": "Facture fournisseur supprimée"
+      },
+      "staff_member": {
+        "create": "Agent enregistré",
+        "update": "Agent modifié",
+        "end": "Fin de contrat d'un agent"
+      },
+      "salary_advance": {
+        "create": "Avance sur salaire",
+        "delete": "Avance sur salaire supprimée"
       }
     }
   },
@@ -1689,7 +1699,8 @@
       "calls": "Appels de charges",
       "accounts": "Comptes des lots",
       "expenses": "Dépenses",
-      "report": "Bilan"
+      "report": "Bilan",
+      "staff": "Personnel"
     }
   },
   "charges": {
@@ -2070,6 +2081,81 @@
         "state": "Paiement",
         "actions": "Actions"
       }
+    }
+  },
+  "staff": {
+    "title": "Personnel",
+    "empty": "Aucun agent.",
+    "new": "Nouvel agent",
+    "newTitle": "Nouvel agent de la résidence",
+    "editTitle": "Modifier l'agent",
+    "created": "Agent enregistré.",
+    "noCategory": "Aucune catégorie",
+    "employed": "En poste",
+    "leftOn": "Parti le {date}",
+    "end": "Fin de contrat",
+    "endTitle": "Fin de contrat",
+    "endDescription": "Dernier jour travaillé ; l'agent reste dans l'historique de la résidence.",
+    "ended": "Fin de contrat enregistrée.",
+    "role": {
+      "security": "Agent de sécurité",
+      "cleaning": "Agent d'entretien",
+      "maintenance": "Technicien de maintenance",
+      "gardener": "Jardinier",
+      "concierge": "Gardien / concierge",
+      "other": "Autre"
+    },
+    "fields": {
+      "role": "Fonction",
+      "lastName": "Nom",
+      "firstName": "Prénom",
+      "lastNameAr": "Nom (en arabe)",
+      "firstNameAr": "Prénom (en arabe)",
+      "phone": "Téléphone",
+      "nin": "NIN",
+      "hiredOn": "Embauché le",
+      "leftOn": "Dernier jour travaillé",
+      "monthlySalary": "Salaire mensuel net (DA)",
+      "categoryId": "Catégorie de charges",
+      "notes": "Remarques"
+    },
+    "columns": {
+      "name": "Agent",
+      "role": "Fonction",
+      "phone": "Téléphone",
+      "since": "Depuis le",
+      "salary": "Salaire net",
+      "category": "Catégorie",
+      "state": "État"
+    },
+    "advances": {
+      "title": "Avances sur salaire",
+      "empty": "Aucune avance.",
+      "new": "Nouvelle avance",
+      "newTitle": "Avance sur salaire",
+      "record": "Enregistrer",
+      "recorded": "Avance enregistrée.",
+      "delete": "Supprimer",
+      "deleteTitle": "Supprimer cette avance ?",
+      "deleteDescription": "Pour une avance saisie par erreur.",
+      "deleted": "Avance supprimée.",
+      "fields": {
+        "amount": "Montant (DA)",
+        "paidOn": "Versée le",
+        "month": "Retenue sur la paie de",
+        "notes": "Remarques"
+      },
+      "columns": {
+        "paidOn": "Versée le",
+        "month": "Paie de",
+        "amount": "Montant",
+        "by": "Saisie par",
+        "actions": "Actions"
+      }
+    },
+    "errors": {
+      "leftBeforeHired": "La fin ne peut précéder l'embauche.",
+      "notEmployed": "L'agent n'était pas en poste à cette date."
     }
   }
 }

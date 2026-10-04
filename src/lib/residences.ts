@@ -41,3 +41,14 @@ export type ChargePaymentMethod = (typeof chargePaymentMethods)[number];
 /** A budget is prepared as a draft, then approved: calls are issued from approved budgets. */
 export const budgetStatuses = ["draft", "approved"] as const;
 export type BudgetStatus = (typeof budgetStatuses)[number];
+
+/** Jobs of residence staff (agent de sécurité, femme de ménage…). */
+export const staffRoles = [
+  "security",
+  "cleaning",
+  "maintenance",
+  "gardener",
+  "concierge",
+  "other",
+] as const;
+export type StaffRole = (typeof staffRoles)[number];

@@ -134,6 +134,13 @@
       "when": 1791130962945,
       "tag": "0018_supplier_invoices",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1791131912450,
+      "tag": "0019_staff",
+      "breakpoints": true
     }
   ]
 }

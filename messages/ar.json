@@ -1443,7 +1443,8 @@
       "budget": "ميزانية",
       "charge_period": "طلبات الأعباء",
       "charge_payment": "تسديد أعباء",
-      "supplier_invoice": "فاتورة مورد"
+      "supplier_invoice": "فاتورة مورد",
+      "staff_member": "عون الإقامة"
     },
     "actions": {
       "organization": {
@@ -1528,6 +1529,15 @@
         "update": "تعديل فاتورة مورد",
         "pay": "دفع فاتورة مورد",
         "delete": "حذف فاتورة مورد"
+      },
+      "staff_member": {
+        "create": "تسجيل عون",
+        "update": "تعديل عون",
+        "end": "نهاية عقد عون"
+      },
+      "salary_advance": {
+        "create": "تسبيق على الأجر",
+        "delete": "حذف تسبيق على الأجر"
       }
     }
   },
@@ -1689,7 +1699,8 @@
       "calls": "طلبات الأعباء",
       "accounts": "حسابات الوحدات",
       "expenses": "المصاريف",
-      "report": "الحصيلة"
+      "report": "الحصيلة",
+      "staff": "المستخدمون"
     }
   },
   "charges": {
@@ -2070,6 +2081,81 @@
         "state": "الدفع",
         "actions": "إجراءات"
       }
+    }
+  },
+  "staff": {
+    "title": "المستخدمون",
+    "empty": "لا يوجد عون.",
+    "new": "عون جديد",
+    "newTitle": "عون جديد للإقامة",
+    "editTitle": "تعديل العون",
+    "created": "تم تسجيل العون.",
+    "noCategory": "بلا فئة",
+    "employed": "في منصبه",
+    "leftOn": "غادر في {date}",
+    "end": "نهاية العقد",
+    "endTitle": "نهاية العقد",
+    "endDescription": "آخر يوم عمل؛ يبقى العون في سجل الإقامة.",
+    "ended": "تم تسجيل نهاية العقد.",
+    "role": {
+      "security": "عون أمن",
+      "cleaning": "عون نظافة",
+      "maintenance": "تقني صيانة",
+      "gardener": "بستاني",
+      "concierge": "حارس / بواب",
+      "other": "أخرى"
+    },
+    "fields": {
+      "role": "الوظيفة",
+      "lastName": "اللقب",
+      "firstName": "الاسم",
+      "lastNameAr": "اللقب (بالعربية)",
+      "firstNameAr": "الاسم (بالعربية)",
+      "phone": "الهاتف",
+      "nin": "رقم التعريف الوطني",
+      "hiredOn": "تاريخ التوظيف",
+      "leftOn": "آخر يوم عمل",
+      "monthlySalary": "الأجر الشهري الصافي (د.ج)",
+      "categoryId": "فئة الأعباء",
+      "notes": "ملاحظات"
+    },
+    "columns": {
+      "name": "العون",
+      "role": "الوظيفة",
+      "phone": "الهاتف",
+      "since": "منذ",
+      "salary": "الأجر الصافي",
+      "category": "الفئة",
+      "state": "الحالة"
+    },
+    "advances": {
+      "title": "التسبيقات على الأجر",
+      "empty": "لا يوجد تسبيق.",
+      "new": "تسبيق جديد",
+      "newTitle": "تسبيق على الأجر",
+      "record": "تسجيل",
+      "recorded": "تم تسجيل التسبيق.",
+      "delete": "حذف",
+      "deleteTitle": "حذف هذا التسبيق؟",
+      "deleteDescription": "لتسبيق سُجل خطأً.",
+      "deleted": "تم حذف التسبيق.",
+      "fields": {
+        "amount": "المبلغ (د.ج)",
+        "paidOn": "تاريخ الدفع",
+        "month": "يُقتطع من أجر شهر",
+        "notes": "ملاحظات"
+      },
+      "columns": {
+        "paidOn": "تاريخ الدفع",
+        "month": "أجر شهر",
+        "amount": "المبلغ",
+        "by": "سجلها",
+        "actions": "إجراءات"
+      }
+    },
+    "errors": {
+      "leftBeforeHired": "لا يمكن أن تسبق النهاية التوظيف.",
+      "notEmployed": "لم يكن العون في منصبه في هذا التاريخ."
     }
   }
 }
