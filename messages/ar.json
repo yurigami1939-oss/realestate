@@ -1424,7 +1424,8 @@
       "residence": "إقامة",
       "charge_category": "فئة أعباء",
       "budget": "ميزانية",
-      "charge_period": "طلبات الأعباء"
+      "charge_period": "طلبات الأعباء",
+      "charge_payment": "تسديد أعباء"
     },
     "actions": {
       "organization": {
@@ -1498,6 +1499,11 @@
       "charge_period": {
         "issue": "إصدار طلبات الأعباء",
         "cancel": "إلغاء طلبات الأعباء"
+      },
+      "charge_payment": {
+        "create": "تسجيل تسديد أعباء",
+        "cancel": "إلغاء تسديد أعباء",
+        "cheque_cleared": "تحصيل صك أعباء"
       }
     }
   },
@@ -1656,7 +1662,8 @@
       "label": "أقسام الإقامة",
       "units": "الوحدات والملاك",
       "charges": "الأعباء والميزانية",
-      "calls": "طلبات الأعباء"
+      "calls": "طلبات الأعباء",
+      "accounts": "حسابات الوحدات"
     }
   },
   "charges": {
@@ -1809,6 +1816,50 @@
       "cancelled": "تم إلغاء الفترة.",
       "cancelledNotice": "أُلغيت في {date} من طرف {name}: {reason}",
       "pdf": "الطلب {number}"
+    },
+    "accounts": {
+      "title": "حسابات الوحدات",
+      "totals": {
+        "called": "المطلوب",
+        "paid": "المحصل",
+        "remaining": "الباقي للدفع",
+        "overdue": "المتأخر",
+        "credit": "التسبيقات",
+        "reserveCollected": "صندوق الاحتياط المحصل"
+      },
+      "reserveHint": "صندوق الاحتياط المطلوب: {called}. يتبع الجزء المحصل دفعات كل طلب.",
+      "columns": {
+        "unit": "الوحدة",
+        "coOwner": "المالك المشترك",
+        "called": "المطلوب",
+        "paid": "المحصل",
+        "remaining": "الباقي",
+        "overdue": "المتأخر",
+        "credit": "التسبيق",
+        "total": "المجموع",
+        "call": "الطلب",
+        "period": "الفترة",
+        "dueOn": "آخر أجل",
+        "amount": "المبلغ",
+        "state": "الحالة",
+        "actions": "إجراءات"
+      },
+      "noCoOwner": "بلا مالك مشترك",
+      "unitTitle": "الوحدة {code}",
+      "shares": "الحصص: {share}/{basis}",
+      "callsTitle": "طلبات الأعباء",
+      "noCalls": "لم يصدر أي طلب لهذه الوحدة.",
+      "paymentsTitle": "الدفعات والوصولات",
+      "state": {
+        "paid": "مدفوع",
+        "overdue": "متأخر",
+        "due": "مستحق",
+        "upcoming": "قادم",
+        "pending": "قيد الانتظار"
+      },
+      "recordTitle": "تسديد أعباء · الوحدة {code}",
+      "recordHint": "الباقي للدفع: {amount}. ما زاد عنه يُحفظ تسبيقًا على الطلبات القادمة.",
+      "cancelDescription": "يبقى الوصل مرقّمًا ويمكن الاطلاع عليه؛ وتصبح الطلبات التي سددها مستحقة من جديد."
     }
   }
 }

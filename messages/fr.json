@@ -1424,7 +1424,8 @@
       "residence": "Résidence",
       "charge_category": "Catégorie de charges",
       "budget": "Budget",
-      "charge_period": "Appels de charges"
+      "charge_period": "Appels de charges",
+      "charge_payment": "Paiement de charges"
     },
     "actions": {
       "organization": {
@@ -1498,6 +1499,11 @@
       "charge_period": {
         "issue": "Appels de charges émis",
         "cancel": "Appels de charges annulés"
+      },
+      "charge_payment": {
+        "create": "Paiement de charges enregistré",
+        "cancel": "Paiement de charges annulé",
+        "cheque_cleared": "Chèque de charges encaissé"
       }
     }
   },
@@ -1656,7 +1662,8 @@
       "label": "Rubriques de la résidence",
       "units": "Lots et copropriétaires",
       "charges": "Charges et budget",
-      "calls": "Appels de charges"
+      "calls": "Appels de charges",
+      "accounts": "Comptes des lots"
     }
   },
   "charges": {
@@ -1809,6 +1816,50 @@
       "cancelled": "Période annulée.",
       "cancelledNotice": "Annulée le {date} par {name} : {reason}",
       "pdf": "Appel {number}"
+    },
+    "accounts": {
+      "title": "Comptes des lots",
+      "totals": {
+        "called": "Appelé",
+        "paid": "Encaissé",
+        "remaining": "Reste à payer",
+        "overdue": "En retard",
+        "credit": "Avances",
+        "reserveCollected": "Fonds de réserve encaissé"
+      },
+      "reserveHint": "Fonds de réserve appelé : {called}. La part encaissée suit les paiements de chaque appel.",
+      "columns": {
+        "unit": "Lot",
+        "coOwner": "Copropriétaire",
+        "called": "Appelé",
+        "paid": "Encaissé",
+        "remaining": "Reste à payer",
+        "overdue": "En retard",
+        "credit": "Avance",
+        "total": "Total",
+        "call": "Appel",
+        "period": "Période",
+        "dueOn": "À payer avant le",
+        "amount": "Montant",
+        "state": "État",
+        "actions": "Actions"
+      },
+      "noCoOwner": "Sans copropriétaire",
+      "unitTitle": "Lot {code}",
+      "shares": "{share}/{basis} tantièmes",
+      "callsTitle": "Appels de charges",
+      "noCalls": "Aucun appel émis pour ce lot.",
+      "paymentsTitle": "Paiements et reçus",
+      "state": {
+        "paid": "Payé",
+        "overdue": "En retard",
+        "due": "Exigible",
+        "upcoming": "À venir",
+        "pending": "En attente"
+      },
+      "recordTitle": "Paiement de charges · lot {code}",
+      "recordHint": "Reste à payer : {amount}. Au-delà, le paiement est gardé en avance sur les prochains appels.",
+      "cancelDescription": "Le reçu reste numéroté et consultable ; les appels qu'il réglait redeviennent dus."
     }
   }
 }

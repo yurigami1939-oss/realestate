@@ -3,7 +3,7 @@ import "server-only";
 import { eq } from "drizzle-orm";
 import type { z } from "zod";
 
-import { chargeCall } from "@/db/schema";
+import { chargeCall, chargePayment } from "@/db/schema";
 import { withTenant } from "@/db/tenant";
 import { enqueueInTx } from "@/jobs/enqueue";
 import { AppError } from "@/lib/result";
@@ -25,6 +25,14 @@ async function currentPdf(
           .select({ pdfFileId: chargeCall.pdfFileId })
           .from(chargeCall)
           .where(eq(chargeCall.id, id));
+        return row;
+      });
+    case "charge_receipt":
+      return withTenant(ctx, async (tx) => {
+        const [row] = await tx
+          .select({ pdfFileId: chargePayment.pdfFileId })
+          .from(chargePayment)
+          .where(eq(chargePayment.id, id));
         return row;
       });
   }

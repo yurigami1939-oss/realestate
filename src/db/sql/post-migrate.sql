@@ -75,3 +75,8 @@ GRANT UPDATE (status, cancelled_at, cancelled_by, cancellation_reason)
 REVOKE UPDATE, DELETE, TRUNCATE ON public.charge_call FROM realestate_app;
 GRANT UPDATE (pdf_file_id) ON public.charge_call TO realestate_app;
 REVOKE UPDATE, DELETE, TRUNCATE ON public.charge_call_line FROM realestate_app;
+-- Charge payments (and their receipts) are never deleted: only cancellation, cheque clearance
+-- and the PDF link change.
+REVOKE UPDATE, DELETE, TRUNCATE ON public.charge_payment FROM realestate_app;
+GRANT UPDATE (status, cancelled_at, cancelled_by, cancellation_reason, cheque_cleared_on, pdf_file_id)
+  ON public.charge_payment TO realestate_app;

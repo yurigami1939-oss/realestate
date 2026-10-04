@@ -9,6 +9,7 @@ import {
   chargeCall,
   chargeCategory,
   chargeCategoryUnit,
+  chargePayment,
   chargePeriod,
   project,
   residence,
@@ -20,9 +21,11 @@ import { withTenant } from "@/db/tenant";
 import { buildChargeCalls } from "@/lib/charges";
 import { todayInAlgiers } from "@/lib/dates";
 import { isUuid } from "@/lib/ids";
+import { sumCentimes } from "@/lib/money";
 import { callsPerYear } from "@/lib/residences";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
 
+import { chargeStatement, liveCalls, paidByUnit } from "./accounts";
 import { loadSplitInput, mainCoOwners, RESERVE_LABEL } from "./calls";
 
 /**
@@ -266,3 +269,134 @@ export async function getChargePeriod(ctx: TenantCtx, periodId: string) {
 }
 
 export type ChargePeriodDetail = NonNullable<Awaited<ReturnType<typeof getChargePeriod>>>;
+
+/**
+ * Charges accounts of a residence's units: called on live calls, paid, still due, overdue and
+ * advance (derived, CLAUDE.md §7), with the main co-owner today and the reserve fund totals.
+ */
+export async function listUnitAccounts(ctx: TenantCtx, residenceId: string) {
+  assertCan(ctx, "charge:read");
+  if (!isUuid(residenceId)) return null;
+  const today = todayInAlgiers();
+  return withTenant(ctx, async (tx) => {
+    const [row] = await tx
+      .select({ residence, projectName: project.name })
+      .from(residence)
+      .innerJoin(project, eq(project.id, residence.projectId))
+      .where(and(eq(residence.id, residenceId), isNull(residence.deletedAt)));
+    if (!row) return null;
+    const units = await tx
+      .select({ unitId: residenceUnit.unitId, code: unit.code })
+      .from(residenceUnit)
+      .innerJoin(unit, eq(unit.id, residenceUnit.unitId))
+      .where(eq(residenceUnit.residenceId, residenceId))
+      .orderBy(asc(unit.code));
+    const calls = await liveCalls(tx, residenceId);
+    const paid = await paidByUnit(tx, residenceId);
+    const owners = await mainCoOwners(tx, residenceId, today);
+    const rows = units.map((u) => {
+      const unitPaid = paid.get(u.unitId) ?? 0n;
+      const statement = chargeStatement(
+        calls.filter((c) => c.unitId === u.unitId),
+        unitPaid,
+        today,
+      );
+      const owner = owners.get(u.unitId);
+      return {
+        unitId: u.unitId,
+        code: u.code,
+        coOwner: owner ? `${owner.lastName} ${owner.firstName}` : null,
+        called: statement.price,
+        paid: unitPaid,
+        remaining: statement.remaining,
+        overdue: statement.overdue,
+        credit: statement.credit,
+        reserveCalled: statement.reserveCalled,
+        reserveCollected: statement.reserveCollected,
+      };
+    });
+    const total = (pick: (r: (typeof rows)[number]) => bigint) => sumCentimes(rows.map(pick));
+    return {
+      residence: { ...row.residence, projectName: row.projectName },
+      rows,
+      totals: {
+        called: total((r) => r.called),
+        paid: total((r) => r.paid),
+        remaining: total((r) => r.remaining),
+        overdue: total((r) => r.overdue),
+        credit: total((r) => r.credit),
+        reserveCalled: total((r) => r.reserveCalled),
+        reserveCollected: total((r) => r.reserveCollected),
+      },
+    };
+  });
+}
+
+export type UnitAccountsList = NonNullable<Awaited<ReturnType<typeof listUnitAccounts>>>;
+
+/**
+ * One unit's charges account: its live calls with what each still owes (derived), its payments
+ * and receipts (cancelled ones included) and its current co-owners.
+ */
+export async function getUnitAccount(ctx: TenantCtx, residenceId: string, unitId: string) {
+  assertCan(ctx, "charge:read");
+  if (!isUuid(residenceId) || !isUuid(unitId)) return null;
+  const today = todayInAlgiers();
+  return withTenant(ctx, async (tx) => {
+    const [row] = await tx
+      .select({
+        residenceName: residence.name,
+        shareBasis: residence.shareBasis,
+        code: unit.code,
+        typology: unit.typology,
+        buildingName: building.name,
+        share: residenceUnit.share,
+      })
+      .from(residenceUnit)
+      .innerJoin(residence, eq(residence.id, residenceUnit.residenceId))
+      .innerJoin(unit, eq(unit.id, residenceUnit.unitId))
+      .innerJoin(building, eq(building.id, unit.buildingId))
+      .where(
+        and(
+          eq(residenceUnit.residenceId, residenceId),
+          eq(residenceUnit.unitId, unitId),
+          isNull(residence.deletedAt),
+        ),
+      );
+    if (!row) return null;
+    const calls = await liveCalls(tx, residenceId, [unitId]);
+    const paid = (await paidByUnit(tx, residenceId, [unitId])).get(unitId) ?? 0n;
+    const statement = chargeStatement(calls, paid, today);
+    const payments = await tx
+      .select({
+        id: chargePayment.id,
+        receiptNumber: chargePayment.receiptNumber,
+        amount: chargePayment.amount,
+        method: chargePayment.method,
+        paidOn: chargePayment.paidOn,
+        reference: chargePayment.reference,
+        bank: chargePayment.bank,
+        payerName: chargePayment.payerName,
+        chequeClearedOn: chargePayment.chequeClearedOn,
+        status: chargePayment.status,
+        cancellationReason: chargePayment.cancellationReason,
+        pdfFileId: chargePayment.pdfFileId,
+        allocation: chargePayment.allocation,
+      })
+      .from(chargePayment)
+      .where(and(eq(chargePayment.residenceId, residenceId), eq(chargePayment.unitId, unitId)))
+      .orderBy(desc(chargePayment.paidOn), desc(chargePayment.createdAt));
+    const owners = await mainCoOwners(tx, residenceId, today);
+    const owner = owners.get(unitId);
+    return {
+      ...row,
+      residenceId,
+      unitId,
+      coOwner: owner ? `${owner.lastName} ${owner.firstName}` : null,
+      statement,
+      payments,
+    };
+  });
+}
+
+export type UnitAccount = NonNullable<Awaited<ReturnType<typeof getUnitAccount>>>;

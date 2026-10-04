@@ -8,6 +8,7 @@ const sections = [
   { key: "units", path: "", permission: "residence:read" },
   { key: "charges", path: "/charges", permission: "charge:read" },
   { key: "calls", path: "/calls", permission: "charge:read" },
+  { key: "accounts", path: "/accounts", permission: "charge:read" },
 ] as const satisfies readonly { key: string; path: string; permission: Permission }[];
 
 export type ResidenceSection = (typeof sections)[number]["key"];

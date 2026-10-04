@@ -9,13 +9,18 @@ import {
   building,
   chargeCall,
   chargeCallLine,
+  chargePayment,
   chargePeriod,
   residence,
   residenceUnit,
   unit,
+  user,
 } from "@/db/schema";
 import { withTenant } from "@/db/tenant";
 import { periodLabels } from "@/lib/charges";
+import { formatDate } from "@/lib/dates";
+import type { ChargePaymentMethod } from "@/lib/residences";
+import { type ReceiptData, receiptHtml } from "@/pdf/receipt";
 import { renderPdf } from "@/pdf/render";
 import { type ChargeCallData, ChargeCallTemplate } from "@/pdf/templates/charge-call";
 import { storeFile } from "@/server/files/service";
@@ -119,6 +124,118 @@ export async function renderAndStoreChargeCall(
       },
     );
     await tx.update(chargeCall).set({ pdfFileId: stored.id }).where(eq(chargeCall.id, callId));
+    return "stored";
+  });
+}
+
+const methodLabels: Record<ChargePaymentMethod, { fr: string; ar: string }> = {
+  cash: { fr: "Espèces", ar: "نقداً" },
+  cheque: { fr: "Chèque", ar: "صك" },
+  bank_transfer: { fr: "Virement bancaire", ar: "تحويل بنكي" },
+  ccp: { fr: "Versement CCP", ar: "دفع عبر الحساب البريدي الجاري" },
+};
+
+/** Everything printed on a charge receipt, resolved from the database (null if unknown). */
+export async function loadChargeReceiptData(
+  tx: Tx,
+  orgId: string,
+  paymentId: string,
+): Promise<{ data: ReceiptData; pdfFileId: string | null; residenceId: string } | null> {
+  const [row] = await tx
+    .select({
+      payment: chargePayment,
+      residenceName: residence.name,
+      unitCode: unit.code,
+      cashier: user.name,
+    })
+    .from(chargePayment)
+    .innerJoin(residence, eq(residence.id, chargePayment.residenceId))
+    .innerJoin(unit, eq(unit.id, chargePayment.unitId))
+    .innerJoin(user, eq(user.id, chargePayment.recordedBy))
+    .where(eq(chargePayment.id, paymentId));
+  if (!row) return null;
+  const company = await loadCompanyLetterhead(tx, orgId);
+
+  const p = row.payment;
+  // Charge payments never use bank loans (checked by the table).
+  const method = methodLabels[p.method === "bank_loan" ? "bank_transfer" : p.method];
+  const details = (number: string) =>
+    [p.reference ? `${number} ${p.reference}` : null, p.bank ? `(${p.bank})` : null]
+      .filter(Boolean)
+      .join(" ");
+  const detailsFr = details("n°");
+  const detailsAr = details("رقم");
+  const settled = p.allocation.map((a) => a.number).join(", ");
+
+  return {
+    pdfFileId: p.pdfFileId,
+    residenceId: p.residenceId,
+    data: {
+      number: p.receiptNumber,
+      issuedAt: p.createdAt,
+      organization: {
+        legalName: company.legalName ?? company.name,
+        address: [company.address, company.wilaya].filter(Boolean).join(", "),
+        rcNumber: company.rcNumber ?? "",
+        nif: company.nif ?? "",
+        nis: company.nis ?? "",
+        aiNumber: company.aiNumber ?? "",
+        logo: company.logo,
+      },
+      payer: { fr: p.payerName, ar: p.payerName },
+      reference: {
+        fr: `Charges de copropriété · ${row.residenceName}, lot ${row.unitCode}${settled ? ` · ${settled}` : ""}`,
+        ar: `أعباء الملكية المشتركة · ${row.residenceName}، الوحدة ${row.unitCode}${settled ? ` · ${settled}` : ""}`,
+      },
+      method: {
+        fr: `${method.fr}${detailsFr ? ` ${detailsFr}` : ""} du ${formatDate(p.paidOn)}${
+          p.method === "cheque" ? " — sous réserve d'encaissement" : ""
+        }`,
+        ar: `${method.ar}${detailsAr ? ` ${detailsAr}` : ""} بتاريخ ${formatDate(p.paidOn)}${
+          p.method === "cheque" ? " — مع التحفظ إلى حين التحصيل" : ""
+        }`,
+      },
+      amount: p.amount,
+      cashier: row.cashier,
+      title: { fr: "REÇU DE CHARGES", ar: "وصل تسديد الأعباء" },
+      party: { fr: "Le copropriétaire", ar: "المالك المشترك" },
+    },
+  };
+}
+
+/** `pdf.document` (charge_receipt): rendered once, filed under its residence. */
+export async function renderAndStoreChargeReceipt(
+  organizationId: string,
+  paymentId: string,
+): Promise<"stored" | "skipped"> {
+  const scope = { orgId: organizationId };
+  const loaded = await withTenant(scope, (tx) =>
+    loadChargeReceiptData(tx, organizationId, paymentId),
+  );
+  if (!loaded || loaded.pdfFileId) return "skipped";
+  const bytes = new Uint8Array(await renderPdf(receiptHtml(loaded.data)));
+
+  return withTenant(scope, async (tx) => {
+    const [current] = await tx
+      .select({ pdfFileId: chargePayment.pdfFileId })
+      .from(chargePayment)
+      .where(eq(chargePayment.id, paymentId))
+      .for("update");
+    if (!current || current.pdfFileId) return "skipped";
+    const stored = await storeFile(
+      tx,
+      { orgId: organizationId, userId: null },
+      {
+        entityType: "residence",
+        entityId: loaded.residenceId,
+        upload: { fileName: `${loaded.data.number}.pdf`, bytes },
+        contentType: "application/pdf",
+      },
+    );
+    await tx
+      .update(chargePayment)
+      .set({ pdfFileId: stored.id })
+      .where(eq(chargePayment.id, paymentId));
     return "stored";
   });
 }

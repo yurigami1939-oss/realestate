@@ -8,12 +8,16 @@ import { approveBudget, saveBudget } from "./budgets";
 import { cancelChargePeriod, issueChargePeriod } from "./calls";
 import { createChargeCategory, deleteChargeCategory, updateChargeCategory } from "./categories";
 import { requestChargeDocument } from "./document-requests";
+import { cancelChargePayment, clearChargeCheque, recordChargePayment } from "./payments";
 import {
   budgetIdSchema,
+  cancelChargePaymentSchema,
   cancelChargePeriodSchema,
   chargeCategoryIdSchema,
+  clearChargeChequeSchema,
   createChargeCategorySchema,
   issueChargePeriodSchema,
+  recordChargePaymentSchema,
   requestChargeDocumentSchema,
   saveBudgetSchema,
   updateChargeCategorySchema,
@@ -57,4 +61,16 @@ export const cancelChargePeriodAction = defineAction(
 export const requestChargeDocumentAction = defineAction(
   { input: requestChargeDocumentSchema, permission: "charge:read" },
   (input, ctx) => mutation(() => requestChargeDocument(ctx, input)),
+);
+export const recordChargePaymentAction = defineAction(
+  { input: recordChargePaymentSchema, permission: "payment:create" },
+  (input, ctx) => mutation(() => recordChargePayment(ctx, input)),
+);
+export const cancelChargePaymentAction = defineAction(
+  { input: cancelChargePaymentSchema, permission: "payment:cancel" },
+  (input, ctx) => mutation(() => cancelChargePayment(ctx, input)),
+);
+export const clearChargeChequeAction = defineAction(
+  { input: clearChargeChequeSchema, permission: "payment:create" },
+  (input, ctx) => mutation(() => clearChargeCheque(ctx, input)),
 );

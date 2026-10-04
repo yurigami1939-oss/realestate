@@ -34,6 +34,10 @@ export type DistributionKey = (typeof distributionKeys)[number];
 export const distributionWeightings = ["share", "equal"] as const;
 export type DistributionWeighting = (typeof distributionWeightings)[number];
 
+/** How a co-owner pays charges (the sales methods without bank loan disbursements). */
+export const chargePaymentMethods = ["cash", "cheque", "bank_transfer", "ccp"] as const;
+export type ChargePaymentMethod = (typeof chargePaymentMethods)[number];
+
 /** A budget is prepared as a draft, then approved: calls are issued from approved budgets. */
 export const budgetStatuses = ["draft", "approved"] as const;
 export type BudgetStatus = (typeof budgetStatuses)[number];

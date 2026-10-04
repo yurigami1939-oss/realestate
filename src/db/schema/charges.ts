@@ -5,6 +5,7 @@ import {
   foreignKey,
   index,
   integer,
+  jsonb,
   pgEnum,
   pgTable,
   primaryKey,
@@ -29,6 +30,7 @@ import {
 import { file } from "./files";
 import { building } from "./inventory";
 import { chargeFrequency, residence, residenceUnit, resident } from "./residences";
+import { paymentMethod, paymentStatus } from "./sales";
 
 export const distributionKey = pgEnum("distribution_key", distributionKeys);
 export const distributionWeighting = pgEnum("distribution_weighting", distributionWeightings);
@@ -304,5 +306,71 @@ export const chargeCallLine = pgTable(
       foreignColumns: [chargeCategory.organizationId, chargeCategory.id],
     }),
     check("charge_call_line_amount", sql`${t.amount} > 0`),
+  ],
+);
+
+/**
+ * Encaissement of charges on a unit, with its receipt RCH-… (one per payment, issued with it).
+ * Immutable: only its cancellation (with a reason), a cheque's clearance and the PDF link can
+ * change — enforced by column grants. Applied to the unit's calls by the derived statement.
+ */
+export const chargePayment = pgTable(
+  "charge_payment",
+  {
+    id: id(),
+    organizationId: organizationId(),
+    residenceId: uuid().notNull(),
+    unitId: uuid().notNull(),
+    amount: money().notNull(),
+    method: paymentMethod().notNull(),
+    /** Day the money (or cheque) was received. */
+    paidOn: date({ mode: "string" }).notNull(),
+    /** Cheque number, transfer reference… */
+    reference: text(),
+    bank: text(),
+    /** Who handed the payment over, as printed on the receipt. */
+    payerName: text().notNull(),
+    chequeClearedOn: date({ mode: "string" }),
+    notes: text(),
+    receiptNumber: text().notNull(),
+    /** Calls the payment settled when it was recorded, as printed on the receipt. */
+    allocation: jsonb()
+      .$type<{ number: string; amount: string }[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
+    status: paymentStatus().notNull().default("valid"),
+    cancelledAt: instant(),
+    cancelledBy: userRef(),
+    cancellationReason: text(),
+    pdfFileId: uuid(),
+    recordedBy: userRef().notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    unique().on(t.organizationId, t.id),
+    unique().on(t.organizationId, t.receiptNumber),
+    foreignKey({
+      name: "charge_payment_residence_fk",
+      columns: [t.organizationId, t.residenceId],
+      foreignColumns: [residence.organizationId, residence.id],
+    }),
+    foreignKey({
+      name: "charge_payment_unit_fk",
+      columns: [t.residenceId, t.unitId],
+      foreignColumns: [residenceUnit.residenceId, residenceUnit.unitId],
+    }),
+    foreignKey({
+      name: "charge_payment_pdf_fk",
+      columns: [t.organizationId, t.pdfFileId],
+      foreignColumns: [file.organizationId, file.id],
+    }),
+    index().on(t.organizationId, t.residenceId, t.unitId),
+    index().on(t.organizationId, t.paidOn),
+    check("charge_payment_amount", sql`${t.amount} > 0`),
+    check("charge_payment_method", sql`${t.method} <> 'bank_loan'`),
+    check(
+      "charge_payment_cancellation",
+      sql`(${t.status} = 'cancelled') = (${t.cancelledAt} is not null and ${t.cancellationReason} is not null)`,
+    ),
   ],
 );

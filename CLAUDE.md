@@ -142,17 +142,21 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
     │   ├── payment-calls/    # milestone validation, appels de fonds (job + PDF)
     │   ├── collections/      # derived overdue, reminder letters (PDF), daily digest (jobs)
     │   ├── commissions/      # list, mark paid, rates per commercial
+    │   ├── residences/       # residences, tantièmes (shares, area split), co-owners and occupants
+    │   ├── charges/          # categories, budgets, charge periods and calls (ADC), payments and
+    │   │                     # receipts (RCH), unit accounts (accounts.ts: derived statement), PDFs
     │   ├── documents/        # render.ts: `pdf.document` dispatcher (one renderer per kind)
     │   └── <module>/         # schemas.ts (isomorphic) · queries.ts · service.ts · actions.ts · *.test.ts
     ├── jobs/                 # queues.ts (names, retry policy, payload types), enqueue.ts, worker.ts, handlers/
     ├── pdf/                  # render.ts (Chromium), document.tsx (shell + fonts), receipt.ts, quotation.ts,
     │                         # templates/ (letterhead, quotation, receipt, reservation-sheet, payment-call,
-    │                         # reminder-letter)
+    │                         # reminder-letter, charge-call)
     ├── i18n/                 # locales, routing, navigation, request config, typed messages
     ├── hooks/                # client hooks (use-mobile)
     └── lib/                  # isomorphic: result, permissions, money/, dates, document-types, safe-next, auth-client,
                               # inventory, crm (stages), phone, payment-plans (buildSchedule, VSP limits, milestone
-                              # due date), statement (FIFO allocation, overdue, penalties), sales, quotations, files, zod, ids
+                              # due date), statement (FIFO allocation, overdue, penalties), sales, quotations, files, zod, ids,
+                              # residences (frequencies, keys), charges (period parts, splits, period names)
 ```
 
 ## 5. Architecture rules
@@ -208,7 +212,7 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 - Worker = separate process (`pnpm worker`), graceful shutdown. Next.js only calls `enqueue()` (send-only instance).
 - Tenant jobs carry `organizationId` and run inside `withTenant`; platform jobs (auth emails) do not. Handlers are idempotent. Money in payloads = decimal string of centimes.
 - A job that follows a business write is enqueued **in the same transaction** with `enqueueInTx(tx, …)` (pg-boss `fromDrizzle`): it exists only if the write commits. `singletonKey` = the record id — on standard queues pg-boss only deduplicates **throttled** jobs (`singletonSeconds`), so handlers must be idempotent; once-a-day jobs use `singletonSeconds: 86_400`.
-- Queues today: `email.send`; `pdf.document` (`{ organizationId, kind, id }`, kinds `quotation`, `reservation_sheet`, `receipt`, `payment_call`, `reminder_letter`: one renderer per kind in `src/server/documents/render.ts`, each renders once and links the stored file); `option.expire` (scheduled at the option's expiry); `payment_call.issue` (after a milestone validation); `reminders.daily` (cron 08:00 Africa/Algiers, declared in `schedules` in `queues.ts` and installed by `db:migrate`) → one `reminders.digest` per organization. Planned: charge calls, lease alerts.
+- Queues today: `email.send`; `pdf.document` (`{ organizationId, kind, id }`, kinds `quotation`, `reservation_sheet`, `receipt`, `payment_call`, `reminder_letter`, `charge_call`, `charge_receipt`: one renderer per kind in `src/server/documents/render.ts`, each renders once and links the stored file); `option.expire` (scheduled at the option's expiry); `payment_call.issue` (after a milestone validation); `reminders.daily` (cron 08:00 Africa/Algiers, declared in `schedules` in `queues.ts` and installed by `db:migrate`) → one `reminders.digest` per organization. Planned: charge calls, lease alerts.
 - `db:migrate` starts pg-boss once with the scheduler on so its internal cron queue exists before any worker (see §12). Stop dev workers by killing the node process tree (Windows keeps children of a stopped shell).
 
 ### Email
@@ -219,7 +223,7 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 - Private bucket. Key: `org/{orgId}/{entityType}/{entityId}/{fileId}.{ext}`; a tenant-scoped `file` row holds metadata (`entity_type` + `entity_id` = owner record).
 - **Upload**: `POST /api/files` (multipart `purpose`, `entityId`, `file`) → `Result<{ fileId }>`. Same-origin check, body capped while streaming (`readFormData`), then a switch on `purpose` calls the owning service (e.g. `setUnitFloorPlan`), which asserts the permission, runs `checkUpload` (size + **magic-byte** format check against `uploadPurposes` in `src/lib/files.ts`; the browser's MIME type is ignored) and `storeFile(tx, …)` (row insert, then S3 put, inside the tenant transaction). Client: `UploadButton`.
 - **Download**: `GET /api/files/{id}[?download]` → access check by `entity_type` (`readers` in `src/server/files/service.ts`: a unit plan needs `inventory:read`, a quotation PDF needs its lead to be visible, a buyer document its buyer, a sale's files its sale) → 302 to a 5-min presigned URL with the original name (`Content-Disposition` with UTF-8 `filename*`).
-- Upload purposes today: `unit.floor_plan`, `buyer.document` (variant = document kind), `reservation.contract`, `reservation.deed`, `organization.logo` (PNG/JPEG only, 2 MB; readable by any member of the organization). Every document of a sale (reservation sheet, receipts, payment calls, reminder letters, signed scans) is filed under entity `reservation`, so its readers follow the sale's visibility.
+- Upload purposes today: `unit.floor_plan`, `buyer.document` (variant = document kind), `reservation.contract`, `reservation.deed`, `organization.logo` (PNG/JPEG only, 2 MB; readable by any member of the organization). Every document of a sale (reservation sheet, receipts, payment calls, reminder letters, signed scans) is filed under entity `reservation`, so its readers follow the sale's visibility. Residence documents (charge calls, charge receipts) are filed under entity `residence`; readers need `charge:read`.
 - Replacing/removing a file soft-deletes the old row (`deleted_at`); the object stays in the bucket. New purpose = entry in `uploadPurposes` + service function + `case` in `src/app/api/files/route.ts` (+ a `readers` entry for a new entity type). Generated documents are stored with `storeFile(tx, { orgId, userId: null }, …)` by their job.
 - Issued documents are rendered once at issue; the stored PDF is served for reprints.
 
@@ -282,7 +286,8 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 | Copropriétaire / Occupant | `resident` with `resident_kind`: `co_owner` / `occupant` | **`co_owner`, not `owner`** (clash with role, §12) |
 | Quote-part / Tantièmes | `share` | integer, per unit per residence |
 | Budget prévisionnel | `budget` | |
-| Appel de charges | `charge_call` | |
+| Appel de charges | `charge_call` (+ `charge_call_line`) | one per unit and period; a `charge_period` is one issue of a budget period |
+| Encaissement de charges / Reçu de charges | `charge_payment` | receipt `RCH-` on the same row |
 | Clé de répartition | `distribution_key` | `equal`, `share`, `per_building`, `custom` |
 | Bâche d'eau, électricité communs, ascenseur… | `charge_category` | |
 | Fonds de réserve | `reserve_fund` | |
@@ -384,13 +389,17 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 - **Commissions**: earned at the VSP; accountants mark them paid (`commission:update`); the gérant sets per-commercial rates (`organization:update`); each commission keeps its rate.
 
 ### Residence charges
-- `share` = integer weight per unit per residence (tantièmes, e.g. on a 10 000 basis).
+- `share` = integer weight per unit per residence (tantièmes, e.g. on a 10 000 basis). A residence enrols its project's live units with their inventory quote-part (`unit.share`, else 0); tantièmes are saved as a whole or split by area (living area, else usable area) with `allocate()`; audited `residence.shares`.
 - Distribution keys: `equal`, `share`, `per_building`, `custom` (explicit unit list, weighted `equal` or `share`, e.g. RDC excluded from elevator). Every distribution uses `allocate()` → lines sum exactly to the charge.
+- **Budget** (`budget` + `budget_line`): one per residence and calendar year, an annual amount per category; draft (saved as a whole) → approved (`charge:create`, audited `budget.approve`): read-only, freezes the call frequency and the reserve fund rate. A category in an approved budget cannot be deleted.
+- **Calls** (`src/lib/charges.ts` `buildChargeCalls`): each category's annual amount is called in equal parts (`periodPart`), each part split over the category's units by its key; the reserve fund (rate × annual budget) is split over every unit by tantièmes. `issueChargePeriod` (`charge:create`): one `charge_period` per budget period (unique while issued), one numbered call `ADC-` per unit with something to pay, addressed to its main co-owner on the issue day (none = a unit the company still owns), lines snapshotted, PDF job, audited `charge_period.issue`. Refused when a part cannot be split (no unit, no tantièmes). `cancelChargePeriod` (`charge:cancel`, reason): its calls stop counting; the period can be issued again. Periods, calls and lines are immutable (grants).
+- **Payments** (`charge_payment`, `payment:create`): receipt `RCH-` on the same row with a snapshot of the calls it settled; methods cash, cheque, transfer, CCP (no bank loan); cheques « sous réserve », cleared later; cancelled by accountants with a reason (`payment:cancel`), never deleted; audited.
+- **Unit account** (`chargeStatement`, derived): valid payments applied FIFO to the live calls (due date, then number), no penalties; what exceeds every call issued so far is an advance for the next ones; reserve collected = each call's reserve part × paid / amount.
 
 ### Audit & deletion
 - Audited: prices, payments, receipts, contracts (reservation, sale, contract details), installments/schedules, unit status, milestone validation, withdrawals (propose / approve / reject / refund), transfers, unit swaps, commissions (paid, rates), organization creation, invitations, member joins/role changes/removals.
 - `audit_log(organization_id, actor_user_id, action, entity_type, entity_id, before jsonb, after jsonb, reason, created_at)` written by `recordAudit(tx, scope, entry)` in the same transaction as the change (bigint → string, Date → ISO). `action` is semantic: `<entity>.<verb>`, e.g. `receipt.cancel`, `member.update_roles`. `actor_user_id` null for jobs.
-- DB grants enforce it (`post-migrate.sql`): no `UPDATE`/`DELETE`/`TRUNCATE` on `audit_log`, `reservation_transfer`, `unit_swap`; payments and receipts: no `DELETE`, column-level `UPDATE` (cancellation, cheque clearance, PDF link) only; payment calls and reminder letters: only their PDF link; reservations and withdrawals: no `DELETE`.
+- DB grants enforce it (`post-migrate.sql`): no `UPDATE`/`DELETE`/`TRUNCATE` on `audit_log`, `reservation_transfer`, `unit_swap`; payments and receipts: no `DELETE`, column-level `UPDATE` (cancellation, cheque clearance, PDF link) only; payment calls and reminder letters: only their PDF link; reservations and withdrawals: no `DELETE`; charge periods: only their cancellation; charge calls: only their PDF link; charge call lines: append-only; charge payments: cancellation, cheque clearance and PDF link only.
 - Business records are soft-deleted (`softDelete()` helper: `deleted_at`, `deleted_by`); queries exclude them by default.
 
 ## 8. Coding conventions
@@ -467,7 +476,7 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 
 ## 11. Roadmap
 
-**Current: Phase 1 done (PRs #2–#5, stacked). Phase 2 module 6 (residence management) in progress on `phase-2/residences` (stacked on `phase-1/wrap-up`); its business rules are answered (§12, 2026-10-01).**
+**Current: Phase 1 done and merged into `main`. Phase 2 module 6 (residence management) in progress, committed straight to `main` step by step (§12, 2026-10-04); its business rules are answered (§12, 2026-10-01).**
 
 ### Phase 0 — Foundations ✅
 - [x] `CLAUDE.md` approved (2026-09-30)
@@ -513,6 +522,15 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 
 ### Phase 2
 - [ ] Module 6 — Residence management
+  - [x] Residences, tantièmes (quote-parts, area split), co-owners and occupants (sales buyers imported)
+  - [x] Charge categories and distribution keys; annual budgets (draft → approved)
+  - [x] Charge calls per period (ADC, bilingual PDF, cancellation); unit accounts; charge payments and receipts (RCH)
+  - [ ] Overdue charges: list, reminder letters, digest
+  - [ ] Suppliers, contracts, invoices; budget vs actual
+  - [ ] Staff, attendance, salary advances, pay
+  - [ ] Tickets
+  - [ ] General assemblies
+  - [ ] Announcements, seed, e2e
 - [ ] Module 7 — Buyer/resident portal
 
 ### Phase 3
@@ -592,8 +610,14 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 | 2026-10-01 | **Charges collection (user)**: overdue charges get reminders only (list, letters, digest), never penalties; a reserve fund = % of the annual budget per residence, added to each call and tracked as a balance (0 % = none); charge receipts have their own numbering `RCH-` (separate from sales receipts `REC-`). |
 | 2026-10-01 | **Residence operations (user)**: suppliers, contracts and invoices booked to charge categories with a budget vs actual report; staff files, attendance, salary advances and monthly pay entered as net amounts (no IRG/CNAS computation); tickets opened by residents (portal, module 7) and staff, assigned to staff or a supplier; full general assemblies (bilingual convocation, attendance and proxies, votes by tantièmes with a majority chosen per resolution, bilingual PV). |
 
+| 2026-10-02 | A residence's units start from their inventory quote-part (`unit.share`); the area split uses the living area, else the usable area (shops, offices, parking, storage). |
+| 2026-10-02 | Budgets are approved by the gestionnaire (`charge:create`) until general assemblies exist; approval freezes the frequency and reserve fund rate; next year's draft starts from the last approved budget. |
+| 2026-10-02 | Charge calls are addressed to the main co-owner on the issue day; a unit without co-owner gets its call addressed to the promoter (« lot non attribué »). A wrong issue is cancelled by an accountant with a reason and the period issued again. |
+| 2026-10-04 | Charge payments may exceed what has been called: the excess is an advance for the next calls (derived, FIFO); no penalties on charges. The reserve fund collected is derived pro rata of each call's payments. |
+| 2026-10-04 | **Workflow (user)**: each finished step is committed and pushed straight to `main` (after `pnpm check`); no feature branches or PRs. |
+
 ### Open items
-- **GitHub**: repo `yurigami1939-oss/realestate` is **public** — make it private before real client data or configuration lands. Work happens on branches merged through PRs; CI must be green.
+- **GitHub**: repo `yurigami1939-oss/realestate` is **public** — make it private before real client data or configuration lands. Steps are committed straight to `main` (CI runs on every push).
 
 ### Open business questions (ask before implementing)
 - Hosting location (Loi 18-07 restricts cross-border transfer of personal data).

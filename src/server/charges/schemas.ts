@@ -1,8 +1,20 @@
 /** Isomorphic: shared by the charge forms and their actions. */
 import { z } from "zod";
 
-import { type DistributionKey, distributionKeys, distributionWeightings } from "@/lib/residences";
-import { dateText, intText, optionalMoneyText, optionalText, requiredText } from "@/lib/zod";
+import {
+  chargePaymentMethods,
+  type DistributionKey,
+  distributionKeys,
+  distributionWeightings,
+} from "@/lib/residences";
+import {
+  dateText,
+  intText,
+  moneyText,
+  optionalMoneyText,
+  optionalText,
+  requiredText,
+} from "@/lib/zod";
 
 const categoryFields = {
   name: requiredText(80),
@@ -68,8 +80,37 @@ export const cancelChargePeriodSchema = z.object({
 });
 
 /** Residence documents rendered by the worker. */
-export const chargeDocumentKinds = ["charge_call"] as const;
+export const chargeDocumentKinds = ["charge_call", "charge_receipt"] as const;
 export const requestChargeDocumentSchema = z.object({
   kind: z.enum(chargeDocumentKinds),
   id: z.uuid(),
+});
+
+/** Charges paid for a unit; a receipt RCH- is issued with it. Cheques need number and bank. */
+export const recordChargePaymentSchema = z
+  .object({
+    residenceId: z.uuid(),
+    unitId: z.uuid(),
+    amount: moneyText().refine((v) => v > 0n, "validation.amount"),
+    method: z.enum(chargePaymentMethods),
+    /** Day the money or cheque was received (not in the future). */
+    paidOn: dateText(),
+    reference: optionalText(60),
+    bank: optionalText(80),
+    payerName: requiredText(160),
+    notes: optionalText(500),
+  })
+  .refine((v) => v.method !== "cheque" || (v.reference !== null && v.bank !== null), {
+    path: ["reference"],
+    message: "payments.errors.chequeDetails",
+  });
+
+export const cancelChargePaymentSchema = z.object({
+  paymentId: z.uuid(),
+  reason: requiredText(300),
+});
+
+export const clearChargeChequeSchema = z.object({
+  paymentId: z.uuid(),
+  clearedOn: dateText(),
 });

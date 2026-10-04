@@ -7,6 +7,7 @@ import {
   auditLog,
   budget,
   chargeCategory,
+  chargePayment,
   chargePeriod,
   commission,
   constructionMilestone,
@@ -170,6 +171,20 @@ async function recordLinks(
       .where(inArray(chargePeriod.id, periodIds));
     for (const p of periods) {
       links.set(`charge_period:${p.id}`, `/residences/${p.residenceId}/calls/${p.id}`);
+    }
+  }
+  const chargePaymentIds = ids("charge_payment");
+  if (chargePaymentIds.length > 0) {
+    const payments = await tx
+      .select({
+        id: chargePayment.id,
+        residenceId: chargePayment.residenceId,
+        unitId: chargePayment.unitId,
+      })
+      .from(chargePayment)
+      .where(inArray(chargePayment.id, chargePaymentIds));
+    for (const p of payments) {
+      links.set(`charge_payment:${p.id}`, `/residences/${p.residenceId}/accounts/${p.unitId}`);
     }
   }
   return links;

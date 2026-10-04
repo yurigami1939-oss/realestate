@@ -27,7 +27,14 @@ const installmentStateClasses: Record<InstallmentState, string> = {
   pending: "border-zinc-200 bg-zinc-50 text-zinc-600",
 };
 
-export function InstallmentStateBadge({ state }: { state: InstallmentState }) {
+/** State of an installment (or, with its own `label`, of a charge call). */
+export function InstallmentStateBadge({
+  state,
+  label,
+}: {
+  state: InstallmentState;
+  label?: string;
+}) {
   const t = useTranslations("sales.statement.state");
-  return <span className={cn(badge, installmentStateClasses[state])}>{t(state)}</span>;
+  return <span className={cn(badge, installmentStateClasses[state])}>{label ?? t(state)}</span>;
 }

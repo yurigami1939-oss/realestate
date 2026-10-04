@@ -1,7 +1,7 @@
 import { and, eq } from "drizzle-orm";
 import { describe, expect, it } from "vitest";
 
-import { auditLog, chargeCall, chargeCallLine } from "@/db/schema";
+import { auditLog, chargeCall, chargeCallLine, chargePayment } from "@/db/schema";
 import { withTenant } from "@/db/tenant";
 import { addDays, todayInAlgiers } from "@/lib/dates";
 import { createBuildingSchema, createProjectSchema } from "@/server/inventory/schemas";
@@ -19,12 +19,28 @@ import { createSaleSetup } from "../../../tests/sales-fixtures";
 import { approveBudget, saveBudget } from "./budgets";
 import { cancelChargePeriod, issueChargePeriod } from "./calls";
 import { createChargeCategory, deleteChargeCategory, updateChargeCategory } from "./categories";
-import { chargeCallHtml, loadChargeCallData, renderAndStoreChargeCall } from "./documents";
-import { getCallsSetup, getChargePeriod, getChargesSetup } from "./queries";
 import {
+  chargeCallHtml,
+  loadChargeCallData,
+  loadChargeReceiptData,
+  renderAndStoreChargeCall,
+  renderAndStoreChargeReceipt,
+} from "./documents";
+import { cancelChargePayment, clearChargeCheque, recordChargePayment } from "./payments";
+import {
+  getCallsSetup,
+  getChargePeriod,
+  getChargesSetup,
+  getUnitAccount,
+  listUnitAccounts,
+} from "./queries";
+import {
+  cancelChargePaymentSchema,
   cancelChargePeriodSchema,
+  clearChargeChequeSchema,
   createChargeCategorySchema,
   issueChargePeriodSchema,
+  recordChargePaymentSchema,
   saveBudgetSchema,
   updateChargeCategorySchema,
 } from "./schemas";
@@ -407,5 +423,171 @@ describe("charge calls", () => {
     expect(await renderAndStoreChargeCall(team.orgId, callId)).toBe("stored");
     expect(await renderAndStoreChargeCall(team.orgId, callId)).toBe("skipped");
     expect((await getChargePeriod(manager, periodId))?.calls[0]?.pdfFileId).not.toBeNull();
+  });
+});
+
+describe("charge payments", () => {
+  it("settle the oldest calls first, keep advances and issue receipts", async () => {
+    const { team, manager, residenceId, budgetId, unitIds } = await budgetScenario();
+    const cashier = await addMember(team.orgId, ["cashier"]);
+    const accountant = await addMember(team.orgId, ["accountant"]);
+    await addResident(manager, coOwner(residenceId, unitIds[0], "Saïdi", true));
+    // Quarter 1 is overdue, quarter 2 due in a month: 52 600 DA each for A-03-01.
+    await issueChargePeriod(
+      manager,
+      issueChargePeriodSchema.parse({
+        period: `${budgetId}:1`,
+        issuedOn: addDays(today, -60),
+        dueOn: addDays(today, -30),
+      }),
+    );
+    await issueChargePeriod(
+      manager,
+      issueChargePeriodSchema.parse({
+        period: `${budgetId}:2`,
+        issuedOn: today,
+        dueOn: addDays(today, 30),
+      }),
+    );
+    let account = await getUnitAccount(cashier, residenceId, unitIds[0]);
+    expect(account?.statement).toMatchObject({
+      price: 105_200_00n,
+      paid: 0n,
+      overdue: 52_600_00n,
+      credit: 0n,
+    });
+    const [q1, q2] = account?.statement.lines ?? [];
+
+    const payment = (amount: string, overrides: Record<string, string> = {}) =>
+      recordChargePaymentSchema.parse({
+        residenceId,
+        unitId: unitIds[0],
+        amount,
+        method: "cash",
+        paidOn: today,
+        reference: "",
+        bank: "",
+        payerName: "Saïdi Yasmine",
+        notes: "",
+        ...overrides,
+      });
+    await expect(recordChargePayment(team.agentA, payment("1 000"))).rejects.toMatchObject({
+      code: "FORBIDDEN",
+    });
+    await expect(
+      recordChargePayment(cashier, payment("1 000", { paidOn: addDays(today, 1) })),
+    ).rejects.toMatchObject({ messageKey: "charges.errors.futureDate" });
+    expect(() => payment("1 000", { method: "cheque" })).toThrow();
+
+    const year = today.slice(0, 4);
+    const first = await recordChargePayment(cashier, payment("60 000"));
+    expect(first).toMatchObject({ receiptNumber: `RCH-${year}-000001`, credit: 0n });
+    const second = await recordChargePayment(manager, payment("100 000"));
+    expect(second).toMatchObject({ receiptNumber: `RCH-${year}-000002`, credit: 54_800_00n });
+
+    account = await getUnitAccount(cashier, residenceId, unitIds[0]);
+    expect(account?.statement).toMatchObject({
+      paid: 105_200_00n,
+      remaining: 0n,
+      overdue: 0n,
+      credit: 54_800_00n,
+      reserveCalled: 5_200_00n,
+      reserveCollected: 5_200_00n,
+    });
+    expect(account?.payments.map((p) => [p.receiptNumber, p.allocation])).toEqual([
+      [`RCH-${year}-000002`, [{ number: q2?.number, amount: "4520000" }]],
+      [
+        `RCH-${year}-000001`,
+        [
+          { number: q1?.number, amount: "5260000" },
+          { number: q2?.number, amount: "740000" },
+        ],
+      ],
+    ]);
+
+    // Cancelling the advance payment: quarter 2 owes again what it settled.
+    const cancel = cancelChargePaymentSchema.parse({
+      paymentId: second.paymentId,
+      reason: "Erreur",
+    });
+    await expect(cancelChargePayment(cashier, cancel)).rejects.toMatchObject({ code: "FORBIDDEN" });
+    await cancelChargePayment(accountant, cancel);
+    await expect(cancelChargePayment(accountant, cancel)).rejects.toMatchObject({
+      messageKey: "payments.errors.alreadyCancelled",
+    });
+    account = await getUnitAccount(cashier, residenceId, unitIds[0]);
+    expect(account?.statement).toMatchObject({
+      paid: 60_000_00n,
+      remaining: 45_200_00n,
+      credit: 0n,
+      // 2 600 DA on quarter 1, then 7 400 / 52 600 of quarter 2's 2 600 DA.
+      reserveCollected: 2_965_77n,
+    });
+
+    // Cheques: received « sous réserve », cleared later.
+    const cheque = await recordChargePayment(
+      cashier,
+      payment("10 000", { method: "cheque", reference: "0012345", bank: "BNA" }),
+    );
+    const clear = (clearedOn: string) =>
+      clearChargeChequeSchema.parse({ paymentId: cheque.paymentId, clearedOn });
+    await expect(clearChargeCheque(cashier, clear(addDays(today, -1)))).rejects.toMatchObject({
+      messageKey: "payments.errors.beforePayment",
+    });
+    await clearChargeCheque(cashier, clear(today));
+    await expect(clearChargeCheque(cashier, clear(today))).rejects.toMatchObject({
+      messageKey: "payments.errors.notPendingCheque",
+    });
+
+    // Payments are never edited or deleted.
+    await expect(
+      withTenant(team.owner, (tx) =>
+        tx.update(chargePayment).set({ amount: 1n }).where(eq(chargePayment.id, first.paymentId)),
+      ),
+    ).rejects.toThrow();
+    await expect(
+      withTenant(team.owner, (tx) =>
+        tx.delete(chargePayment).where(eq(chargePayment.id, first.paymentId)),
+      ),
+    ).rejects.toThrow();
+
+    const accounts = await listUnitAccounts(cashier, residenceId);
+    expect(accounts?.totals).toMatchObject({
+      called: 273_000_00n,
+      paid: 70_000_00n,
+      overdue: 83_900_00n,
+      credit: 0n,
+    });
+    expect(accounts?.rows.map((r) => [r.code, r.coOwner, r.remaining])).toEqual([
+      ["A-03-01", "Saïdi Yasmine", 35_200_00n],
+      ["A-03-02", null, 83_900_00n],
+      ["A-04-01", null, 83_900_00n],
+    ]);
+
+    const audit = await withTenant(team.owner, (tx) =>
+      tx
+        .select({ action: auditLog.action })
+        .from(auditLog)
+        .where(
+          and(eq(auditLog.entityType, "charge_payment"), eq(auditLog.entityId, second.paymentId)),
+        ),
+    );
+    expect(audit.map((a) => a.action).sort()).toEqual([
+      "charge_payment.cancel",
+      "charge_payment.create",
+    ]);
+
+    // The bilingual receipt is rendered once.
+    const receipt = await withTenant(team.owner, (tx) =>
+      loadChargeReceiptData(tx, team.orgId, first.paymentId),
+    );
+    expect(receipt?.data).toMatchObject({
+      number: `RCH-${year}-000001`,
+      title: { fr: "REÇU DE CHARGES", ar: "وصل تسديد الأعباء" },
+      amount: 60_000_00n,
+    });
+    expect(receipt?.data.reference.fr).toContain("Résidence Les Oliviers, lot A-03-01");
+    expect(await renderAndStoreChargeReceipt(team.orgId, first.paymentId)).toBe("stored");
+    expect(await renderAndStoreChargeReceipt(team.orgId, first.paymentId)).toBe("skipped");
   });
 });

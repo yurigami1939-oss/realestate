@@ -24,6 +24,9 @@ export type ReceiptData = {
   method: { fr: string; ar: string };
   amount: Centimes;
   cashier: string;
+  /** Document title (default: payment receipt) and who signs opposite the cashier (client). */
+  title?: { fr: string; ar: string };
+  party?: { fr: string; ar: string };
 };
 
 const CSS = `
@@ -87,10 +90,10 @@ export function ReceiptTemplate({ data }: { data: ReceiptData }) {
       </header>
 
       <div className="title">
-        <h1>REÇU DE PAIEMENT</h1>
+        <h1>{data.title?.fr ?? "REÇU DE PAIEMENT"}</h1>
         <b>N° {data.number}</b>
         <h1 dir="rtl" lang="ar">
-          وصل دفع
+          {data.title?.ar ?? "وصل دفع"}
         </h1>
       </div>
 
@@ -113,7 +116,9 @@ export function ReceiptTemplate({ data }: { data: ReceiptData }) {
           <br />
           <span style={{ color: "#171717" }}>{data.cashier}</span>
         </div>
-        <div className="muted">Le client · الزبون</div>
+        <div className="muted">
+          {data.party?.fr ?? "Le client"} · {data.party?.ar ?? "الزبون"}
+        </div>
       </div>
     </PdfDocument>
   );

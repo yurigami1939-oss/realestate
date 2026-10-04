@@ -38,6 +38,7 @@ export const pdfDocumentKinds = [
   "payment_call",
   "reminder_letter",
   "charge_call",
+  "charge_receipt",
 ] as const;
 export type PdfDocumentKind = (typeof pdfDocumentKinds)[number];
 
