@@ -14,6 +14,7 @@ import {
   member,
   payment,
   priceList,
+  supplierInvoice,
   unit,
   user,
 } from "@/db/schema";
@@ -185,6 +186,16 @@ async function recordLinks(
       .where(inArray(chargePayment.id, chargePaymentIds));
     for (const p of payments) {
       links.set(`charge_payment:${p.id}`, `/residences/${p.residenceId}/accounts/${p.unitId}`);
+    }
+  }
+  const invoiceIds = ids("supplier_invoice");
+  if (invoiceIds.length > 0) {
+    const invoices = await tx
+      .select({ id: supplierInvoice.id, residenceId: supplierInvoice.residenceId })
+      .from(supplierInvoice)
+      .where(inArray(supplierInvoice.id, invoiceIds));
+    for (const i of invoices) {
+      links.set(`supplier_invoice:${i.id}`, `/residences/${i.residenceId}/expenses`);
     }
   }
   return links;

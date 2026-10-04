@@ -8,6 +8,7 @@ import { PhoneText } from "@/components/crm/phone";
 import { ConfirmAction } from "@/components/forms/confirm-action";
 import { ContractDialog } from "@/components/suppliers/contract-dialog";
 import { ContractsTable } from "@/components/suppliers/contracts-table";
+import { InvoicesTable } from "@/components/suppliers/invoices-table";
 import { SupplierDialog } from "@/components/suppliers/supplier-dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toLocale } from "@/i18n/locales";
@@ -15,7 +16,7 @@ import { todayInAlgiers } from "@/lib/dates";
 import { can } from "@/lib/permissions";
 import { requirePermission } from "@/server/auth/page-guard";
 import { deleteSupplierAction } from "@/server/suppliers/actions";
-import { getSupplier, listContractTargets } from "@/server/suppliers/queries";
+import { getSupplier, listContractTargets, listInvoices } from "@/server/suppliers/queries";
 
 export async function generateMetadata({
   params,
@@ -34,6 +35,7 @@ export default async function SupplierPage({
   const supplier = await getSupplier(ctx, supplierId);
   if (!supplier) notFound();
   const targets = await listContractTargets(ctx);
+  const invoices = await listInvoices(ctx, { supplierId: supplier.id });
   const t = await getTranslations("suppliers");
   const editable = can(ctx.roles, "supplier:update");
   const today = todayInAlgiers();
@@ -108,6 +110,14 @@ export default async function SupplierPage({
             targets={targets}
             today={today}
           />
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">{t("invoices.all")}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <InvoicesTable invoices={invoices} show="residence" editable={editable} today={today} />
         </CardContent>
       </Card>
     </div>

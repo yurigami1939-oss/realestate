@@ -1442,7 +1442,8 @@
       "charge_category": "Catégorie de charges",
       "budget": "Budget",
       "charge_period": "Appels de charges",
-      "charge_payment": "Paiement de charges"
+      "charge_payment": "Paiement de charges",
+      "supplier_invoice": "Facture fournisseur"
     },
     "actions": {
       "organization": {
@@ -1521,6 +1522,12 @@
         "create": "Paiement de charges enregistré",
         "cancel": "Paiement de charges annulé",
         "cheque_cleared": "Chèque de charges encaissé"
+      },
+      "supplier_invoice": {
+        "create": "Facture fournisseur enregistrée",
+        "update": "Facture fournisseur modifiée",
+        "pay": "Facture fournisseur payée",
+        "delete": "Facture fournisseur supprimée"
       }
     }
   },
@@ -1681,7 +1688,8 @@
       "charges": "Charges et budget",
       "calls": "Appels de charges",
       "accounts": "Comptes des lots",
-      "expenses": "Dépenses"
+      "expenses": "Dépenses",
+      "report": "Bilan"
     }
   },
   "charges": {
@@ -1911,6 +1919,29 @@
       "title": "Relances",
       "line": "{date} · {amount} · {name}",
       "pdf": "Lettre du {date}"
+    },
+    "report": {
+      "title": "Budget et réalisé {year}",
+      "description": "Par catégorie : budget de l'année, appelé aux copropriétaires et dépensé en factures fournisseurs (payées ou non).",
+      "empty": "Aucune catégorie de charges.",
+      "columns": {
+        "category": "Catégorie",
+        "budget": "Budget",
+        "called": "Appelé",
+        "spent": "Dépensé",
+        "paid": "Dont payé",
+        "variance": "Reste au budget",
+        "consumed": "Consommé",
+        "total": "Total"
+      },
+      "reserve": {
+        "title": "Fonds de réserve",
+        "called": "Appelé",
+        "collected": "Encaissé",
+        "spent": "Dépensé (travaux)",
+        "balance": "Solde",
+        "hint": "Toutes années confondues. L'encaissé suit les paiements de chaque appel ; les travaux sont les factures payées sur le fonds de réserve."
+      }
     }
   },
   "suppliers": {
@@ -1984,7 +2015,61 @@
       "title": "Dépenses"
     },
     "errors": {
-      "endBeforeStart": "La fin ne peut précéder le début."
+      "endBeforeStart": "La fin ne peut précéder le début.",
+      "categoryRequired": "Choisissez la catégorie de charges (ou le fonds de réserve).",
+      "dueBeforeInvoice": "L'échéance précède la date de facture.",
+      "contractMismatch": "Ce contrat n'est pas celui de ce fournisseur pour cette résidence.",
+      "invoiceNumberTaken": "Cette facture est déjà enregistrée pour ce fournisseur.",
+      "invoicePaid": "Cette facture est déjà payée.",
+      "paidBeforeInvoice": "Le paiement précède la date de facture."
+    },
+    "invoices": {
+      "title": "Factures {year}",
+      "all": "Factures",
+      "empty": "Aucune facture.",
+      "new": "Nouvelle facture",
+      "newTitle": "Nouvelle facture fournisseur",
+      "editTitle": "Modifier la facture {number}",
+      "record": "Enregistrer",
+      "recorded": "Facture enregistrée.",
+      "noContract": "Hors contrat",
+      "reserveFund": "Fonds de réserve",
+      "paidOn": "Payée le {date}",
+      "dueOn": "À payer avant le {date}",
+      "unpaid": "À payer",
+      "overdue": "En retard",
+      "total": "Total",
+      "pay": "Payer",
+      "payTitle": "Paiement de la facture {number}",
+      "paid": "Paiement enregistré.",
+      "delete": "Supprimer",
+      "deleteTitle": "Supprimer la facture {number} ?",
+      "deleteDescription": "Pour une facture saisie par erreur ; une facture payée ne peut plus être supprimée.",
+      "deleted": "Facture supprimée.",
+      "fields": {
+        "supplierId": "Fournisseur",
+        "contractId": "Contrat",
+        "categoryId": "Catégorie de charges",
+        "fromReserve": "Payée sur le fonds de réserve (travaux)",
+        "number": "N° de facture",
+        "amount": "Montant TTC (DA)",
+        "label": "Objet",
+        "invoiceOn": "Date de facture",
+        "dueOn": "Échéance",
+        "paidOn": "Payée le",
+        "notes": "Remarques"
+      },
+      "columns": {
+        "date": "Date",
+        "supplier": "Fournisseur",
+        "residence": "Résidence",
+        "number": "N°",
+        "label": "Objet",
+        "booking": "Imputation",
+        "amount": "Montant",
+        "state": "Paiement",
+        "actions": "Actions"
+      }
     }
   }
 }

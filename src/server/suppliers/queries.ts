@@ -2,7 +2,13 @@ import "server-only";
 
 import { and, asc, desc, eq, isNull, sql } from "drizzle-orm";
 
-import { chargeCategory, residence, supplier, supplierContract } from "@/db/schema";
+import {
+  chargeCategory,
+  residence,
+  supplier,
+  supplierContract,
+  supplierInvoice,
+} from "@/db/schema";
 import { withTenant } from "@/db/tenant";
 import { todayInAlgiers } from "@/lib/dates";
 import { isUuid } from "@/lib/ids";
@@ -128,3 +134,67 @@ export async function listContractTargets(ctx: TenantCtx) {
 }
 
 export type ContractTarget = Awaited<ReturnType<typeof listContractTargets>>[number];
+
+/**
+ * Supplier invoices of a residence or a supplier (optionally one calendar year), newest first,
+ * with their booking and payment; "overdue" is derived (unpaid after its due date).
+ */
+export async function listInvoices(
+  ctx: TenantCtx,
+  where: { residenceId?: string; supplierId?: string; year?: number },
+) {
+  assertCan(ctx, "supplier:read");
+  if (
+    (where.residenceId && !isUuid(where.residenceId)) ||
+    (where.supplierId && !isUuid(where.supplierId))
+  ) {
+    return [];
+  }
+  const today = todayInAlgiers();
+  const rows = await withTenant(ctx, (tx) =>
+    tx
+      .select({
+        id: supplierInvoice.id,
+        supplierId: supplierInvoice.supplierId,
+        supplierName: supplier.name,
+        residenceId: supplierInvoice.residenceId,
+        residenceName: residence.name,
+        categoryId: supplierInvoice.categoryId,
+        categoryName: chargeCategory.name,
+        contractId: supplierInvoice.contractId,
+        contractLabel: supplierContract.label,
+        number: supplierInvoice.number,
+        invoiceOn: supplierInvoice.invoiceOn,
+        dueOn: supplierInvoice.dueOn,
+        label: supplierInvoice.label,
+        amount: supplierInvoice.amount,
+        fromReserve: supplierInvoice.fromReserve,
+        paidOn: supplierInvoice.paidOn,
+        paymentMethod: supplierInvoice.paymentMethod,
+        paymentReference: supplierInvoice.paymentReference,
+        notes: supplierInvoice.notes,
+      })
+      .from(supplierInvoice)
+      .innerJoin(supplier, eq(supplier.id, supplierInvoice.supplierId))
+      .innerJoin(residence, eq(residence.id, supplierInvoice.residenceId))
+      .leftJoin(chargeCategory, eq(chargeCategory.id, supplierInvoice.categoryId))
+      .leftJoin(supplierContract, eq(supplierContract.id, supplierInvoice.contractId))
+      .where(
+        and(
+          isNull(supplierInvoice.deletedAt),
+          where.residenceId ? eq(supplierInvoice.residenceId, where.residenceId) : undefined,
+          where.supplierId ? eq(supplierInvoice.supplierId, where.supplierId) : undefined,
+          where.year
+            ? sql`extract(year from ${supplierInvoice.invoiceOn}) = ${where.year}`
+            : undefined,
+        ),
+      )
+      .orderBy(desc(supplierInvoice.invoiceOn), desc(supplierInvoice.createdAt)),
+  );
+  return rows.map((r) => ({
+    ...r,
+    overdue: r.paidOn === null && r.dueOn !== null && r.dueOn < today,
+  }));
+}
+
+export type InvoiceRow = Awaited<ReturnType<typeof listInvoices>>[number];

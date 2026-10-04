@@ -4,8 +4,13 @@ import { revalidatePath } from "next/cache";
 
 import { defineAction } from "@/server/action";
 
+import { deleteInvoice, payInvoice, recordInvoice, updateInvoice } from "./invoices";
 import {
   contractIdSchema,
+  createInvoiceSchema,
+  invoiceIdSchema,
+  payInvoiceSchema,
+  updateInvoiceSchema,
   createContractSchema,
   createSupplierSchema,
   supplierIdSchema,
@@ -52,4 +57,20 @@ export const updateContractAction = defineAction(
 export const deleteContractAction = defineAction(
   { input: contractIdSchema, permission: "supplier:update" },
   (input, ctx) => mutation(() => deleteContract(ctx, input.contractId)),
+);
+export const recordInvoiceAction = defineAction(
+  { input: createInvoiceSchema, permission: "supplier:update" },
+  (input, ctx) => mutation(() => recordInvoice(ctx, input)),
+);
+export const updateInvoiceAction = defineAction(
+  { input: updateInvoiceSchema, permission: "supplier:update" },
+  (input, ctx) => mutation(() => updateInvoice(ctx, input)),
+);
+export const payInvoiceAction = defineAction(
+  { input: payInvoiceSchema, permission: "supplier:update" },
+  (input, ctx) => mutation(() => payInvoice(ctx, input)),
+);
+export const deleteInvoiceAction = defineAction(
+  { input: invoiceIdSchema, permission: "supplier:update" },
+  (input, ctx) => mutation(() => deleteInvoice(ctx, input.invoiceId)),
 );
