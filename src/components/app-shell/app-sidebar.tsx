@@ -11,11 +11,12 @@ import {
   IdCard,
   Kanban,
   LayoutDashboard,
-  type LucideIcon,
   Percent,
   PhoneCall,
   ScrollText,
   Target,
+  Truck,
+  type LucideIcon,
   Users,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -55,7 +56,8 @@ type NavKey =
   | "commissions"
   | "audit"
   | "residences"
-  | "chargesOverdue";
+  | "chargesOverdue"
+  | "suppliers";
 /** `permission`: shown only to roles that have it (display only; services enforce). */
 type NavItem = { href: string; key: NavKey; icon: LucideIcon; permission?: Permission };
 
@@ -85,6 +87,7 @@ const residenceNav: NavItem[] = [
     icon: AlarmClock,
     permission: "charge:read",
   },
+  { href: "/suppliers", key: "suppliers", icon: Truck, permission: "supplier:read" },
 ];
 const settingsNav: NavItem[] = [
   { href: "/settings/members", key: "members", icon: Users },

@@ -212,7 +212,8 @@
     "audit": "Journal d'audit",
     "residenceGroup": "Gestion des résidences",
     "residences": "Résidences",
-    "chargesOverdue": "Charges impayées"
+    "chargesOverdue": "Charges impayées",
+    "suppliers": "Fournisseurs"
   },
   "shell": {
     "organizations": "Sociétés",
@@ -1679,7 +1680,8 @@
       "units": "Lots et copropriétaires",
       "charges": "Charges et budget",
       "calls": "Appels de charges",
-      "accounts": "Comptes des lots"
+      "accounts": "Comptes des lots",
+      "expenses": "Dépenses"
     }
   },
   "charges": {
@@ -1909,6 +1911,80 @@
       "title": "Relances",
       "line": "{date} · {amount} · {name}",
       "pdf": "Lettre du {date}"
+    }
+  },
+  "suppliers": {
+    "title": "Fournisseurs",
+    "description": "Prestataires des résidences (ascenseurs, nettoyage, gardiennage…) et leurs contrats.",
+    "empty": "Aucun fournisseur.",
+    "new": "Nouveau fournisseur",
+    "newTitle": "Nouveau fournisseur",
+    "editTitle": "Modifier le fournisseur",
+    "created": "Fournisseur créé.",
+    "delete": "Supprimer",
+    "deleteTitle": "Supprimer « {name} » ?",
+    "deleteDescription": "Il disparaît des listes ; ses contrats et factures restent consultables.",
+    "deleted": "Fournisseur supprimé.",
+    "columns": {
+      "name": "Fournisseur",
+      "activity": "Activité",
+      "contact": "Contact",
+      "runningContracts": "Contrats en cours"
+    },
+    "fields": {
+      "name": "Nom ou raison sociale",
+      "activity": "Activité",
+      "phone": "Téléphone",
+      "email": "E-mail",
+      "address": "Adresse",
+      "nif": "NIF",
+      "rcNumber": "RC",
+      "rib": "RIB",
+      "notes": "Remarques"
+    },
+    "contracts": {
+      "title": "Contrats",
+      "empty": "Aucun contrat.",
+      "noSupplier": "Créez d'abord un fournisseur (menu Fournisseurs).",
+      "new": "Nouveau contrat",
+      "newTitle": "Nouveau contrat",
+      "editTitle": "Modifier le contrat",
+      "created": "Contrat enregistré.",
+      "delete": "Supprimer",
+      "deleteTitle": "Supprimer le contrat « {label} » ?",
+      "deleteDescription": "Les factures déjà saisies ne changent pas.",
+      "deleted": "Contrat supprimé.",
+      "noCategory": "Aucune catégorie",
+      "running": "En cours",
+      "notRunning": "Hors période",
+      "period": "Du {from} au {to}",
+      "periodOpen": "Depuis le {from}",
+      "fields": {
+        "supplierId": "Fournisseur",
+        "residenceId": "Résidence",
+        "categoryId": "Catégorie de charges",
+        "label": "Objet du contrat",
+        "startOn": "Début",
+        "endOn": "Fin (vide = sans fin)",
+        "annualAmount": "Montant annuel (DA, indicatif)",
+        "notes": "Remarques"
+      },
+      "columns": {
+        "label": "Contrat",
+        "supplier": "Fournisseur",
+        "residence": "Résidence",
+        "category": "Catégorie",
+        "period": "Période",
+        "annualAmount": "Montant annuel",
+        "state": "État",
+        "actions": "Actions"
+      }
+    },
+    "expenses": {
+      "title": "Dépenses"
+    },
+    "errors": {
+      "endBeforeStart": "La fin ne peut précéder le début."
     }
   }
 }

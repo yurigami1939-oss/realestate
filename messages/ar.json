@@ -212,7 +212,8 @@
     "audit": "سجل التدقيق",
     "residenceGroup": "تسيير الإقامات",
     "residences": "الإقامات",
-    "chargesOverdue": "الأعباء غير المسددة"
+    "chargesOverdue": "الأعباء غير المسددة",
+    "suppliers": "الموردون"
   },
   "shell": {
     "organizations": "الشركات",
@@ -1679,7 +1680,8 @@
       "units": "الوحدات والملاك",
       "charges": "الأعباء والميزانية",
       "calls": "طلبات الأعباء",
-      "accounts": "حسابات الوحدات"
+      "accounts": "حسابات الوحدات",
+      "expenses": "المصاريف"
     }
   },
   "charges": {
@@ -1909,6 +1911,80 @@
       "title": "التذكيرات",
       "line": "{date} · {amount} · {name}",
       "pdf": "رسالة {date}"
+    }
+  },
+  "suppliers": {
+    "title": "الموردون",
+    "description": "مقدمو الخدمات للإقامات (المصاعد، التنظيف، الحراسة…) وعقودهم.",
+    "empty": "لا يوجد مورد.",
+    "new": "مورد جديد",
+    "newTitle": "مورد جديد",
+    "editTitle": "تعديل المورد",
+    "created": "تم إنشاء المورد.",
+    "delete": "حذف",
+    "deleteTitle": "حذف «{name}»؟",
+    "deleteDescription": "يختفي من القوائم؛ وتبقى عقوده وفواتيره قابلة للاطلاع.",
+    "deleted": "تم حذف المورد.",
+    "columns": {
+      "name": "المورد",
+      "activity": "النشاط",
+      "contact": "الاتصال",
+      "runningContracts": "العقود السارية"
+    },
+    "fields": {
+      "name": "الاسم أو التسمية",
+      "activity": "النشاط",
+      "phone": "الهاتف",
+      "email": "البريد الإلكتروني",
+      "address": "العنوان",
+      "nif": "رقم التعريف الجبائي",
+      "rcNumber": "السجل التجاري",
+      "rib": "رقم الحساب البنكي",
+      "notes": "ملاحظات"
+    },
+    "contracts": {
+      "title": "العقود",
+      "empty": "لا يوجد عقد.",
+      "noSupplier": "أنشئ موردًا أولاً (قائمة الموردين).",
+      "new": "عقد جديد",
+      "newTitle": "عقد جديد",
+      "editTitle": "تعديل العقد",
+      "created": "تم تسجيل العقد.",
+      "delete": "حذف",
+      "deleteTitle": "حذف العقد «{label}»؟",
+      "deleteDescription": "لا تتغير الفواتير المسجلة مسبقًا.",
+      "deleted": "تم حذف العقد.",
+      "noCategory": "بلا فئة",
+      "running": "ساري",
+      "notRunning": "خارج المدة",
+      "period": "من {from} إلى {to}",
+      "periodOpen": "منذ {from}",
+      "fields": {
+        "supplierId": "المورد",
+        "residenceId": "الإقامة",
+        "categoryId": "فئة الأعباء",
+        "label": "موضوع العقد",
+        "startOn": "البداية",
+        "endOn": "النهاية (فارغ = دون نهاية)",
+        "annualAmount": "المبلغ السنوي (د.ج، تقديري)",
+        "notes": "ملاحظات"
+      },
+      "columns": {
+        "label": "العقد",
+        "supplier": "المورد",
+        "residence": "الإقامة",
+        "category": "الفئة",
+        "period": "المدة",
+        "annualAmount": "المبلغ السنوي",
+        "state": "الحالة",
+        "actions": "إجراءات"
+      }
+    },
+    "expenses": {
+      "title": "المصاريف"
+    },
+    "errors": {
+      "endBeforeStart": "لا يمكن أن تسبق النهاية البداية."
     }
   }
 }

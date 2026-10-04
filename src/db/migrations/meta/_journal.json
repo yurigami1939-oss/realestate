@@ -120,6 +120,13 @@
       "when": 1791128769077,
       "tag": "0016_charge_reminders",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1791130022813,
+      "tag": "0017_suppliers",
+      "breakpoints": true
     }
   ]
 }

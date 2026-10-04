@@ -146,6 +146,7 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
     │   ├── charges/          # categories, budgets, charge periods and calls (ADC), payments and
     │   │                     # receipts (RCH), unit accounts (accounts.ts: derived statement), overdue
     │   │                     # charges, reminder letters and digest (collections.ts), PDFs
+    │   ├── suppliers/        # suppliers (per organization) and their contracts per residence
     │   ├── documents/        # render.ts: `pdf.document` dispatcher (one renderer per kind)
     │   └── <module>/         # schemas.ts (isomorphic) · queries.ts · service.ts · actions.ts · *.test.ts
     ├── jobs/                 # queues.ts (names, retry policy, payload types), enqueue.ts, worker.ts, handlers/
@@ -528,7 +529,7 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
   - [x] Charge categories and distribution keys; annual budgets (draft → approved)
   - [x] Charge calls per period (ADC, bilingual PDF, cancellation); unit accounts; charge payments and receipts (RCH)
   - [x] Overdue charges: list, reminder letters, digest
-  - [ ] Suppliers, contracts, invoices; budget vs actual
+  - [ ] Suppliers, contracts, invoices; budget vs actual (suppliers and contracts done)
   - [ ] Staff, attendance, salary advances, pay
   - [ ] Tickets
   - [ ] General assemblies
