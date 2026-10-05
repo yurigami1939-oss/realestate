@@ -14,7 +14,14 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 
-import { leaseKinds, leaseStatuses, rentFrequencies, rentPaymentKinds } from "../../lib/rentals";
+import {
+  type InspectionCondition,
+  inspectionKinds,
+  leaseKinds,
+  leaseStatuses,
+  rentFrequencies,
+  rentPaymentKinds,
+} from "../../lib/rentals";
 
 import { createdAt, id, instant, money, organizationId, timestamps, userRef } from "./_columns";
 import { file } from "./files";
@@ -199,5 +206,49 @@ export const rentPayment = pgTable(
       "rent_payment_cancellation",
       sql`(${t.status} = 'cancelled') = (${t.cancelledAt} is not null and ${t.cancellationReason} is not null)`,
     ),
+  ],
+);
+
+export const inspectionKind = pgEnum("inspection_kind", inspectionKinds);
+
+/**
+ * État des lieux d'entrée / de sortie of a lease: the condition of each element of the unit,
+ * the meters and keys, signed by both parties; one of each kind, final once recorded (its
+ * bilingual report is rendered by the worker).
+ */
+export const leaseInspection = pgTable(
+  "lease_inspection",
+  {
+    id: id(),
+    organizationId: organizationId(),
+    leaseId: uuid().notNull(),
+    kind: inspectionKind().notNull(),
+    inspectedOn: date({ mode: "string" }).notNull(),
+    items: jsonb()
+      .$type<{ element: string; condition: InspectionCondition; notes: string | null }[]>()
+      .notNull(),
+    electricityMeter: text(),
+    gasMeter: text(),
+    waterMeter: text(),
+    keysCount: integer(),
+    observations: text(),
+    pdfFileId: uuid(),
+    createdBy: userRef().notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    unique().on(t.organizationId, t.id),
+    unique("lease_inspection_kind_key").on(t.organizationId, t.leaseId, t.kind),
+    foreignKey({
+      name: "lease_inspection_lease_fk",
+      columns: [t.organizationId, t.leaseId],
+      foreignColumns: [lease.organizationId, lease.id],
+    }),
+    foreignKey({
+      name: "lease_inspection_pdf_fk",
+      columns: [t.organizationId, t.pdfFileId],
+      foreignColumns: [file.organizationId, file.id],
+    }),
+    check("lease_inspection_keys", sql`${t.keysCount} is null or ${t.keysCount} >= 0`),
   ],
 );

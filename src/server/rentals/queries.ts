@@ -1,11 +1,14 @@
 import "server-only";
 
-import { and, asc, desc, eq, inArray, isNull } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNull, lte } from "drizzle-orm";
+
+import type { Tx } from "@/db/client";
 
 import {
   building,
   file,
   lease,
+  leaseInspection,
   project,
   rentPayment,
   residence,
@@ -14,9 +17,9 @@ import {
   user,
 } from "@/db/schema";
 import { withTenant } from "@/db/tenant";
-import { todayInAlgiers } from "@/lib/dates";
+import { addDays, type CalendarDate, todayInAlgiers } from "@/lib/dates";
 import { isUuid } from "@/lib/ids";
-import { leaseState } from "@/lib/rentals";
+import { ENDING_SOON_DAYS, leaseState } from "@/lib/rentals";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
 
 import { leasePaid, rentStatement } from "./accounts";
@@ -156,6 +159,17 @@ export async function getLease(ctx: TenantCtx, leaseId: string) {
           .innerJoin(residence, eq(residence.id, resident.residenceId))
           .where(eq(resident.id, l.occupantId))
       : [];
+    const inspections = await tx
+      .select({
+        id: leaseInspection.id,
+        kind: leaseInspection.kind,
+        inspectedOn: leaseInspection.inspectedOn,
+        items: leaseInspection.items,
+        pdfFileId: leaseInspection.pdfFileId,
+      })
+      .from(leaseInspection)
+      .where(eq(leaseInspection.leaseId, l.id))
+      .orderBy(asc(leaseInspection.inspectedOn));
     const [scan] = l.contractScanFileId
       ? await tx
           .select({ fileName: file.fileName })
@@ -173,6 +187,7 @@ export async function getLease(ctx: TenantCtx, leaseId: string) {
       state: leaseState(l, today),
       statement: rentStatement(l, paid.rent, today),
       payments,
+      inspections,
       depositHeld: l.depositCarried + paid.deposit,
       renewedFrom: renewedFrom ?? null,
       renewal: renewal ?? null,
@@ -213,3 +228,102 @@ export async function listLeasableUnits(ctx: TenantCtx) {
 }
 
 export type LeasableUnit = Awaited<ReturnType<typeof listLeasableUnits>>[number];
+
+/**
+ * Leases (active or ended) with rent due before today and not paid, most late first: what is
+ * overdue, since when, and the tenant's phone.
+ */
+export async function loadOverdueRents(tx: Tx, today: CalendarDate) {
+  const rows = await tx
+    .select({
+      id: lease.id,
+      number: lease.number,
+      status: lease.status,
+      tenantName: lease.tenantName,
+      tenantPhone: lease.tenantPhone,
+      startOn: lease.startOn,
+      durationMonths: lease.durationMonths,
+      frequency: lease.frequency,
+      monthlyRent: lease.monthlyRent,
+      monthlyCharges: lease.monthlyCharges,
+      endedOn: lease.endedOn,
+      unitCode: unit.code,
+      projectName: project.name,
+    })
+    .from(lease)
+    .innerJoin(unit, eq(unit.id, lease.unitId))
+    .innerJoin(project, eq(project.id, lease.projectId))
+    .where(lte(lease.startOn, today));
+  const paid = await leasePaid(
+    tx,
+    rows.map((r) => r.id),
+  );
+  return rows
+    .flatMap((r) => {
+      const statement = rentStatement(r, paid.get(r.id)?.rent ?? 0n, today);
+      const oldest = statement.lines.find((l) => l.state === "overdue");
+      if (statement.overdue === 0n || !oldest) return [];
+      return [
+        {
+          id: r.id,
+          number: r.number,
+          status: r.status,
+          tenantName: r.tenantName,
+          tenantPhone: r.tenantPhone,
+          unitCode: r.unitCode,
+          projectName: r.projectName,
+          overdue: statement.overdue,
+          oldestDueOn: oldest.dueOn,
+          daysLate: oldest.daysLate,
+        },
+      ];
+    })
+    .sort((a, b) => b.daysLate - a.daysLate);
+}
+
+export type OverdueRent = Awaited<ReturnType<typeof loadOverdueRents>>[number];
+
+/** Overdue rents (lease:read), most late first. */
+export async function listOverdueRents(ctx: TenantCtx) {
+  assertCan(ctx, "lease:read");
+  return withTenant(ctx, (tx) => loadOverdueRents(tx, todayInAlgiers()));
+}
+
+/** Active leases whose term ends within `days` days, or is already over (to end or renew). */
+export async function loadEndingLeases(tx: Tx, today: CalendarDate, days = ENDING_SOON_DAYS) {
+  return tx
+    .select({
+      id: lease.id,
+      number: lease.number,
+      tenantName: lease.tenantName,
+      endOn: lease.endOn,
+      unitCode: unit.code,
+      projectName: project.name,
+    })
+    .from(lease)
+    .innerJoin(unit, eq(unit.id, lease.unitId))
+    .innerJoin(project, eq(project.id, lease.projectId))
+    .where(and(eq(lease.status, "active"), lte(lease.endOn, addDays(today, days))))
+    .orderBy(asc(lease.endOn));
+}
+
+export type EndingLease = Awaited<ReturnType<typeof loadEndingLeases>>[number];
+
+/** The active lease of a unit, for its page (lease:read); null when it is not rented. */
+export async function getUnitLease(ctx: TenantCtx, unitId: string) {
+  assertCan(ctx, "lease:read");
+  if (!isUuid(unitId)) return null;
+  return withTenant(ctx, async (tx) => {
+    const [row] = await tx
+      .select({
+        id: lease.id,
+        number: lease.number,
+        tenantName: lease.tenantName,
+        startOn: lease.startOn,
+        endOn: lease.endOn,
+      })
+      .from(lease)
+      .where(and(eq(lease.unitId, unitId), eq(lease.status, "active")));
+    return row ?? null;
+  });
+}

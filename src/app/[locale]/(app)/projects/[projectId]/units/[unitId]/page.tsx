@@ -1,4 +1,4 @@
-import { ArrowRight, Pencil, Trash2 } from "lucide-react";
+import { ArrowRight, House, Pencil, Trash2 } from "lucide-react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
@@ -19,13 +19,14 @@ import {
 } from "@/components/ui/table";
 import { Link } from "@/i18n/navigation";
 import { toLocale } from "@/i18n/locales";
-import { formatDateTime } from "@/lib/dates";
+import { formatDate, formatDateTime } from "@/lib/dates";
 import { pricePerSquareMeter } from "@/lib/inventory";
 import { formatDZD, toDecimalString } from "@/lib/money";
 import { can } from "@/lib/permissions";
 import { requirePermission } from "@/server/auth/page-guard";
 import { listLeadChoices } from "@/server/crm/queries";
 import { getSalesSettings } from "@/server/organizations/settings";
+import { getUnitLease } from "@/server/rentals/queries";
 import { getUnitOption } from "@/server/sales/queries";
 import { getUnitSale } from "@/server/sales/sale-queries";
 import { deleteUnitAction } from "@/server/inventory/actions";
@@ -59,9 +60,16 @@ export default async function UnitPage({
       ? await getUnitSale(ctx, unit.id)
       : null;
   const leads = canSell && unit.status === "available" ? await listLeadChoices(ctx) : [];
+  const lease =
+    unit.status === "rented" && can(ctx.roles, "lease:read")
+      ? await getUnitLease(ctx, unit.id)
+      : null;
+  const leasable =
+    (unit.status === "available" || unit.status === "blocked") && can(ctx.roles, "lease:update");
   const { optionHours } = await getSalesSettings(ctx);
   const t = await getTranslations("inventory");
   const tc = await getTranslations("common");
+  const tr = await getTranslations("rentals.unit");
   const deletable = unit.status === "available" || unit.status === "blocked";
 
   return (
@@ -76,6 +84,14 @@ export default async function UnitPage({
         ]}
         actions={
           <>
+            {leasable ? (
+              <Button asChild variant="outline">
+                <Link href={{ pathname: "/rentals/new", query: { unitId: unit.id } }}>
+                  <House data-icon="inline-start" />
+                  {tr("lease")}
+                </Link>
+              </Button>
+            ) : null}
             {can(ctx.roles, "unit:update") ? (
               <Button asChild variant="outline">
                 <Link href={`/projects/${projectId}/units/${unit.id}/edit`}>
@@ -123,6 +139,24 @@ export default async function UnitPage({
         <UnitDetails unit={unit} />
         <div className="space-y-6">
           <PriceCard unit={unit} />
+          {lease ? (
+            <Card data-testid="unit-lease">
+              <CardHeader>
+                <CardTitle className="text-base">{tr("rentedTitle")}</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-1 text-sm">
+                <Link href={`/rentals/${lease.id}`} className="font-medium hover:underline">
+                  <bdi dir="ltr">{lease.number}</bdi> · {lease.tenantName}
+                </Link>
+                <div className="text-muted-foreground">
+                  {tr("termLine", {
+                    from: formatDate(lease.startOn),
+                    to: formatDate(lease.endOn),
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+          ) : null}
           <UnitSaleCard
             unitId={unit.id}
             code={unit.code}

@@ -6,6 +6,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { PageHeader } from "@/components/app-shell/page-header";
 import { PhoneText } from "@/components/crm/phone";
 import { UnitStatusBadge } from "@/components/inventory/status";
+import { InspectionDialog } from "@/components/rentals/inspection-dialog";
 import {
   CancelRentPaymentDialog,
   ClearRentChequeDialog,
@@ -14,7 +15,7 @@ import {
   RenewLeaseDialog,
   SettleDepositDialog,
 } from "@/components/rentals/lease-dialogs";
-import { LeaseStateBadge, RentReceiptPdf } from "@/components/rentals/rentals-ui";
+import { InspectionPdf, LeaseStateBadge, RentReceiptPdf } from "@/components/rentals/rentals-ui";
 import { InstallmentStateBadge } from "@/components/sales/badges";
 import { PendingDocumentsRefresher } from "@/components/sales/document-pdf";
 import { Badge } from "@/components/ui/badge";
@@ -75,7 +76,14 @@ export default async function LeasePage({ params }: PageProps<"/[locale]/rentals
     lease.depositSettledOn === null &&
     lease.depositHeld > 0n &&
     can(ctx.roles, "lease:update");
-  const pending = lease.payments.some((p) => p.pdfFileId === null);
+  const pending =
+    lease.payments.some((p) => p.pdfFileId === null) ||
+    lease.inspections.some((i) => i.pdfFileId === null);
+  const inspectionOf = (kind: "check_in" | "check_out") =>
+    lease.inspections.find((i) => i.kind === kind) ?? null;
+  const checkIn = inspectionOf("check_in");
+  const checkOut = inspectionOf("check_out");
+  const canInspect = can(ctx.roles, "lease:update");
 
   const terms: { label: string; value: React.ReactNode }[] = [
     { label: t("fields.signedOn"), value: formatDate(lease.signedOn) },
@@ -355,6 +363,46 @@ export default async function LeasePage({ params }: PageProps<"/[locale]/rentals
         </div>
 
         <div className="min-w-0 space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">{t("inspection.cardTitle")}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm" data-testid="lease-inspections">
+              {(
+                [
+                  ["check_in", checkIn],
+                  ["check_out", checkOut],
+                ] as const
+              ).map(([kind, inspection]) => (
+                <div key={kind} className="flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <div className="font-medium">{t(`inspection.kind.${kind}`)}</div>
+                    {inspection ? (
+                      <InspectionPdf
+                        fileId={inspection.pdfFileId}
+                        inspectionId={inspection.id}
+                        label={t("inspection.pdf", { date: formatDate(inspection.inspectedOn) })}
+                      />
+                    ) : (
+                      <div className="text-muted-foreground">{t("inspection.none")}</div>
+                    )}
+                  </div>
+                  {!inspection && canInspect && (kind === "check_out" || active) ? (
+                    <InspectionDialog
+                      leaseId={lease.id}
+                      kind={kind}
+                      leaseKind={lease.kind}
+                      today={today}
+                      entryElements={
+                        kind === "check_out" ? (checkIn?.items.map((i) => i.element) ?? []) : []
+                      }
+                    />
+                  ) : null}
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+
           <Card>
             <CardHeader>
               <CardTitle className="text-base">{t("tenant")}</CardTitle>

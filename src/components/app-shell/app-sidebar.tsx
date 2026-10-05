@@ -65,7 +65,8 @@ type NavKey =
   | "tickets"
   | "construction"
   | "deliveries"
-  | "rentals";
+  | "rentals"
+  | "rentsOverdue";
 /** `permission`: shown only to roles that have it (display only; services enforce). */
 type NavItem = { href: string; key: NavKey; icon: LucideIcon; permission?: Permission };
 
@@ -93,6 +94,7 @@ const constructionNav: NavItem[] = [
 ];
 const rentalsNav: NavItem[] = [
   { href: "/rentals", key: "rentals", icon: House, permission: "lease:read" },
+  { href: "/rentals/overdue", key: "rentsOverdue", icon: AlarmClock, permission: "lease:read" },
 ];
 const residenceNav: NavItem[] = [
   { href: "/residences", key: "residences", icon: Hotel, permission: "residence:read" },

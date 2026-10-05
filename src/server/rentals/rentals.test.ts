@@ -15,12 +15,20 @@ import { createResidence } from "@/server/residences/service";
 import { addMember, createSalesTeam } from "../../../tests/factories";
 import { createSaleSetup } from "../../../tests/sales-fixtures";
 
-import { loadRentReceiptData, renderAndStoreRentReceipt } from "./documents";
-import { getLease, listLeasableUnits, listLeases } from "./queries";
+import { sendRentsDigest } from "./digest";
+import {
+  inspectionHtml,
+  loadInspectionData,
+  loadRentReceiptData,
+  renderAndStoreInspection,
+  renderAndStoreRentReceipt,
+} from "./documents";
+import { getLease, getUnitLease, listLeasableUnits, listLeases, listOverdueRents } from "./queries";
 import {
   cancelRentPaymentSchema,
   createLeaseSchema,
   endLeaseSchema,
+  recordInspectionSchema,
   recordRentPaymentSchema,
   renewLeaseSchema,
   settleDepositSchema,
@@ -30,6 +38,7 @@ import {
   cancelRentPayment,
   createLease,
   endLease,
+  recordInspection,
   recordRentPayment,
   renewLease,
   settleDeposit,
@@ -42,6 +51,19 @@ afterAll(async () => {
 
 const today = todayInAlgiers();
 const year = today.slice(0, 4);
+
+const company = {
+  name: "Promo",
+  legalName: "SARL Promo",
+  address: null,
+  wilaya: null,
+  phone: null,
+  rcNumber: null,
+  nif: null,
+  nis: null,
+  aiNumber: null,
+  logo: null,
+};
 
 async function scenario() {
   const team = await createSalesTeam();
@@ -352,4 +374,82 @@ describe("rentals", () => {
     expect((await occupants())[0]?.untilOn).toBe(today);
     expect(await statusOf(manager, unitId)).toBe("available");
   });
+
+  it("records the états des lieux, lists the overdue rents and e-mails the rentals digest", async () => {
+    const { team, setup, manager, cashier } = await scenario();
+    const unitId = setup.unitIds[2];
+    const { id } = await createLease(
+      manager,
+      leaseInput(unitId, {
+        signedOn: addDays(today, -40),
+        startOn: addDays(today, -40),
+        durationMonths: "2",
+        frequency: "monthly",
+      }),
+    );
+    // Two months of 50 000 DA, both started and unpaid; the term ends within 30 days.
+    expect(await listOverdueRents(cashier)).toMatchObject([
+      { id, overdue: 100_000_00n, oldestDueOn: addDays(today, -40), daysLate: 40 },
+    ]);
+    expect(await getUnitLease(manager, unitId)).toMatchObject({
+      id,
+      tenantName: "SARL Pharmacie El Amel",
+    });
+
+    const inspect = (kind: "check_in" | "check_out", overrides: Record<string, unknown> = {}) =>
+      recordInspection(
+        manager,
+        recordInspectionSchema.parse({
+          leaseId: id,
+          kind,
+          inspectedOn: addDays(today, -40),
+          items: [
+            { element: "Salle", condition: "good", notes: "" },
+            { element: "Vitrine", condition: "fair", notes: "Joint usé" },
+          ],
+          electricityMeter: "001245",
+          gasMeter: "",
+          waterMeter: "",
+          keysCount: "2",
+          observations: "",
+          ...overrides,
+        }),
+      );
+    await expect(
+      recordInspection(
+        cashier,
+        recordInspectionSchema.parse({
+          leaseId: id,
+          kind: "check_in",
+          inspectedOn: today,
+          items: [{ element: "Salle", condition: "good", notes: "" }],
+        }),
+      ),
+    ).rejects.toMatchObject({ code: "FORBIDDEN" });
+    await inspect("check_in");
+    await expect(inspect("check_in")).rejects.toMatchObject({
+      messageKey: "rentals.errors.inspectionRecorded",
+    });
+    await inspect("check_out", {
+      inspectedOn: today,
+      items: [
+        { element: "Salle", condition: "fair", notes: "Tache au mur" },
+        { element: "Vitrine", condition: "fair", notes: "" },
+      ],
+    });
+    const lease = await getLease(manager, id);
+    const exit = lease?.inspections.find((i) => i.kind === "check_out");
+    const report = await withTenant(manager, (tx) => loadInspectionData(tx, exit?.id ?? ""));
+    if (!report) throw new Error("inspection report missing");
+    // The exit report shows each element's condition at the entry.
+    expect(report.data.entry).toEqual({ Salle: "good", Vitrine: "fair" });
+    const html = inspectionHtml(report.data, company);
+    expect(html).toContain("ÉTAT DES LIEUX DE SORTIE");
+    expect(html).toContain("محضر معاينة الخروج");
+    expect(html).toContain("Tache au mur");
+    expect(await renderAndStoreInspection(team.orgId, exit?.id ?? "")).toBe("stored");
+
+    // The property manager and the cashier get the daily rentals digest.
+    expect(await sendRentsDigest(team.orgId, today)).toBe(2);
+  }, 60_000);
 });

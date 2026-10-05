@@ -65,10 +65,13 @@ function usePreview(values: Partial<Values>) {
 export function LeaseForm({
   units,
   today,
+  unitId = "",
   lease,
 }: {
   units: LeasableUnit[];
   today: string;
+  /** Unit preselected (new lease from a unit's sheet). */
+  unitId?: string;
   /** The lease being edited, as form values (its unit cannot change). */
   lease?: { id: string } & Values;
 }) {
@@ -81,7 +84,7 @@ export function LeaseForm({
   const form = useForm<Values, unknown, z.output<typeof createLeaseSchema>>({
     resolver: zodResolver(createLeaseSchema),
     defaultValues: lease ?? {
-      unitId: "",
+      unitId,
       kind: "residential",
       tenantName: "",
       tenantNameAr: "",

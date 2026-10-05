@@ -234,3 +234,117 @@ export function chargesDigestEmail(input: {
     text: `${frPart.text}\n\n---\n\n${arPart.text}`,
   };
 }
+
+type DigestRent = {
+  number: string;
+  tenantName: string;
+  unitCode: string;
+  overdue: bigint;
+  daysLate: number;
+};
+
+type DigestLease = { number: string; tenantName: string; unitCode: string; endOn: string };
+
+/**
+ * Daily rentals digest for property managers and cashiers (CLAUDE.md §12): overdue rents, most
+ * late first, then the leases whose term ends within 30 days or is over; French then Arabic.
+ */
+export function rentsDigestEmail(input: {
+  to: string;
+  organization: string;
+  date: string;
+  overdue: DigestRent[];
+  ending: DigestLease[];
+  url: string;
+}): EmailMessage {
+  const total = input.overdue.reduce((sum, r) => sum + r.overdue, 0n);
+  const part = (locale: "fr" | "ar") => {
+    const t = createTranslator({
+      locale,
+      messages: catalogs[locale],
+      namespace: "emails.rentsDigest",
+    });
+    const dir = locale === "ar" ? "rtl" : "ltr";
+    const align = dir === "rtl" ? "right" : "left";
+    const money = (v: bigint) => formatDZD(v, locale);
+    const values = {
+      organization: input.organization,
+      date: formatDate(input.date),
+      count: input.overdue.length,
+      total: money(total),
+      ending: input.ending.length,
+    };
+    const cell = `style="padding:6px 8px;border-bottom:1px solid #e5e5e5;text-align:${align}"`;
+    const table = (head: string[], rows: string[][]) =>
+      `<table style="border-collapse:collapse;width:100%;font-size:13px"><thead><tr>${head
+        .map((h) => `<th ${cell}>${escapeHtml(h)}</th>`)
+        .join("")}</tr></thead><tbody>${rows
+        .map(
+          (r) =>
+            `<tr>${r.map((c) => `<td ${cell}><bdi>${escapeHtml(c)}</bdi></td>`).join("")}</tr>`,
+        )
+        .join("")}</tbody></table>`;
+    const overdue = input.overdue.slice(0, DIGEST_ROWS);
+    const ending = input.ending.slice(0, DIGEST_ROWS);
+    const sections = [
+      overdue.length > 0
+        ? `<p style="margin:0 0 12px">${escapeHtml(t("intro", values))}</p>${table(
+            [
+              t("columns.lease"),
+              t("columns.unit"),
+              t("columns.tenant"),
+              t("columns.overdue"),
+              t("columns.late"),
+            ],
+            overdue.map((r) => [
+              r.number,
+              r.unitCode,
+              r.tenantName,
+              money(r.overdue),
+              t("days", { days: r.daysLate }),
+            ]),
+          )}`
+        : "",
+      ending.length > 0
+        ? `<p style="margin:16px 0 12px">${escapeHtml(t("endingIntro", values))}</p>${table(
+            [t("columns.lease"), t("columns.unit"), t("columns.tenant"), t("columns.endOn")],
+            ending.map((l) => [l.number, l.unitCode, l.tenantName, formatDate(l.endOn)]),
+          )}`
+        : "",
+    ].join("");
+    const html = `
+    <div dir="${dir}" lang="${locale}" style="text-align:${align};margin:0 0 32px">
+      ${sections}
+      <p style="margin:20px 0"><a href="${escapeHtml(input.url)}" style="background:#171717;color:#fff;padding:10px 16px;border-radius:8px;text-decoration:none">${escapeHtml(t("cta"))}</a></p>
+    </div>`;
+    const text = [
+      ...(overdue.length > 0
+        ? [
+            t("intro", values),
+            ...overdue.map(
+              (r) =>
+                `- ${r.number} · ${r.unitCode} · ${r.tenantName} · ${money(r.overdue)} · ${t("days", { days: r.daysLate })}`,
+            ),
+          ]
+        : []),
+      ...(ending.length > 0
+        ? [
+            t("endingIntro", values),
+            ...ending.map(
+              (l) => `- ${l.number} · ${l.unitCode} · ${l.tenantName} · ${formatDate(l.endOn)}`,
+            ),
+          ]
+        : []),
+      `${t("cta")}: ${input.url}`,
+    ].join("\n");
+    return { subject: t("subject", values), html, text };
+  };
+  const frPart = part("fr");
+  const arPart = part("ar");
+  return {
+    to: input.to,
+    subject: `${frPart.subject} · ${arPart.subject}`,
+    html: `<!doctype html><html><body style="font-family:Arial,Helvetica,sans-serif;font-size:15px;color:#171717;max-width:680px;margin:0 auto;padding:24px">${frPart.html}<hr style="border:none;border-top:1px solid #e5e5e5;margin:0 0 32px">${arPart.html}</body></html>`,
+    text: `${frPart.text}\n\n---\n\n${arPart.text}`,
+  };
+}

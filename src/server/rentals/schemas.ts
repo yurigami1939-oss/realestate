@@ -2,6 +2,8 @@
 import { z } from "zod";
 
 import {
+  inspectionConditions,
+  inspectionKinds,
   leaseKinds,
   MAX_LEASE_MONTHS,
   rentFrequencies,
@@ -13,6 +15,7 @@ import {
   intText,
   moneyText,
   optionalEmailText,
+  optionalIntText,
   optionalMoneyText,
   optionalText,
   phoneText,
@@ -110,3 +113,25 @@ export const settleDepositSchema = z.object({
 
 export const leaseIdSchema = z.object({ leaseId: z.uuid() });
 export const rentReceiptIdSchema = z.object({ paymentId: z.uuid() });
+
+/** One element of an état des lieux: its condition and remarks. */
+export const inspectionItemSchema = z.object({
+  element: requiredText(80),
+  condition: z.enum(inspectionConditions),
+  notes: optionalText(300),
+});
+
+/** État des lieux d'entrée ou de sortie (one of each per lease, final). */
+export const recordInspectionSchema = z.object({
+  leaseId: z.uuid(),
+  kind: z.enum(inspectionKinds),
+  inspectedOn: dateText(),
+  items: z.array(inspectionItemSchema).min(1, "rentals.errors.noItems").max(40),
+  electricityMeter: optionalText(40),
+  gasMeter: optionalText(40),
+  waterMeter: optionalText(40),
+  keysCount: optionalIntText(0, 50),
+  observations: optionalText(2000),
+});
+
+export const inspectionIdSchema = z.object({ inspectionId: z.uuid() });

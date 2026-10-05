@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/select";
 import type { LeaseState } from "@/lib/rentals";
 import { cn } from "@/lib/utils";
-import { requestRentReceiptAction } from "@/server/rentals/actions";
+import { requestInspectionReportAction, requestRentReceiptAction } from "@/server/rentals/actions";
 
 const stateClasses: Record<LeaseState, string> = {
   upcoming: "border-sky-300 bg-sky-50 text-sky-900",
@@ -52,8 +52,50 @@ export function RentReceiptPdf({
   paymentId: string;
   label: string;
 }) {
-  const t = useTranslations("sales.documents");
   const retry = useAction(requestRentReceiptAction);
+  return (
+    <PendingPdf
+      fileId={fileId}
+      label={label}
+      pending={retry.pending}
+      onRetry={(done) => void retry.run({ paymentId }, { onSuccess: done })}
+    />
+  );
+}
+
+/** Link to an état des lieux; while the worker renders it, a pending note and a retry button. */
+export function InspectionPdf({
+  fileId,
+  inspectionId,
+  label,
+}: {
+  fileId: string | null;
+  inspectionId: string;
+  label: string;
+}) {
+  const retry = useAction(requestInspectionReportAction);
+  return (
+    <PendingPdf
+      fileId={fileId}
+      label={label}
+      pending={retry.pending}
+      onRetry={(done) => void retry.run({ inspectionId }, { onSuccess: done })}
+    />
+  );
+}
+
+function PendingPdf({
+  fileId,
+  label,
+  pending,
+  onRetry,
+}: {
+  fileId: string | null;
+  label: string;
+  pending: boolean;
+  onRetry: (done: () => void) => void;
+}) {
+  const t = useTranslations("sales.documents");
   if (fileId) {
     return (
       <Button asChild variant="link" size="sm" className="h-auto px-0">
@@ -74,10 +116,8 @@ export function RentReceiptPdf({
         size="icon"
         className="size-7"
         aria-label={t("retry")}
-        disabled={retry.pending}
-        onClick={() =>
-          void retry.run({ paymentId }, { onSuccess: () => toast.success(t("requested")) })
-        }
+        disabled={pending}
+        onClick={() => onRetry(() => toast.success(t("requested")))}
       >
         <RefreshCw />
       </Button>

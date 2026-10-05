@@ -4,7 +4,7 @@ import { and, eq, isNull } from "drizzle-orm";
 import type { z } from "zod";
 
 import type { Tx } from "@/db/client";
-import { lease, rentPayment, resident, unit } from "@/db/schema";
+import { lease, leaseInspection, rentPayment, resident, unit } from "@/db/schema";
 import { withTenant } from "@/db/tenant";
 import { enqueueInTx } from "@/jobs/enqueue";
 import { addDays, todayInAlgiers } from "@/lib/dates";
@@ -23,6 +23,7 @@ import type {
   clearRentChequeSchema,
   createLeaseSchema,
   endLeaseSchema,
+  recordInspectionSchema,
   recordRentPaymentSchema,
   renewLeaseSchema,
   settleDepositSchema,
@@ -511,6 +512,67 @@ export async function setLeaseContractScan(
     await tx.update(lease).set({ contractScanFileId: stored.id }).where(eq(lease.id, current.id));
     if (current.contractScanFileId) await discardFile(tx, current.contractScanFileId);
     return { fileId: stored.id };
+  });
+}
+
+/**
+ * Records the état des lieux d'entrée (active lease) or de sortie (when the tenant leaves,
+ * before or after the end is recorded): one of each, final; the bilingual report is rendered
+ * by the worker. Audited on the lease.
+ */
+export async function recordInspection(ctx: TenantCtx, input: In<typeof recordInspectionSchema>) {
+  assertCan(ctx, "lease:update");
+  assertNotFuture(input.inspectedOn, "inspectedOn");
+  return withTenant(ctx, async (tx) => {
+    const current = await loadLease(tx, input.leaseId);
+    if (input.kind === "check_in") assertActive(current);
+    if (input.inspectedOn < current.signedOn) {
+      throw invalid("inspectedOn", "rentals.errors.beforeSigning");
+    }
+    const [existing] = await tx
+      .select({ id: leaseInspection.id })
+      .from(leaseInspection)
+      .where(and(eq(leaseInspection.leaseId, current.id), eq(leaseInspection.kind, input.kind)));
+    if (existing) throw new AppError("CONFLICT", "rentals.errors.inspectionRecorded");
+    const { leaseId: _l, ...fields } = input;
+    const [row] = await tx
+      .insert(leaseInspection)
+      .values({ ...fields, organizationId: ctx.orgId, leaseId: current.id, createdBy: ctx.userId })
+      .returning({ id: leaseInspection.id });
+    if (!row) throw new Error("recordInspection: no row returned");
+    await recordAudit(tx, ctx, {
+      actorUserId: ctx.userId,
+      action: "lease.inspection",
+      entityType: "lease",
+      entityId: current.id,
+      after: { kind: input.kind, inspectedOn: input.inspectedOn, items: input.items.length },
+    });
+    await enqueueInTx(
+      tx,
+      "pdf.document",
+      { organizationId: ctx.orgId, kind: "lease_inspection", id: row.id },
+      { singletonKey: `lease_inspection:${row.id}` },
+    );
+    return { id: row.id };
+  });
+}
+
+/** Requests an état des lieux's PDF again when it is still missing (idempotent job). */
+export async function requestInspectionReport(ctx: TenantCtx, inspectionId: string) {
+  assertCan(ctx, "lease:read");
+  await withTenant(ctx, async (tx) => {
+    const [row] = await tx
+      .select({ pdfFileId: leaseInspection.pdfFileId })
+      .from(leaseInspection)
+      .where(eq(leaseInspection.id, inspectionId));
+    if (!row) throw new AppError("NOT_FOUND");
+    if (row.pdfFileId) return;
+    await enqueueInTx(
+      tx,
+      "pdf.document",
+      { organizationId: ctx.orgId, kind: "lease_inspection", id: inspectionId },
+      { singletonKey: `lease_inspection:${inspectionId}` },
+    );
   });
 }
 

@@ -9,6 +9,8 @@ import {
   clearRentChequeSchema,
   createLeaseSchema,
   endLeaseSchema,
+  inspectionIdSchema,
+  recordInspectionSchema,
   recordRentPaymentSchema,
   renewLeaseSchema,
   rentReceiptIdSchema,
@@ -20,8 +22,10 @@ import {
   clearRentCheque,
   createLease,
   endLease,
+  recordInspection,
   recordRentPayment,
   renewLease,
+  requestInspectionReport,
   requestRentReceipt,
   settleDeposit,
   updateLease,
@@ -74,6 +78,14 @@ export const cancelRentPaymentAction = defineAction(
 export const clearRentChequeAction = defineAction(
   { input: clearRentChequeSchema, permission: "payment:create" },
   (input, ctx) => mutation(() => clearRentCheque(ctx, input)),
+);
+export const recordInspectionAction = defineAction(
+  { input: recordInspectionSchema, permission: "lease:update" },
+  (input, ctx) => mutation(() => recordInspection(ctx, input)),
+);
+export const requestInspectionReportAction = defineAction(
+  { input: inspectionIdSchema, permission: "lease:read" },
+  (input, ctx) => requestInspectionReport(ctx, input.inspectionId),
 );
 export const requestRentReceiptAction = defineAction(
   { input: rentReceiptIdSchema, permission: "lease:read" },

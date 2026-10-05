@@ -211,6 +211,13 @@
       "when": 1791206414124,
       "tag": "0029_rentals",
       "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1791208889482,
+      "tag": "0030_inspections",
+      "breakpoints": true
     }
   ]
 }

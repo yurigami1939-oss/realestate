@@ -192,6 +192,21 @@
       "cta": "Voir les charges impayées",
       "promoter": "Promoteur"
     },
+    "rentsDigest": {
+      "subject": "Locations au {date} · {organization}",
+      "intro": "{count, plural, one {# bail présente} other {# baux présentent}} des loyers impayés au {date}, pour un total de {total}.",
+      "endingIntro": "{ending, plural, one {# bail arrive} other {# baux arrivent}} à échéance dans les 30 jours ou sont échus : à renouveler ou à terminer.",
+      "columns": {
+        "lease": "Bail",
+        "unit": "Lot",
+        "tenant": "Locataire",
+        "overdue": "Impayé",
+        "late": "Retard",
+        "endOn": "Fin"
+      },
+      "days": "{days} j",
+      "cta": "Voir les loyers impayés"
+    },
     "portalInvitation": {
       "subject": "Votre espace client {organization}",
       "body": "{inviter} vous invite à votre espace client {organization} sur PRODUCT_NAME : vos acquisitions, paiements, documents et la vie de votre résidence.",
@@ -223,6 +238,7 @@
     "deliveries": "Livraisons",
     "rentalsGroup": "Gestion locative",
     "rentals": "Baux",
+    "rentsOverdue": "Loyers impayés",
     "audit": "Journal d'audit",
     "residenceGroup": "Gestion des résidences",
     "residences": "Résidences",
@@ -1811,6 +1827,61 @@
       "submit": "Solder le dépôt",
       "done": "Dépôt de garantie soldé."
     },
+    "overdue": {
+      "title": "Loyers impayés",
+      "description": "Loyers échus avant aujourd'hui et non réglés, les plus en retard d'abord.",
+      "empty": "Aucun loyer en retard.",
+      "summary": "{count, plural, one {# bail présente} other {# baux présentent}} des loyers impayés, pour un total de {total}.",
+      "since": "Échu depuis",
+      "daysLate": "{days, plural, one {# jour de retard} other {# jours de retard}}"
+    },
+    "inspection": {
+      "cardTitle": "États des lieux",
+      "kind": {
+        "check_in": "Entrée",
+        "check_out": "Sortie"
+      },
+      "none": "Pas encore établi.",
+      "pdf": "État des lieux du {date} (PDF)",
+      "open": {
+        "check_in": "État des lieux d'entrée",
+        "check_out": "État des lieux de sortie"
+      },
+      "title": {
+        "check_in": "État des lieux d'entrée",
+        "check_out": "État des lieux de sortie"
+      },
+      "description": "L'état de chaque élément du lot, constaté avec le locataire. Définitif une fois enregistré.",
+      "date": "Date",
+      "elements": "Éléments",
+      "element": "Élément {index}",
+      "condition": "État de l'élément {index}",
+      "conditions": {
+        "good": "Bon état",
+        "fair": "État moyen",
+        "poor": "Mauvais état"
+      },
+      "notes": "Observations",
+      "notesOf": "Observations sur l'élément {index}",
+      "remove": "Retirer l'élément {index}",
+      "add": "Ajouter un élément",
+      "keys": "Clés",
+      "electricity": "Électricité",
+      "gas": "Gaz",
+      "water": "Eau",
+      "observations": "Observations générales",
+      "submit": "Enregistrer l'état des lieux",
+      "done": "État des lieux enregistré : le PDF est en préparation.",
+      "defaults": {
+        "residential": "Entrée|Séjour|Cuisine|Chambres|Salle de bain|WC|Balcon|Fenêtres et volets",
+        "commercial": "Façade et vitrine|Rideau métallique|Salle|Réserve|Sanitaires|Électricité"
+      }
+    },
+    "unit": {
+      "lease": "Louer",
+      "rentedTitle": "Lot loué",
+      "termLine": "du {from} au {to}"
+    },
     "scan": {
       "title": "Bail signé (scan)"
     },
@@ -1830,7 +1901,9 @@
       "noDeposit": "Aucun dépôt de garantie reçu.",
       "aboveHeld": "Le montant dépasse le dépôt reçu.",
       "retentionReason": "Indiquez le motif de la retenue.",
-      "beforeEnd": "Le solde ne peut précéder la fin du bail."
+      "beforeEnd": "Le solde ne peut précéder la fin du bail.",
+      "noItems": "Ajoutez au moins un élément.",
+      "inspectionRecorded": "Cet état des lieux est déjà enregistré."
     }
   },
   "audit": {
@@ -2000,7 +2073,8 @@
         "update": "Bail modifié",
         "end": "Bail terminé",
         "renew": "Bail renouvelé",
-        "settle_deposit": "Dépôt de garantie soldé"
+        "settle_deposit": "Dépôt de garantie soldé",
+        "inspection": "État des lieux enregistré"
       },
       "rent_payment": {
         "create": "Loyer ou dépôt encaissé",
@@ -2023,7 +2097,10 @@
       "commissions": "{count, plural, one {# commission} other {# commissions}} à payer · {amount}",
       "handover": "Remise des clés du lot {unit} ({project})",
       "handoverAt": "le {date}",
-      "lateReserves": "{count, plural, one {# réserve en retard de levée} other {# réserves en retard de levée}}"
+      "lateReserves": "{count, plural, one {# réserve en retard de levée} other {# réserves en retard de levée}}",
+      "lease": "Bail {number} · lot {unit} à échéance",
+      "leaseEnds": "{tenant} · fin le {date}",
+      "rents": "{count, plural, one {# bail} other {# baux}} avec des loyers impayés · {amount}"
     },
     "sales": {
       "title": "Ventes",

@@ -14,8 +14,12 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 /** New lease of a unit the promoter keeps (available, or blocked as kept by the company). */
-export default async function NewLeasePage({ params }: PageProps<"/[locale]/rentals/new">) {
+export default async function NewLeasePage({
+  params,
+  searchParams,
+}: PageProps<"/[locale]/rentals/new">) {
   setRequestLocale(toLocale((await params).locale));
+  const raw = (await searchParams).unitId;
   const ctx = await requirePermission("lease:update");
   const units = await listLeasableUnits(ctx);
   const t = await getTranslations("rentals");
@@ -27,7 +31,11 @@ export default async function NewLeasePage({ params }: PageProps<"/[locale]/rent
           {t("noUnits")}
         </p>
       ) : (
-        <LeaseForm units={units} today={todayInAlgiers()} />
+        <LeaseForm
+          units={units}
+          today={todayInAlgiers()}
+          unitId={units.some((u) => u.id === raw) ? (raw as string) : ""}
+        />
       )}
     </div>
   );

@@ -99,7 +99,9 @@ export default async function DashboardPage({ params }: PageProps<"/[locale]/das
     (todo.options?.length ?? 0) > 0 ||
     (todo.milestones?.length ?? 0) > 0 ||
     (todo.handovers?.length ?? 0) > 0 ||
-    (todo.lateReserves ?? 0) > 0;
+    (todo.lateReserves ?? 0) > 0 ||
+    (todo.rents?.count ?? 0) > 0 ||
+    (todo.endingLeases?.length ?? 0) > 0;
 
   return (
     <div className="mx-auto max-w-7xl space-y-6">
@@ -157,6 +159,29 @@ export default async function DashboardPage({ params }: PageProps<"/[locale]/das
                   className="hover:underline"
                 >
                   {t("dashboard.todo.lateReserves", { count: todo.lateReserves })}
+                </Link>
+              </li>
+            ) : null}
+            {todo.endingLeases?.map((l) => (
+              <li key={l.id} className="py-2">
+                <Link href={`/rentals/${l.id}`} className="font-medium hover:underline">
+                  {t("dashboard.todo.lease", { number: l.number, unit: l.unitCode })}
+                </Link>
+                <span className="block text-xs text-muted-foreground">
+                  {t("dashboard.todo.leaseEnds", {
+                    tenant: l.tenantName,
+                    date: formatDate(l.endOn),
+                  })}
+                </span>
+              </li>
+            ))}
+            {todo.rents && todo.rents.count > 0 ? (
+              <li className="py-2">
+                <Link href="/rentals/overdue" className="hover:underline">
+                  {t("dashboard.todo.rents", {
+                    count: todo.rents.count,
+                    amount: money(todo.rents.value),
+                  })}
                 </Link>
               </li>
             ) : null}

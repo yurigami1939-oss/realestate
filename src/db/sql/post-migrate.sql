@@ -93,3 +93,6 @@ REVOKE DELETE, TRUNCATE ON public.lease FROM realestate_app;
 REVOKE UPDATE, DELETE, TRUNCATE ON public.rent_payment FROM realestate_app;
 GRANT UPDATE (status, cancelled_at, cancelled_by, cancellation_reason, cheque_cleared_on, pdf_file_id)
   ON public.rent_payment TO realestate_app;
+-- An état des lieux is final once recorded: only its PDF link changes.
+REVOKE UPDATE, DELETE, TRUNCATE ON public.lease_inspection FROM realestate_app;
+GRANT UPDATE (pdf_file_id) ON public.lease_inspection TO realestate_app;
