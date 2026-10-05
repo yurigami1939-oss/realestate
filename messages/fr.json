@@ -2592,7 +2592,10 @@
       "title": "Espace client",
       "nav": {
         "label": "Rubriques de l'espace client",
-        "home": "Accueil"
+        "home": "Accueil",
+        "announcements": "Annonces",
+        "tickets": "Réclamations",
+        "assemblies": "Assemblées"
       }
     },
     "home": {
@@ -2642,6 +2645,42 @@
       "loanSubmitted": "déposé le {date}",
       "loanDecided": "réponse le {date}"
     },
-    "pendingDocument": "en préparation"
+    "pendingDocument": "en préparation",
+    "unit": {
+      "title": "Mes charges",
+      "shares": "{share}/{basis} tantièmes",
+      "called": "Appelé",
+      "paid": "Payé",
+      "remaining": "Reste à payer",
+      "overdue": "En retard",
+      "credit": "Avance sur les prochains appels : {amount}",
+      "calls": "Appels de charges",
+      "noCalls": "Aucun appel de charges pour le moment.",
+      "period": "Période",
+      "dueOn": "À payer avant le",
+      "amount": "Montant",
+      "state": "État",
+      "document": "Document",
+      "reminders": "Lettres de relance"
+    },
+    "announcements": {
+      "title": "Annonces de la résidence",
+      "empty": "Aucune annonce en cours."
+    },
+    "tickets": {
+      "title": "Mes réclamations",
+      "empty": "Aucune réclamation.",
+      "new": "Signaler un problème",
+      "newTitle": "Signaler un problème",
+      "newDescription": "Le gestionnaire de la résidence la reçoit et vous tient informé de son traitement.",
+      "place": "Où ?",
+      "send": "Envoyer",
+      "sent": "Réclamation envoyée au gestionnaire.",
+      "back": "Mes réclamations"
+    },
+    "assemblies": {
+      "title": "Assemblées générales",
+      "empty": "Aucune assemblée générale convoquée."
+    }
   }
 }

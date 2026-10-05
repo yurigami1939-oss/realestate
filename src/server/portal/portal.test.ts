@@ -7,10 +7,26 @@ import { db } from "@/db/client";
 import { auditLog, invitation, user } from "@/db/schema";
 import { withTenant } from "@/db/tenant";
 import { stopEnqueue } from "@/jobs/enqueue";
-import { todayInAlgiers } from "@/lib/dates";
+import { addDays, todayInAlgiers } from "@/lib/dates";
+import { renderAndStoreNotice } from "@/server/announcements/documents";
+import { createAnnouncementSchema } from "@/server/announcements/schemas";
+import { createAnnouncement, publishAnnouncement } from "@/server/announcements/service";
+import { renderAndStoreConvocation } from "@/server/assemblies/documents";
+import { addResolutionSchema, createAssemblySchema } from "@/server/assemblies/schemas";
+import { addResolution, conveneAssembly, createAssembly } from "@/server/assemblies/service";
 import { auth } from "@/server/auth/auth";
 import type { TenantCtx } from "@/server/auth/session";
 import { createBuyerSchema } from "@/server/buyers/schemas";
+import { approveBudget, saveBudget } from "@/server/charges/budgets";
+import { issueChargePeriod } from "@/server/charges/calls";
+import { createChargeCategory } from "@/server/charges/categories";
+import { renderAndStoreChargeCall } from "@/server/charges/documents";
+import { getChargePeriod } from "@/server/charges/queries";
+import {
+  createChargeCategorySchema,
+  issueChargePeriodSchema,
+  saveBudgetSchema,
+} from "@/server/charges/schemas";
 import { createBuyer } from "@/server/buyers/service";
 import { getFileDownloadUrl } from "@/server/files/service";
 import { listMembers, listPendingInvitations } from "@/server/organizations/queries";
@@ -21,6 +37,8 @@ import { addResidentSchema, createResidenceSchema } from "@/server/residences/sc
 import { addResident, createResidence } from "@/server/residences/service";
 import { createReservation } from "@/server/sales/reservations";
 import { createReservationSchema } from "@/server/sales/schemas";
+import { commentTicketSchema } from "@/server/tickets/schemas";
+import { commentTicket } from "@/server/tickets/service";
 
 import { TEST_PASSWORD, signIn } from "../../../tests/auth-helpers";
 import { addMember, createSalesTeam } from "../../../tests/factories";
@@ -29,7 +47,16 @@ import { createSaleSetup } from "../../../tests/sales-fixtures";
 import type { PortalCtx } from "./context";
 import { getPortalAccess, inviteToPortal, revokePortalLink } from "./invitations";
 import { getPortalOverview } from "./queries";
+import {
+  createPortalTicket,
+  getPortalTicket,
+  getPortalUnitAccount,
+  listPortalAnnouncements,
+  listPortalAssemblies,
+  listPortalTickets,
+} from "./residences";
 import { getPortalSale } from "./sales";
+import { portalTicketSchema } from "./schemas";
 
 afterAll(async () => {
   await stopEnqueue();
@@ -275,5 +302,180 @@ describe("portal access", () => {
     await expect(getFileDownloadUrl(asMember, rows[0]?.id ?? "", "inline")).rejects.toMatchObject({
       code: "FORBIDDEN",
     });
+  });
+
+  it("shows co-owners their charges and assemblies, occupants announcements and tickets", async () => {
+    const team = await createSalesTeam();
+    const setup = await createSaleSetup(team);
+    const [coUnit, occupiedUnit] = setup.unitIds;
+    const manager = await addMember(team.orgId, ["property_manager"]);
+    const { id: residenceId } = await createResidence(
+      manager,
+      createResidenceSchema.parse({
+        projectId: setup.projectId,
+        name: "Résidence Les Oliviers",
+        shareBasis: "10000",
+        chargeFrequency: "quarterly",
+        reserveFund: "0",
+        callDueDays: "30",
+      }),
+    );
+    const { id: categoryId } = await createChargeCategory(
+      manager,
+      createChargeCategorySchema.parse({
+        residenceId,
+        name: "Nettoyage",
+        nameAr: "",
+        key: "equal",
+        weighting: "equal",
+        buildingId: "",
+        unitIds: [],
+      }),
+    );
+    const { budgetId } = await saveBudget(
+      manager,
+      saveBudgetSchema.parse({
+        residenceId,
+        year: todayInAlgiers().slice(0, 4),
+        lines: [{ categoryId, amount: "120 000" }],
+        notes: "",
+      }),
+    );
+    await approveBudget(manager, budgetId);
+    const resident = async (unitId: string, kind: "co_owner" | "occupant", email: string) =>
+      (
+        await addResident(
+          manager,
+          addResidentSchema.parse({
+            residenceId,
+            unitId,
+            kind,
+            isMain: true,
+            lastName: kind === "co_owner" ? "Saïdi" : "Benamar",
+            firstName: kind === "co_owner" ? "Yasmine" : "Anis",
+            email,
+            sinceOn: "2026-01-01",
+          }),
+        )
+      ).id;
+    const coOwnerEmail = newEmail();
+    const occupantEmail = newEmail();
+    const coOwnerId = await resident(coUnit, "co_owner", coOwnerEmail);
+    const occupantId = await resident(occupiedUnit, "occupant", occupantEmail);
+    await inviteToPortal(manager, { kind: "resident", id: coOwnerId });
+    await inviteToPortal(manager, { kind: "resident", id: occupantId });
+    const coOwner = await acceptAs(coOwnerEmail, team.orgId);
+    const occupant = await acceptAs(occupantEmail, team.orgId);
+    const asMember = (portal: PortalCtx): TenantCtx => ({ ...portal, roles: ["resident"] });
+
+    // Charges: the co-owner's own unit only; occupants see no charges.
+    const { periodId } = await issueChargePeriod(
+      manager,
+      issueChargePeriodSchema.parse({
+        period: `${budgetId}:1`,
+        issuedOn: addDays(todayInAlgiers(), -5),
+        dueOn: addDays(todayInAlgiers(), 25),
+      }),
+    );
+    const callId = (await getChargePeriod(manager, periodId))?.calls[0]?.id ?? "";
+    await renderAndStoreChargeCall(team.orgId, callId);
+    const account = await getPortalUnitAccount(coOwner, coUnit);
+    expect(account?.statement.lines).toHaveLength(1);
+    expect(account?.statement.price).toBe(10_000_00n);
+    expect(await getPortalUnitAccount(coOwner, occupiedUnit)).toBeNull();
+    expect(await getPortalUnitAccount(occupant, occupiedUnit)).toBeNull();
+    const callFile = account?.statement.lines[0]?.pdfFileId ?? "";
+    expect(await getFileDownloadUrl(asMember(coOwner), callFile, "inline")).toMatch(/^http/);
+    await expect(getFileDownloadUrl(asMember(occupant), callFile, "inline")).rejects.toMatchObject({
+      code: "FORBIDDEN",
+    });
+
+    // Announcements: published ones only, for co-owners and occupants alike.
+    const announce = async (title: string) =>
+      (
+        await createAnnouncement(
+          manager,
+          createAnnouncementSchema.parse({
+            residenceId,
+            category: "outage",
+            title,
+            titleAr: "",
+            body: "Coupure jeudi matin.",
+            bodyAr: "",
+            expiresOn: "",
+            pinned: false,
+          }),
+        )
+      ).id;
+    const published = await announce("Coupure d'eau");
+    await announce("Brouillon");
+    await publishAnnouncement(manager, published);
+    await renderAndStoreNotice(team.orgId, published);
+    const notices = await listPortalAnnouncements(occupant);
+    expect(notices.map((a) => a.title)).toEqual(["Coupure d'eau"]);
+    expect(
+      await getFileDownloadUrl(asMember(occupant), notices[0]?.pdfFileId ?? "", "inline"),
+    ).toMatch(/^http/);
+
+    // Tickets: on the account's unit or the common areas, never someone else's unit.
+    const report = (unitId: string) =>
+      createPortalTicket(
+        occupant,
+        portalTicketSchema.parse({
+          residenceId,
+          unitId,
+          title: "Fuite sous l'évier",
+          description: "Depuis ce matin.",
+          category: "plumbing",
+          priority: "high",
+        }),
+      );
+    const { id: own } = await report(occupiedUnit);
+    await report("");
+    await expect(report(coUnit)).rejects.toMatchObject({
+      messageKey: "residences.errors.unitNotInResidence",
+    });
+    expect(await listPortalTickets(occupant)).toHaveLength(2);
+    expect(await listPortalTickets(coOwner)).toEqual([]);
+    expect(await getPortalTicket(coOwner, own)).toBeNull();
+    await commentTicket(
+      manager,
+      commentTicketSchema.parse({ ticketId: own, comment: "Note interne" }),
+    );
+    expect((await getPortalTicket(occupant, own))?.events.map((e) => e.kind)).toEqual(["created"]);
+
+    // Assemblies: co-owners only, with the convocation.
+    const { id: assemblyId } = await createAssembly(
+      manager,
+      createAssemblySchema.parse({
+        residenceId,
+        kind: "ordinary",
+        heldOn: addDays(todayInAlgiers(), 15),
+        startTime: "18:00",
+        place: "Hall",
+        notes: "",
+      }),
+    );
+    await addResolution(
+      manager,
+      addResolutionSchema.parse({
+        assemblyId,
+        title: "Budget",
+        titleAr: "",
+        description: "",
+        majority: "simple",
+      }),
+    );
+    expect(await listPortalAssemblies(coOwner)).toEqual([]);
+    await conveneAssembly(manager, assemblyId);
+    await renderAndStoreConvocation(team.orgId, assemblyId);
+    const assemblies = await listPortalAssemblies(coOwner);
+    expect(assemblies).toMatchObject([{ id: assemblyId, status: "convened" }]);
+    expect(await listPortalAssemblies(occupant)).toEqual([]);
+    const convocation = assemblies[0]?.convocationFileId ?? "";
+    expect(await getFileDownloadUrl(asMember(coOwner), convocation, "inline")).toMatch(/^http/);
+    await expect(
+      getFileDownloadUrl(asMember(occupant), convocation, "inline"),
+    ).rejects.toMatchObject({ code: "FORBIDDEN" });
   });
 });

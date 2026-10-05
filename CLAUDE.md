@@ -160,8 +160,9 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
     │   │                     # closing (frozen results), convocation and minutes PDFs (documents.ts)
     │   ├── announcements/    # residence announcements: drafts, publication (printable notice), withdrawal
     │   ├── portal/           # portal access (invitations.ts, link.ts), context.ts (getPortalCtx, portalScope),
-    │   │                     # page-guard.ts (requirePortalCtx), queries.ts (home), sales.ts (a buyer's
-    │   │                     # sale), files.ts (which stored files a portal account may download)
+    │   │                     # page-guard.ts (requirePortalCtx), action.ts (definePortalAction), queries.ts
+    │   │                     # (home), sales.ts (a buyer's sale), residences.ts (charges account, announcements,
+    │   │                     # tickets, assemblies), files.ts (which stored files a portal account may download)
     │   ├── documents/        # render.ts: `pdf.document` dispatcher (one renderer per kind)
     │   └── <module>/         # schemas.ts (isomorphic) · queries.ts · service.ts · actions.ts · *.test.ts
     ├── jobs/                 # queues.ts (names, retry policy, payload types), enqueue.ts, worker.ts, handlers/
@@ -215,7 +216,7 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 - Member management (invite, cancel, change roles, remove) goes through `src/server/organizations/service.ts`: our permission check + owner protection, Better Auth performs the change, then `recordAudit` with the acting user. Joining and organization creation are audited by Better Auth hooks.
 - `proxy.ts` does locale routing only; `(app)/layout.tsx` redirects to `/sign-in` or `/onboarding`.
 - Post-login redirects go through `safeNext()` (same-site paths only).
-- **Portal accounts** (module 7): a member whose only role is `resident` (`isPortalOnly`). They see the `(portal)` shell only: `requireTenantCtx()` and the back-office layout redirect them to `/portal`, the portal layout sends staff back to `/dashboard`. Portal pages use `requirePortalCtx()` → `PortalCtx { userId, orgId, name, locale }`; every portal query starts from `portalScope(tx, ctx)` (the account's live `portal_link` rows: buyer files, co-owners / occupants still current) and never takes a record id from the client without checking it belongs to that scope. Staff lists (`listMembers`, `listPendingInvitations`) leave portal accounts and invitations out. Downloads: `/api/files` checks a portal account with `portalCanRead` (`src/server/portal/files.ts`) instead of the staff readers — the files of its own sales (entity `reservation` of a sale its buyer files take part in).
+- **Portal accounts** (module 7): a member whose only role is `resident` (`isPortalOnly`). They see the `(portal)` shell only: `requireTenantCtx()` and the back-office layout redirect them to `/portal`, the portal layout sends staff back to `/dashboard`. Portal pages use `requirePortalCtx()` → `PortalCtx { userId, orgId, name, locale }`; every portal query starts from `portalScope(tx, ctx)` (the account's live `portal_link` rows: buyer files, co-owners / occupants still current) and never takes a record id from the client without checking it belongs to that scope. Staff lists (`listMembers`, `listPendingInvitations`) leave portal accounts and invitations out. Downloads: `/api/files` checks a portal account with `portalCanRead` (`src/server/portal/files.ts`) instead of the staff readers — the files of its own sales (entity `reservation` of a sale its buyer files take part in) and, under entity `residence`, its co-owned units' charge calls, receipts and reminder letters, its co-owned residences' convocations and PVs, and published notices of its residences. Portal mutations use `definePortalAction` (portal context, never a staff one).
 - **Portal invitations** (`portal:invite`: gérant, directeur commercial, gestionnaire; `buyer:update` for a buyer file, `residence:update` for a co-owner / occupant): `inviteToPortal` inserts a Better Auth `invitation` row (role `resident`, 7 days) itself — staff below the gérant have no Better Auth `invitation:create` — and e-mails it bilingually; the existing accept-invitation page accepts it and the `afterAcceptInvitation` hook (`linkPortalAccount`) gives the account every record waiting on its e-mail. An e-mail already used by a portal account of the organization is linked at once; a staff member's e-mail is refused. One live link per record; withdrawing it (`revokePortalLink`) keeps the row (revoked) and cancels an invitation nobody else waits on. Audited `portal.invite` / `portal.revoke`.
 
 | Role | FR | Scope today (extended per module) |
@@ -567,7 +568,7 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 - [ ] Module 7 — Buyer/resident portal
   - [x] Access: invitations from buyer files and co-owner / occupant records, linking at acceptance, portal shell and home
   - [x] Buyer pages: a sale with its schedule (no penalties), payments and receipts, documents (sheet, scans, payment calls, reminder letters), construction progress and bank loan
-  - [ ] Residence pages: charges account, announcements, tickets, general assemblies (occupants: announcements and tickets)
+  - [x] Residence pages: charges account and assemblies (co-owners); announcements and tickets (co-owners and occupants: report on their unit or the common areas, follow status and assignment — staff comments stay internal)
   - [ ] Seed and e2e
 
 ### Phase 3

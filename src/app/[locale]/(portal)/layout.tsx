@@ -2,13 +2,14 @@ import { getTranslations } from "next-intl/server";
 
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { LocaleSwitcher } from "@/components/i18n/locale-switcher";
-import { PortalNav } from "@/components/portal/portal-nav";
+import { PortalNav, type PortalSection } from "@/components/portal/portal-nav";
 import { redirect } from "@/i18n/navigation";
 import { toLocale } from "@/i18n/locales";
 import { AppError } from "@/lib/result";
 import { getSession } from "@/server/auth/session";
 import { listUserOrganizations } from "@/server/organizations/queries";
 import { getPortalCtx } from "@/server/portal/context";
+import { getPortalSections } from "@/server/portal/queries";
 
 /**
  * Portal shell of buyers, co-owners and occupants (module 7): one organization at a time,
@@ -27,6 +28,17 @@ export default async function PortalLayout({ children, params }: LayoutProps<"/[
     (o) => o.id === ctx.orgId,
   );
   const t = await getTranslations("portal.shell");
+  const has = await getPortalSections(ctx);
+  const sections: PortalSection[] = [
+    { key: "home", href: "/portal" },
+    ...(has.residences
+      ? ([
+          { key: "announcements", href: "/portal/announcements" },
+          { key: "tickets", href: "/portal/tickets" },
+        ] as const)
+      : []),
+    ...(has.coOwner ? ([{ key: "assemblies", href: "/portal/assemblies" }] as const) : []),
+  ];
 
   return (
     <div className="flex min-h-dvh flex-col bg-muted/30">
@@ -42,7 +54,7 @@ export default async function PortalLayout({ children, params }: LayoutProps<"/[
           </div>
         </div>
         <div className="mx-auto max-w-5xl px-2">
-          <PortalNav sections={[{ key: "home", href: "/portal" }]} />
+          <PortalNav sections={sections} />
         </div>
       </header>
       <main className="mx-auto w-full max-w-5xl flex-1 p-4">{children}</main>

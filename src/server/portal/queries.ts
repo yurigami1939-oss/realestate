@@ -56,3 +56,14 @@ export async function getPortalOverview(ctx: PortalCtx) {
 }
 
 export type PortalOverview = Awaited<ReturnType<typeof getPortalOverview>>;
+
+/** Which portal sections the account has: residence ones for residents, assemblies for co-owners. */
+export async function getPortalSections(ctx: PortalCtx) {
+  return withTenant(ctx, async (tx) => {
+    const { residents } = await portalScope(tx, ctx);
+    return {
+      residences: residents.length > 0,
+      coOwner: residents.some((r) => r.kind === "co_owner"),
+    };
+  });
+}

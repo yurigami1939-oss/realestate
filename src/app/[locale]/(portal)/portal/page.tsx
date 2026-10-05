@@ -72,7 +72,15 @@ export default async function PortalHomePage({ params }: PageProps<"/[locale]/po
                 <Card>
                   <CardHeader className="flex flex-row items-start justify-between gap-2">
                     <CardTitle className="text-base">
-                      {u.residenceName} · <bdi dir="ltr">{u.unitCode}</bdi>
+                      {u.kind === "co_owner" ? (
+                        <Link href={`/portal/units/${u.unitId}`} className="hover:underline">
+                          {u.residenceName} · <bdi dir="ltr">{u.unitCode}</bdi>
+                        </Link>
+                      ) : (
+                        <>
+                          {u.residenceName} · <bdi dir="ltr">{u.unitCode}</bdi>
+                        </>
+                      )}
                     </CardTitle>
                     <Badge variant="outline">{t(`kind.${u.kind}`)}</Badge>
                   </CardHeader>

@@ -5,7 +5,10 @@ import { useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
-export type PortalSection = { key: "home"; href: string };
+export type PortalSection = {
+  key: "home" | "announcements" | "tickets" | "assemblies";
+  href: string;
+};
 
 /** Sections of the portal, as tabs (the current one marked). */
 export function PortalNav({ sections }: { sections: PortalSection[] }) {
