@@ -85,3 +85,5 @@ REVOKE UPDATE, DELETE, TRUNCATE ON public.charge_reminder FROM realestate_app;
 GRANT UPDATE (pdf_file_id) ON public.charge_reminder TO realestate_app;
 -- A ticket's history is append-only.
 REVOKE UPDATE, DELETE, TRUNCATE ON public.ticket_event FROM realestate_app;
+-- A handover is never deleted: once its PV is signed it is final (the service refuses changes).
+REVOKE DELETE, TRUNCATE ON public.handover FROM realestate_app;

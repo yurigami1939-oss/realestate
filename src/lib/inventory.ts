@@ -33,15 +33,19 @@ export const unitStatuses = [
 ] as const;
 export type UnitStatus = (typeof unitStatuses)[number];
 
-/** Allowed transitions. Anything else is INVALID_TRANSITION. `delivered` is terminal. */
+/**
+ * Allowed transitions. Anything else is INVALID_TRANSITION. `delivered` is terminal; it comes
+ * from a handover PV (sold → delivered) or, for a unit sold before the app in a delivered
+ * project, from `recordPastDeliveries` (available / blocked → delivered).
+ */
 export const unitTransitions: Record<UnitStatus, readonly UnitStatus[]> = {
-  available: ["optioned", "reserved", "blocked", "rented"],
+  available: ["optioned", "reserved", "blocked", "rented", "delivered"],
   optioned: ["available", "reserved"],
   reserved: ["available", "sold"],
   sold: ["delivered"],
   delivered: [],
   rented: ["available"],
-  blocked: ["available"],
+  blocked: ["available", "delivered"],
 };
 
 export function canTransition(from: UnitStatus, to: UnitStatus): boolean {

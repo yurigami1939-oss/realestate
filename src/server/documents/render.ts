@@ -9,6 +9,10 @@ import {
   renderAndStoreChargeReminder,
 } from "@/server/charges/documents";
 import { renderAndStoreReminderLetter } from "@/server/collections/documents";
+import {
+  renderAndStoreHandoverPv,
+  renderAndStoreHandoverRelease,
+} from "@/server/handovers/documents";
 import { renderAndStorePaymentCall } from "@/server/payment-calls/documents";
 import { renderAndStoreReceipt } from "@/server/payments/documents";
 import { renderAndStoreQuotationPdf } from "@/server/quotations/pdf";
@@ -30,6 +34,8 @@ const renderers: Record<PdfDocumentKind, Renderer> = {
   assembly_convocation: renderAndStoreConvocation,
   assembly_minutes: renderAndStoreMinutes,
   announcement: renderAndStoreNotice,
+  handover_pv: renderAndStoreHandoverPv,
+  handover_release: renderAndStoreHandoverRelease,
 };
 
 /** Job `pdf.document`: dispatches to the document's renderer (idempotent). */

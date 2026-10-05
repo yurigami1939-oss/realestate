@@ -287,6 +287,64 @@ export async function endResident(ctx: TenantCtx, input: In<typeof endResidentSc
 }
 
 /**
+ * Makes the buyers of a sale the co-owners of its unit in the residence, the main buyer first
+ * (main co-owner), from `sinceOn`. The caller checks the permission and that the unit has no
+ * current co-owner. Returns how many co-owners were added.
+ */
+export async function addSaleBuyersAsCoOwners(
+  tx: Tx,
+  actor: { orgId: string; userId: string },
+  target: { residenceId: string; unitId: string; saleId: string; sinceOn: string | null },
+): Promise<number> {
+  const buyers = await tx
+    .select({
+      id: buyer.id,
+      position: reservationBuyer.position,
+      lastName: buyer.lastName,
+      firstName: buyer.firstName,
+      lastNameAr: buyer.lastNameAr,
+      firstNameAr: buyer.firstNameAr,
+      phone: buyer.phone,
+      email: buyer.email,
+      address: buyer.address,
+    })
+    .from(reservationBuyer)
+    .innerJoin(buyer, eq(buyer.id, reservationBuyer.buyerId))
+    .where(eq(reservationBuyer.reservationId, target.saleId))
+    .orderBy(asc(reservationBuyer.position));
+  for (const b of buyers) {
+    await tx.insert(resident).values({
+      organizationId: actor.orgId,
+      residenceId: target.residenceId,
+      unitId: target.unitId,
+      kind: "co_owner",
+      isMain: b.position === 1,
+      lastName: b.lastName,
+      firstName: b.firstName,
+      lastNameAr: b.lastNameAr,
+      firstNameAr: b.firstNameAr,
+      phone: b.phone,
+      email: b.email,
+      address: b.address,
+      buyerId: b.id,
+      sinceOn: target.sinceOn,
+      createdBy: actor.userId,
+    });
+  }
+  return buyers.length;
+}
+
+/** Whether the unit has a current co-owner on that day. */
+export async function hasCurrentCoOwner(tx: Tx, unitId: string, day: string) {
+  const [row] = await tx
+    .select({ id: resident.id })
+    .from(resident)
+    .where(and(eq(resident.unitId, unitId), eq(resident.kind, "co_owner"), currentResident(day)))
+    .limit(1);
+  return row !== undefined;
+}
+
+/**
  * Co-owners from sales (CLAUDE.md §12): for every unit of the residence sold through the app
  * (VSP signed) and without a current co-owner, its buyers become co-owners — the main buyer
  * first — from the VSP date.
@@ -330,43 +388,14 @@ export async function importSaleBuyers(ctx: TenantCtx, residenceId: string) {
     for (const unitId of open) {
       const sale = sales.find((s) => s.unitId === unitId);
       if (!sale) continue;
-      const buyers = await tx
-        .select({
-          id: buyer.id,
-          position: reservationBuyer.position,
-          lastName: buyer.lastName,
-          firstName: buyer.firstName,
-          lastNameAr: buyer.lastNameAr,
-          firstNameAr: buyer.firstNameAr,
-          phone: buyer.phone,
-          email: buyer.email,
-          address: buyer.address,
-        })
-        .from(reservationBuyer)
-        .innerJoin(buyer, eq(buyer.id, reservationBuyer.buyerId))
-        .where(eq(reservationBuyer.reservationId, sale.id))
-        .orderBy(asc(reservationBuyer.position));
-      for (const b of buyers) {
-        await tx.insert(resident).values({
-          organizationId: ctx.orgId,
-          residenceId,
-          unitId,
-          kind: "co_owner",
-          isMain: b.position === 1,
-          lastName: b.lastName,
-          firstName: b.firstName,
-          lastNameAr: b.lastNameAr,
-          firstNameAr: b.firstNameAr,
-          phone: b.phone,
-          email: b.email,
-          address: b.address,
-          buyerId: b.id,
-          sinceOn: sale.signedOn,
-          createdBy: ctx.userId,
-        });
-        coOwners += 1;
-      }
-      if (buyers.length > 0) unitsDone += 1;
+      const added = await addSaleBuyersAsCoOwners(tx, ctx, {
+        residenceId,
+        unitId,
+        saleId: sale.id,
+        sinceOn: sale.signedOn,
+      });
+      coOwners += added;
+      if (added > 0) unitsDone += 1;
     }
     return { units: unitsDone, coOwners };
   });

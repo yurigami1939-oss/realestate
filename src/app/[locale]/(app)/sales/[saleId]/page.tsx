@@ -1,15 +1,17 @@
-import { TriangleAlert } from "lucide-react";
+import { KeyRound, TriangleAlert } from "lucide-react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { PageHeader } from "@/components/app-shell/page-header";
 import { PhoneText } from "@/components/crm/phone";
+import { DeliveryStateBadge } from "@/components/handovers/badges";
 import { InstallmentStateBadge, SaleStatusBadge } from "@/components/sales/badges";
 import { DocumentPdf, PendingDocumentsRefresher } from "@/components/sales/document-pdf";
 import { VspWarnings } from "@/components/sales/vsp-warnings";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -22,7 +24,7 @@ import {
 } from "@/components/ui/table";
 import { Link } from "@/i18n/navigation";
 import { toLocale } from "@/i18n/locales";
-import { addDays, formatDate, todayInAlgiers } from "@/lib/dates";
+import { addDays, formatDate, formatDateTime, todayInAlgiers } from "@/lib/dates";
 import { formatDZD, toDecimalString } from "@/lib/money";
 import { formatShare } from "@/lib/payment-plans";
 import { formatPhone } from "@/lib/phone";
@@ -31,6 +33,7 @@ import { requirePermission } from "@/server/auth/page-guard";
 import { listBuyerOptions } from "@/server/buyers/queries";
 import { listSaleReminders } from "@/server/collections/queries";
 import { REMINDER_PAY_WITHIN_DAYS } from "@/server/collections/schemas";
+import { getDelivery } from "@/server/handovers/queries";
 import { listSalePaymentCalls } from "@/server/payment-calls/queries";
 import { listSalePayments } from "@/server/payments/queries";
 import { getSalesSettings } from "@/server/organizations/settings";
@@ -93,6 +96,10 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
       )
     : [];
   const { withdrawalRetentionBp } = await getSalesSettings(ctx);
+  const delivery =
+    sale.status === "sold" && can(ctx.roles, "handover:read")
+      ? await getDelivery(ctx, saleId)
+      : null;
   const openWithdrawal = withdrawals.find((w) => w.status !== "rejected");
   const canProposeWithdrawal =
     sale.status === "reserved" && !openWithdrawal && can(ctx.roles, "sale:withdraw");
@@ -744,6 +751,37 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
                     </div>
                   </>
                 ) : null}
+              </CardContent>
+            </Card>
+          ) : null}
+
+          {delivery ? (
+            <Card data-testid="sale-delivery">
+              <CardHeader>
+                <CardTitle className="text-base">{t("handovers.card.title")}</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2 text-sm">
+                <DeliveryStateBadge state={delivery.state} />
+                {delivery.handover?.number && delivery.handover.signedOn ? (
+                  <div className="text-muted-foreground">
+                    {t("handovers.pvOn", {
+                      number: delivery.handover.number,
+                      date: formatDate(delivery.handover.signedOn),
+                    })}
+                  </div>
+                ) : delivery.handover?.scheduledAt ? (
+                  <div className="text-muted-foreground">
+                    {t("handovers.appointmentAt", {
+                      date: formatDateTime(delivery.handover.scheduledAt),
+                    })}
+                  </div>
+                ) : null}
+                <Button asChild variant="outline" size="sm">
+                  <Link href={`/deliveries/${sale.id}`}>
+                    <KeyRound data-icon="inline-start" />
+                    {t("handovers.card.open")}
+                  </Link>
+                </Button>
               </CardContent>
             </Card>
           ) : null}

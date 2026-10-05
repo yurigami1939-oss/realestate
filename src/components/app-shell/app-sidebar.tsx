@@ -11,6 +11,7 @@ import {
   Hotel,
   IdCard,
   Kanban,
+  KeyRound,
   LayoutDashboard,
   Percent,
   PhoneCall,
@@ -61,7 +62,8 @@ type NavKey =
   | "chargesOverdue"
   | "suppliers"
   | "tickets"
-  | "construction";
+  | "construction"
+  | "deliveries";
 /** `permission`: shown only to roles that have it (display only; services enforce). */
 type NavItem = { href: string; key: NavKey; icon: LucideIcon; permission?: Permission };
 
@@ -85,6 +87,7 @@ const contractsNav: NavItem[] = [
 ];
 const constructionNav: NavItem[] = [
   { href: "/construction", key: "construction", icon: HardHat, permission: "construction:read" },
+  { href: "/deliveries", key: "deliveries", icon: KeyRound, permission: "handover:read" },
 ];
 const residenceNav: NavItem[] = [
   { href: "/residences", key: "residences", icon: Hotel, permission: "residence:read" },

@@ -12,6 +12,7 @@ import {
   commission,
   constructionMilestone,
   generalAssembly,
+  handover,
   member,
   payment,
   portalLink,
@@ -237,6 +238,14 @@ async function recordLinks(
     for (const a of assemblies) {
       links.set(`general_assembly:${a.id}`, `/residences/${a.residenceId}/assemblies/${a.id}`);
     }
+  }
+  const handoverIds = ids("handover");
+  if (handoverIds.length > 0) {
+    const handovers = await tx
+      .select({ id: handover.id, saleId: handover.reservationId })
+      .from(handover)
+      .where(inArray(handover.id, handoverIds));
+    for (const h of handovers) links.set(`handover:${h.id}`, `/deliveries/${h.saleId}`);
   }
   return links;
 }

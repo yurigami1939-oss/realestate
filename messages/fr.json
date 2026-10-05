@@ -219,6 +219,7 @@
     "commissions": "Commissions",
     "constructionGroup": "Chantiers",
     "construction": "Avancement des travaux",
+    "deliveries": "Livraisons",
     "audit": "Journal d'audit",
     "residenceGroup": "Gestion des résidences",
     "residences": "Résidences",
@@ -1482,6 +1483,187 @@
       "tooManyPhotos": "Ce compte rendu a déjà 20 photos."
     }
   },
+  "handovers": {
+    "title": "Livraisons",
+    "description": "Remise des clés des lots vendus : rendez-vous, réserves et procès-verbaux.",
+    "empty": "Aucune livraison pour ces critères.",
+    "activeStates": "En cours",
+    "allStates": "Tous les états",
+    "allProjects": "Tous les projets",
+    "columns": {
+      "unit": "Lot",
+      "buyers": "Acquéreurs",
+      "vsp": "VSP",
+      "appointment": "Rendez-vous / PV",
+      "state": "État",
+      "reserves": "Réserves",
+      "balance": "Reste à payer"
+    },
+    "paid": "Soldé",
+    "appointmentAt": "RDV le {date}",
+    "pvOn": "PV {number} du {date}",
+    "reservesOpen": "{count, plural, =0 {—} one {# ouverte} other {# ouvertes}}",
+    "reservesLate": "dont {count} en retard",
+    "state": {
+      "not_ready": "Travaux en cours",
+      "to_schedule": "À planifier",
+      "scheduled": "Planifiée",
+      "reserves": "Réserves en cours",
+      "delivered": "Livrée"
+    },
+    "punchStatus": {
+      "open": "Ouverte",
+      "lifted": "Levée",
+      "cancelled": "Annulée"
+    },
+    "trade": {
+      "masonry": "Maçonnerie",
+      "plumbing": "Plomberie",
+      "electrical": "Électricité",
+      "joinery": "Menuiserie",
+      "painting": "Peinture",
+      "tiling": "Carrelage",
+      "waterproofing": "Étanchéité",
+      "other": "Autre"
+    },
+    "detail": {
+      "title": "Livraison du lot {unit}",
+      "notReady": "Les travaux de ce projet ne sont pas achevés : l'étape de remise des clés n'est pas encore validée.",
+      "sale": "Vente",
+      "vsp": "Vente sur plans {number} du {date}",
+      "price": "Prix",
+      "paid": "Encaissé",
+      "remaining": "Reste à payer",
+      "settled": "Prix entièrement payé.",
+      "viewSale": "Voir la vente",
+      "appointment": "Rendez-vous",
+      "noAppointment": "Pas encore planifié.",
+      "appointmentAt": "Le {date}",
+      "reserves": "Réserves",
+      "reservesHint": "Notez les réserves pendant la visite : celles encore ouvertes à la signature figurent sur le PV.",
+      "noReserves": "Aucune réserve.",
+      "columns": {
+        "position": "N°",
+        "location": "Localisation",
+        "description": "Description",
+        "trade": "Corps d'état",
+        "dueOn": "À lever avant le",
+        "status": "État"
+      },
+      "liftedOn": "levée le {date}",
+      "cancelledFor": "annulée : {reason}",
+      "late": "en retard",
+      "documents": "Procès-verbaux",
+      "pv": "PV de remise des clés {number}",
+      "pvSigned": "Signé le {date} · clés reçues par {name} · {keys, plural, =0 {aucune clé} one {# clé} other {# clés}}",
+      "meters": "Compteurs : électricité {electricity} · gaz {gas} · eau {water}",
+      "outstandingOnPv": "Reste à payer noté sur le PV : {amount}",
+      "noPv": "Le PV sera établi à la remise des clés.",
+      "release": "PV de levée des réserves du {date}",
+      "releaseHint": "Une fois toutes les réserves levées ou annulées, établissez le PV de levée des réserves.",
+      "pdf": "PV (PDF)",
+      "releasePdf": "PV de levée (PDF)"
+    },
+    "card": {
+      "title": "Remise des clés",
+      "open": "Suivre la livraison"
+    },
+    "schedule": {
+      "open": "Planifier la remise",
+      "move": "Déplacer le rendez-vous",
+      "title": "Planifier la remise des clés",
+      "moveTitle": "Déplacer le rendez-vous",
+      "description": "Rendez-vous avec l'acquéreur pour la visite du lot et la remise des clés.",
+      "at": "Date et heure",
+      "notes": "Note (interne)",
+      "submit": "Enregistrer",
+      "done": "Rendez-vous enregistré."
+    },
+    "reserve": {
+      "add": "Ajouter une réserve",
+      "addTitle": "Nouvelle réserve",
+      "addDescription": "Défaut constaté lors de la visite, à lever par le promoteur.",
+      "editTitle": "Modifier la réserve",
+      "added": "Réserve ajoutée.",
+      "location": "Localisation",
+      "description": "Description",
+      "trade": "Corps d'état",
+      "dueOn": "À lever avant le",
+      "dueOnHint": "Facultatif.",
+      "deleteLabel": "Supprimer la réserve n° {position}",
+      "deleteTitle": "Supprimer la réserve n° {position} ?",
+      "deleteDescription": "Elle n'a pas été imprimée sur un PV : elle disparaît de la liste.",
+      "deleted": "Réserve supprimée."
+    },
+    "lift": {
+      "open": "Lever",
+      "openLabel": "Lever la réserve n° {position}",
+      "title": "Lever la réserve n° {position}",
+      "date": "Levée le",
+      "note": "Note",
+      "submit": "Lever la réserve",
+      "done": "Réserve levée."
+    },
+    "cancel": {
+      "open": "Annuler",
+      "openLabel": "Annuler la réserve n° {position}",
+      "title": "Annuler la réserve n° {position}",
+      "description": "Une réserve notée par erreur ou non retenue est annulée avec sa raison ; elle reste sur le PV de levée.",
+      "reason": "Raison",
+      "submit": "Annuler la réserve",
+      "done": "Réserve annulée."
+    },
+    "sign": {
+      "open": "Signer le PV de remise",
+      "title": "Procès-verbal de remise des clés",
+      "description": "{count, plural, =0 {Aucune réserve ouverte : le bien est remis sans réserve.} one {La réserve ouverte figurera sur le PV.} other {Les # réserves ouvertes figureront sur le PV.}} La signature est définitive : le lot passe à « Livré ».",
+      "outstanding": "Il reste {amount} à payer sur cette vente : le montant sera noté sur le PV.",
+      "date": "Date de remise",
+      "keys": "Nombre de clés",
+      "receivedBy": "Clés reçues par",
+      "electricity": "Compteur d'électricité",
+      "gas": "Compteur de gaz",
+      "water": "Compteur d'eau",
+      "observations": "Observations (imprimées sur le PV)",
+      "submit": "Signer le PV",
+      "done": "PV {number} signé : le lot est livré.",
+      "coOwners": "{count, plural, one {L'acquéreur devient copropriétaire} other {Les # acquéreurs deviennent copropriétaires}} dans la résidence."
+    },
+    "close": {
+      "open": "Établir le PV de levée",
+      "title": "PV de levée des réserves",
+      "description": "Toutes les réserves sont levées ou annulées : ce PV clôt la livraison.",
+      "date": "Date",
+      "submit": "Établir le PV",
+      "done": "Réserves closes : le PV de levée est en préparation."
+    },
+    "past": {
+      "open": "Lots livrés avant l'application",
+      "title": "Lots livrés avant l'application",
+      "description": "Marquez « Livré » les lots vendus et remis avant la mise en service de l'application. Les lots qui ont un copropriétaire sont cochés.",
+      "units": "Lots",
+      "reason": "Motif",
+      "defaultReason": "Vendu et livré avant la mise en service de l'application",
+      "submit": "Marquer livrés",
+      "done": "{count, plural, one {# lot marqué livré.} other {# lots marqués livrés.}}"
+    },
+    "errors": {
+      "futureDate": "La date ne peut pas être dans le futur.",
+      "notSold": "Seule une vente dont la VSP est signée peut être livrée.",
+      "signed": "Le PV de remise est déjà signé.",
+      "notSigned": "Le PV de remise n'est pas encore signé.",
+      "beforeSale": "La remise ne peut pas précéder la signature de la VSP.",
+      "reservesClosed": "Les réserves de cette livraison sont closes.",
+      "reserveSettled": "Cette réserve est déjà levée ou annulée.",
+      "onPv": "Cette réserve figure sur le PV signé : levez-la ou annulez-la.",
+      "openReserves": "Des réserves sont encore ouvertes.",
+      "noReserves": "Aucune réserve levée : il n'y a pas de PV de levée à établir.",
+      "beforeLifting": "Le PV de levée ne peut précéder ni la remise ni la dernière levée.",
+      "projectNotDelivered": "Le projet doit d'abord être au statut « Livré ».",
+      "noUnit": "Choisissez au moins un lot du projet.",
+      "unitEngaged": "Un des lots choisis est engagé dans une vente."
+    }
+  },
   "audit": {
     "title": "Journal d'audit",
     "description": "Les opérations sensibles avec leur auteur, leur date et l'état avant / après. Le journal ne peut être ni modifié ni supprimé.",
@@ -1530,7 +1712,8 @@
       "supplier_invoice": "Facture fournisseur",
       "staff_member": "Agent de résidence",
       "general_assembly": "Assemblée générale",
-      "portal_link": "Accès à l'espace client"
+      "portal_link": "Accès à l'espace client",
+      "handover": "Livraison (remise des clés)"
     },
     "actions": {
       "organization": {
@@ -1637,6 +1820,10 @@
       "portal": {
         "invite": "Invitation à l'espace client",
         "revoke": "Accès à l'espace client retiré"
+      },
+      "handover": {
+        "sign": "PV de remise des clés signé",
+        "close_reserves": "Réserves levées (PV de levée)"
       }
     }
   },
@@ -1651,7 +1838,10 @@
       "option": "Option qui expire : lot {unit} · {lead}",
       "optionExpires": "Expire le {date}",
       "cheques": "{count, plural, one {# chèque} other {# chèques}} à encaisser · {amount}",
-      "commissions": "{count, plural, one {# commission} other {# commissions}} à payer · {amount}"
+      "commissions": "{count, plural, one {# commission} other {# commissions}} à payer · {amount}",
+      "handover": "Remise des clés du lot {unit} ({project})",
+      "handoverAt": "le {date}",
+      "lateReserves": "{count, plural, one {# réserve en retard de levée} other {# réserves en retard de levée}}"
     },
     "sales": {
       "title": "Ventes",
@@ -2720,7 +2910,17 @@
       "reports": "Comptes rendus de chantier",
       "loanAmount": "Montant : {amount}",
       "loanSubmitted": "déposé le {date}",
-      "loanDecided": "réponse le {date}"
+      "loanDecided": "réponse le {date}",
+      "handover": "Remise des clés",
+      "handoverAt": "Rendez-vous de remise des clés le {date}",
+      "handoverSigned": "Clés remises le {date}",
+      "handoverPv": "Procès-verbal de remise des clés",
+      "handoverReserves": "Réserves",
+      "handoverNoReserve": "Bien remis sans réserve.",
+      "handoverReserveOpen": "en cours de levée",
+      "handoverReserveLifted": "levée le {date}",
+      "handoverReserveCancelled": "annulée",
+      "handoverRelease": "Procès-verbal de levée des réserves"
     },
     "pendingDocument": "en préparation",
     "unit": {

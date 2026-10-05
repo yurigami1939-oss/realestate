@@ -3,7 +3,7 @@ import "server-only";
 import { and, eq, isNull, sql } from "drizzle-orm";
 
 import type { Tx } from "@/db/client";
-import { buyer, file, lead, quotation, reservation } from "@/db/schema";
+import { buyer, file, handover, lead, quotation, reservation } from "@/db/schema";
 import { withTenant } from "@/db/tenant";
 import {
   cleanFileName,
@@ -56,6 +56,18 @@ const readers: Record<string, Reader> = {
     can(ctx.roles, "charge:read") ||
     can(ctx.roles, "assembly:read") ||
     can(ctx.roles, "announcement:read"),
+  // Delivery documents (PV de remise des clés, PV de levée des réserves): the deliveries team,
+  // and whoever sees the sale.
+  handover: async (tx, ctx, entityId) => {
+    if (can(ctx.roles, "handover:read")) return true;
+    if (!can(ctx.roles, "sale:read")) return false;
+    const [row] = await tx
+      .select({ id: handover.id })
+      .from(handover)
+      .innerJoin(reservation, eq(reservation.id, handover.reservationId))
+      .where(and(eq(handover.id, entityId), visibleSales(ctx)));
+    return row !== undefined;
+  },
   // Site photos of construction progress reports.
   construction_report: async (_tx, ctx) => can(ctx.roles, "construction:read"),
   // A quotation PDF follows its lead: commercials only see their own leads' quotations.

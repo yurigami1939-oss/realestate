@@ -9,10 +9,12 @@ import {
   building,
   constructionMilestone,
   constructionReport,
+  handover,
   installment,
   payment,
   paymentCall,
   project,
+  punchItem,
   receipt,
   reminderLetter,
   reservation,
@@ -96,7 +98,8 @@ const PORTAL_REPORTS = 10;
  * A sale of the portal account, as its buyer sees it (CLAUDE.md §12): the unit, schedule and
  * statement (no penalties), payments with their receipts, documents (sheet, signed scans,
  * payment calls, reminder letters), the project's construction progress (milestones, its
- * building's progress and the published reports with their photos) and the bank loan.
+ * building's progress and the published reports with their photos), the handover (appointment,
+ * PVs, reserves) and the bank loan.
  * Null when the sale is not one of the account's.
  */
 export async function getPortalSale(ctx: PortalCtx, saleId: string) {
@@ -205,6 +208,32 @@ export async function getPortalSale(ctx: PortalCtx, saleId: string) {
       .from(bankLoan)
       .where(eq(bankLoan.reservationId, row.id))
       .orderBy(sql`${bankLoan.status} in ('refused', 'cancelled')`, desc(bankLoan.createdAt));
+    const [delivery] = await tx
+      .select({
+        id: handover.id,
+        status: handover.status,
+        scheduledAt: handover.scheduledAt,
+        number: handover.number,
+        signedOn: handover.signedOn,
+        pdfFileId: handover.pdfFileId,
+        reservesClosedOn: handover.reservesClosedOn,
+        releaseFileId: handover.releaseFileId,
+      })
+      .from(handover)
+      .where(eq(handover.reservationId, row.id));
+    const reserves = delivery
+      ? await tx
+          .select({
+            position: punchItem.position,
+            location: punchItem.location,
+            description: punchItem.description,
+            status: punchItem.status,
+            liftedOn: punchItem.liftedOn,
+          })
+          .from(punchItem)
+          .where(eq(punchItem.handoverId, delivery.id))
+          .orderBy(asc(punchItem.position))
+      : [];
     return {
       ...row,
       buyers,
@@ -220,6 +249,7 @@ export async function getPortalSale(ctx: PortalCtx, saleId: string) {
         publishedOnly: true,
         limit: PORTAL_REPORTS,
       }),
+      handover: delivery ? { ...delivery, reserves } : null,
       loans,
     };
   });

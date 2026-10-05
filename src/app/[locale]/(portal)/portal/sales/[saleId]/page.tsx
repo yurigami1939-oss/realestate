@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/table";
 import { Link } from "@/i18n/navigation";
 import { toLocale } from "@/i18n/locales";
-import { formatDate } from "@/lib/dates";
+import { formatDate, formatDateTime } from "@/lib/dates";
 import { formatDZD } from "@/lib/money";
 import { cn } from "@/lib/utils";
 import { requirePortalCtx } from "@/server/portal/page-guard";
@@ -279,6 +279,59 @@ export default async function PortalSalePage({
           )}
         </CardContent>
       </Card>
+
+      {sale.handover ? (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">{t("handover")}</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm" data-testid="portal-handover">
+            {sale.handover.status === "signed" && sale.handover.signedOn ? (
+              <>
+                <p className="font-medium">
+                  {t("handoverSigned", { date: formatDate(sale.handover.signedOn) })}
+                </p>
+                <div>
+                  <PortalDocument fileId={sale.handover.pdfFileId} label={t("handoverPv")} />
+                </div>
+              </>
+            ) : sale.handover.scheduledAt ? (
+              <p className="font-medium">
+                {t("handoverAt", { date: formatDateTime(sale.handover.scheduledAt) })}
+              </p>
+            ) : null}
+            {sale.handover.reserves.length > 0 ? (
+              <div className="space-y-1">
+                <div className="font-medium">{t("handoverReserves")}</div>
+                <ol className="space-y-1">
+                  {sale.handover.reserves.map((r) => (
+                    <li key={r.position} className="flex flex-wrap gap-x-2">
+                      <span className="tabular-nums">{r.position}.</span>
+                      <span>
+                        {r.location} · {r.description}
+                      </span>
+                      <span className="text-muted-foreground">
+                        {r.status === "lifted" && r.liftedOn
+                          ? t("handoverReserveLifted", { date: formatDate(r.liftedOn) })
+                          : r.status === "cancelled"
+                            ? t("handoverReserveCancelled")
+                            : t("handoverReserveOpen")}
+                      </span>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            ) : sale.handover.status === "signed" ? (
+              <p className="text-muted-foreground">{t("handoverNoReserve")}</p>
+            ) : null}
+            {sale.handover.reservesClosedOn ? (
+              <div>
+                <PortalDocument fileId={sale.handover.releaseFileId} label={t("handoverRelease")} />
+              </div>
+            ) : null}
+          </CardContent>
+        </Card>
+      ) : null}
 
       {sale.reports.length > 0 ? (
         <section className="space-y-3" data-testid="portal-reports">

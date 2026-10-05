@@ -9,6 +9,7 @@ import { ReportCard } from "@/components/construction/report-card";
 import { ReportDialog } from "@/components/construction/report-dialog";
 import { ValidateMilestoneDialog } from "@/components/construction/validate-milestone-dialog";
 import { ConfirmAction } from "@/components/forms/confirm-action";
+import { PastDeliveriesDialog } from "@/components/handovers/handover-dialogs";
 import { ProjectStatusBadge } from "@/components/inventory/status";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,6 +20,7 @@ import { can } from "@/lib/permissions";
 import { requirePermission } from "@/server/auth/page-guard";
 import { deleteReportAction } from "@/server/construction/actions";
 import { getProjectConstruction } from "@/server/construction/queries";
+import { listPastDeliveryUnits } from "@/server/handovers/queries";
 import { getSalesSettings } from "@/server/organizations/settings";
 
 /** Reports shown before « show all ». */
@@ -51,6 +53,11 @@ export default async function ProjectConstructionPage({
   const validation = can(ctx.roles, "milestone:validate")
     ? { delayDays: (await getSalesSettings(ctx)).paymentCallDelayDays }
     : null;
+  // Units sold and handed over before the app, in a delivered project.
+  const pastUnits =
+    project.status === "delivered" && can(ctx.roles, "handover:update")
+      ? await listPastDeliveryUnits(ctx, project.id)
+      : [];
   const t = await getTranslations("construction");
   const tc = await getTranslations("common");
 
@@ -70,6 +77,9 @@ export default async function ProjectConstructionPage({
                   {t("projectSheet")}
                 </Link>
               </Button>
+            ) : null}
+            {pastUnits.length > 0 ? (
+              <PastDeliveriesDialog projectId={project.id} units={pastUnits} />
             ) : null}
             {editable ? (
               <ReportDialog projectId={project.id} buildings={project.buildings} today={today} />

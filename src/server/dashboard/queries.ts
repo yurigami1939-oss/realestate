@@ -8,10 +8,12 @@ import {
   commission,
   constructionMilestone,
   followUp,
+  handover,
   installment,
   lead,
   payment,
   project,
+  punchItem,
   reservation,
   reservationBuyer,
   unit,
@@ -280,12 +282,47 @@ async function todo(tx: Tx, ctx: TenantCtx, today: CalendarDate) {
         )
         .orderBy(asc(constructionMilestone.plannedOn))
     : null;
+  // Deliveries: appointments of the next 7 days (and past ones not signed), late reserves.
+  const handovers = can(ctx.roles, "handover:update")
+    ? await tx
+        .select({
+          saleId: handover.reservationId,
+          unitCode: unit.code,
+          projectName: project.name,
+          scheduledAt: handover.scheduledAt,
+        })
+        .from(handover)
+        .innerJoin(unit, eq(unit.id, handover.unitId))
+        .innerJoin(project, eq(project.id, unit.projectId))
+        .where(
+          and(
+            eq(handover.status, "scheduled"),
+            sql`${handover.scheduledAt} < now() + interval '7 days'`,
+          ),
+        )
+        .orderBy(asc(handover.scheduledAt))
+    : null;
+  const [lateReserves] = can(ctx.roles, "handover:update")
+    ? await tx
+        .select({ n: sql<number>`count(*)::int` })
+        .from(punchItem)
+        .innerJoin(handover, eq(handover.id, punchItem.handoverId))
+        .where(
+          and(
+            eq(punchItem.status, "open"),
+            lt(punchItem.dueOn, today),
+            isNull(handover.reservesClosedOn),
+          ),
+        )
+    : [null];
   return {
     withdrawals,
     cheques: cheques ? { count: cheques.n, value: cheques.value } : null,
     commissions: commissions ? { count: commissions.n, value: commissions.value } : null,
     options,
     milestones,
+    handovers,
+    lateReserves: lateReserves?.n ?? null,
   };
 }
 

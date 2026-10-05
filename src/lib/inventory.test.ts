@@ -21,7 +21,9 @@ describe("unit status machine", () => {
     ["reserved", "available"],
     ["reserved", "sold"],
     ["sold", "delivered"],
+    ["available", "delivered"],
     ["blocked", "available"],
+    ["blocked", "delivered"],
     ["rented", "available"],
   ] as const)("allows %s → %s", (from, to) => {
     expect(canTransition(from, to)).toBe(true);
@@ -29,8 +31,9 @@ describe("unit status machine", () => {
 
   it.each([
     ["available", "sold"],
-    ["available", "delivered"],
     ["optioned", "sold"],
+    ["optioned", "delivered"],
+    ["reserved", "delivered"],
     ["reserved", "blocked"],
     ["sold", "available"],
     ["delivered", "available"],

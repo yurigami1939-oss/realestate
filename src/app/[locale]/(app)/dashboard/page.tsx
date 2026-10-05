@@ -97,7 +97,9 @@ export default async function DashboardPage({ params }: PageProps<"/[locale]/das
     (todo.cheques?.count ?? 0) > 0 ||
     (todo.commissions?.count ?? 0) > 0 ||
     (todo.options?.length ?? 0) > 0 ||
-    (todo.milestones?.length ?? 0) > 0;
+    (todo.milestones?.length ?? 0) > 0 ||
+    (todo.handovers?.length ?? 0) > 0 ||
+    (todo.lateReserves ?? 0) > 0;
 
   return (
     <div className="mx-auto max-w-7xl space-y-6">
@@ -136,6 +138,28 @@ export default async function DashboardPage({ params }: PageProps<"/[locale]/das
                 </span>
               </li>
             ))}
+            {todo.handovers?.map((h) => (
+              <li key={h.saleId} className="py-2">
+                <Link href={`/deliveries/${h.saleId}`} className="font-medium hover:underline">
+                  {t("dashboard.todo.handover", { unit: h.unitCode, project: h.projectName })}
+                </Link>
+                {h.scheduledAt ? (
+                  <span className="block text-xs text-muted-foreground">
+                    {t("dashboard.todo.handoverAt", { date: formatDateTime(h.scheduledAt) })}
+                  </span>
+                ) : null}
+              </li>
+            ))}
+            {todo.lateReserves ? (
+              <li className="py-2">
+                <Link
+                  href={{ pathname: "/deliveries", query: { state: "reserves" } }}
+                  className="hover:underline"
+                >
+                  {t("dashboard.todo.lateReserves", { count: todo.lateReserves })}
+                </Link>
+              </li>
+            ) : null}
             {todo.options?.map((o) => (
               <li key={o.unitId} className="py-2">
                 <Link

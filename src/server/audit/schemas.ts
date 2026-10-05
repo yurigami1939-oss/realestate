@@ -25,6 +25,7 @@ export const auditEntityTypes = [
   "staff_member",
   "general_assembly",
   "portal_link",
+  "handover",
 ] as const;
 export type AuditEntityType = (typeof auditEntityTypes)[number];
 

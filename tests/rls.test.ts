@@ -142,6 +142,20 @@ describe("append-only audit log", () => {
   });
 });
 
+describe("records never deleted", () => {
+  it.each(["reservation", "withdrawal", "quotation", "handover"])(
+    "%s: the app role may update but not delete or truncate",
+    async (table) => {
+      const { rows } = await db.execute<Record<string, boolean>>(sql`
+        select
+          has_table_privilege('realestate_app', ${`public.${table}`}, 'UPDATE') as "update",
+          has_table_privilege('realestate_app', ${`public.${table}`}, 'DELETE') as "delete",
+          has_table_privilege('realestate_app', ${`public.${table}`}, 'TRUNCATE') as "truncate"`);
+      expect(rows[0]).toEqual({ update: true, delete: false, truncate: false });
+    },
+  );
+});
+
 describe("append-only tables", () => {
   it.each([
     "audit_log",

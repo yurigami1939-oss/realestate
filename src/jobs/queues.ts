@@ -46,6 +46,8 @@ export const pdfDocumentKinds = [
   "assembly_convocation",
   "assembly_minutes",
   "announcement",
+  "handover_pv",
+  "handover_release",
 ] as const;
 export type PdfDocumentKind = (typeof pdfDocumentKinds)[number];
 
