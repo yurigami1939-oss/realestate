@@ -12,6 +12,7 @@ import { seedCrm } from "./crm";
 import { seedDeliveries } from "./deliveries";
 import { seedInventory } from "./inventory";
 import { seedPortal } from "./portal";
+import { seedRentals } from "./rentals";
 import { seedSales } from "./reservations";
 import { seedResidences } from "./residences";
 import { seedPaymentPlans, seedQuotations } from "./sales";
@@ -124,5 +125,9 @@ export async function seedDemo(): Promise<void> {
       propertyManager: ctx("propertyManager", ["property_manager"]),
     });
     await seedConstruction(technical, new Map([...projectIds, ["AMND", amandiers.projectId]]));
+    await seedRentals({
+      manager: ctx("propertyManager", ["property_manager"]),
+      cashier: ctx("cashier", ["cashier"]),
+    });
   }
 }

@@ -41,19 +41,40 @@ b{font-weight:600}
 .amount{border:1pt solid #d4d4d4;border-radius:4pt;padding:8pt;margin:10pt 0;text-align:center;font-size:18pt;font-weight:700}
 .signatures{display:flex;justify-content:space-between;margin-top:26pt}
 .signatures div{width:45%;border-top:1pt solid #a3a3a3;padding-top:4pt}
+.code{white-space:nowrap}
 `;
+
+/** Document numbers and unit codes (BAL-2026-000001, A-03-12, VIR-118). */
+const CODE = /([A-Z][A-Z0-9]{0,3}(?:-[A-Z0-9]+)+)/;
+
+/** Text whose codes never wrap at their hyphens and keep their left-to-right order. */
+function WithCodes({ text }: { text: string }) {
+  return text.split(CODE).map((part, index) =>
+    index % 2 === 1 ? (
+      <bdi key={index} dir="ltr" className="code">
+        {part}
+      </bdi>
+    ) : (
+      part
+    ),
+  );
+}
 
 function Row({ fr, ar, value }: { fr: string; ar: string; value: { fr: string; ar: string } }) {
   return (
     <>
       <div>
         <span className="label">{fr} : </span>
-        <b>{value.fr}</b>
+        <b>
+          <WithCodes text={value.fr} />
+        </b>
       </div>
       <div dir="rtl" lang="ar">
         <span className="label">{ar}: </span>
         <b>
-          <bdi>{value.ar}</bdi>
+          <bdi>
+            <WithCodes text={value.ar} />
+          </bdi>
         </b>
       </div>
     </>
