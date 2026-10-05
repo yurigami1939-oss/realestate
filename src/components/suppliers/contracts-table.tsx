@@ -18,6 +18,7 @@ import { deleteContractAction } from "@/server/suppliers/actions";
 import type { ContractRow, ContractTarget } from "@/server/suppliers/queries";
 
 import { ContractDialog } from "./contract-dialog";
+import { SupplierScan } from "./supplier-scan";
 
 /** Contracts with their period, category and state; shows the supplier or the residence. */
 export function ContractsTable({
@@ -59,7 +60,15 @@ export function ContractsTable({
         <TableBody>
           {contracts.map((c) => (
             <TableRow key={c.id}>
-              <TableCell className="font-medium whitespace-normal">{c.label}</TableCell>
+              <TableCell className="whitespace-normal">
+                <span className="font-medium">{c.label}</span>
+                <SupplierScan
+                  purpose="supplier_contract.scan"
+                  entityId={c.id}
+                  fileId={c.scanFileId}
+                  editable={editable}
+                />
+              </TableCell>
               <TableCell className="whitespace-normal">
                 {show === "supplier" ? (
                   <Link href={`/suppliers/${c.supplierId}`} className="hover:underline">

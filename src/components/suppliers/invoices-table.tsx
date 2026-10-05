@@ -19,6 +19,7 @@ import { deleteInvoiceAction } from "@/server/suppliers/actions";
 import type { ContractRow, InvoiceRow } from "@/server/suppliers/queries";
 
 import { InvoiceDialog, PayInvoiceDialog } from "./invoice-dialogs";
+import { SupplierScan } from "./supplier-scan";
 
 /** Supplier invoices with their booking and payment state; actions while unpaid. */
 export function InvoicesTable({
@@ -84,7 +85,15 @@ export function InvoicesTable({
               <TableCell dir="ltr" className="text-start">
                 {i.number}
               </TableCell>
-              <TableCell className="whitespace-normal">{i.label}</TableCell>
+              <TableCell className="whitespace-normal">
+                {i.label}
+                <SupplierScan
+                  purpose="supplier_invoice.scan"
+                  entityId={i.id}
+                  fileId={i.scanFileId}
+                  editable={editable}
+                />
+              </TableCell>
               <TableCell className="whitespace-normal">
                 {i.fromReserve ? (
                   <Badge variant="outline">{t("reserveFund")}</Badge>

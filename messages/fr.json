@@ -2650,6 +2650,12 @@
         "state": "Paiement",
         "actions": "Actions"
       }
+    },
+    "scan": {
+      "open": "Scan",
+      "attach": "Joindre le scan",
+      "replace": "Remplacer le scan",
+      "saved": "Scan enregistré."
     }
   },
   "staff": {

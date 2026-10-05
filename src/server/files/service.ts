@@ -70,6 +70,9 @@ const readers: Record<string, Reader> = {
   },
   // Lease documents: quittances, deposit receipts, signed contract scans.
   lease: async (_tx, ctx) => can(ctx.roles, "lease:read"),
+  // Supplier contract and invoice scans.
+  supplier_contract: async (_tx, ctx) => can(ctx.roles, "supplier:read"),
+  supplier_invoice: async (_tx, ctx) => can(ctx.roles, "supplier:read"),
   // Site photos of construction progress reports.
   construction_report: async (_tx, ctx) => can(ctx.roles, "construction:read"),
   // A quotation PDF follows its lead: commercials only see their own leads' quotations.

@@ -66,6 +66,7 @@ async function contracts(ctx: TenantCtx, where: { supplierId?: string; residence
         endOn: supplierContract.endOn,
         annualAmount: supplierContract.annualAmount,
         notes: supplierContract.notes,
+        scanFileId: supplierContract.scanFileId,
         running: running(today),
       })
       .from(supplierContract)
@@ -173,6 +174,7 @@ export async function listInvoices(
         paymentMethod: supplierInvoice.paymentMethod,
         paymentReference: supplierInvoice.paymentReference,
         notes: supplierInvoice.notes,
+        scanFileId: supplierInvoice.scanFileId,
       })
       .from(supplierInvoice)
       .innerJoin(supplier, eq(supplier.id, supplierInvoice.supplierId))

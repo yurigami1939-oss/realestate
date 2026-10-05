@@ -45,6 +45,16 @@ export const uploadPurposes = {
     accept: ["application/pdf", "image/png", "image/jpeg", "image/webp"],
     maxBytes: MAX_UPLOAD_BYTES,
   },
+  /** Signed supplier contract (scan). */
+  "supplier_contract.scan": {
+    accept: ["application/pdf", "image/png", "image/jpeg", "image/webp"],
+    maxBytes: MAX_UPLOAD_BYTES,
+  },
+  /** Supplier invoice (scan). */
+  "supplier_invoice.scan": {
+    accept: ["application/pdf", "image/png", "image/jpeg", "image/webp"],
+    maxBytes: MAX_UPLOAD_BYTES,
+  },
   /** Site photo of a construction progress report (shown to buyers when the report is published). */
   "construction_report.photo": {
     accept: ["image/png", "image/jpeg", "image/webp"],

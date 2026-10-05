@@ -11,6 +11,7 @@ import { todayInAlgiers } from "@/lib/dates";
 import { AppError } from "@/lib/result";
 import { recordAudit } from "@/server/audit/record-audit";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
+import { checkUpload, discardFile, storeFile, type Upload } from "@/server/files/service";
 import { loadResidence } from "@/server/residences/service";
 
 import type { createInvoiceSchema, payInvoiceSchema, updateInvoiceSchema } from "./schemas";
@@ -185,5 +186,32 @@ export async function deleteInvoice(ctx: TenantCtx, invoiceId: string) {
       entityId: invoiceId,
       before: { number: current.number, amount: current.amount },
     });
+  });
+}
+
+/**
+ * Attaches (or replaces) an invoice's scan (supplier:update), paid or not; filed under the
+ * invoice, readable with `supplier:read`. The replaced scan is discarded.
+ */
+export async function setInvoiceScan(
+  ctx: TenantCtx,
+  input: { invoiceId: string; upload: Upload },
+): Promise<{ fileId: string }> {
+  assertCan(ctx, "supplier:update");
+  const contentType = checkUpload("supplier_invoice.scan", input.upload);
+  return withTenant(ctx, async (tx) => {
+    const current = await loadInvoice(tx, input.invoiceId);
+    const stored = await storeFile(tx, ctx, {
+      entityType: "supplier_invoice",
+      entityId: current.id,
+      upload: input.upload,
+      contentType,
+    });
+    await tx
+      .update(supplierInvoice)
+      .set({ scanFileId: stored.id })
+      .where(eq(supplierInvoice.id, current.id));
+    if (current.scanFileId) await discardFile(tx, current.scanFileId);
+    return { fileId: stored.id };
   });
 }

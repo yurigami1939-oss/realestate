@@ -160,6 +160,23 @@ test.describe("gestionnaire", () => {
     await expectPdf(page, draft.getByRole("link", { name: "Avis à afficher (PDF)" }));
   });
 
+  test("keeps the scan of a supplier invoice", async ({ page }) => {
+    await openResidence(page);
+    await page.getByRole("link", { name: "Dépenses" }).click();
+    const invoice = page
+      .getByTestId("invoices")
+      .getByRole("row")
+      .filter({ hasText: "Maintenance du trimestre" })
+      .first();
+    await invoice.getByTestId("upload-supplier_invoice.scan").setInputFiles({
+      name: "facture.pdf",
+      mimeType: "application/pdf",
+      buffer: Buffer.from("%PDF-1.7\nfacture\n%%EOF"),
+    });
+    await expect(page.getByText("Scan enregistré.")).toBeVisible();
+    await expectPdf(page, invoice.getByRole("link", { name: "Scan", exact: true }));
+  });
+
   test("reads the residence in Arabic, right to left", async ({ page }) => {
     await openResidence(page, "ar");
     await expect(page.locator("html")).toHaveAttribute("dir", "rtl");

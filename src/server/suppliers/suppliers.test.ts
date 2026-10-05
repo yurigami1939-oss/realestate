@@ -17,12 +17,19 @@ import {
   saveBudgetSchema,
 } from "@/server/charges/schemas";
 import { createResidenceSchema, saveSharesSchema } from "@/server/residences/schemas";
+import { getFileDownloadUrl } from "@/server/files/service";
 import { createResidence, saveShares } from "@/server/residences/service";
 
 import { addMember, createSalesTeam, createTenantCtx } from "../../../tests/factories";
 import { createSaleSetup } from "../../../tests/sales-fixtures";
 
-import { deleteInvoice, payInvoice, recordInvoice, updateInvoice } from "./invoices";
+import {
+  deleteInvoice,
+  payInvoice,
+  recordInvoice,
+  setInvoiceScan,
+  updateInvoice,
+} from "./invoices";
 
 import {
   getSupplier,
@@ -45,6 +52,7 @@ import {
   createSupplier,
   deleteContract,
   deleteSupplier,
+  setContractScan,
   updateContract,
   updateSupplier,
 } from "./service";
@@ -339,5 +347,79 @@ describe("supplier invoices", () => {
       "supplier_invoice.pay",
     ]);
     expect(works).toBeTruthy();
+  });
+});
+
+describe("supplier scans", () => {
+  const pdf = (name: string) => ({
+    fileName: `${name}.pdf`,
+    bytes: new TextEncoder().encode(`%PDF-1.7\n${name}\n%%EOF`),
+  });
+
+  it("keeps the signed contract and each invoice, readable by whoever sees suppliers", async () => {
+    const { team, manager, residenceId, categoryId } = await scenario();
+    const cashier = await addMember(team.orgId, ["cashier"]);
+    const accountant = await addMember(team.orgId, ["accountant"]);
+    const { id: supplierId } = await createSupplier(manager, supplierInput());
+    const { id: contractId } = await createContract(
+      manager,
+      createContractSchema.parse({
+        supplierId,
+        residenceId,
+        categoryId,
+        label: "Maintenance trimestrielle",
+        startOn: addDays(today, -30),
+        endOn: "",
+        annualAmount: "",
+      }),
+    );
+
+    await expect(
+      setContractScan(cashier, { contractId, upload: pdf("contrat") }),
+    ).rejects.toMatchObject({ code: "FORBIDDEN" });
+    await expect(
+      setContractScan(manager, {
+        contractId,
+        upload: { fileName: "contrat.txt", bytes: new TextEncoder().encode("hello") },
+      }),
+    ).rejects.toMatchObject({ code: "VALIDATION" });
+    await setContractScan(manager, { contractId, upload: pdf("contrat") });
+    const replaced = await setContractScan(manager, { contractId, upload: pdf("avenant") });
+    const [contract] = await listResidenceContracts(manager, residenceId);
+    expect(contract?.scanFileId).toBe(replaced.fileId);
+    expect(await getFileDownloadUrl(accountant, replaced.fileId, "inline")).toMatch(/^http/);
+    await expect(getFileDownloadUrl(cashier, replaced.fileId, "inline")).rejects.toMatchObject({
+      code: "FORBIDDEN",
+    });
+
+    // An invoice takes its scan before and after payment.
+    const { id: invoiceId } = await recordInvoice(
+      manager,
+      createInvoiceSchema.parse({
+        supplierId,
+        residenceId,
+        categoryId,
+        contractId,
+        number: "F-2026-021",
+        invoiceOn: addDays(today, -10),
+        dueOn: "",
+        label: "Maintenance",
+        amount: "60 000",
+        fromReserve: false,
+        notes: "",
+      }),
+    );
+    await payInvoice(
+      manager,
+      payInvoiceSchema.parse({
+        invoiceId,
+        paidOn: today,
+        method: "bank_transfer",
+        reference: "VIR-77",
+      }),
+    );
+    const scanned = await setInvoiceScan(manager, { invoiceId, upload: pdf("facture") });
+    const [invoice] = await listInvoices(manager, { residenceId });
+    expect(invoice?.scanFileId).toBe(scanned.fileId);
   });
 });

@@ -1,0 +1,4 @@
+ALTER TABLE "supplier_contract" ADD COLUMN "scan_file_id" uuid;--> statement-breakpoint
+ALTER TABLE "supplier_invoice" ADD COLUMN "scan_file_id" uuid;--> statement-breakpoint
+ALTER TABLE "supplier_contract" ADD CONSTRAINT "supplier_contract_scan_fk" FOREIGN KEY ("organization_id","scan_file_id") REFERENCES "public"."file"("organization_id","id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "supplier_invoice" ADD CONSTRAINT "supplier_invoice_scan_fk" FOREIGN KEY ("organization_id","scan_file_id") REFERENCES "public"."file"("organization_id","id") ON DELETE no action ON UPDATE no action;

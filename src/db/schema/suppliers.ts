@@ -14,6 +14,7 @@ import {
 
 import { id, money, organizationId, softDelete, timestamps } from "./_columns";
 import { chargeCategory } from "./charges";
+import { file } from "./files";
 import { residence } from "./residences";
 import { paymentMethod } from "./sales";
 
@@ -60,6 +61,8 @@ export const supplierContract = pgTable(
     endOn: date({ mode: "string" }),
     annualAmount: money(),
     notes: text(),
+    /** The signed contract (scan). */
+    scanFileId: uuid(),
     ...timestamps(),
     ...softDelete(),
   },
@@ -85,6 +88,11 @@ export const supplierContract = pgTable(
       ],
     }),
     index().on(t.organizationId, t.residenceId),
+    foreignKey({
+      name: "supplier_contract_scan_fk",
+      columns: [t.organizationId, t.scanFileId],
+      foreignColumns: [file.organizationId, file.id],
+    }),
     index().on(t.organizationId, t.supplierId),
     check("supplier_contract_period", sql`${t.endOn} is null or ${t.endOn} >= ${t.startOn}`),
     check("supplier_contract_amount", sql`${t.annualAmount} is null or ${t.annualAmount} >= 0`),
@@ -117,6 +125,8 @@ export const supplierInvoice = pgTable(
     paymentMethod: paymentMethod(),
     paymentReference: text(),
     notes: text(),
+    /** The invoice (scan), attached at any time, even once paid. */
+    scanFileId: uuid(),
     ...timestamps(),
     ...softDelete(),
   },
@@ -145,6 +155,11 @@ export const supplierInvoice = pgTable(
       name: "supplier_invoice_contract_fk",
       columns: [t.organizationId, t.contractId],
       foreignColumns: [supplierContract.organizationId, supplierContract.id],
+    }),
+    foreignKey({
+      name: "supplier_invoice_scan_fk",
+      columns: [t.organizationId, t.scanFileId],
+      foreignColumns: [file.organizationId, file.id],
     }),
     uniqueIndex("supplier_invoice_number_key")
       .on(t.organizationId, t.supplierId, t.number)

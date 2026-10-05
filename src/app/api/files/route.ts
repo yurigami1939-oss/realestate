@@ -11,6 +11,8 @@ import { setUnitFloorPlan } from "@/server/inventory/floor-plans";
 import { setCompanyLogo } from "@/server/organizations/settings";
 import { setLeaseContractScan } from "@/server/rentals/service";
 import { setReservationScan } from "@/server/sales/reservations";
+import { setInvoiceScan } from "@/server/suppliers/invoices";
+import { setContractScan } from "@/server/suppliers/service";
 import { assertSameOrigin, jsonResult, readFormData } from "@/server/route-handler";
 
 const uploadFields = z.object({
@@ -75,6 +77,18 @@ export async function POST(request: Request) {
           upload,
         });
         revalidatePath("/[locale]/rentals", "layout");
+        return result;
+      }
+      case "supplier_contract.scan": {
+        const result = await setContractScan(ctx, { contractId: fields.data.entityId, upload });
+        revalidatePath("/[locale]/suppliers", "layout");
+        revalidatePath("/[locale]/residences", "layout");
+        return result;
+      }
+      case "supplier_invoice.scan": {
+        const result = await setInvoiceScan(ctx, { invoiceId: fields.data.entityId, upload });
+        revalidatePath("/[locale]/suppliers", "layout");
+        revalidatePath("/[locale]/residences", "layout");
         return result;
       }
       case "construction_report.photo": {

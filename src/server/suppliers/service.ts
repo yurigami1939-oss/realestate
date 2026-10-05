@@ -8,6 +8,7 @@ import { chargeCategory, supplier, supplierContract } from "@/db/schema";
 import { withTenant } from "@/db/tenant";
 import { AppError } from "@/lib/result";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
+import { checkUpload, discardFile, storeFile, type Upload } from "@/server/files/service";
 import { loadResidence } from "@/server/residences/service";
 
 import type {
@@ -130,5 +131,32 @@ export async function deleteContract(ctx: TenantCtx, contractId: string) {
       .update(supplierContract)
       .set({ deletedAt: new Date(), deletedBy: ctx.userId })
       .where(eq(supplierContract.id, contractId));
+  });
+}
+
+/**
+ * Attaches (or replaces) the signed contract's scan (supplier:update); filed under the contract,
+ * readable with `supplier:read`. The replaced scan is discarded.
+ */
+export async function setContractScan(
+  ctx: TenantCtx,
+  input: { contractId: string; upload: Upload },
+): Promise<{ fileId: string }> {
+  assertCan(ctx, "supplier:update");
+  const contentType = checkUpload("supplier_contract.scan", input.upload);
+  return withTenant(ctx, async (tx) => {
+    const current = await loadContract(tx, input.contractId);
+    const stored = await storeFile(tx, ctx, {
+      entityType: "supplier_contract",
+      entityId: current.id,
+      upload: input.upload,
+      contentType,
+    });
+    await tx
+      .update(supplierContract)
+      .set({ scanFileId: stored.id })
+      .where(eq(supplierContract.id, current.id));
+    if (current.scanFileId) await discardFile(tx, current.scanFileId);
+    return { fileId: stored.id };
   });
 }
