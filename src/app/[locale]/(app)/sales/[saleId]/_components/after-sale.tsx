@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/select";
 import { applyRate, formatDZD, parseDZD, parsePercentToBasisPoints } from "@/lib/money";
 import { netPrice } from "@/lib/payment-plans";
-import { bankLoanStatuses, MAX_BUYERS_PER_SALE, paymentMethods } from "@/lib/sales";
+import { bankLoanStatuses, counterPaymentMethods, MAX_BUYERS_PER_SALE } from "@/lib/sales";
 import {
   createBankLoanAction,
   decideWithdrawalAction,
@@ -227,7 +227,7 @@ export function WithdrawalRefundDialog({
         control={form.control}
         name="method"
         label={tp("fields.method")}
-        options={paymentMethods.map((m) => ({ value: m, label: tp(`method.${m}`) }))}
+        options={counterPaymentMethods.map((m) => ({ value: m, label: tp(`method.${m}`) }))}
       />
       <TextField control={form.control} name="reference" label={tp("fields.reference")} dir="ltr" />
     </FormDialog>

@@ -20,7 +20,7 @@ import {
 import { withTenant } from "@/db/tenant";
 import { periodLabels } from "@/lib/charges";
 import { formatDate } from "@/lib/dates";
-import type { ChargePaymentMethod } from "@/lib/residences";
+import { paymentMethodLabels } from "@/pdf/payment-methods";
 import { type ReceiptData, receiptHtml } from "@/pdf/receipt";
 import { renderPdf } from "@/pdf/render";
 import { type ChargeCallData, ChargeCallTemplate } from "@/pdf/templates/charge-call";
@@ -130,13 +130,6 @@ export async function renderAndStoreChargeCall(
   });
 }
 
-const methodLabels: Record<ChargePaymentMethod, { fr: string; ar: string }> = {
-  cash: { fr: "Espèces", ar: "نقداً" },
-  cheque: { fr: "Chèque", ar: "صك" },
-  bank_transfer: { fr: "Virement bancaire", ar: "تحويل بنكي" },
-  ccp: { fr: "Versement CCP", ar: "دفع عبر الحساب البريدي الجاري" },
-};
-
 /** Everything printed on a charge receipt, resolved from the database (null if unknown). */
 export async function loadChargeReceiptData(
   tx: Tx,
@@ -159,8 +152,7 @@ export async function loadChargeReceiptData(
   const company = await loadCompanyLetterhead(tx, orgId);
 
   const p = row.payment;
-  // Charge payments never use bank loans (checked by the table).
-  const method = methodLabels[p.method === "bank_loan" ? "bank_transfer" : p.method];
+  const method = paymentMethodLabels[p.method];
   const details = (number: string) =>
     [p.reference ? `${number} ${p.reference}` : null, p.bank ? `(${p.bank})` : null]
       .filter(Boolean)
@@ -199,6 +191,7 @@ export async function loadChargeReceiptData(
       },
       amount: p.amount,
       cashier: row.cashier,
+      online: p.method === "card",
       title: { fr: "REÇU DE CHARGES", ar: "وصل تسديد الأعباء" },
       party: { fr: "Le copropriétaire", ar: "المالك المشترك" },
     },

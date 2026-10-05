@@ -24,6 +24,8 @@ export type ReceiptData = {
   method: { fr: string; ar: string };
   amount: Centimes;
   cashier: string;
+  /** Paid online by card (SATIM): no cashier signs. */
+  online?: boolean;
   /** Document title (default: payment receipt) and who signs opposite the cashier (client). */
   title?: { fr: string; ar: string };
   party?: { fr: string; ar: string };
@@ -132,11 +134,19 @@ export function ReceiptTemplate({ data }: { data: ReceiptData }) {
       </p>
 
       <div className="signatures">
-        <div className="muted">
-          Le caissier · أمين الصندوق
-          <br />
-          <span style={{ color: "#171717" }}>{data.cashier}</span>
-        </div>
+        {data.online ? (
+          <div className="muted">
+            Paiement en ligne · دفع إلكتروني
+            <br />
+            <span style={{ color: "#171717" }}>SATIM · CIB / Edahabia</span>
+          </div>
+        ) : (
+          <div className="muted">
+            Le caissier · أمين الصندوق
+            <br />
+            <span style={{ color: "#171717" }}>{data.cashier}</span>
+          </div>
+        )}
         <div className="muted">
           {data.party?.fr ?? "Le client"} · {data.party?.ar ?? "الزبون"}
         </div>

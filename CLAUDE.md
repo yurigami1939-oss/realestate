@@ -94,10 +94,14 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
     │   │   ├── (auth)/       # sign-in, sign-up, forgot/reset password, onboarding, accept-invitation
     │   │   ├── (app)/        # back-office shell (guard + sidebar) · dashboard · settings (members,
     │   │   │                 # company + logo, audit log) · projects · construction · leads · buyers · sales
-    │   │   │                 # · commissions · deliveries · rentals · residences
-    │   │   └── (portal)/     # portal of buyers, co-owners and occupants (module 7): own shell, /portal
+    │   │   │                 # · commissions · deliveries · rentals · residences · online-payments
+    │   │   │                 # · settings/online-payment (SATIM account)
+    │   │   └── (portal)/     # portal of buyers, co-owners and occupants (module 7): own shell, /portal,
+    │   │                     # /portal/payments (online payment results), /portal/payment-terms
     │   ├── api/auth/[...all] # Better Auth handler (Route Handlers: auth, files, webhooks, /api/v1)
     │   ├── api/files/        # upload (POST) · [fileId] download (GET → presigned redirect)
+    │   ├── api/online-payments/return # where SATIM sends the payer back (confirm, then result page)
+    │   ├── api/dev/          # local stand-ins (DEV_GATEWAYS only): satim/[...path] (SATIM REST + page)
     │   └── fonts.ts          # next/font/local for the shared font
     ├── components/
     │   ├── ui/               # shadcn/ui primitives (generated; sidebar labels made translatable)
@@ -112,6 +116,8 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
     │   ├── handovers/        # delivery state badges, filters, appointment / reserve / PV dialogs, PV links
     │   ├── rentals/          # lease form (schedule preview), payment / end / renewal / deposit / inspection
     │   │                     # dialogs, badges, PDF links
+    │   ├── online-payments/  # « Payer en ligne » dialog, status / test / cards badges, result page actions,
+    │   │                     # staff filters, re-check and refund
     │   ├── residences/ · staff/ · suppliers/ · tickets/ · assemblies/ · announcements/  # residence
     │   │                     # module: dialogs, ChargeDocumentPdf, attendance grid, payroll, attendance
     │   │                     # sheet, vote grid
@@ -129,7 +135,8 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
     │   │                     # deliveries.ts (« Résidence Les Amandiers »: sold units, handovers, reserves, PVs),
     │   │                     # construction.ts (progress reports; photos.ts draws the site photos), rentals.ts
     │   │                     # (leases of the kept shop and two flats: payments, états des lieux, an ended lease
-    │   │                     # with its deposit settled); grows per module
+    │   │                     # with its deposit settled), online-payments.ts (the SATIM account on the test
+    │   │                     # platform); grows per module
     │   ├── client.ts         # pg Pool + drizzle (app role)
     │   ├── tenant.ts         # withTenant(scope, fn, tx?)
     │   └── migrate.ts        # migrateDatabase(): migrations + post-migrate + pg-boss
@@ -159,6 +166,9 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
     │   ├── sales/            # options, reservations + VSP (reservations.ts), sale queries, withdrawals,
     │   │                     # transfers + unit swaps (changes.ts), bank loans, documents; access.ts
     │   ├── payments/         # payments + receipts (record, cancel, clear cheque), receipt PDF
+    │   ├── online-payments/  # SATIM card payments: satim.ts (REST client), satim-standin.ts (local stand-in),
+    │   │                     # gateway.ts (account, base URLs), service.ts (start, confirm, check, refund,
+    │   │                     # settings), queries.ts, portal-actions.ts
     │   ├── payment-calls/    # milestone validation, appels de fonds (job + PDF)
     │   ├── collections/      # derived overdue, reminder letters (PDF), daily digest (jobs)
     │   ├── commissions/      # list, mark paid, rates per commercial
@@ -179,9 +189,11 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
     │   │                     # (home), sales.ts (a buyer's sale), residences.ts (charges account, announcements,
     │   │                     # tickets, assemblies), files.ts (which stored files a portal account may download)
     │   ├── documents/        # render.ts: `pdf.document` dispatcher (one renderer per kind)
+    │   ├── secrets.ts        # encryptSecret / decryptSecret (AES-256-GCM, SECRETS_KEY): organization secrets
     │   └── <module>/         # schemas.ts (isomorphic) · queries.ts · service.ts · actions.ts · *.test.ts
     ├── jobs/                 # queues.ts (names, retry policy, payload types), enqueue.ts, worker.ts, handlers/
     ├── pdf/                  # render.ts (Chromium), document.tsx (shell + fonts), receipt.ts, quotation.ts,
+    │                         # payment-methods.ts (method labels on receipts),
     │                         # templates/ (letterhead, quotation, receipt, reservation-sheet, payment-call,
     │                         # reminder-letter, charge-call, charge-reminder, assembly-convocation,
     │                         # assembly-minutes, announcement-notice, handover-pv, handover-release)
@@ -191,7 +203,8 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
                               # inventory, crm (stages), phone, payment-plans (buildSchedule, VSP limits, milestone
                               # due date), statement (FIFO allocation, overdue, penalties), sales, quotations, files, zod, ids,
                               # residences (frequencies, keys), charges (period parts, splits, period names),
-                              # assemblies (majorities, vote tallies), announcements (categories, state)
+                              # assemblies (majorities, vote tallies), announcements (categories, state),
+                              # online-payments (statuses, 50 DA minimum, amount offered)
 ```
 
 ## 5. Architecture rules
@@ -220,7 +233,7 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 ### Mutations
 - Server Actions in `src/server/<module>/actions.ts` (`'use server'`), each `defineAction({ input, permission }, handler)`: zod parse → `getTenantCtx()` → `assertCan` → handler → `Result<T>`. Never throws to the client except Next control flow. Handlers call services, then `revalidatePath`.
 - Client components run actions with `useAction(action)` (translated error toasts).
-- Route Handlers only for: Better Auth (`/api/auth/[...all]`), file upload/download (`/api/files`), webhooks (SATIM, WhatsApp), future mobile API (`/api/v1/*`). They answer the same `Result<T>` JSON via `jsonResult()` (HTTP status from the error code) and call services exactly like actions.
+- Route Handlers only for: Better Auth (`/api/auth/[...all]`), file upload/download (`/api/files`), the payment gateway's return (`/api/online-payments/return`), webhooks (WhatsApp), the local stand-ins of external services (`/api/dev/*`, DEV_GATEWAYS only), future mobile API (`/api/v1/*`). They answer the same `Result<T>` JSON via `jsonResult()` (HTTP status from the error code) and call services exactly like actions.
 
 ### Auth & roles
 - Better Auth: email + password, password reset, organization plugin, invitations by email (7 days). `session.activeOrganizationId` = current tenant; new sessions land in the user's first organization (database hook); the org switcher changes it.
@@ -250,7 +263,7 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 - Worker = separate process (`pnpm worker`), graceful shutdown. Next.js only calls `enqueue()` (send-only instance).
 - Tenant jobs carry `organizationId` and run inside `withTenant`; platform jobs (auth emails) do not. Handlers are idempotent. Money in payloads = decimal string of centimes.
 - A job that follows a business write is enqueued **in the same transaction** with `enqueueInTx(tx, …)` (pg-boss `fromDrizzle`): it exists only if the write commits. `singletonKey` = the record id — on standard queues pg-boss only deduplicates **throttled** jobs (`singletonSeconds`), so handlers must be idempotent; once-a-day jobs use `singletonSeconds: 86_400`.
-- Queues today: `email.send`; `pdf.document` (`{ organizationId, kind, id }`, kinds `quotation`, `reservation_sheet`, `receipt`, `payment_call`, `reminder_letter`, `charge_call`, `charge_receipt`, `charge_reminder`, `assembly_convocation`, `assembly_minutes`, `announcement`, `handover_pv`, `handover_release`, `rent_receipt`, `lease_inspection`: one renderer per kind in `src/server/documents/render.ts`, each renders once and links the stored file; a running worker must be restarted to know a new kind); `option.expire` (scheduled at the option's expiry); `payment_call.issue` (after a milestone validation); `reminders.daily` (cron 08:00 Africa/Algiers, declared in `schedules` in `queues.ts` and installed by `db:migrate`) → one `reminders.digest` per organization, which sends the overdue sales digest, the overdue charges digest and the rentals digest (overdue rents, leases ending within 30 days).
+- Queues today: `email.send`; `pdf.document` (`{ organizationId, kind, id }`, kinds `quotation`, `reservation_sheet`, `receipt`, `payment_call`, `reminder_letter`, `charge_call`, `charge_receipt`, `charge_reminder`, `assembly_convocation`, `assembly_minutes`, `announcement`, `handover_pv`, `handover_release`, `rent_receipt`, `lease_inspection`: one renderer per kind in `src/server/documents/render.ts`, each renders once and links the stored file; a running worker must be restarted to know a new kind); `option.expire` (scheduled at the option's expiry); `payment_call.issue` (after a milestone validation); `reminders.daily` (cron 08:00 Africa/Algiers, declared in `schedules` in `queues.ts` and installed by `db:migrate`) → one `reminders.digest` per organization, which sends the overdue sales digest, the overdue charges digest and the rentals digest (overdue rents, leases ending within 30 days); `online_payment.check` (30 minutes after an online payment starts: settles it with SATIM if the payer never came back; retried every 10 minutes while SATIM has it in progress).
 - `db:migrate` starts pg-boss once with the scheduler on so its internal cron queue exists before any worker (see §12). Stop dev workers by killing the node process tree (Windows keeps children of a stopped shell).
 
 ### Email
@@ -274,7 +287,9 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 - Tenant data is dynamic by default. Any `use cache` / cached function on tenant data must include `orgId` in its key and be tagged `org:{orgId}:{entity}`.
 
 ### Config
-- `src/env.ts` validates: `DATABASE_URL` (app role), `DATABASE_OWNER_URL`, `BETTER_AUTH_SECRET` (≥32), `BETTER_AUTH_URL`, `S3_*`, `SMTP_*`. `.env.example` lists them with local defaults.
+- `src/env.ts` validates: `DATABASE_URL` (app role), `DATABASE_OWNER_URL`, `BETTER_AUTH_SECRET` (≥32), `BETTER_AUTH_URL`, `S3_*`, `SMTP_*`, `SECRETS_KEY` (optional), `DEV_GATEWAYS`, `SATIM_TEST_URL`, `SATIM_PRODUCTION_URL`. `.env.example` lists them with local defaults.
+- **Organization secrets** (a SATIM password, API tokens) are stored encrypted (`encryptSecret`, AES-256-GCM) with `SECRETS_KEY` (base64 of 32 bytes; derived from `BETTER_AUTH_SECRET` when absent — set it in production: changing either key makes saved secrets unreadable, to be typed again). Never sent back to a browser nor written to the audit log.
+- **Stand-ins** (`DEV_GATEWAYS`, default on outside production builds; e2e sets it): `/api/dev/satim/*` answers like SATIM's test platform and the test platform's URL points to it unless `SATIM_TEST_URL` is set. Never enable in production.
 
 ## 6. Domain glossary
 
@@ -305,7 +320,9 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 | Échéancier / Échéance | `installment` (of a `reservation`) | built from the plan at reservation; milestone lines dated at validation |
 | Appel de fonds | `payment_call` | |
 | Encaissement / Reçu | `payment` / `receipt` | |
-| Mode de paiement (espèces, chèque, virement, CCP, crédit) | `payment_method` | `cash`, `cheque`, `bank_transfer`, `ccp`, `bank_loan` |
+| Mode de paiement (espèces, chèque, virement, CCP, crédit, carte) | `payment_method` | `cash`, `cheque`, `bank_transfer`, `ccp`, `bank_loan`, `card` (online payments only; forms offer `counterPaymentMethods`) |
+| Paiement en ligne (carte CIB / Edahabia, SATIM) | `online_payment` | `order_number` (10 digits) sent to SATIM; `created` → `pending` → `paid` / `failed` / `expired`; `paid` → `refunded` |
+| Compte marchand SATIM (identifiant, mot de passe, n° de terminal) | `payment_gateway` | one per organization; `environment` `test` / `production` |
 | Pénalité de retard | `late_penalty` | |
 | Désistement | `withdrawal` | refund / retention |
 | Cession de réservation | `reservation_transfer` | |
@@ -457,6 +474,15 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 - **États des lieux** (`lease_inspection`, `lease:update`): d'entrée (active lease) and de sortie (before or after the end), one of each, dated from the signature to today: each element of the unit with its condition (bon / moyen / mauvais) and remarks (rows prefilled with the usual elements, at check-out with those of the entry), keys, meters, observations; final; bilingual report (`lease_inspection`) whose exit version shows each element's condition at the entry; audited.
 - **Overdue rents** (reminders only, no penalties): `/rentals/overdue` lists the leases (active or ended) with rent due before today and not paid, most late first; the dashboard shows them (`lease:read`) and the leases to end or renew (term within 60 days or over, `lease:update`); the daily digest e-mails the overdue rents and the leases ending within 30 days to property managers and cashiers. A rented unit's sheet links its lease; a free or kept one offers « Louer ».
 
+### Online payment (Phase 3)
+- **The promoter's own SATIM account** (`payment_gateway`, `organization:update`): each organization is paid on its own SATIM merchant account (CIB and Edahabia cards): login, password (encrypted, never sent back), terminal (`force_terminal_id`), test or production platform, and what the portal may pay (sales installments, charges). Audited `organization.online_payment` (never the password).
+- **Paying** (portal, `startOnlinePayment`): a buyer pays its own live sale, a co-owner the charges of its unit (`targetId`); at least 50 DA, at most the remaining balance (installments: price − paid; charges: called − paid); the amount offered is what is due today, else the next installment or call (`onlinePaymentOffer`); the conditions (`/portal/payment-terms`) are accepted first. The `online_payment` row (random 10-digit `order_number`, unique per organization, drawn again when SATIM already knows it) is registered with SATIM (`register.do`: amount in centimes, currency 012, FR / AR page, return and fail URL `/api/online-payments/return?org=…&id=…`) and the browser goes to SATIM's page; `online_payment.check` is scheduled 30 minutes later.
+- **Confirmation** (`finalizeOnlinePayment`, on the return, the check job, a refresh): only SATIM's answer counts (`confirmOrder.do`), never the return URL's parameters. Paid (`OrderStatus` 2) → recorded in the same transaction by the counter services (`insertSalePayment` / `insertChargePayment`, in a savepoint): method `card`, by the paying portal account, dated the day the payment started, reference = the order number, receipt REC- / RCH- (signed « Paiement en ligne · SATIM » instead of a cashier); declined, cancelled or unknown → `failed` with SATIM's message; still open → `pending`, `expired` when SATIM still has it unpaid after its 20-minute session (check job). A paid answer also settles a failed or expired payment: money taken is always recorded. Row lock: idempotent.
+- **Not recordable** (sale closed or balance settled meanwhile, amount different from SATIM's): `paid` with an `issue` (message key), shown « À traiter » on `/online-payments` and on the accountants' dashboard; the accountant refunds it (`refundOnlinePayment`, `payment:cancel`: SATIM `refund.do` first — skipped if SATIM already refunded it — then the payment and its receipt cancelled with the reason; `refunded`). A recorded payment is refunded the same way. Audited `online_payment.paid` (job, no actor) and `online_payment.refund`.
+- **Result page** (`/portal/payments/[id]`, what SATIM asks of merchants): outcome, SATIM's message, order and transaction numbers, authorization code, amount, date and time, masked card, the receipt, print, SATIM's free number 3020; `/portal/payments` lists the account's payments. Test platform payments carry « Test » (recorded with a receipt like real ones: the accountant cancels them).
+- **Staff list** (`/online-payments`, `payment:read`; sales payments need `sale:read_all`, charges ones `charge:read`): status, order, authorization, SATIM's message, receipt; filters (status, « à traiter », order number or payer); re-check (`payment:create`), refund (`payment:cancel`).
+- **Stand-in**: `/api/dev/satim/*` (DEV_GATEWAYS) speaks SATIM's REST protocol and shows a page with « Payer », « Refuser la carte », « Annuler »; its orders live in the server's memory (a restart forgets them: unknown = declined).
+
 ### Residence charges
 - `share` = integer weight per unit per residence (tantièmes, e.g. on a 10 000 basis). A residence enrols its project's live units with their inventory quote-part (`unit.share`, else 0); tantièmes are saved as a whole or split by area (living area, else usable area) with `allocate()`; audited `residence.shares`.
 - Distribution keys: `equal`, `share`, `per_building`, `custom` (explicit unit list, weighted `equal` or `share`, e.g. RDC excluded from elevator). Every distribution uses `allocate()` → lines sum exactly to the charge.
@@ -473,9 +499,9 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 - **Overdue charges** (reminders only, never penalties): `/residences/overdue` lists every unit with calls due before today and not covered, most late first; reminder letters (`charge:remind`: gérant, comptable, caissier, gestionnaire) keep the overdue calls as printed, a pay-by date (default 8 days) and the addressee, bilingual PDF; the daily digest e-mails property managers and cashiers when something is overdue.
 
 ### Audit & deletion
-- Audited: prices, payments, receipts, charge categories, budgets, charge periods, charge payments, supplier invoices, general assemblies (convening, closing with results), handovers (PV signed, reserves closed), leases (signed, corrected, ended, renewed, deposit settled, états des lieux) and rent payments, contracts (reservation, sale, contract details), installments/schedules, unit status, milestone validation, withdrawals (propose / approve / reject / refund), transfers, unit swaps, commissions (paid, rates), organization creation, invitations, member joins/role changes/removals.
+- Audited: prices, payments, receipts, charge categories, budgets, charge periods, charge payments, supplier invoices, general assemblies (convening, closing with results), handovers (PV signed, reserves closed), leases (signed, corrected, ended, renewed, deposit settled, états des lieux) and rent payments, online payments (confirmed, refunded) and the SATIM account, contracts (reservation, sale, contract details), installments/schedules, unit status, milestone validation, withdrawals (propose / approve / reject / refund), transfers, unit swaps, commissions (paid, rates), organization creation, invitations, member joins/role changes/removals.
 - `audit_log(organization_id, actor_user_id, action, entity_type, entity_id, before jsonb, after jsonb, reason, created_at)` written by `recordAudit(tx, scope, entry)` in the same transaction as the change (bigint → string, Date → ISO). `action` is semantic: `<entity>.<verb>`, e.g. `receipt.cancel`, `member.update_roles`. `actor_user_id` null for jobs.
-- DB grants enforce it (`post-migrate.sql`): no `UPDATE`/`DELETE`/`TRUNCATE` on `audit_log`, `reservation_transfer`, `unit_swap`; payments and receipts: no `DELETE`, column-level `UPDATE` (cancellation, cheque clearance, PDF link) only; payment calls and reminder letters: only their PDF link; reservations and withdrawals: no `DELETE`; charge periods: only their cancellation; charge calls: only their PDF link; charge call lines: append-only; charge payments: cancellation, cheque clearance and PDF link only; charge reminders: only their PDF link; ticket events: append-only; handovers and leases: no `DELETE`; rent payments: cancellation, cheque clearance and PDF link only; états des lieux: only their PDF link.
+- DB grants enforce it (`post-migrate.sql`): no `UPDATE`/`DELETE`/`TRUNCATE` on `audit_log`, `reservation_transfer`, `unit_swap`; payments and receipts: no `DELETE`, column-level `UPDATE` (cancellation, cheque clearance, PDF link) only; payment calls and reminder letters: only their PDF link; reservations and withdrawals: no `DELETE`; charge periods: only their cancellation; charge calls: only their PDF link; charge call lines: append-only; charge payments: cancellation, cheque clearance and PDF link only; charge reminders: only their PDF link; ticket events: append-only; handovers and leases: no `DELETE`; rent payments: cancellation, cheque clearance and PDF link only; états des lieux: only their PDF link; online payments: no `DELETE`.
 - Business records are soft-deleted (`softDelete()` helper: `deleted_at`, `deleted_by`); queries exclude them by default.
 
 ## 8. Coding conventions
@@ -516,7 +542,7 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 | Jobs/email | Vitest + Mailpit | handler delivers via SMTP (checked through Mailpit API); enqueue stores the job |
 | PDF | Vitest + Chromium | template HTML (RTL blocks, `<bdi>`, amounts in words) and one-page PDF |
 | Files | Vitest + SeaweedFS | magic-byte sniffing, file names, `Content-Disposition`, upload size cap and origin check (route helpers), floor plans stored/replaced/removed, presigned download |
-| E2E | Playwright, production build, `realestate_e2e` reset + seeded | anonymous redirect, sign-in error, members, org switch, FR→AR RTL, role-based UI; inventory: project → building → generated units → per-m² price list → block → floor plan, read-only commercial, Arabic unit sheet; CRM: lead (flagged duplicate) → call → visit → quotation → PDF by the worker, commercial scope, merge, discount + cancel, targets; sales golden path: lead → option → buyer file → reservation of the optioned unit → sheet PDF → cashier payment → receipt PDF, commercial scope, overdue list; seeded VSP with payment call, bank loan and commission; dashboard sections and overdue link; residence (gestionnaire): next quarter's charge calls → ADC PDF, overdue co-owner → charge receipt RCH PDF, lift ticket resolved, general assembly draft → convocation PDF → attendance with a proxy → votes → closing → PV PDF, announcement published → notice PDF, Arabic residence; portal (resident): back office refused, own sale → schedule, receipt and sheet PDFs, co-owned unit's charges, announcements, a ticket reported and received by the gestionnaire, assemblies → PV PDF, published construction reports with their photos, Arabic portal; construction (responsable technique): no sales access, progress report prefilled with the current progress → site photo, internal report kept in the back office, Arabic follow-up; deliveries: list order, appointment → reserve → PV de remise PDF → lifting → PV de levée PDF, unpaid balance warning, Arabic deliveries, dashboard to-dos (next handover, late reserves); rentals (gestionnaire): new lease with its schedule preview → deposit and rent receipts (QIT PDF) → entry inspection PDF → end → deposit settled, overdue rents from the sidebar, Arabic leases |
+| E2E | Playwright, production build, `realestate_e2e` reset + seeded | anonymous redirect, sign-in error, members, org switch, FR→AR RTL, role-based UI; inventory: project → building → generated units → per-m² price list → block → floor plan, read-only commercial, Arabic unit sheet; CRM: lead (flagged duplicate) → call → visit → quotation → PDF by the worker, commercial scope, merge, discount + cancel, targets; sales golden path: lead → option → buyer file → reservation of the optioned unit → sheet PDF → cashier payment → receipt PDF, commercial scope, overdue list; seeded VSP with payment call, bank loan and commission; dashboard sections and overdue link; residence (gestionnaire): next quarter's charge calls → ADC PDF, overdue co-owner → charge receipt RCH PDF, lift ticket resolved, general assembly draft → convocation PDF → attendance with a proxy → votes → closing → PV PDF, announcement published → notice PDF, Arabic residence; portal (resident): back office refused, own sale → schedule, receipt and sheet PDFs, co-owned unit's charges, announcements, a ticket reported and received by the gestionnaire, assemblies → PV PDF, published construction reports with their photos, Arabic portal; construction (responsable technique): no sales access, progress report prefilled with the current progress → site photo, internal report kept in the back office, Arabic follow-up; deliveries: list order, appointment → reserve → PV de remise PDF → lifting → PV de levée PDF, unpaid balance warning, Arabic deliveries, dashboard to-dos (next handover, late reserves); rentals (gestionnaire): new lease with its schedule preview → deposit and rent receipts (QIT PDF) → entry inspection PDF → end → deposit settled, overdue rents from the sidebar, Arabic leases; online payment (resident, SATIM stand-in): installment paid by card → result page → REC PDF, declined card with SATIM's message, history; the cashier's list; the gérant's SATIM account (password never shown), Arabic settings |
 
 - Vitest `globalSetup` migrates the test DB and creates the S3 bucket once; each test creates its own organization(s) (`tests/factories.ts`, `tests/auth-helpers.ts`) → isolation without truncation.
 - The e2e global setup starts `src/jobs/worker.ts` after the reset, waits (up to 300 s) for the documents queued by the seed, and stops its process tree at the end (documents render during e2e).
@@ -553,7 +579,7 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 
 ## 11. Roadmap
 
-**Current: Phases 1 and 2 done (sales; residence management; buyer / resident portal) and modules 4 (construction follow-up & deliveries) and 5 (rentals) of Phase 3, each module with its seed and e2e. Next: online payment (CIB/Edahabia via SATIM), then WhatsApp notifications. Steps are committed straight to `main` (§12, 2026-10-04).**
+**Current: Phases 1 and 2 done (sales; residence management; buyer / resident portal) and modules 4 (construction follow-up & deliveries) and 5 (rentals) of Phase 3, each module with its seed and e2e; online payment by card (SATIM), working against a local stand-in until the promoter's merchant account exists. Next: WhatsApp notifications. Steps are committed straight to `main` (§12, 2026-10-04).**
 
 ### Phase 0 — Foundations ✅
 - [x] `CLAUDE.md` approved (2026-09-30)
@@ -625,7 +651,10 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
   - [x] Leases of kept units (unit rented, tenant occupant of its residence), rent schedule paid in advance, rent and deposit payments with bilingual quittances (QIT-), corrections, end, renewal with the deposit carried over, deposit settlement, signed lease scan
   - [x] États des lieux (entry / exit, bilingual reports), overdue rents (list, daily digest, dashboard to-dos), leases to renew, unit sheet link
   - [x] Seed (the pharmacy in El Yasmine's kept shop with an overdue quarter, a family at Les Amandiers ending soon, a tenant gone with part of the deposit kept) and e2e
-- [ ] Online payment (CIB/Edahabia via SATIM)
+- [x] Online payment (CIB/Edahabia via SATIM)
+  - [x] The promoter's SATIM account (encrypted password, test / production platform), portal payment of installments and charges (amount offered, conditions), confirmation with SATIM recorded as payments with receipts, check job, expiry, refunds, payments not recordable flagged
+  - [x] Result page and history (portal), staff list with re-check and refund, local SATIM stand-in, seed and e2e
+  - [ ] With a SATIM merchant account: run SATIM's test scenarios on the test platform, certification (official CIB / Edahabia logos, conditions validated by the promoter), then production credentials
 - [ ] WhatsApp Business API notifications
 
 ## 12. Decisions log
@@ -730,8 +759,12 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 | 2026-10-05 | At the handover PV, the buyers become co-owners of the unit's residence (when the unit has none) from the PV date — the same rule as the import from sales, which keeps the VSP date. |
 | 2026-10-05 | Demo data for module 4: « Résidence Les Amandiers » (AMND, finished this month, its « Remise des clés » milestone validated): five sales — one delivered with its reserves closed, one delivered with open reserves (one late), one appointment, two to schedule (one not fully paid) — and its residence, whose co-owners come from the handovers; El Yasmine's sold units are now `delivered` before the app, the shop the company kept stays blocked. Site photos are drawn by the seed (`photos.ts`, PNG via `node:zlib`, no dependency). |
 | 2026-10-05 | **Units sold before the app** (settles the gap of the demo residence): in a `delivered` project, `available` / `blocked` units can be marked `delivered` with a reason (new transitions, used by `recordPastDeliveries` only); units still owned by the promoter keep their status. |
+| 2026-10-05 | **Online payment (recommended, user delegated; no credentials yet)**: each promoter is paid on its own SATIM merchant account (CIB and Edahabia), set up by the gérant — the SaaS never holds the money. The portal lets buyers pay their installments and co-owners their charges, any amount from 50 DA to the remaining balance (offered: what is due); rent stays off the portal. A confirmed payment is recorded like a counter payment (method `card`, receipt REC- / RCH-) by the paying account. |
+| 2026-10-05 | SATIM is called through its public REST API (`register.do`, `confirmOrder.do`, `refund.do`, POST form-encoded, `orderNumber` of 10 digits, amount in centimes, currency 012, `force_terminal_id` and `udf1` in `jsonParams`), built and tested against a local stand-in: to check against SATIM's integration kit once a merchant account exists. Only `confirmOrder.do` decides; a payment SATIM confirms but the rules refuse is kept for a refund (never lost, never forced); test platform payments are recorded with receipts (marked « Test »), cancelled afterwards. |
+| 2026-10-05 | Organization secrets (SATIM password, later the WhatsApp token) are encrypted with AES-256-GCM under `SECRETS_KEY` (derived from `BETTER_AUTH_SECRET` when absent). Payment conditions shown to payers are a generic text (SATIM's process, allocation, refunds, SATIM's 3020, loi 18-07) for the promoter's lawyer to validate. |
 
 ### Open items
+- **Online payment**: needs the promoter's SATIM merchant account (through its bank) — test credentials, then SATIM's test scenarios and certification (official logos, conditions) before production credentials.
 - **GitHub**: repo `yurigami1939-oss/realestate` is **public** — make it private before real client data or configuration lands. Steps are committed straight to `main` (CI runs on every push).
 
 ### Open business questions (ask before implementing)

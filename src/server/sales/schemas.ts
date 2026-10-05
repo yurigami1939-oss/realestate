@@ -1,7 +1,7 @@
 /** Isomorphic: shared by the sales forms (options, reservations, VSP…) and their actions. */
 import { z } from "zod";
 
-import { bankLoanStatuses, MAX_BUYERS_PER_SALE, paymentMethods } from "@/lib/sales";
+import { bankLoanStatuses, counterPaymentMethods, MAX_BUYERS_PER_SALE } from "@/lib/sales";
 import {
   dateText,
   moneyText,
@@ -86,7 +86,7 @@ export const decideWithdrawalSchema = z.object({
 export const recordWithdrawalRefundSchema = z.object({
   withdrawalId: z.uuid(),
   refundedOn: dateText(),
-  method: z.enum(paymentMethods),
+  method: z.enum(counterPaymentMethods),
   reference: optionalText(60),
 });
 

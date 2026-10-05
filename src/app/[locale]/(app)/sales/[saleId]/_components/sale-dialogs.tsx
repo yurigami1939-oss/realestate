@@ -15,7 +15,7 @@ import { TextField } from "@/components/forms/text-field";
 import { useAction } from "@/components/forms/use-action";
 import { Button } from "@/components/ui/button";
 import { formatDZD } from "@/lib/money";
-import { paymentMethods } from "@/lib/sales";
+import { counterPaymentMethods } from "@/lib/sales";
 import { issueReminderAction } from "@/server/collections/actions";
 import { issueReminderSchema } from "@/server/collections/schemas";
 import {
@@ -101,7 +101,7 @@ export function RecordPaymentDialog({
           control={form.control}
           name="method"
           label={t("fields.method")}
-          options={paymentMethods.map((m) => ({ value: m, label: t(`method.${m}`) }))}
+          options={counterPaymentMethods.map((m) => ({ value: m, label: t(`method.${m}`) }))}
         />
         <TextField
           control={form.control}

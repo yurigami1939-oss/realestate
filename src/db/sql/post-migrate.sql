@@ -96,3 +96,5 @@ GRANT UPDATE (status, cancelled_at, cancelled_by, cancellation_reason, cheque_cl
 -- An état des lieux is final once recorded: only its PDF link changes.
 REVOKE UPDATE, DELETE, TRUNCATE ON public.lease_inspection FROM realestate_app;
 GRANT UPDATE (pdf_file_id) ON public.lease_inspection TO realestate_app;
+-- Online payments are never deleted: they keep what the gateway answered (CLAUDE.md §7).
+REVOKE DELETE, TRUNCATE ON public.online_payment FROM realestate_app;

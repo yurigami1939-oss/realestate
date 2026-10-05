@@ -27,6 +27,7 @@ export const auditEntityTypes = [
   "portal_link",
   "handover",
   "lease",
+  "online_payment",
 ] as const;
 export type AuditEntityType = (typeof auditEntityTypes)[number];
 

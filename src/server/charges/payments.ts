@@ -3,11 +3,14 @@ import "server-only";
 import { and, eq } from "drizzle-orm";
 import type { z } from "zod";
 
+import type { Tx } from "@/db/client";
 import { chargePayment, residenceUnit } from "@/db/schema";
 import { withTenant } from "@/db/tenant";
 import { enqueueInTx } from "@/jobs/enqueue";
-import { todayInAlgiers } from "@/lib/dates";
+import { type CalendarDate, todayInAlgiers } from "@/lib/dates";
+import type { Centimes } from "@/lib/money";
 import { AppError } from "@/lib/result";
+import type { PaymentMethod } from "@/lib/sales";
 import { recordAudit } from "@/server/audit/record-audit";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
 import { nextDocumentNumber } from "@/server/numbering/next-document-number";
@@ -36,115 +39,147 @@ export async function recordChargePayment(
   input: In<typeof recordChargePaymentSchema>,
 ) {
   assertCan(ctx, "payment:create");
-  const today = todayInAlgiers();
-  if (input.paidOn > today) throw invalid("paidOn", "charges.errors.futureDate");
+  if (input.paidOn > todayInAlgiers()) throw invalid("paidOn", "charges.errors.futureDate");
   return withTenant(ctx, async (tx) => {
     const home = await loadResidence(tx, input.residenceId);
-    // The unit's row lock serializes its payments.
-    const [member] = await tx
-      .select({ unitId: residenceUnit.unitId })
-      .from(residenceUnit)
-      .where(and(eq(residenceUnit.residenceId, home.id), eq(residenceUnit.unitId, input.unitId)))
-      .for("update");
-    if (!member) throw invalid("unitId", "residences.errors.unitNotInResidence");
-
-    const calls = await liveCalls(tx, home.id, [input.unitId]);
-    const paidBefore = (await paidByUnit(tx, home.id, [input.unitId])).get(input.unitId) ?? 0n;
-    const before = chargeStatement(calls, paidBefore, today);
-    const after = chargeStatement(calls, paidBefore + input.amount, today);
-    const allocation = after.lines.flatMap((line) => {
-      const settled = line.paid - (before.lines.find((l) => l.id === line.id)?.paid ?? 0n);
-      return settled > 0n ? [{ number: line.number, amount: settled.toString() }] : [];
-    });
-
-    const { number } = await nextDocumentNumber(tx, ctx, "charge_receipt");
-    const [row] = await tx
-      .insert(chargePayment)
-      .values({
-        organizationId: ctx.orgId,
-        residenceId: home.id,
-        unitId: input.unitId,
-        amount: input.amount,
-        method: input.method,
-        paidOn: input.paidOn,
-        reference: input.reference,
-        bank: input.bank,
-        payerName: input.payerName,
-        notes: input.notes,
-        receiptNumber: number,
-        allocation,
-        recordedBy: ctx.userId,
-      })
-      .returning({ id: chargePayment.id });
-    if (!row) throw new Error("recordChargePayment: no row returned");
-
-    await recordAudit(tx, ctx, {
-      actorUserId: ctx.userId,
-      action: "charge_payment.create",
-      entityType: "charge_payment",
-      entityId: row.id,
-      after: {
-        residence: home.name,
-        receipt: number,
-        amount: input.amount,
-        method: input.method,
-        paidOn: input.paidOn,
-        reference: input.reference,
-        allocation,
-      },
-    });
-    await enqueueInTx(
-      tx,
-      "pdf.document",
-      { organizationId: ctx.orgId, kind: "charge_receipt", id: row.id },
-      { singletonKey: `charge_receipt:${row.id}` },
-    );
-    return { paymentId: row.id, receiptNumber: number, credit: after.credit - before.credit };
+    return insertChargePayment(tx, ctx, home, input.unitId, input);
   });
+}
+
+export type ChargePaymentEntry = {
+  amount: Centimes;
+  method: PaymentMethod;
+  paidOn: CalendarDate;
+  reference: string | null;
+  bank: string | null;
+  payerName: string;
+  notes: string | null;
+};
+
+/**
+ * Inserts a charge payment (receipt RCH-) for a unit of a residence: counter payments and
+ * confirmed online payments (CLAUDE.md §7 Online payment). Locks the unit's row, which serializes
+ * its payments. `audit` is added to the audit entry.
+ */
+export async function insertChargePayment(
+  tx: Tx,
+  actor: { orgId: string; userId: string },
+  home: { id: string; name: string },
+  unitId: string,
+  input: ChargePaymentEntry,
+  audit: Record<string, unknown> = {},
+) {
+  const today = todayInAlgiers();
+  const [member] = await tx
+    .select({ unitId: residenceUnit.unitId })
+    .from(residenceUnit)
+    .where(and(eq(residenceUnit.residenceId, home.id), eq(residenceUnit.unitId, unitId)))
+    .for("update");
+  if (!member) throw invalid("unitId", "residences.errors.unitNotInResidence");
+
+  const calls = await liveCalls(tx, home.id, [unitId]);
+  const paidBefore = (await paidByUnit(tx, home.id, [unitId])).get(unitId) ?? 0n;
+  const before = chargeStatement(calls, paidBefore, today);
+  const after = chargeStatement(calls, paidBefore + input.amount, today);
+  const allocation = after.lines.flatMap((line) => {
+    const settled = line.paid - (before.lines.find((l) => l.id === line.id)?.paid ?? 0n);
+    return settled > 0n ? [{ number: line.number, amount: settled.toString() }] : [];
+  });
+
+  const { number } = await nextDocumentNumber(tx, actor, "charge_receipt");
+  const [row] = await tx
+    .insert(chargePayment)
+    .values({
+      organizationId: actor.orgId,
+      residenceId: home.id,
+      unitId,
+      amount: input.amount,
+      method: input.method,
+      paidOn: input.paidOn,
+      reference: input.reference,
+      bank: input.bank,
+      payerName: input.payerName,
+      notes: input.notes,
+      receiptNumber: number,
+      allocation,
+      recordedBy: actor.userId,
+    })
+    .returning({ id: chargePayment.id });
+  if (!row) throw new Error("recordChargePayment: no row returned");
+
+  await recordAudit(tx, actor, {
+    actorUserId: actor.userId,
+    action: "charge_payment.create",
+    entityType: "charge_payment",
+    entityId: row.id,
+    after: {
+      residence: home.name,
+      receipt: number,
+      amount: input.amount,
+      method: input.method,
+      paidOn: input.paidOn,
+      reference: input.reference,
+      allocation,
+      ...audit,
+    },
+  });
+  await enqueueInTx(
+    tx,
+    "pdf.document",
+    { organizationId: actor.orgId, kind: "charge_receipt", id: row.id },
+    { singletonKey: `charge_receipt:${row.id}` },
+  );
+  return { paymentId: row.id, receiptNumber: number, credit: after.credit - before.credit };
 }
 
 /**
  * Cancels a charge payment and its receipt with a reason (accountants; e.g. a bounced cheque).
- * Never deleted; the calls it settled are due again (derived statement). Audited.
+ * Never deleted; the calls it settled are due again (derived statement). Audited. `outer`: the
+ * caller's transaction (refund of an online payment).
  */
 export async function cancelChargePayment(
   ctx: TenantCtx,
   input: In<typeof cancelChargePaymentSchema>,
+  outer?: Tx,
 ) {
   assertCan(ctx, "payment:cancel");
-  await withTenant(ctx, async (tx) => {
-    const [current] = await tx
-      .select({
-        status: chargePayment.status,
-        amount: chargePayment.amount,
-        receiptNumber: chargePayment.receiptNumber,
-      })
-      .from(chargePayment)
-      .where(eq(chargePayment.id, input.paymentId))
-      .for("update");
-    if (!current) throw new AppError("NOT_FOUND");
-    if (current.status === "cancelled") {
-      throw new AppError("CONFLICT", "payments.errors.alreadyCancelled");
-    }
-    await tx
-      .update(chargePayment)
-      .set({
-        status: "cancelled",
-        cancelledAt: new Date(),
-        cancelledBy: ctx.userId,
-        cancellationReason: input.reason,
-      })
-      .where(eq(chargePayment.id, input.paymentId));
-    await recordAudit(tx, ctx, {
-      actorUserId: ctx.userId,
-      action: "charge_payment.cancel",
-      entityType: "charge_payment",
-      entityId: input.paymentId,
-      before: { status: "valid", amount: current.amount, receipt: current.receiptNumber },
-      after: { status: "cancelled" },
-      reason: input.reason,
-    });
-  });
+  await withTenant(
+    ctx,
+    async (tx) => {
+      const [current] = await tx
+        .select({
+          status: chargePayment.status,
+          amount: chargePayment.amount,
+          receiptNumber: chargePayment.receiptNumber,
+        })
+        .from(chargePayment)
+        .where(eq(chargePayment.id, input.paymentId))
+        .for("update");
+      if (!current) throw new AppError("NOT_FOUND");
+      if (current.status === "cancelled") {
+        throw new AppError("CONFLICT", "payments.errors.alreadyCancelled");
+      }
+      await tx
+        .update(chargePayment)
+        .set({
+          status: "cancelled",
+          cancelledAt: new Date(),
+          cancelledBy: ctx.userId,
+          cancellationReason: input.reason,
+        })
+        .where(eq(chargePayment.id, input.paymentId));
+      await recordAudit(tx, ctx, {
+        actorUserId: ctx.userId,
+        action: "charge_payment.cancel",
+        entityType: "charge_payment",
+        entityId: input.paymentId,
+        before: { status: "valid", amount: current.amount, receipt: current.receiptNumber },
+        after: { status: "cancelled" },
+        reason: input.reason,
+      });
+    },
+    outer,
+  );
 }
 
 /** Records the day the bank cleared a cheque (its receipt was « sous réserve »). Audited. */

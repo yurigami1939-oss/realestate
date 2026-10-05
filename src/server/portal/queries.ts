@@ -1,8 +1,16 @@
 import "server-only";
 
-import { asc, desc, eq, inArray } from "drizzle-orm";
+import { and, asc, desc, eq, inArray } from "drizzle-orm";
 
-import { project, reservation, residence, resident, unit } from "@/db/schema";
+import {
+  onlinePayment,
+  paymentGateway,
+  project,
+  reservation,
+  residence,
+  resident,
+  unit,
+} from "@/db/schema";
 import { withTenant } from "@/db/tenant";
 
 import { type PortalCtx, portalScope } from "./context";
@@ -57,13 +65,30 @@ export async function getPortalOverview(ctx: PortalCtx) {
 
 export type PortalOverview = Awaited<ReturnType<typeof getPortalOverview>>;
 
-/** Which portal sections the account has: residence ones for residents, assemblies for co-owners. */
+/**
+ * Which portal sections the account has: residence ones for residents, assemblies for
+ * co-owners, online payments when the organization offers them or the account has paid online.
+ */
 export async function getPortalSections(ctx: PortalCtx) {
   return withTenant(ctx, async (tx) => {
-    const { residents } = await portalScope(tx, ctx);
+    const { buyerIds, residents } = await portalScope(tx, ctx);
+    const coOwner = residents.some((r) => r.kind === "co_owner");
+    const [gateway] = await tx
+      .select({ sale: paymentGateway.salesEnabled, charges: paymentGateway.chargesEnabled })
+      .from(paymentGateway)
+      .where(and(eq(paymentGateway.organizationId, ctx.orgId), eq(paymentGateway.enabled, true)));
+    const [paid] = await tx
+      .select({ id: onlinePayment.id })
+      .from(onlinePayment)
+      .where(eq(onlinePayment.userId, ctx.userId))
+      .limit(1);
     return {
       residences: residents.length > 0,
-      coOwner: residents.some((r) => r.kind === "co_owner"),
+      coOwner,
+      payments:
+        paid !== undefined ||
+        (gateway !== undefined &&
+          ((gateway.sale && buyerIds.length > 0) || (gateway.charges && coOwner))),
     };
   });
 }

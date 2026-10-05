@@ -7,6 +7,7 @@ import { PgBoss } from "pg-boss";
 import { JOBS_SCHEMA } from "@/db/jobs-schema";
 import { env } from "@/env";
 
+import { handleCheckOnlinePayment } from "./handlers/check-online-payment";
 import { handleExpireOption } from "./handlers/expire-option";
 import { handleIssuePaymentCalls } from "./handlers/issue-payment-calls";
 import { handleDailyReminders, handleOverdueDigest } from "./handlers/reminders";
@@ -29,8 +30,9 @@ await boss.work("option.expire", { batchSize: 10 }, handleExpireOption);
 await boss.work("payment_call.issue", { batchSize: 1 }, handleIssuePaymentCalls);
 await boss.work("reminders.daily", { batchSize: 1 }, handleDailyReminders);
 await boss.work("reminders.digest", { batchSize: 1 }, handleOverdueDigest);
+await boss.work("online_payment.check", { batchSize: 1 }, handleCheckOnlinePayment);
 console.log(
-  "[worker] started: email.send, pdf.document, option.expire, payment_call.issue, reminders",
+  "[worker] started: email.send, pdf.document, option.expire, payment_call.issue, reminders, online_payment.check",
 );
 
 let stopping = false;

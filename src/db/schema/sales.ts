@@ -877,6 +877,9 @@ export const bankLoan = pgTable(
       columns: [t.organizationId, t.reservationId],
       foreignColumns: [reservation.organizationId, reservation.id],
     }),
-    check("bank_loan_amounts", sql`${t.requested} > 0 and (${t.approved} is null or ${t.approved} > 0)`),
+    check(
+      "bank_loan_amounts",
+      sql`${t.requested} > 0 and (${t.approved} is null or ${t.approved} > 0)`,
+    ),
   ],
 );

@@ -101,7 +101,8 @@ export default async function DashboardPage({ params }: PageProps<"/[locale]/das
     (todo.handovers?.length ?? 0) > 0 ||
     (todo.lateReserves ?? 0) > 0 ||
     (todo.rents?.count ?? 0) > 0 ||
-    (todo.endingLeases?.length ?? 0) > 0;
+    (todo.endingLeases?.length ?? 0) > 0 ||
+    (todo.onlineIssues ?? 0) > 0;
 
   return (
     <div className="mx-auto max-w-7xl space-y-6">
@@ -175,6 +176,16 @@ export default async function DashboardPage({ params }: PageProps<"/[locale]/das
                 </span>
               </li>
             ))}
+            {todo.onlineIssues ? (
+              <li className="py-2">
+                <Link
+                  href={{ pathname: "/online-payments", query: { issues: "1" } }}
+                  className="hover:underline"
+                >
+                  {t("dashboard.todo.onlinePayments", { count: todo.onlineIssues })}
+                </Link>
+              </li>
+            ) : null}
             {todo.rents && todo.rents.count > 0 ? (
               <li className="py-2">
                 <Link href="/rentals/overdue" className="hover:underline">

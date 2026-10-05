@@ -38,8 +38,25 @@ export type DocumentStatus = (typeof documentStatuses)[number];
 export const optionStatuses = ["active", "expired", "cancelled", "converted"] as const;
 export type OptionStatus = (typeof optionStatuses)[number];
 
-export const paymentMethods = ["cash", "cheque", "bank_transfer", "ccp", "bank_loan"] as const;
+/** Every way money is received; `card` only comes from online payments (SATIM). */
+export const paymentMethods = [
+  "cash",
+  "cheque",
+  "bank_transfer",
+  "ccp",
+  "bank_loan",
+  "card",
+] as const;
 export type PaymentMethod = (typeof paymentMethods)[number];
+
+/** Methods recorded by hand at the counter (payment and refund forms). */
+export const counterPaymentMethods = [
+  "cash",
+  "cheque",
+  "bank_transfer",
+  "ccp",
+  "bank_loan",
+] as const satisfies readonly PaymentMethod[];
 
 /** Construction stages used to check VSP payment limits (a milestone may have one). */
 export const constructionStages = ["foundations", "structure", "completion", "handover"] as const;

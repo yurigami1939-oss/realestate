@@ -11,6 +11,7 @@ import { DEMO_PASSWORD, demoOrganizations, demoUsers } from "./demo";
 import { seedCrm } from "./crm";
 import { seedDeliveries } from "./deliveries";
 import { seedInventory } from "./inventory";
+import { seedOnlinePayments } from "./online-payments";
 import { seedPortal } from "./portal";
 import { seedRentals } from "./rentals";
 import { seedSales } from "./reservations";
@@ -129,5 +130,6 @@ export async function seedDemo(): Promise<void> {
       manager: ctx("propertyManager", ["property_manager"]),
       cashier: ctx("cashier", ["cashier"]),
     });
+    await seedOnlinePayments(ctx("owner", ["owner"]));
   }
 }

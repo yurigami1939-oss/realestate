@@ -6,6 +6,7 @@ import {
   Building2,
   CalendarDays,
   Contact,
+  CreditCard,
   FileSignature,
   HardHat,
   Hotel,
@@ -13,6 +14,7 @@ import {
   IdCard,
   Kanban,
   KeyRound,
+  Landmark,
   LayoutDashboard,
   Percent,
   PhoneCall,
@@ -66,7 +68,9 @@ type NavKey =
   | "construction"
   | "deliveries"
   | "rentals"
-  | "rentsOverdue";
+  | "rentsOverdue"
+  | "onlinePayments"
+  | "paymentGateway";
 /** `permission`: shown only to roles that have it (display only; services enforce). */
 type NavItem = { href: string; key: NavKey; icon: LucideIcon; permission?: Permission };
 
@@ -74,6 +78,12 @@ type NavItem = { href: string; key: NavKey; icon: LucideIcon; permission?: Permi
 const mainNav: NavItem[] = [
   { href: "/dashboard", key: "dashboard", icon: LayoutDashboard },
   { href: "/projects", key: "projects", icon: Building2, permission: "inventory:read" },
+  {
+    href: "/online-payments",
+    key: "onlinePayments",
+    icon: CreditCard,
+    permission: "payment:read",
+  },
 ];
 const salesNav: NavItem[] = [
   { href: "/leads", key: "leads", icon: Contact, permission: "lead:read" },
@@ -110,6 +120,12 @@ const residenceNav: NavItem[] = [
 const settingsNav: NavItem[] = [
   { href: "/settings/members", key: "members", icon: Users },
   { href: "/settings/company", key: "company", icon: Building, permission: "organization:update" },
+  {
+    href: "/settings/online-payment",
+    key: "paymentGateway",
+    icon: Landmark,
+    permission: "organization:update",
+  },
   { href: "/settings/audit", key: "audit", icon: ScrollText, permission: "audit:read" },
 ];
 

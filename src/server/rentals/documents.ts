@@ -8,7 +8,7 @@ import type { Tx } from "@/db/client";
 import { building, lease, leaseInspection, project, rentPayment, unit, user } from "@/db/schema";
 import { withTenant } from "@/db/tenant";
 import { formatDate } from "@/lib/dates";
-import type { RentPaymentMethod } from "@/lib/rentals";
+import { paymentMethodLabels } from "@/pdf/payment-methods";
 import { type ReceiptData, receiptHtml } from "@/pdf/receipt";
 import { renderPdf } from "@/pdf/render";
 import {
@@ -19,13 +19,6 @@ import { storeFile } from "@/server/files/service";
 import { type CompanyIdentity, loadCompanyLetterhead } from "@/server/organizations/settings";
 
 import { LEASE_ENTITY } from "./service";
-
-const methodLabels: Record<RentPaymentMethod, { fr: string; ar: string }> = {
-  cash: { fr: "Espèces", ar: "نقداً" },
-  cheque: { fr: "Chèque", ar: "صك" },
-  bank_transfer: { fr: "Virement bancaire", ar: "تحويل بنكي" },
-  ccp: { fr: "Versement CCP", ar: "دفع عبر الحساب البريدي الجاري" },
-};
 
 /** Everything printed on a quittance (or a deposit receipt), resolved (null if unknown). */
 export async function loadRentReceiptData(
@@ -51,8 +44,7 @@ export async function loadRentReceiptData(
   const company = await loadCompanyLetterhead(tx, orgId);
 
   const p = row.payment;
-  // Rent payments never use bank loans (checked by the table).
-  const method = methodLabels[p.method === "bank_loan" ? "bank_transfer" : p.method];
+  const method = paymentMethodLabels[p.method];
   const details = (number: string) =>
     [p.reference ? `${number} ${p.reference}` : null, p.bank ? `(${p.bank})` : null]
       .filter(Boolean)

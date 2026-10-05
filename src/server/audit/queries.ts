@@ -14,6 +14,7 @@ import {
   generalAssembly,
   handover,
   member,
+  onlinePayment,
   payment,
   portalLink,
   priceList,
@@ -248,6 +249,24 @@ async function recordLinks(
     for (const h of handovers) links.set(`handover:${h.id}`, `/deliveries/${h.saleId}`);
   }
   for (const id of ids("lease")) links.set(`lease:${id}`, `/rentals/${id}`);
+  const onlineIds = ids("online_payment");
+  if (onlineIds.length > 0) {
+    const online = await tx
+      .select({
+        id: onlinePayment.id,
+        reservationId: onlinePayment.reservationId,
+        residenceId: onlinePayment.residenceId,
+        unitId: onlinePayment.unitId,
+      })
+      .from(onlinePayment)
+      .where(inArray(onlinePayment.id, onlineIds));
+    for (const o of online) {
+      const href = o.reservationId
+        ? `/sales/${o.reservationId}`
+        : `/residences/${o.residenceId ?? ""}/accounts/${o.unitId ?? ""}`;
+      links.set(`online_payment:${o.id}`, href);
+    }
+  }
   return links;
 }
 

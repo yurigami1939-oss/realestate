@@ -26,6 +26,7 @@ import { can } from "@/lib/permissions";
 import { computeStatement } from "@/lib/statement";
 import type { TenantCtx } from "@/server/auth/session";
 import { seesAllLeads, visibleLeads } from "@/server/crm/access";
+import { countOnlinePaymentIssues } from "@/server/online-payments/queries";
 import { loadEndingLeases, loadOverdueRents } from "@/server/rentals/queries";
 import { visibleSales } from "@/server/sales/access";
 import { paidTotals } from "@/server/sales/sale-queries";
@@ -319,6 +320,10 @@ async function todo(tx: Tx, ctx: TenantCtx, today: CalendarDate) {
   // Rentals: overdue rents for those who follow them, terms to end or renew for lease managers.
   const overdueRents = can(ctx.roles, "lease:read") ? await loadOverdueRents(tx, today) : null;
   const endingLeases = can(ctx.roles, "lease:update") ? await loadEndingLeases(tx, today) : null;
+  // Online payments SATIM confirmed but that could not be recorded: to refund (accountants).
+  const onlineIssues = can(ctx.roles, "payment:cancel")
+    ? await countOnlinePaymentIssues(tx, ctx)
+    : null;
   return {
     withdrawals,
     cheques: cheques ? { count: cheques.n, value: cheques.value } : null,
@@ -334,6 +339,7 @@ async function todo(tx: Tx, ctx: TenantCtx, today: CalendarDate) {
         }
       : null,
     endingLeases,
+    onlineIssues,
   };
 }
 

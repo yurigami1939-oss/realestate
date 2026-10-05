@@ -1,14 +1,14 @@
 /** Isomorphic: shared by the payment forms and actions. */
 import { z } from "zod";
 
-import { paymentMethods } from "@/lib/sales";
+import { counterPaymentMethods } from "@/lib/sales";
 import { dateText, moneyText, optionalText, requiredText } from "@/lib/zod";
 
 export const recordPaymentSchema = z
   .object({
     reservationId: z.uuid(),
     amount: moneyText().refine((v) => v > 0n, "validation.amount"),
-    method: z.enum(paymentMethods),
+    method: z.enum(counterPaymentMethods),
     /** Day the money or cheque was received (not in the future). */
     paidOn: dateText(),
     /** Cheque number, transfer reference… */

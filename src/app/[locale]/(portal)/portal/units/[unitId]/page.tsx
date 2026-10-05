@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
+import { PayOnlineDialog } from "@/components/online-payments/pay-online-dialog";
 import { PortalDocument } from "@/components/portal/portal-document";
 import { InstallmentStateBadge } from "@/components/sales/badges";
 import { Badge } from "@/components/ui/badge";
@@ -18,8 +19,10 @@ import {
 import { Link } from "@/i18n/navigation";
 import { toLocale } from "@/i18n/locales";
 import { formatDate } from "@/lib/dates";
-import { formatDZD } from "@/lib/money";
+import { formatAmountInput, formatDZD } from "@/lib/money";
+import { onlinePaymentOffer } from "@/lib/online-payments";
 import { cn } from "@/lib/utils";
+import { getPortalPaymentOptions } from "@/server/online-payments/queries";
 import { requirePortalCtx } from "@/server/portal/page-guard";
 import { getPortalUnitAccount } from "@/server/portal/residences";
 
@@ -41,6 +44,9 @@ export default async function PortalUnitPage({
   const tp = await getTranslations("charges.period");
   const tm = await getTranslations("payments.method");
   const tps = await getTranslations("portal.sale");
+  const tpay = await getTranslations("portal.pay");
+  const options = await getPortalPaymentOptions(ctx);
+  const offer = options?.charges ? onlinePaymentOffer(account.statement) : null;
   const money = (v: bigint) => formatDZD(v, toLocale(locale));
   const { statement } = account;
 
@@ -94,6 +100,30 @@ export default async function PortalUnitPage({
         <p className="text-sm text-muted-foreground">
           {t("credit", { amount: money(statement.credit) })}
         </p>
+      ) : null}
+
+      {offer && options ? (
+        <div
+          className="flex flex-wrap items-center justify-between gap-3 rounded-md border bg-background p-3"
+          data-testid="portal-pay-online"
+        >
+          <p className="text-sm text-muted-foreground">{tpay("introCharges")}</p>
+          <div className="flex flex-wrap items-center gap-2">
+            <Link
+              href="/portal/payments"
+              className="text-sm text-muted-foreground underline underline-offset-4"
+            >
+              {tpay("history")}
+            </Link>
+            <PayOnlineDialog
+              purpose="charges"
+              targetId={account.unitId}
+              suggested={formatAmountInput(offer.suggested)}
+              remaining={money(offer.remaining)}
+              test={options.environment === "test"}
+            />
+          </div>
+        </div>
       ) : null}
 
       <Card>

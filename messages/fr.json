@@ -244,7 +244,9 @@
     "residences": "Résidences",
     "chargesOverdue": "Charges impayées",
     "suppliers": "Fournisseurs",
-    "tickets": "Réclamations"
+    "tickets": "Réclamations",
+    "onlinePayments": "Paiements en ligne",
+    "paymentGateway": "Paiement en ligne"
   },
   "shell": {
     "organizations": "Sociétés",
@@ -1315,7 +1317,8 @@
       "cheque": "Chèque",
       "bank_transfer": "Virement",
       "ccp": "CCP",
-      "bank_loan": "Crédit bancaire"
+      "bank_loan": "Crédit bancaire",
+      "card": "Carte CIB / Edahabia (en ligne)"
     },
     "columns": {
       "date": "Date",
@@ -1956,13 +1959,15 @@
       "general_assembly": "Assemblée générale",
       "portal_link": "Accès à l'espace client",
       "handover": "Livraison (remise des clés)",
-      "lease": "Bail"
+      "lease": "Bail",
+      "online_payment": "Paiement en ligne"
     },
     "actions": {
       "organization": {
         "create": "Création de la société",
         "update": "Paramètres de la société modifiés",
-        "logo": "Logo de la société modifié"
+        "logo": "Logo de la société modifié",
+        "online_payment": "Paiement en ligne (SATIM) configuré"
       },
       "member": {
         "join": "Arrivée d'un membre",
@@ -2080,6 +2085,10 @@
         "create": "Loyer ou dépôt encaissé",
         "cancel": "Encaissement de loyer annulé",
         "cheque_cleared": "Chèque de loyer encaissé"
+      },
+      "online_payment": {
+        "paid": "Paiement en ligne confirmé par la SATIM",
+        "refund": "Paiement en ligne remboursé"
       }
     }
   },
@@ -2100,7 +2109,8 @@
       "lateReserves": "{count, plural, one {# réserve en retard de levée} other {# réserves en retard de levée}}",
       "lease": "Bail {number} · lot {unit} à échéance",
       "leaseEnds": "{tenant} · fin le {date}",
-      "rents": "{count, plural, one {# bail} other {# baux}} avec des loyers impayés · {amount}"
+      "rents": "{count, plural, one {# bail} other {# baux}} avec des loyers impayés · {amount}",
+      "onlinePayments": "{count, plural, one {# paiement en ligne encaissé à traiter} other {# paiements en ligne encaissés à traiter}}"
     },
     "sales": {
       "title": "Ventes",
@@ -3120,7 +3130,8 @@
         "home": "Accueil",
         "announcements": "Annonces",
         "tickets": "Réclamations",
-        "assemblies": "Assemblées"
+        "assemblies": "Assemblées",
+        "payments": "Paiements"
       }
     },
     "home": {
@@ -3217,6 +3228,152 @@
     "assemblies": {
       "title": "Assemblées générales",
       "empty": "Aucune assemblée générale convoquée."
+    },
+    "pay": {
+      "open": "Payer en ligne",
+      "title": "Paiement en ligne",
+      "description": "Par carte CIB ou Edahabia, sur la plateforme sécurisée de la SATIM : la société ne voit jamais votre carte.",
+      "amount": "Montant (DA)",
+      "amountHint": "Reste à payer : {amount}. À partir de 50 DA.",
+      "terms": "J'accepte les conditions de paiement en ligne",
+      "readTerms": "Lire les conditions",
+      "submit": "Continuer vers le paiement",
+      "redirecting": "Redirection…",
+      "testMode": "Mode test : aucune carte n'est débitée.",
+      "cards": "CIB · Edahabia",
+      "history": "Mes paiements en ligne",
+      "historyEmpty": "Aucun paiement en ligne.",
+      "intro": "Réglez vos échéances par carte CIB ou Edahabia, en toute sécurité.",
+      "introCharges": "Réglez vos charges par carte CIB ou Edahabia, en toute sécurité.",
+      "order": "Commande {number}",
+      "result": {
+        "title": "Paiement en ligne",
+        "paid": "Paiement accepté",
+        "pending": "Paiement en cours de vérification",
+        "created": "Paiement non commencé",
+        "failed": "Paiement non effectué",
+        "expired": "Paiement expiré",
+        "refunded": "Paiement remboursé",
+        "paidText": "Merci : votre paiement est enregistré et votre reçu est émis.",
+        "pendingText": "La SATIM n'a pas encore confirmé ce paiement. Actualisez dans un instant : une fois confirmé, votre reçu est émis automatiquement.",
+        "createdText": "La plateforme de paiement n'a pas pu être jointe : aucun montant n'a été débité.",
+        "failedText": "Aucun montant n'a été débité. Vous pouvez réessayer.",
+        "expiredText": "La session de paiement s'est terminée sans paiement : aucun montant n'a été débité.",
+        "refundedText": "Ce paiement a été remboursé sur votre carte.",
+        "issue": "Paiement reçu : la société l'enregistre et vous contactera.",
+        "gatewayMessage": "Message de la SATIM : {message}",
+        "details": "Détails de la transaction",
+        "order": "N° de commande",
+        "transaction": "N° de transaction",
+        "approval": "N° d'autorisation",
+        "amount": "Montant",
+        "date": "Date et heure",
+        "card": "Carte",
+        "method": "Mode de paiement",
+        "methodValue": "Carte CIB / Edahabia (SATIM)",
+        "object": "Objet :",
+        "receipt": "Reçu {number}",
+        "refresh": "Actualiser",
+        "print": "Imprimer",
+        "retry": "Payer à nouveau",
+        "back": "Retour",
+        "all": "Tous mes paiements en ligne",
+        "help": "Un problème avec votre carte ? Numéro vert de la SATIM : {number}"
+      },
+      "termsPage": {
+        "title": "Conditions de paiement en ligne",
+        "gateway": "Le paiement en ligne passe par la plateforme sécurisée de la SATIM, pour les cartes CIB et Edahabia. Les données de votre carte sont saisies sur la page de la SATIM : {company} n'y a jamais accès.",
+        "allocation": "Le montant payé ne peut pas dépasser votre reste à payer. Il est affecté à vos échéances (ou appels de charges) les plus anciennes, et un reçu numéroté est émis dès que la SATIM confirme le paiement.",
+        "currency": "Les paiements sont en dinars algériens, sans frais ajoutés par {company} ; votre banque peut appliquer ses propres frais et plafonds.",
+        "failure": "Si le paiement n'aboutit pas, aucun montant n'est débité. En cas d'erreur ou de débit sans reçu, contactez {company}{contact} : un paiement en trop est remboursé sur la carte utilisée.",
+        "card": "Pour tout problème lié à votre carte, contactez votre banque ou le numéro vert de la SATIM : {number}.",
+        "data": "Vos données sont traitées par {company} pour la gestion de votre dossier, conformément à la loi 18-07 relative à la protection des personnes physiques dans le traitement des données à caractère personnel."
+      }
+    }
+  },
+  "onlinePayments": {
+    "title": "Paiements en ligne",
+    "description": "Les paiements par carte CIB ou Edahabia faits depuis l'espace client : confirmés par la SATIM, puis enregistrés avec leur reçu.",
+    "status": {
+      "created": "Préparé",
+      "pending": "En cours",
+      "paid": "Payé",
+      "failed": "Échoué",
+      "expired": "Expiré",
+      "refunded": "Remboursé"
+    },
+    "purpose": {
+      "sale": "Échéances",
+      "charges": "Charges"
+    },
+    "environment": {
+      "test": "Test (SATIM)",
+      "production": "Production"
+    },
+    "count": "{count, plural, =0 {Aucun paiement} one {# paiement} other {# paiements}}",
+    "empty": "Aucun paiement en ligne pour ces critères.",
+    "columns": {
+      "date": "Date",
+      "object": "Objet",
+      "payer": "Payé par",
+      "amount": "Montant",
+      "status": "État",
+      "gateway": "SATIM",
+      "receipt": "Reçu"
+    },
+    "filters": {
+      "status": "État",
+      "allStatuses": "Tous les états",
+      "issues": "À traiter",
+      "search": "N° de commande ou nom"
+    },
+    "order": "Commande {number}",
+    "approval": "Autorisation {code}",
+    "testMode": "Test",
+    "issuesBanner": "{count, plural, one {# paiement encaissé n'a pas pu être enregistré} other {# paiements encaissés n'ont pas pu être enregistrés}} : remboursez-les ou enregistrez-les à la main.",
+    "issue": "Encaissé, non enregistré : {reason}",
+    "issues": {
+      "amount": "le montant confirmé par la SATIM diffère"
+    },
+    "recheck": "Vérifier",
+    "rechecked": "État mis à jour auprès de la SATIM.",
+    "refund": {
+      "open": "Rembourser",
+      "title": "Rembourser le paiement en ligne",
+      "description": "La SATIM rembourse {amount} sur la carte du payeur ; le paiement et son reçu sont annulés avec ce motif.",
+      "reason": "Motif",
+      "submit": "Rembourser",
+      "done": "Paiement remboursé."
+    },
+    "refunded": "Remboursé le {date} : {reason}",
+    "errors": {
+      "disabled": "Le paiement en ligne n'est pas ouvert.",
+      "minimum": "Le paiement en ligne commence à 50 DA.",
+      "aboveBalance": "Le montant dépasse le reste à payer.",
+      "terms": "Acceptez les conditions de paiement en ligne.",
+      "gatewayUnavailable": "La plateforme de paiement SATIM ne répond pas. Réessayez dans quelques minutes.",
+      "gatewayRefused": "La plateforme de paiement SATIM a refusé la demande. Contactez la société.",
+      "notPaid": "Ce paiement n'est pas encaissé.",
+      "refundRefused": "La SATIM a refusé le remboursement."
+    },
+    "settings": {
+      "title": "Paiement en ligne (SATIM)",
+      "description": "Le compte marchand SATIM de la société, pour les cartes CIB et Edahabia : les acquéreurs et copropriétaires paient depuis leur espace client, l'argent arrive sur le compte bancaire de la société.",
+      "enabled": "Ouvrir le paiement en ligne dans l'espace client",
+      "environment": "Plateforme",
+      "environmentHint": "Test : cartes de test de la SATIM, aucun débit réel (chaque paiement est enregistré avec un reçu : annulez-les ensuite). Production : après la certification de votre site par la SATIM.",
+      "username": "Identifiant marchand",
+      "password": "Mot de passe",
+      "passwordKept": "Laisser vide pour garder le mot de passe enregistré.",
+      "terminalId": "N° de terminal (Terminal ID)",
+      "accounts": "Ce qui peut être payé en ligne",
+      "salesEnabled": "Échéances des ventes",
+      "chargesEnabled": "Charges de copropriété",
+      "submit": "Enregistrer",
+      "saved": "Paramètres de paiement en ligne enregistrés.",
+      "standIn": "La plateforme de test est simulée par l'application (développement) : aucun identifiant SATIM n'est nécessaire pour essayer.",
+      "help": "Pour obtenir un compte marchand : votre banque (membre du réseau CIB) demande l'adhésion au paiement en ligne auprès de la SATIM, qui fournit l'identifiant, le mot de passe et le n° de terminal de test, puis ceux de production après la certification.",
+      "helpLine": "Numéro vert de la SATIM : {number}"
     }
   }
 }

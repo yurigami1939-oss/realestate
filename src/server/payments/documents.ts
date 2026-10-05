@@ -15,19 +15,11 @@ import {
 } from "@/db/schema";
 import { withTenant } from "@/db/tenant";
 import { formatDate } from "@/lib/dates";
-import type { PaymentMethod } from "@/lib/sales";
+import { paymentMethodLabels } from "@/pdf/payment-methods";
 import { type ReceiptData, receiptHtml } from "@/pdf/receipt";
 import { renderPdf } from "@/pdf/render";
 import { storeFile } from "@/server/files/service";
 import { loadCompanyLetterhead } from "@/server/organizations/settings";
-
-const methodLabels: Record<PaymentMethod, { fr: string; ar: string }> = {
-  cash: { fr: "Espèces", ar: "نقداً" },
-  cheque: { fr: "Chèque", ar: "صك" },
-  bank_transfer: { fr: "Virement bancaire", ar: "تحويل بنكي" },
-  ccp: { fr: "Versement CCP", ar: "دفع عبر الحساب البريدي الجاري" },
-  bank_loan: { fr: "Déblocage de crédit bancaire", ar: "صرف قرض بنكي" },
-};
 
 /** Everything printed on a receipt, resolved from the database (null if unknown). */
 export async function loadReceiptData(
@@ -62,7 +54,7 @@ export async function loadReceiptData(
   const company = await loadCompanyLetterhead(tx, orgId);
 
   const p = row.payment;
-  const method = methodLabels[p.method];
+  const method = paymentMethodLabels[p.method];
   const details = (number: string) =>
     [p.reference ? `${number} ${p.reference}` : null, p.bank ? `(${p.bank})` : null]
       .filter(Boolean)
@@ -101,6 +93,7 @@ export async function loadReceiptData(
       },
       amount: p.amount,
       cashier: row.cashier,
+      online: p.method === "card",
     },
   };
 }

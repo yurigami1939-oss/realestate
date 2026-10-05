@@ -4,6 +4,7 @@ import { authFile, type DemoUserKey, signInWithApi } from "./helpers";
 
 /** One session per role, reused by the specs (`test.use({ storageState: authFile(key) })`). */
 const roles: DemoUserKey[] = [
+  "owner",
   "salesManager",
   "salesAgent",
   "cashier",

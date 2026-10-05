@@ -24,6 +24,16 @@ export const queues = {
    * managers, cashiers).
    */
   "reminders.digest": { retryLimit: 3, retryDelay: 60, retryBackoff: true, expireInSeconds: 300 },
+  /**
+   * Settles an online payment the payer left on the gateway's page (scheduled after its
+   * session); retried every 10 minutes while the gateway still has it in progress.
+   */
+  "online_payment.check": {
+    retryLimit: 6,
+    retryDelay: 600,
+    retryBackoff: false,
+    expireInSeconds: 120,
+  },
 } as const satisfies Record<string, QueueOptions>;
 
 /** Recurring jobs, installed by `pnpm db:migrate` (pg-boss cron, Algiers time). */
@@ -71,4 +81,5 @@ export type JobPayloads = {
   "reminders.daily": Record<string, never>;
   /** `date`: the Algiers day of the digest (one per organization and day). */
   "reminders.digest": { organizationId: string; date: string };
+  "online_payment.check": { organizationId: string; onlinePaymentId: string };
 };
