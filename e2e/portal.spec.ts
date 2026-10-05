@@ -29,9 +29,13 @@ test.describe("acquéreur et copropriétaire", () => {
     await expect(reports).toContainText("Gros œuvre achevé");
     await expect(reports).not.toContainText("Réunion de chantier");
     await expect(reports.getByRole("img").first()).toBeVisible();
+    // The seeded transfer: the oldest payment (other specs pay online on this sale too).
     await expectPdf(
       page,
-      page.getByTestId("portal-payments").getByRole("link", { name: /^Reçu REC-/ }),
+      page
+        .getByTestId("portal-payments")
+        .getByRole("link", { name: /^Reçu REC-/ })
+        .last(),
     );
     await expectPdf(
       page,
