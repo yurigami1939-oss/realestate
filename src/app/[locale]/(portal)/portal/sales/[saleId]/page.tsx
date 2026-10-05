@@ -6,7 +6,9 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { BuildingProgressBar } from "@/components/construction/building-progress";
 import { PayOnlineDialog } from "@/components/online-payments/pay-online-dialog";
 import { ReportCard } from "@/components/construction/report-card";
+import { PortalStatementButton } from "@/components/certificates/portal-statement-button";
 import { PortalDocument } from "@/components/portal/portal-document";
+import { PendingDocumentsRefresher } from "@/components/sales/document-pdf";
 import { InstallmentStateBadge, SaleStatusBadge } from "@/components/sales/badges";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -48,6 +50,7 @@ export default async function PortalSalePage({
   const tm = await getTranslations("payments.method");
   const tl = await getTranslations("sales.loan");
   const tp = await getTranslations("portal.pay");
+  const tc = await getTranslations("certificates");
   const options = await getPortalPaymentOptions(ctx);
   const offer = options?.sale ? onlinePaymentOffer(sale.statement) : null;
   const money = (v: bigint) => formatDZD(v, locale);
@@ -281,6 +284,31 @@ export default async function PortalSalePage({
           ))}
         </CardContent>
       </Card>
+
+      <Card>
+        <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
+          <CardTitle className="text-base">{t("certificates")}</CardTitle>
+          <PortalStatementButton reservationId={sale.id} />
+        </CardHeader>
+        <CardContent className="space-y-2" data-testid="portal-certificates">
+          {sale.certificates.length === 0 ? (
+            <p className="text-sm text-muted-foreground">{t("noCertificates")}</p>
+          ) : (
+            sale.certificates.map((c) => (
+              <div key={c.id} className="flex flex-wrap items-center gap-2">
+                <PortalDocument
+                  fileId={c.pdfFileId}
+                  label={`${tc(`kind.${c.kind}`)} · ${c.number}`}
+                />
+                <span className="text-sm text-muted-foreground" dir="ltr">
+                  {formatDate(c.issuedAt)}
+                </span>
+              </div>
+            ))
+          )}
+        </CardContent>
+      </Card>
+      <PendingDocumentsRefresher pending={sale.certificates.some((c) => c.pdfFileId === null)} />
 
       <Card>
         <CardHeader>

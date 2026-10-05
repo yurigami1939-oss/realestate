@@ -126,6 +126,7 @@ export const saleDocumentKinds = [
   "receipt",
   "payment_call",
   "reminder_letter",
+  "certificate",
 ] as const;
 export const requestSaleDocumentSchema = z.object({
   kind: z.enum(saleDocumentKinds),

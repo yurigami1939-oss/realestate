@@ -7,6 +7,7 @@ import {
   bankLoan,
   buyer,
   building,
+  certificate,
   constructionMilestone,
   constructionReport,
   handover,
@@ -97,7 +98,7 @@ const PORTAL_REPORTS = 10;
 /**
  * A sale of the portal account, as its buyer sees it (CLAUDE.md §12): the unit, schedule and
  * statement (no penalties), payments with their receipts, documents (sheet, signed scans,
- * payment calls, reminder letters), the project's construction progress (milestones, its
+ * payment calls, reminder letters, certificates), the project's construction progress (milestones, its
  * building's progress and the published reports with their photos), the handover (appointment,
  * PVs, reserves) and the bank loan.
  * Null when the sale is not one of the account's.
@@ -235,6 +236,18 @@ export async function getPortalSale(ctx: PortalCtx, saleId: string) {
           .where(eq(punchItem.handoverId, delivery.id))
           .orderBy(asc(punchItem.position))
       : [];
+    const certificates = await tx
+      .select({
+        id: certificate.id,
+        kind: certificate.kind,
+        number: certificate.number,
+        issuedAt: certificate.issuedAt,
+        fromPortal: certificate.fromPortal,
+        pdfFileId: certificate.pdfFileId,
+      })
+      .from(certificate)
+      .where(eq(certificate.reservationId, row.id))
+      .orderBy(desc(certificate.issuedAt));
     return {
       ...row,
       buyers,
@@ -242,6 +255,7 @@ export async function getPortalSale(ctx: PortalCtx, saleId: string) {
       payments,
       calls,
       reminders,
+      certificates,
       milestones: await loadMilestones(tx, row.projectId),
       progress:
         (await latestProgress(tx, [row.projectId], { publishedOnly: true })).get(row.buildingId) ??

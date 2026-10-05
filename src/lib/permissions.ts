@@ -31,7 +31,8 @@ export const statement = {
    * Options, reservations, schedules and VSP. `read` = the sales I am the commercial of,
    * `read_all` = every sale. `update`: contracts, transfers, swaps, bank loans.
    * `withdraw` proposes a withdrawal, `approve` (gérant) approves it (CLAUDE.md §12).
-   * `remind`: reminder letters for overdue installments.
+   * `remind`: reminder letters for overdue installments. `certify`: certificates (attestations)
+   * for the buyers and their banks.
    */
   sale: [
     "read",
@@ -43,6 +44,7 @@ export const statement = {
     "withdraw",
     "approve",
     "remind",
+    "certify",
   ],
   /** Payments and receipts: cashiers record, accountants cancel (CLAUDE.md §5 roles). */
   payment: ["read", "create", "cancel"],
@@ -103,6 +105,7 @@ export const roles = {
       "withdraw",
       "approve",
       "remind",
+      "certify",
     ],
     payment: ["read", "create", "cancel"],
     milestone: ["validate"],
@@ -129,7 +132,17 @@ export const roles = {
     quotation: ["create", "discount", "cancel"],
     target: ["update"],
     buyer: ["read", "read_all", "create", "update"],
-    sale: ["read", "read_all", "create", "update", "discount", "sign", "withdraw", "remind"],
+    sale: [
+      "read",
+      "read_all",
+      "create",
+      "update",
+      "discount",
+      "sign",
+      "withdraw",
+      "remind",
+      "certify",
+    ],
     payment: ["read"],
     milestone: ["validate"],
     commission: ["read", "read_all"],
@@ -152,7 +165,7 @@ export const roles = {
     audit: ["read"],
     inventory: ["read"],
     buyer: ["read", "read_all"],
-    sale: ["read", "read_all", "remind"],
+    sale: ["read", "read_all", "remind", "certify"],
     payment: ["read", "create", "cancel"],
     commission: ["read", "read_all", "update"],
     residence: ["read"],
@@ -166,7 +179,7 @@ export const roles = {
   cashier: ac.newRole({
     inventory: ["read"],
     buyer: ["read", "read_all"],
-    sale: ["read", "read_all", "remind"],
+    sale: ["read", "read_all", "remind", "certify"],
     payment: ["read", "create"],
     residence: ["read"],
     charge: ["read", "remind"],

@@ -7,6 +7,7 @@ import { PageHeader } from "@/components/app-shell/page-header";
 import { PhoneText } from "@/components/crm/phone";
 import { DeliveryStateBadge } from "@/components/handovers/badges";
 import { InstallmentStateBadge, SaleStatusBadge } from "@/components/sales/badges";
+import { IssueCertificateDialog } from "@/components/certificates/issue-certificate-dialog";
 import { DocumentPdf, PendingDocumentsRefresher } from "@/components/sales/document-pdf";
 import { VspWarnings } from "@/components/sales/vsp-warnings";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -24,6 +25,7 @@ import {
 } from "@/components/ui/table";
 import { Link } from "@/i18n/navigation";
 import { toLocale } from "@/i18n/locales";
+import { certificateKinds } from "@/lib/certificates";
 import { addDays, formatDate, formatDateTime, todayInAlgiers } from "@/lib/dates";
 import { formatDZD, toDecimalString } from "@/lib/money";
 import { formatShare } from "@/lib/payment-plans";
@@ -35,6 +37,7 @@ import { listSaleReminders } from "@/server/collections/queries";
 import { REMINDER_PAY_WITHIN_DAYS } from "@/server/collections/schemas";
 import { getDelivery } from "@/server/handovers/queries";
 import { listSalePaymentCalls } from "@/server/payment-calls/queries";
+import { listSaleCertificates } from "@/server/certificates/queries";
 import { listSalePayments } from "@/server/payments/queries";
 import { getSalesSettings } from "@/server/organizations/settings";
 import { listSaleBankLoans } from "@/server/sales/bank-loans";
@@ -80,6 +83,7 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
   const reminders = await listSaleReminders(ctx, saleId);
   const withdrawals = await listSaleWithdrawals(ctx, saleId);
   const { loans, disbursed } = await listSaleBankLoans(ctx, saleId);
+  const certificates = await listSaleCertificates(ctx, saleId);
   const changeable = sale.status === "reserved" && can(ctx.roles, "sale:update");
   const buyerChoices = changeable
     ? (await listBuyerOptions(ctx)).map((b) => ({
@@ -118,7 +122,14 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
     sale.commission !== null &&
     (can(ctx.roles, "commission:read_all") ||
       (can(ctx.roles, "commission:read") && sale.commission.userId === ctx.userId));
+  const canCertify = live && can(ctx.roles, "sale:certify");
+  /** What the sale allows today: versements once something is paid, solde once nothing remains. */
+  const certificateChoices = certificateKinds.filter(
+    (kind) =>
+      (kind !== "payments" || st.paid > 0n) && (kind !== "paid_in_full" || st.remaining === 0n),
+  );
   const pendingDocuments =
+    certificates.some((c) => c.pdfFileId === null) ||
     (live && sale.sheetFileId === null) ||
     payments.some((p) => p.receiptId !== null && p.receiptPdfFileId === null) ||
     calls.some((c) => c.pdfFileId === null) ||
@@ -492,6 +503,47 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
                     ))}
                   </TableBody>
                 </Table>
+              </CardContent>
+            </Card>
+          ) : null}
+
+          {certificates.length > 0 || canCertify ? (
+            <Card>
+              <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
+                <CardTitle className="text-base">{t("certificates.title")}</CardTitle>
+                {canCertify ? (
+                  <IssueCertificateDialog reservationId={sale.id} kinds={certificateChoices} />
+                ) : null}
+              </CardHeader>
+              <CardContent>
+                {certificates.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">{t("certificates.empty")}</p>
+                ) : (
+                  <ul className="space-y-2 text-sm" data-testid="sale-certificates">
+                    {certificates.map((c) => (
+                      <li key={c.id} className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                        <DocumentPdf
+                          fileId={c.pdfFileId}
+                          kind="certificate"
+                          id={c.id}
+                          label={`${t(`certificates.kind.${c.kind}`)} · ${c.number}`}
+                        />
+                        <span className="text-muted-foreground">
+                          <span dir="ltr">{formatDate(c.issuedAt)}</span> ·{" "}
+                          {c.fromPortal
+                            ? t("certificates.fromPortal")
+                            : t("certificates.by", { name: c.issuedByName })}
+                          {c.addressee ? (
+                            <>
+                              {" · "}
+                              <bdi>{c.addressee}</bdi>
+                            </>
+                          ) : null}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </CardContent>
             </Card>
           ) : null}

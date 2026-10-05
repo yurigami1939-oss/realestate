@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from "@/i18n/navigation";
 import { requestSaleDocumentAction } from "@/server/sales/actions";
 
-type Kind = "reservation_sheet" | "receipt" | "payment_call" | "reminder_letter";
+type Kind = "reservation_sheet" | "receipt" | "payment_call" | "reminder_letter" | "certificate";
 
 /** Link to a generated PDF; while the worker renders it, a pending note and a retry button. */
 export function DocumentPdf({

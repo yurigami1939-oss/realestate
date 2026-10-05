@@ -2100,6 +2100,9 @@
       "online_payment": {
         "paid": "Paiement en ligne confirmé par la SATIM",
         "refund": "Paiement en ligne remboursé"
+      },
+      "certificate": {
+        "issue": "Attestation délivrée"
       }
     }
   },
@@ -3212,7 +3215,11 @@
       "handoverReserveLifted": "levée le {date}",
       "handoverReserveCancelled": "annulée",
       "handoverRelease": "Procès-verbal de levée des réserves",
-      "importedReceipt": "Reçu {number} (ancien système)"
+      "importedReceipt": "Reçu {number} (ancien système)",
+      "certificates": "Attestations et relevés",
+      "statement": "Mon relevé de compte",
+      "statementReady": "Votre relevé est prêt : son PDF arrive dans quelques secondes.",
+      "noCertificates": "Aucune attestation pour l'instant : demandez-la à votre promoteur."
     },
     "pendingDocument": "en préparation",
     "unit": {
@@ -3733,6 +3740,31 @@
       "unitExists": "Le lot « {code} » existe déjà.",
       "buyerExists": "{name} a déjà un dossier.",
       "residentExists": "{name} est déjà enregistré sur ce lot."
+    }
+  },
+  "certificates": {
+    "title": "Attestations",
+    "issue": "Délivrer une attestation",
+    "issueTitle": "Délivrer une attestation",
+    "issueDescription": "Numérotée et bilingue, elle reprend la vente telle qu'elle est aujourd'hui et ne change plus ensuite.",
+    "kindLabel": "Document",
+    "addressee": "À l'attention de (facultatif)",
+    "addresseeHelp": "Ex. CNEP Banque, agence de Kouba ; vide = à qui de droit.",
+    "issued": "Attestation {number} délivrée.",
+    "empty": "Aucune attestation délivrée.",
+    "fromPortal": "Espace client",
+    "by": "par {name}",
+    "kind": {
+      "reservation": "Attestation de réservation",
+      "payments": "Attestation de versements",
+      "paid_in_full": "Attestation de paiement intégral",
+      "progress": "Attestation d'avancement des travaux",
+      "statement": "Relevé de compte"
+    },
+    "errors": {
+      "nothingPaid": "Aucun versement n'est enregistré sur cette vente.",
+      "notPaidInFull": "Le prix n'est pas encore entièrement payé.",
+      "chequePending": "Un chèque attend encore son encaissement."
     }
   }
 }

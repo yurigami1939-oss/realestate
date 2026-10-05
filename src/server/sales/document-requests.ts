@@ -4,7 +4,14 @@ import { eq } from "drizzle-orm";
 import type { z } from "zod";
 
 import type { Tx } from "@/db/client";
-import { payment, paymentCall, receipt, reminderLetter, reservation } from "@/db/schema";
+import {
+  certificate,
+  payment,
+  paymentCall,
+  receipt,
+  reminderLetter,
+  reservation,
+} from "@/db/schema";
 import { withTenant } from "@/db/tenant";
 import { enqueueInTx } from "@/jobs/enqueue";
 import { AppError } from "@/lib/result";
@@ -51,6 +58,13 @@ async function documentOwner(
         })
         .from(reminderLetter)
         .where(eq(reminderLetter.id, id));
+      return row ?? null;
+    }
+    case "certificate": {
+      const [row] = await tx
+        .select({ reservationId: certificate.reservationId, pdfFileId: certificate.pdfFileId })
+        .from(certificate)
+        .where(eq(certificate.id, id));
       return row ?? null;
     }
   }

@@ -3,6 +3,7 @@ import "server-only";
 import type { JobPayloads, PdfDocumentKind } from "@/jobs/queues";
 import { renderAndStoreNotice } from "@/server/announcements/documents";
 import { renderAndStoreConvocation, renderAndStoreMinutes } from "@/server/assemblies/documents";
+import { renderAndStoreCertificate } from "@/server/certificates/documents";
 import {
   renderAndStoreChargeCall,
   renderAndStoreChargeReceipt,
@@ -39,6 +40,7 @@ const renderers: Record<PdfDocumentKind, Renderer> = {
   handover_release: renderAndStoreHandoverRelease,
   rent_receipt: renderAndStoreRentReceipt,
   lease_inspection: renderAndStoreInspection,
+  certificate: renderAndStoreCertificate,
 };
 
 /** Job `pdf.document`: dispatches to the document's renderer (idempotent). */

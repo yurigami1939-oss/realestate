@@ -2100,6 +2100,9 @@
       "online_payment": {
         "paid": "دفع إلكتروني أكدته ساتيم",
         "refund": "استرجاع دفع إلكتروني"
+      },
+      "certificate": {
+        "issue": "تسليم شهادة"
       }
     }
   },
@@ -3212,7 +3215,11 @@
       "handoverReserveLifted": "رُفع في {date}",
       "handoverReserveCancelled": "ملغى",
       "handoverRelease": "محضر رفع التحفظات",
-      "importedReceipt": "الوصل {number} (النظام السابق)"
+      "importedReceipt": "الوصل {number} (النظام السابق)",
+      "certificates": "الشهادات والكشوف",
+      "statement": "كشف حسابي",
+      "statementReady": "كشفك جاهز: يصل ملف PDF خلال ثوانٍ.",
+      "noCertificates": "لا توجد شهادات حالياً: اطلبها من المرقي."
     },
     "pendingDocument": "قيد الإعداد",
     "unit": {
@@ -3733,6 +3740,31 @@
       "unitExists": "الوحدة «{code}» موجودة مسبقاً.",
       "buyerExists": "لـ{name} ملف مسبقاً.",
       "residentExists": "{name} مسجل مسبقاً في هذه الوحدة."
+    }
+  },
+  "certificates": {
+    "title": "الشهادات",
+    "issue": "تسليم شهادة",
+    "issueTitle": "تسليم شهادة",
+    "issueDescription": "مرقمة وثنائية اللغة، تُثبت البيع كما هو اليوم ولا تتغير بعد ذلك.",
+    "kindLabel": "الوثيقة",
+    "addressee": "إلى السيد(ة) (اختياري)",
+    "addresseeHelp": "مثال: بنك CNEP، وكالة القبة؛ فارغ = لمن يهمه الأمر.",
+    "issued": "تم تسليم الشهادة {number}.",
+    "empty": "لم تُسلَّم أي شهادة.",
+    "fromPortal": "فضاء الزبائن",
+    "by": "بواسطة {name}",
+    "kind": {
+      "reservation": "شهادة حجز",
+      "payments": "شهادة دفع",
+      "paid_in_full": "شهادة تسديد كلي",
+      "progress": "شهادة تقدم الأشغال",
+      "statement": "كشف حساب"
+    },
+    "errors": {
+      "nothingPaid": "لا توجد أي دفعة مسجلة في هذا البيع.",
+      "notPaidInFull": "لم يُسدَّد السعر كاملاً بعد.",
+      "chequePending": "صك ما زال في انتظار التحصيل."
     }
   }
 }
