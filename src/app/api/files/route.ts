@@ -9,6 +9,7 @@ import { setBuyerDocumentScan } from "@/server/buyers/service";
 import { addReportPhoto } from "@/server/construction/service";
 import { setUnitFloorPlan } from "@/server/inventory/floor-plans";
 import { setCompanyLogo } from "@/server/organizations/settings";
+import { setProjectDocumentScan } from "@/server/obligations/service";
 import { setLeaseContractScan } from "@/server/rentals/service";
 import { setReservationScan } from "@/server/sales/reservations";
 import { setInvoiceScan } from "@/server/suppliers/invoices";
@@ -55,10 +56,16 @@ export async function POST(request: Request) {
         return result;
       }
       case "reservation.contract":
-      case "reservation.deed": {
+      case "reservation.deed":
+      case "reservation.guarantee": {
         const result = await setReservationScan(ctx, {
           reservationId: fields.data.entityId,
-          kind: fields.data.purpose === "reservation.contract" ? "contract" : "deed",
+          kind:
+            fields.data.purpose === "reservation.contract"
+              ? "contract"
+              : fields.data.purpose === "reservation.deed"
+                ? "deed"
+                : "guarantee",
           upload,
         });
         revalidatePath("/[locale]/sales", "layout");
@@ -89,6 +96,14 @@ export async function POST(request: Request) {
         const result = await setInvoiceScan(ctx, { invoiceId: fields.data.entityId, upload });
         revalidatePath("/[locale]/suppliers", "layout");
         revalidatePath("/[locale]/residences", "layout");
+        return result;
+      }
+      case "project_document.scan": {
+        const result = await setProjectDocumentScan(ctx, {
+          documentId: fields.data.entityId,
+          upload,
+        });
+        revalidatePath("/[locale]/projects", "layout");
         return result;
       }
       case "construction_report.photo": {

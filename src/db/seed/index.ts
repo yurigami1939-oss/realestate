@@ -11,6 +11,7 @@ import { DEMO_PASSWORD, demoOrganizations, demoUsers } from "./demo";
 import { seedCrm } from "./crm";
 import { seedDeliveries } from "./deliveries";
 import { seedInventory } from "./inventory";
+import { seedObligations } from "./obligations";
 import { seedOnlinePayments } from "./online-payments";
 import { seedWhatsapp } from "./whatsapp";
 import { seedPortal } from "./portal";
@@ -88,6 +89,7 @@ export async function seedDemo(): Promise<void> {
       owner: ctx("owner", ["owner"]),
       salesManager,
     });
+    await seedObligations(ctx("owner", ["owner"]), projectIds);
     const plans = await seedPaymentPlans(salesManager, projectIds);
     const leads = await seedCrm({ manager: salesManager, agentA, agentB }, projectIds);
     await seedQuotations(

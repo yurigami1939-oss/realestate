@@ -24,6 +24,7 @@ import { Link } from "@/i18n/navigation";
 import { toLocale } from "@/i18n/locales";
 import { formatDate, formatDateTime } from "@/lib/dates";
 import { formatAmountInput, formatDZD } from "@/lib/money";
+import { warrantyEnds } from "@/lib/obligations";
 import { onlinePaymentOffer } from "@/lib/online-payments";
 import { cn } from "@/lib/utils";
 import { getPortalPaymentOptions } from "@/server/online-payments/queries";
@@ -316,6 +317,11 @@ export default async function PortalSalePage({
         </CardHeader>
         <CardContent className="space-y-4">
           <BuildingProgressBar name={sale.buildingName} progress={sale.progress} />
+          {sale.deliveryDueOn ? (
+            <p className="text-sm" data-testid="portal-delivery-due">
+              {t("deliveryDueOn", { date: formatDate(sale.deliveryDueOn) })}
+            </p>
+          ) : null}
           {sale.milestones.length === 0 ? (
             <p className="text-sm text-muted-foreground">{t("noMilestones")}</p>
           ) : (
@@ -358,6 +364,12 @@ export default async function PortalSalePage({
                 <div>
                   <PortalDocument fileId={sale.handover.pdfFileId} label={t("handoverPv")} />
                 </div>
+                <p className="text-muted-foreground">
+                  {t("warranties", {
+                    completion: formatDate(warrantyEnds(sale.handover.signedOn).completion),
+                    tenYear: formatDate(warrantyEnds(sale.handover.signedOn).tenYear),
+                  })}
+                </p>
               </>
             ) : sale.handover.scheduledAt ? (
               <p className="font-medium">

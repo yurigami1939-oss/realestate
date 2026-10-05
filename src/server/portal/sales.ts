@@ -117,6 +117,7 @@ export async function getPortalSale(ctx: PortalCtx, saleId: string) {
         price: reservation.price,
         saleNumber: reservation.saleNumber,
         saleSignedOn: reservation.saleSignedOn,
+        deliveryDueOn: reservation.deliveryDueOn,
         sheetFileId: reservation.sheetFileId,
         contractFileId: reservation.reservationScanFileId,
         deedFileId: reservation.saleScanFileId,

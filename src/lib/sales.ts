@@ -77,6 +77,8 @@ export const salesSettingDefaults = {
   penaltyGraceDays: 0,
   penaltyCapBp: 1_000,
   defaultCommissionRateBp: 0,
+  deliveryPenaltyMonthlyRateBp: 0,
+  deliveryPenaltyCapBp: 1_000,
 } as const;
 
 export type SalesSettings = { [K in keyof typeof salesSettingDefaults]: number } & {

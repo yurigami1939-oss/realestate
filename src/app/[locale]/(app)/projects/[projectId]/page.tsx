@@ -8,16 +8,18 @@ import { PageHeader } from "@/components/app-shell/page-header";
 import { ExportButton } from "@/components/exports/export-button";
 import { ConfirmAction } from "@/components/forms/confirm-action";
 import { ProjectStatusBadge, StatsBar } from "@/components/inventory/status";
+import { ProjectDocuments } from "@/components/obligations/project-documents";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "@/i18n/navigation";
 import { toLocale } from "@/i18n/locales";
-import { formatDate } from "@/lib/dates";
+import { formatDate, todayInAlgiers } from "@/lib/dates";
 import { can } from "@/lib/permissions";
 import { requirePermission } from "@/server/auth/page-guard";
 import { deleteProjectAction } from "@/server/inventory/actions";
 import { getProject, type ProjectDetail } from "@/server/inventory/queries";
+import { listProjectDocuments } from "@/server/obligations/queries";
 
 import { BuildingDialog } from "./_components/building-dialog";
 
@@ -41,6 +43,7 @@ export default async function ProjectPage({ params }: PageProps<"/[locale]/proje
   const tp = await getTranslations("paymentPlans");
   const tw = await getTranslations("construction");
   const canEdit = can(ctx.roles, "project:update");
+  const documents = await listProjectDocuments(ctx, project.id);
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
@@ -148,6 +151,13 @@ export default async function ProjectPage({ params }: PageProps<"/[locale]/proje
           </div>
         )}
       </section>
+
+      <ProjectDocuments
+        projectId={project.id}
+        documents={documents}
+        today={todayInAlgiers()}
+        editable={canEdit}
+      />
     </div>
   );
 }

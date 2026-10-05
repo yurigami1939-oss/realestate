@@ -46,9 +46,17 @@ import { recordPaymentSchema } from "@/server/payments/schemas";
 import { recordPayment } from "@/server/payments/service";
 import { createResidenceSchema } from "@/server/residences/schemas";
 import { createResidence, distributeSharesByArea } from "@/server/residences/service";
-import { createReservation, recordSale } from "@/server/sales/reservations";
+import {
+  createReservation,
+  recordSale,
+  updateReservationContract,
+} from "@/server/sales/reservations";
 import { getSale } from "@/server/sales/sale-queries";
-import { createReservationSchema, recordSaleSchema } from "@/server/sales/schemas";
+import {
+  createReservationSchema,
+  recordSaleSchema,
+  reservationContractSchema,
+} from "@/server/sales/schemas";
 
 export const DELIVERIES_PROJECT = "Résidence Les Amandiers";
 
@@ -355,6 +363,19 @@ async function seedSales(actors: Actors, units: Map<string, string>, planId: str
         signedOn: addDays(today, -spec.signedDaysAgo),
         notary: "Maître Ouali Rym",
         reference: `Rép. ${spec.unit}`,
+      }),
+    );
+    // The contracts promised the keys three weeks ago; one FGCMPI certificate is still missing.
+    const guaranteed = spec.unit !== "D-03-01";
+    await updateReservationContract(
+      salesManager,
+      reservationContractSchema.parse({
+        reservationId: id,
+        notary: "Maître Ouali Rym",
+        reference: "",
+        deliveryDueOn: addDays(today, -21),
+        guaranteeNumber: guaranteed ? `FGCMPI/GAR/${spec.unit}` : "",
+        guaranteeIssuedOn: guaranteed ? addDays(today, -spec.signedDaysAgo) : "",
       }),
     );
     saleIds.set(spec.unit, id);

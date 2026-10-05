@@ -623,6 +623,9 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
                     reservationId={sale.id}
                     notary={sale.reservationNotary}
                     reference={sale.reservationReference}
+                    deliveryDueOn={sale.deliveryDueOn}
+                    guaranteeNumber={sale.guaranteeNumber}
+                    guaranteeIssuedOn={sale.guaranteeIssuedOn}
                   />
                 ) : null}
               </div>
@@ -668,6 +671,95 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
               ) : null}
             </CardContent>
           </Card>
+
+          {live ? (
+            <Card data-testid="sale-obligations">
+              <CardHeader>
+                <CardTitle className="text-base">{t("sales.obligations.title")}</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3 text-sm">
+                <dl className="space-y-2">
+                  <div className="flex justify-between gap-3">
+                    <dt className="text-muted-foreground">
+                      {t("sales.obligations.deliveryDueOn")}
+                    </dt>
+                    <dd className="text-end tabular-nums" dir="ltr">
+                      {sale.deliveryDueOn
+                        ? formatDate(sale.deliveryDueOn)
+                        : t("sales.obligations.none")}
+                    </dd>
+                  </div>
+                  {sale.obligations.daysLate > 0 ? (
+                    <div className="flex justify-between gap-3 text-red-800">
+                      <dt>{t("sales.obligations.late")}</dt>
+                      <dd className="text-end">
+                        {t("sales.obligations.days", { days: sale.obligations.daysLate })}
+                      </dd>
+                    </div>
+                  ) : null}
+                  {sale.obligations.penalty > 0n ? (
+                    <div className="flex justify-between gap-3 text-red-800">
+                      <dt>{t("sales.obligations.penalty")}</dt>
+                      <dd className="text-end tabular-nums" dir="ltr">
+                        {money(sale.obligations.penalty)}
+                      </dd>
+                    </div>
+                  ) : null}
+                  <div className="flex justify-between gap-3">
+                    <dt className="text-muted-foreground">{t("sales.obligations.guarantee")}</dt>
+                    <dd className="text-end">
+                      {sale.guaranteeNumber ? (
+                        sale.guaranteeIssuedOn ? (
+                          t("sales.obligations.guaranteeOn", {
+                            number: sale.guaranteeNumber,
+                            date: formatDate(sale.guaranteeIssuedOn),
+                          })
+                        ) : (
+                          t("sales.obligations.guaranteeValue", { number: sale.guaranteeNumber })
+                        )
+                      ) : sale.status === "sold" ? (
+                        <span className="text-amber-800">
+                          {t("sales.obligations.guaranteeMissing")}
+                        </span>
+                      ) : (
+                        "—"
+                      )}
+                    </dd>
+                  </div>
+                  {sale.obligations.warranties ? (
+                    <>
+                      <div className="flex justify-between gap-3">
+                        <dt className="text-muted-foreground">
+                          {t("sales.obligations.completion")}
+                        </dt>
+                        <dd className="text-end">
+                          {t("sales.obligations.until", {
+                            date: formatDate(sale.obligations.warranties.completion),
+                          })}
+                        </dd>
+                      </div>
+                      <div className="flex justify-between gap-3">
+                        <dt className="text-muted-foreground">{t("sales.obligations.tenYear")}</dt>
+                        <dd className="text-end">
+                          {t("sales.obligations.until", {
+                            date: formatDate(sale.obligations.warranties.tenYear),
+                          })}
+                        </dd>
+                      </div>
+                    </>
+                  ) : null}
+                </dl>
+                <ScanUpload
+                  reservationId={sale.id}
+                  kind="guarantee"
+                  label={t("sales.fields.guaranteeNumber")}
+                  fileId={sale.guaranteeScanFileId}
+                  fileName={sale.guaranteeFileName}
+                  editable={canUpdate}
+                />
+              </CardContent>
+            </Card>
+          ) : null}
 
           {showWithdrawals || showLoans || changeable ? (
             <Card data-testid="after-sale">

@@ -455,9 +455,9 @@ describe("contract details and scans", () => {
         .from(auditLog)
         .where(and(eq(auditLog.entityId, id), eq(auditLog.action, "reservation.update_contract"))),
     );
-    expect(audit).toEqual({
-      before: { notary: "Maître Benali", reference: null },
-      after: { notary: "Maître Hamidi", reference: "Rép. 2026/88" },
+    expect(audit).toMatchObject({
+      before: { notary: "Maître Benali", reference: null, deliveryDueOn: null },
+      after: { notary: "Maître Hamidi", reference: "Rép. 2026/88", guaranteeNumber: null },
     });
 
     const scan = (kind: "contract" | "deed", body: string) =>

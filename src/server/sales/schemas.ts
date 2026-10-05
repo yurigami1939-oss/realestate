@@ -56,6 +56,11 @@ export const reservationContractSchema = z.object({
   reservationId: z.uuid(),
   notary: optionalText(120),
   reference: optionalText(80),
+  /** Contractual delivery date (Loi 11-04); the indemnity runs past it. */
+  deliveryDueOn: optionalDateText(),
+  /** FGCMPI guarantee certificate annexed to the VSP. */
+  guaranteeNumber: optionalText(60),
+  guaranteeIssuedOn: optionalDateText(),
 });
 
 /** VSP signed at the notary: the unit is sold, the commission earned. */

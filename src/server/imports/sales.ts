@@ -133,6 +133,15 @@ export const salesSheets: {
       },
       { key: "saleRef", fr: "Réf. VSP", ar: "مرجع عقد البيع", help: help("Libre.", "حر.") },
       {
+        key: "deliveryDueOn",
+        fr: "Livraison contractuelle",
+        ar: "التسليم التعاقدي",
+        help: help(
+          "Date de livraison promise au contrat ; vide = la livraison prévue du projet.",
+          "تاريخ التسليم المنصوص عليه في العقد؛ فارغ = التسليم المتوقع للمشروع.",
+        ),
+      },
+      {
         key: "commercial",
         fr: "Commercial (e-mail)",
         ar: "المكلّف بالمبيعات (البريد)",
@@ -304,6 +313,7 @@ type Sale = {
   saleOn: CalendarDate | null;
   saleNotary: string | null;
   saleRef: string | null;
+  deliveryDueOn: CalendarDate | null;
   commercialUserId: string | null;
   notes: string | null;
   lines: Line[];
@@ -359,7 +369,7 @@ export async function prepareSales(ctx: TenantCtx, workbook: Workbook): Promise<
 
   const data = await withTenant(ctx, async (tx) => ({
     projects: await tx
-      .select({ id: project.id, code: project.code })
+      .select({ id: project.id, code: project.code, plannedDeliveryOn: project.plannedDeliveryOn })
       .from(project)
       .where(isNull(project.deletedAt)),
     units: await tx
@@ -482,6 +492,11 @@ export async function prepareSales(ctx: TenantCtx, workbook: Workbook): Promise<
       onSales.at(row, "saleOn", "imports.errors.saleDate");
       continue;
     }
+    const deliveryDueOn = date(cells.deliveryDueOn ?? null);
+    if (deliveryDueOn === null) {
+      onSales.at(row, "deliveryDueOn", "imports.errors.date");
+      continue;
+    }
     const commercialEmail = text(cells.commercial ?? null).toLowerCase();
     const commercial =
       commercialEmail === ""
@@ -509,6 +524,7 @@ export async function prepareSales(ctx: TenantCtx, workbook: Workbook): Promise<
       saleOn: saleOn === "" ? null : saleOn,
       saleNotary: optional(text(cells.saleNotary ?? null)),
       saleRef: optional(text(cells.saleRef ?? null)),
+      deliveryDueOn: deliveryDueOn === "" ? home.plannedDeliveryOn : deliveryDueOn,
       commercialUserId: commercial?.userId ?? null,
       notes: optional(text(cells.notes ?? null)),
       lines: [],
@@ -648,6 +664,7 @@ export async function prepareSales(ctx: TenantCtx, workbook: Workbook): Promise<
             reservedOn: sale.reservedOn,
             reservationNotary: sale.notary,
             reservationReference: sale.contractRef,
+            deliveryDueOn: sale.deliveryDueOn,
             notes: [`${IMPORT_REASON} : ${sale.ref}`, sale.notes].filter(Boolean).join(" · "),
             createdBy: ctx.userId,
           })

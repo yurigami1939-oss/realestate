@@ -278,15 +278,24 @@ export function RecordSaleDialog({
 
 type ContractValues = z.input<typeof reservationContractSchema>;
 
-/** Notary and reference of the reservation contract. */
+/**
+ * Notary and reference of the reservation contract, the contractual delivery date and the
+ * FGCMPI guarantee certificate.
+ */
 export function ContractDialog({
   reservationId,
   notary,
   reference,
+  deliveryDueOn,
+  guaranteeNumber,
+  guaranteeIssuedOn,
 }: {
   reservationId: string;
   notary: string | null;
   reference: string | null;
+  deliveryDueOn: string | null;
+  guaranteeNumber: string | null;
+  guaranteeIssuedOn: string | null;
 }) {
   const t = useTranslations("sales");
   const tc = useTranslations("common");
@@ -294,7 +303,14 @@ export function ContractDialog({
   const save = useAction(updateReservationContractAction);
   const form = useForm<ContractValues, unknown, z.output<typeof reservationContractSchema>>({
     resolver: zodResolver(reservationContractSchema),
-    defaultValues: { reservationId, notary: notary ?? "", reference: reference ?? "" },
+    defaultValues: {
+      reservationId,
+      notary: notary ?? "",
+      reference: reference ?? "",
+      deliveryDueOn: deliveryDueOn ?? "",
+      guaranteeNumber: guaranteeNumber ?? "",
+      guaranteeIssuedOn: guaranteeIssuedOn ?? "",
+    },
   });
   return (
     <FormDialog
@@ -321,6 +337,27 @@ export function ContractDialog({
     >
       <TextField control={form.control} name="notary" label={t("fields.notary")} />
       <TextField control={form.control} name="reference" label={t("fields.reference")} />
+      <TextField
+        control={form.control}
+        name="deliveryDueOn"
+        label={t("fields.deliveryDueOn")}
+        type="date"
+        dir="ltr"
+      />
+      <div className="grid gap-4 sm:grid-cols-2">
+        <TextField
+          control={form.control}
+          name="guaranteeNumber"
+          label={t("fields.guaranteeNumber")}
+        />
+        <TextField
+          control={form.control}
+          name="guaranteeIssuedOn"
+          label={t("fields.guaranteeIssuedOn")}
+          type="date"
+          dir="ltr"
+        />
+      </div>
     </FormDialog>
   );
 }

@@ -30,6 +30,16 @@ export const uploadPurposes = {
     accept: ["application/pdf", "image/png", "image/jpeg", "image/webp"],
     maxBytes: MAX_UPLOAD_BYTES,
   },
+  /** FGCMPI guarantee certificate annexed to the VSP (scan). */
+  "reservation.guarantee": {
+    accept: ["application/pdf", "image/png", "image/jpeg", "image/webp"],
+    maxBytes: MAX_UPLOAD_BYTES,
+  },
+  /** A document of a project's regulatory file (permit, title, insurance…), scanned. */
+  "project_document.scan": {
+    accept: ["application/pdf", "image/png", "image/jpeg", "image/webp"],
+    maxBytes: MAX_UPLOAD_BYTES,
+  },
   /** A buyer's document scan; `variant` = the document kind. */
   "buyer.document": {
     accept: ["application/pdf", "image/png", "image/jpeg", "image/webp"],

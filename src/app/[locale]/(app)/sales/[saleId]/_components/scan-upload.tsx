@@ -8,7 +8,10 @@ import { UploadButton } from "@/components/files/upload-button";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "@/i18n/navigation";
 
-/** A signed scan of the sale (reservation contract or VSP deed): link, then attach/replace. */
+/**
+ * A signed scan of the sale (reservation contract, VSP deed, FGCMPI guarantee certificate):
+ * link, then attach/replace.
+ */
 export function ScanUpload({
   reservationId,
   kind,
@@ -18,7 +21,7 @@ export function ScanUpload({
   editable,
 }: {
   reservationId: string;
-  kind: "contract" | "deed";
+  kind: "contract" | "deed" | "guarantee";
   label: string;
   fileId: string | null;
   fileName: string | null;
@@ -45,7 +48,7 @@ export function ScanUpload({
       </div>
       {editable ? (
         <UploadButton
-          purpose={kind === "contract" ? "reservation.contract" : "reservation.deed"}
+          purpose={`reservation.${kind}`}
           entityId={reservationId}
           label={fileId ? t("replace") : t("attach")}
           icon={<Upload data-icon="inline-start" />}

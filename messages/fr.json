@@ -760,7 +760,10 @@
       "vspLimitSigning": "À la signature (%)",
       "vspLimitFoundations": "Fin des fondations (%)",
       "vspLimitStructure": "Fin du gros œuvre (%)",
-      "vspLimitCompletion": "Fin des travaux (%)"
+      "vspLimitCompletion": "Fin des travaux (%)",
+      "deliveryPenaltyMonthlyRate": "Indemnité de retard de livraison (% du prix par mois)",
+      "deliveryPenaltyCap": "Plafond de l'indemnité (% du prix)",
+      "fgcmpiNumber": "N° d'adhésion au FGCMPI"
     },
     "collections": "Encaissements et commissions",
     "penaltyHint": "Pénalités de retard : calculées et affichées sur les relevés et lettres de relance, jamais facturées automatiquement. 0 % = désactivées.",
@@ -778,7 +781,9 @@
       "removeDescription": "Les documents émis ensuite n'auront plus de logo ; ceux déjà émis restent inchangés.",
       "removed": "Logo retiré.",
       "hint": "PNG ou JPEG, 2 Mo au plus. Imprimé en tête des devis, fiches de réservation, reçus, appels de fonds et lettres de relance émis ensuite."
-    }
+    },
+    "obligations": "Obligations du promoteur (loi 11-04)",
+    "obligationsHint": "Indemnité de retard de livraison due aux acquéreurs : calculée et affichée sur les ventes et les livraisons, jamais versée automatiquement. Reprenez le taux de vos contrats ; 0 % = désactivée."
   },
   "paymentPlans": {
     "title": "Échéanciers",
@@ -1098,7 +1103,10 @@
       "reservedOn": "Date du contrat de réservation",
       "notary": "Notaire",
       "reference": "Référence de l'acte",
-      "notes": "Remarques"
+      "notes": "Remarques",
+      "deliveryDueOn": "Livraison contractuelle",
+      "guaranteeNumber": "N° de l'attestation de garantie FGCMPI",
+      "guaranteeIssuedOn": "Attestation délivrée le"
     },
     "newBuyer": "Nouvel acquéreur",
     "noBuyer": "Aucun acquéreur : créez d'abord la fiche acquéreur.",
@@ -1302,7 +1310,22 @@
         "alreadyOpen": "Un dossier de crédit est déjà suivi pour cette vente."
       }
     },
-    "withdrawnNotice": "Réservation close par désistement le {date}. Encaissé : {paid} ; l'échéancier est conservé pour mémoire."
+    "withdrawnNotice": "Réservation close par désistement le {date}. Encaissé : {paid} ; l'échéancier est conservé pour mémoire.",
+    "obligations": {
+      "title": "Livraison et garanties",
+      "deliveryDueOn": "Livraison contractuelle",
+      "none": "Non fixée",
+      "late": "Retard de livraison",
+      "days": "{days, plural, one {# jour} other {# jours}}",
+      "penalty": "Indemnité due (indicative)",
+      "guarantee": "Garantie FGCMPI",
+      "guaranteeValue": "N° {number}",
+      "guaranteeOn": "N° {number} du {date}",
+      "guaranteeMissing": "Attestation de garantie non enregistrée",
+      "completion": "Garantie de parfait achèvement",
+      "tenYear": "Garantie décennale",
+      "until": "jusqu'au {date}"
+    }
   },
   "payments": {
     "record": "Enregistrer un paiement",
@@ -1690,7 +1713,8 @@
       "projectNotDelivered": "Le projet doit d'abord être au statut « Livré ».",
       "noUnit": "Choisissez au moins un lot du projet.",
       "unitEngaged": "Un des lots choisis est engagé dans une vente."
-    }
+    },
+    "late": "En retard de {days, plural, one {# jour} other {# jours}}"
   },
   "rentals": {
     "title": "Baux",
@@ -2103,6 +2127,11 @@
       },
       "certificate": {
         "issue": "Attestation délivrée"
+      },
+      "project_document": {
+        "create": "Document administratif ajouté",
+        "update": "Document administratif modifié",
+        "delete": "Document administratif retiré"
       }
     }
   },
@@ -2124,7 +2153,10 @@
       "lease": "Bail {number} · lot {unit} à échéance",
       "leaseEnds": "{tenant} · fin le {date}",
       "rents": "{count, plural, one {# bail} other {# baux}} avec des loyers impayés · {amount}",
-      "onlinePayments": "{count, plural, one {# paiement en ligne encaissé à traiter} other {# paiements en ligne encaissés à traiter}}"
+      "onlinePayments": "{count, plural, one {# paiement en ligne encaissé à traiter} other {# paiements en ligne encaissés à traiter}}",
+      "lateDeliveries": "{count, plural, one {# livraison en retard sur la date contractuelle} other {# livraisons en retard sur la date contractuelle}}",
+      "documentsExpiring": "{count, plural, one {# document administratif expiré ou à renouveler} other {# documents administratifs expirés ou à renouveler}}",
+      "documentsIncomplete": "{count, plural, one {# projet au dossier administratif incomplet} other {# projets au dossier administratif incomplet}}"
     },
     "sales": {
       "title": "Ventes",
@@ -3219,7 +3251,9 @@
       "certificates": "Attestations et relevés",
       "statement": "Mon relevé de compte",
       "statementReady": "Votre relevé est prêt : son PDF arrive dans quelques secondes.",
-      "noCertificates": "Aucune attestation pour l'instant : demandez-la à votre promoteur."
+      "noCertificates": "Aucune attestation pour l'instant : demandez-la à votre promoteur.",
+      "deliveryDueOn": "Livraison prévue au contrat : {date}",
+      "warranties": "Garantie de parfait achèvement jusqu'au {completion} · garantie décennale jusqu'au {tenYear}"
     },
     "pendingDocument": "en préparation",
     "unit": {
@@ -3765,6 +3799,62 @@
       "nothingPaid": "Aucun versement n'est enregistré sur cette vente.",
       "notPaidInFull": "Le prix n'est pas encore entièrement payé.",
       "chequePending": "Un chèque attend encore son encaissement."
+    }
+  },
+  "obligations": {
+    "errors": {
+      "expiresBeforeIssue": "La date d'expiration précède la délivrance."
+    },
+    "scan": {
+      "open": "Voir le scan",
+      "attach": "Joindre le scan",
+      "replace": "Remplacer le scan",
+      "saved": "Scan enregistré."
+    },
+    "documents": {
+      "title": "Dossier administratif",
+      "description": "Titre foncier, permis, contrôle technique, assurance, FGCMPI… avec leurs dates de validité et leurs scans.",
+      "add": "Ajouter un document",
+      "addTitle": "Ajouter un document au dossier",
+      "editTitle": "Modifier le document",
+      "added": "Document ajouté.",
+      "saved": "Document enregistré.",
+      "deleted": "Document retiré.",
+      "deleteTitle": "Retirer ce document ?",
+      "deleteDescription": "Il disparaît du dossier ; son scan reste conservé.",
+      "empty": "Aucun document enregistré.",
+      "missing": "{document} : manquant",
+      "columns": {
+        "document": "Document",
+        "reference": "Référence",
+        "issuedOn": "Délivré le",
+        "expiresOn": "Expire le",
+        "scan": "Scan"
+      },
+      "validity": {
+        "expired": "Expiré",
+        "expiring": "À renouveler"
+      },
+      "fields": {
+        "kind": "Document",
+        "title": "Intitulé ou précision",
+        "reference": "Référence / numéro",
+        "issuedOn": "Délivré le",
+        "expiresOn": "Expire le",
+        "expiresHelp": "Vide s'il n'expire pas.",
+        "issuer": "Délivré par",
+        "notes": "Remarques"
+      },
+      "kind": {
+        "land_title": "Titre de propriété du terrain",
+        "building_permit": "Permis de construire",
+        "subdivision_permit": "Permis de lotir",
+        "technical_control": "Convention de contrôle technique (CTC)",
+        "insurance": "Assurance responsabilité civile professionnelle",
+        "fgcmpi": "Affiliation au FGCMPI",
+        "conformity_certificate": "Certificat de conformité",
+        "other": "Autre document"
+      }
     }
   }
 }

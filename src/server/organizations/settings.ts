@@ -42,6 +42,8 @@ export async function loadSalesSettings(
     penaltyGraceDays: row.penaltyGraceDays,
     penaltyCapBp: row.penaltyCapBp,
     defaultCommissionRateBp: row.defaultCommissionRateBp,
+    deliveryPenaltyMonthlyRateBp: row.deliveryPenaltyMonthlyRateBp,
+    deliveryPenaltyCapBp: row.deliveryPenaltyCapBp,
     vspLimits: row.vspLimits,
   };
 }
@@ -65,13 +67,17 @@ export async function loadCompanyProfile(tx: Tx, orgId: string) {
     .where(eq(organization.id, orgId));
   if (!org) throw new AppError("NOT_FOUND");
   const [setting] = await tx
-    .select({ logoFileId: organizationSetting.logoFileId })
+    .select({
+      logoFileId: organizationSetting.logoFileId,
+      fgcmpiNumber: organizationSetting.fgcmpiNumber,
+    })
     .from(organizationSetting)
     .where(eq(organizationSetting.organizationId, orgId));
   return {
     ...org,
     ...(await loadSalesSettings(tx, orgId)),
     logoFileId: setting?.logoFileId ?? null,
+    fgcmpiNumber: setting?.fgcmpiNumber ?? null,
   };
 }
 
@@ -190,6 +196,9 @@ export async function updateCompanySettings(
       penaltyGraceDays,
       penaltyCap,
       defaultCommissionRate,
+      deliveryPenaltyMonthlyRate,
+      deliveryPenaltyCap,
+      fgcmpiNumber,
       vspLimitSigning,
       vspLimitFoundations,
       vspLimitStructure,
@@ -213,6 +222,9 @@ export async function updateCompanySettings(
       penaltyGraceDays,
       penaltyCapBp: penaltyCap,
       defaultCommissionRateBp: defaultCommissionRate,
+      deliveryPenaltyMonthlyRateBp: deliveryPenaltyMonthlyRate,
+      deliveryPenaltyCapBp: deliveryPenaltyCap,
+      fgcmpiNumber,
       vspLimits,
       updatedBy: ctx.userId,
     };

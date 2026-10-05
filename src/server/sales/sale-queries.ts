@@ -10,6 +10,7 @@ import {
   commission,
   constructionMilestone,
   file,
+  handover,
   installment,
   paymentPlan,
   project,
@@ -21,6 +22,7 @@ import {
 import { withTenant } from "@/db/tenant";
 import { todayInAlgiers } from "@/lib/dates";
 import { isUuid } from "@/lib/ids";
+import { deliveryDelayDays, deliveryPenalty, warrantyEnds } from "@/lib/obligations";
 import { checkVspLimits } from "@/lib/payment-plans";
 import { computeStatement } from "@/lib/statement";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
@@ -35,6 +37,7 @@ const commercial = alias(user, "commercial");
 const sheetFile = alias(file, "sheet_file");
 const scanFile = alias(file, "scan_file");
 const deedFile = alias(file, "deed_file");
+const guaranteeFile = alias(file, "guarantee_file");
 
 /**
  * Total of the valid payments of each reservation (module 3 payments). Until payments exist,
@@ -164,6 +167,7 @@ export async function loadSale(tx: Tx, orgId: string, reservationId: string, ctx
       sheetFileName: sheetFile.fileName,
       scanFileName: scanFile.fileName,
       deedFileName: deedFile.fileName,
+      guaranteeFileName: guaranteeFile.fileName,
     })
     .from(reservation)
     .innerJoin(unit, eq(unit.id, reservation.unitId))
@@ -174,6 +178,7 @@ export async function loadSale(tx: Tx, orgId: string, reservationId: string, ctx
     .leftJoin(sheetFile, eq(sheetFile.id, reservation.sheetFileId))
     .leftJoin(scanFile, eq(scanFile.id, reservation.reservationScanFileId))
     .leftJoin(deedFile, eq(deedFile.id, reservation.saleScanFileId))
+    .leftJoin(guaranteeFile, eq(guaranteeFile.id, reservation.guaranteeScanFileId))
     .where(and(eq(reservation.id, reservationId), ctx ? visibleSales(ctx) : undefined));
   if (!row) return null;
 
@@ -224,6 +229,20 @@ export async function loadSale(tx: Tx, orgId: string, reservationId: string, ctx
     .from(commission)
     .where(eq(commission.reservationId, reservationId));
   const settings = await loadSalesSettings(tx, orgId);
+  // Loi 11-04: delivery against the contractual date, warranties from the handover PV.
+  const [delivered] = await tx
+    .select({ signedOn: handover.signedOn })
+    .from(handover)
+    .where(and(eq(handover.reservationId, reservationId), eq(handover.status, "signed")));
+  const deliveredOn = delivered?.signedOn ?? null;
+  const daysLate =
+    row.reservation.status === "withdrawn"
+      ? 0
+      : deliveryDelayDays({
+          dueOn: row.reservation.deliveryDueOn,
+          deliveredOn,
+          today: todayInAlgiers(),
+        });
   const paid = (await paidTotals(tx, [reservationId])).get(reservationId) ?? 0n;
   const statement = computeStatement(installments, paid, todayInAlgiers(), {
     monthlyRateBp: settings.penaltyMonthlyRateBp,
@@ -238,6 +257,15 @@ export async function loadSale(tx: Tx, orgId: string, reservationId: string, ctx
     installments,
     statement,
     commission: earned ?? null,
+    obligations: {
+      deliveredOn,
+      daysLate,
+      penalty: deliveryPenalty(row.reservation.price, daysLate, {
+        monthlyRateBp: settings.deliveryPenaltyMonthlyRateBp,
+        capBp: settings.deliveryPenaltyCapBp,
+      }),
+      warranties: deliveredOn ? warrantyEnds(deliveredOn) : null,
+    },
     missingDocuments: await countMissingDocuments(
       tx,
       buyers.map((b) => b.id),

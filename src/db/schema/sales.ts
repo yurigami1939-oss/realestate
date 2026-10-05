@@ -77,6 +77,14 @@ export const organizationSetting = pgTable(
       .$type<VspLimits>()
       .notNull()
       .default(sql`'{}'::jsonb`),
+    /**
+     * Indemnity for late delivery owed to buyers (Loi 11-04 contracts): per month of delay on
+     * the price, capped; shown only, never booked; 0 = off.
+     */
+    deliveryPenaltyMonthlyRateBp: integer().notNull().default(0),
+    deliveryPenaltyCapBp: integer().notNull().default(1000),
+    /** The promoter's FGCMPI membership number (n° d'adhésion). */
+    fgcmpiNumber: text(),
     /** Company logo (PNG/JPEG), printed on the documents issued afterwards. */
     logoFileId: uuid(),
     updatedAt: updatedAt(),
@@ -98,6 +106,11 @@ export const organizationSetting = pgTable(
         and ${t.penaltyGraceDays} between 0 and 365
         and ${t.penaltyCapBp} between 0 and 10000
         and ${t.defaultCommissionRateBp} between 0 and 2000`,
+    ),
+    check(
+      "organization_setting_delivery_penalty",
+      sql`${t.deliveryPenaltyMonthlyRateBp} between 0 and 1000
+        and ${t.deliveryPenaltyCapBp} between 0 and 10000`,
     ),
   ],
 );
@@ -376,6 +389,15 @@ export const reservation = pgTable(
     saleNotary: text(),
     saleReference: text(),
     saleScanFileId: uuid(),
+    /**
+     * Contractual delivery date (Loi 11-04): the project's planned delivery at reservation,
+     * corrected from the contract; past it, the indemnity owed to the buyer is shown.
+     */
+    deliveryDueOn: date({ mode: "string" }),
+    /** FGCMPI guarantee certificate annexed to the VSP: number, date, scan. */
+    guaranteeNumber: text(),
+    guaranteeIssuedOn: date({ mode: "string" }),
+    guaranteeScanFileId: uuid(),
     /** Internal reservation sheet (PDF rendered by the worker). */
     sheetFileId: uuid(),
     notes: text(),
@@ -414,6 +436,11 @@ export const reservation = pgTable(
     foreignKey({
       name: "reservation_deed_fk",
       columns: [t.organizationId, t.saleScanFileId],
+      foreignColumns: [file.organizationId, file.id],
+    }),
+    foreignKey({
+      name: "reservation_guarantee_fk",
+      columns: [t.organizationId, t.guaranteeScanFileId],
       foreignColumns: [file.organizationId, file.id],
     }),
     foreignKey({

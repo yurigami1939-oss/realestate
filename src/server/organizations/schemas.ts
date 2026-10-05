@@ -39,6 +39,10 @@ export const companySettingsSchema = z.object({
   penaltyGraceDays: intText(0, 365),
   penaltyCap: percentText(0, 100),
   defaultCommissionRate: percentText(0, 20),
+  /** Indemnity for late delivery owed to buyers (shown, never booked); 0 = off. */
+  deliveryPenaltyMonthlyRate: percentText(0, 10),
+  deliveryPenaltyCap: percentText(0, 100),
+  fgcmpiNumber: optionalText(40),
   /** Cumulative VSP limits per stage (CLAUDE.md §12); empty = no check. */
   vspLimitSigning: optionalPercentText(0, 100),
   vspLimitFoundations: optionalPercentText(0, 100),

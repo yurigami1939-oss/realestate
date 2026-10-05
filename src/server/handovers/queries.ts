@@ -19,6 +19,7 @@ import { withTenant } from "@/db/tenant";
 import { todayInAlgiers } from "@/lib/dates";
 import { type DeliveryState, deliveryState, deliveryStates } from "@/lib/handovers";
 import { isUuid } from "@/lib/ids";
+import { deliveryDelayDays } from "@/lib/obligations";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
 import { currentResident } from "@/server/residences/service";
 import { buyerNames, paidTotals } from "@/server/sales/sale-queries";
@@ -87,6 +88,7 @@ export type DeliveryFilters = { projectId?: string; state?: DeliveryState | "all
 export async function listDeliveries(ctx: TenantCtx, filters: DeliveryFilters = {}) {
   assertCan(ctx, "handover:read");
   const projectId = filters.projectId && isUuid(filters.projectId) ? filters.projectId : undefined;
+  const today = todayInAlgiers();
   return withTenant(ctx, async (tx) => {
     const rows = await tx
       .select({
@@ -94,6 +96,7 @@ export async function listDeliveries(ctx: TenantCtx, filters: DeliveryFilters = 
         saleNumber: reservation.number,
         vspNumber: reservation.saleNumber,
         saleSignedOn: reservation.saleSignedOn,
+        deliveryDueOn: reservation.deliveryDueOn,
         price: reservation.price,
         unitCode: unit.code,
         buildingName: building.name,
@@ -142,6 +145,12 @@ export async function listDeliveries(ctx: TenantCtx, filters: DeliveryFilters = 
       const settled = paid.get(r.saleId) ?? 0n;
       return {
         ...r,
+        // Days past the contractual delivery date (to the PV, else to today).
+        daysLate: deliveryDelayDays({
+          dueOn: r.deliveryDueOn,
+          deliveredOn: r.status === "signed" ? r.signedOn : null,
+          today,
+        }),
         buyers: names.get(r.saleId) ?? "—",
         remaining: r.price > settled ? r.price - settled : 0n,
         openReserves: counts.open,

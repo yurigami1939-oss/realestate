@@ -70,5 +70,8 @@ export const companySettingsInput = (overrides: Record<string, string> = {}) => 
   penaltyGraceDays: "0",
   penaltyCap: "10",
   defaultCommissionRate: "0",
+  deliveryPenaltyMonthlyRate: "0",
+  deliveryPenaltyCap: "10",
+  fgcmpiNumber: "",
   ...overrides,
 });

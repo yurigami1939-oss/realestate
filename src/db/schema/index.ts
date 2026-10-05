@@ -9,6 +9,7 @@ export * from "./crm";
 export * from "./files";
 export * from "./handovers";
 export * from "./inventory";
+export * from "./obligations";
 export * from "./online-payments";
 export * from "./platform";
 export * from "./portal";

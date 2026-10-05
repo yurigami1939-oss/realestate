@@ -16,8 +16,14 @@ test.describe("certificates", () => {
   }) => {
     const staff = await browser.newContext({ storageState: authFile("cashier") });
     const page = await staff.newPage();
+    // His own sale in Les Oliviers (the one his portal account follows).
     await page.goto("/fr/sales?q=Cherif");
-    await page.getByTestId("sales-table").getByRole("link", { name: /^RES-/ }).first().click();
+    await page
+      .getByTestId("sales-table")
+      .getByRole("row")
+      .filter({ hasText: "B-02-02" })
+      .getByRole("link", { name: /^RES-/ })
+      .click();
     await page.getByRole("button", { name: "Délivrer une attestation" }).click();
     const dialog = page.getByRole("dialog");
     await dialog.getByLabel("Document").click();

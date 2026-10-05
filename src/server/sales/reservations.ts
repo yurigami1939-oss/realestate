@@ -10,6 +10,7 @@ import {
   commissionRate,
   installment,
   lead,
+  project,
   reservation,
   reservationBuyer,
   unit,
@@ -98,10 +99,12 @@ export async function createReservation(
         status: unit.status,
         projectId: unit.projectId,
         listPrice: unit.listPrice,
+        plannedDeliveryOn: project.plannedDeliveryOn,
       })
       .from(unit)
+      .innerJoin(project, eq(project.id, unit.projectId))
       .where(eq(unit.id, input.unitId))
-      .for("update");
+      .for("update", { of: unit });
     if (!target) throw new AppError("NOT_FOUND");
     const [option] =
       target.status === "optioned"
@@ -157,6 +160,8 @@ export async function createReservation(
         reservedOn: input.reservedOn,
         reservationNotary: input.notary,
         reservationReference: input.reference,
+        // The contract's delivery date starts as the project's planned delivery (Loi 11-04).
+        deliveryDueOn: target.plannedDeliveryOn,
         notes: input.notes,
         createdBy: ctx.userId,
       })
@@ -272,28 +277,56 @@ export async function updateReservationContract(
       forUpdate: true,
     });
     if (current.status === "withdrawn") throw new AppError("CONFLICT", "sales.errors.closed");
+    const after = {
+      notary: input.notary,
+      reference: input.reference,
+      deliveryDueOn: input.deliveryDueOn,
+      guaranteeNumber: input.guaranteeNumber,
+      guaranteeIssuedOn: input.guaranteeIssuedOn,
+    };
     await tx
       .update(reservation)
-      .set({ reservationNotary: input.notary, reservationReference: input.reference })
+      .set({
+        reservationNotary: after.notary,
+        reservationReference: after.reference,
+        deliveryDueOn: after.deliveryDueOn,
+        guaranteeNumber: after.guaranteeNumber,
+        guaranteeIssuedOn: after.guaranteeIssuedOn,
+      })
       .where(eq(reservation.id, input.reservationId));
     await recordAudit(tx, ctx, {
       actorUserId: ctx.userId,
       action: "reservation.update_contract",
       entityType: "reservation",
       entityId: input.reservationId,
-      before: { notary: current.reservationNotary, reference: current.reservationReference },
-      after: { notary: input.notary, reference: input.reference },
+      before: {
+        notary: current.reservationNotary,
+        reference: current.reservationReference,
+        deliveryDueOn: current.deliveryDueOn,
+        guaranteeNumber: current.guaranteeNumber,
+        guaranteeIssuedOn: current.guaranteeIssuedOn,
+      },
+      after,
     });
   });
 }
 
-/** Attaches the signed scan of the reservation contract or of the VSP deed. */
+const scanPurposes = {
+  contract: "reservation.contract",
+  deed: "reservation.deed",
+  guarantee: "reservation.guarantee",
+} as const;
+
+/**
+ * Attaches the signed scan of the reservation contract, of the VSP deed, or of the FGCMPI
+ * guarantee certificate.
+ */
 export async function setReservationScan(
   ctx: TenantCtx,
-  input: { reservationId: string; kind: "contract" | "deed"; upload: Upload },
+  input: { reservationId: string; kind: "contract" | "deed" | "guarantee"; upload: Upload },
 ) {
   assertCan(ctx, "sale:update");
-  const purpose = input.kind === "contract" ? "reservation.contract" : "reservation.deed";
+  const purpose = scanPurposes[input.kind];
   const contentType = checkUpload(purpose, input.upload);
   return withTenant(ctx, async (tx) => {
     const current = await loadVisibleReservation(tx, ctx, input.reservationId, {
@@ -309,16 +342,17 @@ export async function setReservationScan(
       upload: input.upload,
       contentType,
     });
-    const previous =
-      input.kind === "contract" ? current.reservationScanFileId : current.saleScanFileId;
-    await tx
-      .update(reservation)
-      .set(
-        input.kind === "contract"
-          ? { reservationScanFileId: stored.id }
-          : { saleScanFileId: stored.id },
-      )
-      .where(eq(reservation.id, input.reservationId));
+    const previous = {
+      contract: current.reservationScanFileId,
+      deed: current.saleScanFileId,
+      guarantee: current.guaranteeScanFileId,
+    }[input.kind];
+    const set = {
+      contract: { reservationScanFileId: stored.id },
+      deed: { saleScanFileId: stored.id },
+      guarantee: { guaranteeScanFileId: stored.id },
+    }[input.kind];
+    await tx.update(reservation).set(set).where(eq(reservation.id, input.reservationId));
     if (previous) await discardFile(tx, previous);
     return { fileId: stored.id };
   });

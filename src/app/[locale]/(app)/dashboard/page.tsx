@@ -102,7 +102,10 @@ export default async function DashboardPage({ params }: PageProps<"/[locale]/das
     (todo.lateReserves ?? 0) > 0 ||
     (todo.rents?.count ?? 0) > 0 ||
     (todo.endingLeases?.length ?? 0) > 0 ||
-    (todo.onlineIssues ?? 0) > 0;
+    (todo.onlineIssues ?? 0) > 0 ||
+    (todo.lateDeliveries ?? 0) > 0 ||
+    (todo.documents?.expiring ?? 0) > 0 ||
+    (todo.documents?.incomplete ?? 0) > 0;
 
   return (
     <div className="mx-auto max-w-7xl space-y-6">
@@ -160,6 +163,30 @@ export default async function DashboardPage({ params }: PageProps<"/[locale]/das
                   className="hover:underline"
                 >
                   {t("dashboard.todo.lateReserves", { count: todo.lateReserves })}
+                </Link>
+              </li>
+            ) : null}
+            {todo.lateDeliveries ? (
+              <li className="py-2">
+                <Link
+                  href={{ pathname: "/deliveries", query: { state: "all" } }}
+                  className="hover:underline"
+                >
+                  {t("dashboard.todo.lateDeliveries", { count: todo.lateDeliveries })}
+                </Link>
+              </li>
+            ) : null}
+            {todo.documents?.expiring ? (
+              <li className="py-2">
+                <Link href="/projects" className="hover:underline">
+                  {t("dashboard.todo.documentsExpiring", { count: todo.documents.expiring })}
+                </Link>
+              </li>
+            ) : null}
+            {todo.documents?.incomplete ? (
+              <li className="py-2">
+                <Link href="/projects" className="hover:underline">
+                  {t("dashboard.todo.documentsIncomplete", { count: todo.documents.incomplete })}
                 </Link>
               </li>
             ) : null}
