@@ -19,7 +19,7 @@ import {
   FieldLegend,
   FieldSet,
 } from "@/components/ui/field";
-import { invitableRoles } from "@/lib/permissions";
+import { staffRoles } from "@/lib/permissions";
 import { inviteMemberAction } from "@/server/organizations/actions";
 import { inviteMemberSchema } from "@/server/organizations/schemas";
 
@@ -69,7 +69,7 @@ export function InviteMemberForm() {
                 <FieldSet data-invalid={fieldState.invalid}>
                   <FieldLegend variant="label">{t("members.invite.roles")}</FieldLegend>
                   <div className="grid gap-2 sm:grid-cols-2">
-                    {invitableRoles.map((role) => (
+                    {staffRoles.map((role) => (
                       <Field key={role} orientation="horizontal">
                         <Checkbox
                           id={`invite-role-${role}`}

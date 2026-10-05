@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 
 import { and, eq } from "drizzle-orm";
 import { afterAll, describe, expect, it } from "vitest";
+import { z } from "zod";
 
 import { auditLog, member } from "@/db/schema";
 import { withTenant } from "@/db/tenant";
@@ -12,6 +13,7 @@ import type { TenantCtx } from "@/server/auth/session";
 import { createOrganizationAs, signUp } from "../../../tests/auth-helpers";
 
 import { getMember } from "./queries";
+import { inviteMemberSchema, updateMemberRolesSchema } from "./schemas";
 import { cancelInvitation, inviteMember, removeMember, updateMemberRoles } from "./service";
 
 afterAll(async () => {
@@ -58,6 +60,27 @@ async function addMember(
   if (!row) throw new Error("member not created");
   return row.id;
 }
+
+describe("staff roles", () => {
+  // The member actions parse their input with these schemas before any service call.
+  it("refuses the portal role on staff invitations and role changes", () => {
+    const invite = inviteMemberSchema.safeParse({ email: "x@example.test", roles: ["resident"] });
+    expect(invite.error && z.flattenError(invite.error).fieldErrors).toEqual({
+      roles: ["validation.staffRole"],
+    });
+    const update = updateMemberRolesSchema.safeParse({
+      memberId: randomUUID(),
+      roles: ["cashier", "resident"],
+    });
+    expect(update.error && z.flattenError(update.error).fieldErrors).toEqual({
+      roles: ["validation.staffRole"],
+    });
+    expect(
+      inviteMemberSchema.safeParse({ email: "x@example.test", roles: ["technical_manager"] })
+        .success,
+    ).toBe(true);
+  });
+});
 
 describe("member management service", () => {
   it("audits invitations with the acting user", async () => {

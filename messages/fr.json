@@ -63,6 +63,7 @@
     "slug": "Lettres minuscules, chiffres et tirets uniquement.",
     "tooLong": "Texte trop long.",
     "rolesRequired": "Choisissez au moins un rôle.",
+    "staffRole": "Rôle réservé à l'espace client : invitez l'acquéreur ou le résident depuis sa fiche.",
     "integer": "Nombre entier attendu.",
     "outOfRange": "Valeur hors limites.",
     "area": "Surface invalide (ex. 85,50).",

@@ -189,18 +189,24 @@ export type Role = keyof typeof roles;
 
 export const roleNames = Object.keys(roles) as Role[];
 
-/** Roles that can be granted through an invitation (owner is only the organization creator). */
-export const invitableRoles = [
+/**
+ * Back-office roles granted on the members page. The owner role only comes with the
+ * organization; `resident` portal accounts are invited from their buyer file or co-owner /
+ * occupant record (`inviteToPortal`, CLAUDE.md §5), never as staff.
+ */
+export const staffRoles = [
   "sales_manager",
   "sales_agent",
   "accountant",
   "cashier",
   "technical_manager",
   "property_manager",
-  "resident",
-] as const satisfies readonly Exclude<Role, "owner">[];
+] as const satisfies readonly Exclude<Role, "owner" | "resident">[];
 
-export type InvitableRole = (typeof invitableRoles)[number];
+export type StaffRole = (typeof staffRoles)[number];
+
+export const isStaffRole = (role: string): role is StaffRole =>
+  (staffRoles as readonly string[]).includes(role);
 
 type Statement = typeof statement;
 export type Permission = {

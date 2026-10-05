@@ -36,7 +36,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { formatDate } from "@/lib/dates";
-import { type InvitableRole, invitableRoles } from "@/lib/permissions";
+import { isStaffRole, type StaffRole, staffRoles } from "@/lib/permissions";
 import { removeMemberAction, updateMemberRolesAction } from "@/server/organizations/actions";
 import type { MemberRow } from "@/server/organizations/queries";
 
@@ -56,8 +56,8 @@ export function MembersTable({
   const remove = useAction(removeMemberAction);
   const [toRemove, setToRemove] = useState<MemberRow | null>(null);
 
-  function toggleRole(row: MemberRow, role: InvitableRole, checked: boolean) {
-    const current = row.roles.filter((r): r is InvitableRole => r !== "owner");
+  function toggleRole(row: MemberRow, role: StaffRole, checked: boolean) {
+    const current = row.roles.filter(isStaffRole);
     const roles = checked ? [...current, role] : current.filter((r) => r !== role);
     if (roles.length === 0) return;
     void updateRoles.run(
@@ -127,7 +127,7 @@ export function MembersTable({
                             {canManage ? (
                               <>
                                 <DropdownMenuLabel>{t("members.editRoles")}</DropdownMenuLabel>
-                                {invitableRoles.map((role) => (
+                                {staffRoles.map((role) => (
                                   <DropdownMenuCheckboxItem
                                     key={role}
                                     checked={row.roles.includes(role)}

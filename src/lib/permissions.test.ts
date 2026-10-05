@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { can, parseRoles } from "./permissions";
+import { can, isStaffRole, parseRoles, staffRoles } from "./permissions";
 
 describe("permissions", () => {
   it("parses Better Auth multi-role strings and drops unknown roles", () => {
@@ -53,6 +53,14 @@ describe("permissions", () => {
     expect(can(["sales_agent"], "handover:read")).toBe(false);
     expect(can(["property_manager"], "handover:read")).toBe(true);
     expect(can(["property_manager"], "handover:update")).toBe(false);
+  });
+
+  it("keeps the owner and the portal role off the staff roles", () => {
+    expect(staffRoles).not.toContain("owner");
+    expect(staffRoles).not.toContain("resident");
+    expect(isStaffRole("technical_manager")).toBe(true);
+    expect(isStaffRole("resident")).toBe(false);
+    expect(isStaffRole("owner")).toBe(false);
   });
 
   it("grants the union of several roles", () => {

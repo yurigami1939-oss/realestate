@@ -1,12 +1,13 @@
 /** Isomorphic: shared by the members page forms and the organization actions. */
 import { z } from "zod";
 
-import { invitableRoles } from "@/lib/permissions";
+import { staffRoles } from "@/lib/permissions";
 import { intText, optionalPercentText, optionalText, percentText, requiredText } from "@/lib/zod";
 
-const invitableRole = z.enum(invitableRoles);
+/** Staff roles only: the portal role is given by a portal invitation from a record. */
+const staffRole = z.enum(staffRoles, { error: "validation.staffRole" });
 
-export const memberRolesSchema = z.array(invitableRole).min(1, "validation.rolesRequired");
+export const memberRolesSchema = z.array(staffRole).min(1, "validation.rolesRequired");
 
 export const inviteMemberSchema = z.object({
   email: z.email("validation.email").trim().toLowerCase(),
