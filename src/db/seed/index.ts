@@ -9,6 +9,7 @@ import type { TenantCtx } from "@/server/auth/session";
 import { DEMO_PASSWORD, demoOrganizations, demoUsers } from "./demo";
 import { seedCrm } from "./crm";
 import { seedInventory } from "./inventory";
+import { seedPortal } from "./portal";
 import { seedSales } from "./reservations";
 import { seedResidences } from "./residences";
 import { seedPaymentPlans, seedQuotations } from "./sales";
@@ -103,5 +104,13 @@ export async function seedDemo(): Promise<void> {
       manager: ctx("propertyManager", ["property_manager"]),
       cashier: ctx("cashier", ["cashier"]),
     });
+    await seedPortal(
+      {
+        salesManager,
+        propertyManager: ctx("propertyManager", ["property_manager"]),
+        cashier: ctx("cashier", ["cashier"]),
+      },
+      { units: unitIds, plans },
+    );
   }
 }

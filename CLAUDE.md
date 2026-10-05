@@ -119,7 +119,8 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
     │   │                     # visits, follow-ups, targets), sales.ts (plans, quotations), reservations.ts
     │   │                     # (settings, buyers, sales, payments, VSP, loan, calls, letter), residences.ts
     │   │                     # (delivered « Résidence El Yasmine »: co-owners, charges, calls, payments,
-    │   │                     # suppliers, staff, tickets, assemblies, announcements); grows per module
+    │   │                     # suppliers, staff, tickets, assemblies, announcements), portal.ts (the demo
+    │   │                     # resident account linked to its own sale and co-owner record); grows per module
     │   ├── client.ts         # pg Pool + drizzle (app role)
     │   ├── tenant.ts         # withTenant(scope, fn, tx?)
     │   └── migrate.ts        # migrateDatabase(): migrations + post-migrate + pg-boss
@@ -472,7 +473,7 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 | Jobs/email | Vitest + Mailpit | handler delivers via SMTP (checked through Mailpit API); enqueue stores the job |
 | PDF | Vitest + Chromium | template HTML (RTL blocks, `<bdi>`, amounts in words) and one-page PDF |
 | Files | Vitest + SeaweedFS | magic-byte sniffing, file names, `Content-Disposition`, upload size cap and origin check (route helpers), floor plans stored/replaced/removed, presigned download |
-| E2E | Playwright, production build, `realestate_e2e` reset + seeded | anonymous redirect, sign-in error, members, org switch, FR→AR RTL, role-based UI; inventory: project → building → generated units → per-m² price list → block → floor plan, read-only commercial, Arabic unit sheet; CRM: lead (flagged duplicate) → call → visit → quotation → PDF by the worker, commercial scope, merge, discount + cancel, targets; sales golden path: lead → option → buyer file → reservation of the optioned unit → sheet PDF → cashier payment → receipt PDF, commercial scope, overdue list; seeded VSP with payment call, bank loan and commission; dashboard sections and overdue link; residence (gestionnaire): next quarter's charge calls → ADC PDF, overdue co-owner → charge receipt RCH PDF, lift ticket resolved, general assembly draft → convocation PDF → attendance with a proxy → votes → closing → PV PDF, announcement published → notice PDF, Arabic residence |
+| E2E | Playwright, production build, `realestate_e2e` reset + seeded | anonymous redirect, sign-in error, members, org switch, FR→AR RTL, role-based UI; inventory: project → building → generated units → per-m² price list → block → floor plan, read-only commercial, Arabic unit sheet; CRM: lead (flagged duplicate) → call → visit → quotation → PDF by the worker, commercial scope, merge, discount + cancel, targets; sales golden path: lead → option → buyer file → reservation of the optioned unit → sheet PDF → cashier payment → receipt PDF, commercial scope, overdue list; seeded VSP with payment call, bank loan and commission; dashboard sections and overdue link; residence (gestionnaire): next quarter's charge calls → ADC PDF, overdue co-owner → charge receipt RCH PDF, lift ticket resolved, general assembly draft → convocation PDF → attendance with a proxy → votes → closing → PV PDF, announcement published → notice PDF, Arabic residence; portal (resident): back office refused, own sale → schedule, receipt and sheet PDFs, co-owned unit's charges, announcements, a ticket reported and received by the gestionnaire, assemblies → PV PDF, Arabic portal |
 
 - Vitest `globalSetup` migrates the test DB and creates the S3 bucket once; each test creates its own organization(s) (`tests/factories.ts`, `tests/auth-helpers.ts`) → isolation without truncation.
 - The e2e global setup starts `src/jobs/worker.ts` after the reset and stops its process tree at the end (documents render during e2e).
@@ -509,7 +510,7 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 
 ## 11. Roadmap
 
-**Current: Phase 1 done. Phase 2 module 6 (residence management) done, with its seed and e2e; next: module 7 (buyer/resident portal). Steps are committed straight to `main` (§12, 2026-10-04).**
+**Current: Phases 1 and 2 done (sales; residence management; buyer / resident portal), each module with its seed and e2e. Next: Phase 3 (module 4 construction & delivery first). Steps are committed straight to `main` (§12, 2026-10-04).**
 
 ### Phase 0 — Foundations ✅
 - [x] `CLAUDE.md` approved (2026-09-30)
@@ -565,11 +566,11 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
   - [x] General assemblies: agenda, bilingual convocation, attendance and proxies, votes by tantièmes, closing with frozen results, bilingual PV
   - [x] Announcements: drafts, publication with a printable bilingual notice, withdrawal, expiry
   - [x] Seed (delivered « Résidence El Yasmine »: co-owners, charges, calls, payments, overdue, suppliers, staff, tickets, assemblies, announcements) and e2e golden path
-- [ ] Module 7 — Buyer/resident portal
+- [x] Module 7 — Buyer/resident portal
   - [x] Access: invitations from buyer files and co-owner / occupant records, linking at acceptance, portal shell and home
   - [x] Buyer pages: a sale with its schedule (no penalties), payments and receipts, documents (sheet, scans, payment calls, reminder letters), construction progress and bank loan
   - [x] Residence pages: charges account and assemblies (co-owners); announcements and tickets (co-owners and occupants: report on their unit or the common areas, follow status and assignment — staff comments stay internal)
-  - [ ] Seed and e2e
+  - [x] Seed (the demo resident account: its own reservation in Les Oliviers, its co-owner record in El Yasmine) and e2e
 
 ### Phase 3
 - [ ] Module 4 — Construction & delivery

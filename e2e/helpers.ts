@@ -1,4 +1,4 @@
-import { expect, type APIRequestContext, type Page } from "@playwright/test";
+import { expect, type APIRequestContext, type Locator, type Page } from "@playwright/test";
 
 import { DEMO_PASSWORD, demoUsers } from "../src/db/seed/demo";
 
@@ -36,4 +36,18 @@ export async function signInWithApi(request: APIRequestContext, baseURL: string,
     await new Promise((resolve) => setTimeout(resolve, (retryAfter + 1) * 1000));
   }
   throw new Error(`signInWithApi: ${key} still rate-limited`);
+}
+
+/**
+ * A generated PDF: the worker renders documents one at a time (those of the previous test may
+ * still be queued), so the page is reloaded until its link appears.
+ */
+export async function expectPdf(page: Page, link: Locator) {
+  await expect(async () => {
+    if (!(await link.isVisible())) await page.reload();
+    await expect(link).toBeVisible({ timeout: 3_000 });
+  }).toPass({ timeout: 90_000 });
+  const pdf = await page.request.get((await link.getAttribute("href")) ?? "");
+  expect(pdf.headers()["content-type"]).toBe("application/pdf");
+  expect((await pdf.body()).subarray(0, 5).toString()).toBe("%PDF-");
 }

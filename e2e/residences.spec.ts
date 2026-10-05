@@ -1,26 +1,12 @@
-import { expect, type Locator, type Page, test } from "@playwright/test";
+import { expect, type Page, test } from "@playwright/test";
 
-import { authFile } from "./helpers";
+import { authFile, expectPdf } from "./helpers";
 
 /** The seeded delivered residence (src/db/seed/residences.ts), from the residences list. */
 async function openResidence(page: Page, locale: "fr" | "ar" = "fr") {
   await page.goto(`/${locale}/residences`);
   await page.getByTestId("residences").getByRole("link", { name: "Résidence El Yasmine" }).click();
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Résidence El Yasmine");
-}
-
-/**
- * A generated PDF: the worker renders documents one at a time (those of the previous test may
- * still be queued), so the page is reloaded until its link appears.
- */
-async function expectPdf(page: Page, link: Locator) {
-  await expect(async () => {
-    if (!(await link.isVisible())) await page.reload();
-    await expect(link).toBeVisible({ timeout: 3_000 });
-  }).toPass({ timeout: 90_000 });
-  const pdf = await page.request.get((await link.getAttribute("href")) ?? "");
-  expect(pdf.headers()["content-type"]).toBe("application/pdf");
-  expect((await pdf.body()).subarray(0, 5).toString()).toBe("%PDF-");
 }
 
 test.describe("gestionnaire", () => {
