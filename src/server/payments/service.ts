@@ -17,6 +17,7 @@ import { assertCan, type TenantCtx } from "@/server/auth/session";
 import { nextDocumentNumber } from "@/server/numbering/next-document-number";
 import { loadVisibleReservation } from "@/server/sales/access";
 import { paidTotals } from "@/server/sales/sale-queries";
+import { notifySalePayment } from "@/server/whatsapp/notify";
 
 import type { cancelPaymentSchema, clearChequeSchema, recordPaymentSchema } from "./schemas";
 
@@ -144,6 +145,7 @@ export async function insertSalePayment(
     { organizationId: actor.orgId, kind: "receipt", id: issued.id },
     { singletonKey: `receipt:${issued.id}` },
   );
+  await notifySalePayment(tx, actor, sale.id, { amount: input.amount, receiptNumber: number });
   return { paymentId: row.id, receiptId: issued.id, receiptNumber: number };
 }
 

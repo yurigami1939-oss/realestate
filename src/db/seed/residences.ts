@@ -141,6 +141,8 @@ type CoOwner = {
   phone?: string;
   email?: string;
   isMain?: boolean;
+  /** Agreed to WhatsApp notifications. */
+  whatsapp?: boolean;
 };
 
 /** Y-00-02 (a shop) is still the promoter's. Mohamed Cherif is the demo resident account. */
@@ -154,6 +156,7 @@ const coOwners: CoOwner[] = [
     firstNameAr: "محمد",
     phone: "0661 50 12 34",
     email: "acquereur@demo.test",
+    whatsapp: true,
   },
   {
     unit: code(1, 2),
@@ -180,6 +183,7 @@ const coOwners: CoOwner[] = [
     lastNameAr: "مباركي",
     firstNameAr: "فريد",
     phone: "0662 70 81 92",
+    whatsapp: true,
   },
   { unit: code(3, 1), lastName: "Ouchene", firstName: "Samir" },
   { unit: code(3, 2), lastName: "Zitouni", firstName: "Nadia", email: "n.zitouni@example.test" },
@@ -876,6 +880,7 @@ export async function seedResidences(actors: Actors) {
         lastNameAr: c.lastNameAr ?? "",
         firstNameAr: c.firstNameAr ?? "",
         phone: c.phone ?? "",
+        whatsappOptIn: c.whatsapp ?? false,
         email: c.email ?? "",
         sinceOn: SINCE,
       }),

@@ -49,6 +49,8 @@ export const addResidentSchema = z.object({
   lastNameAr: optionalText(80),
   firstNameAr: optionalText(80),
   phone: optionalPhoneText(),
+  /** Consent to WhatsApp notifications on `phone`. */
+  whatsappOptIn: z.boolean().default(false),
   email: optionalEmailText(),
   address: optionalText(300),
   sinceOn: optionalDateText(),

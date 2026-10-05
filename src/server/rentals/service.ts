@@ -16,6 +16,7 @@ import { checkUpload, discardFile, storeFile, type Upload } from "@/server/files
 import { transitionUnit } from "@/server/inventory/transition-unit";
 import { nextDocumentNumber } from "@/server/numbering/next-document-number";
 import { addLeaseOccupant, endLeaseOccupant } from "@/server/residences/service";
+import { notifyRentPayment } from "@/server/whatsapp/notify";
 
 import { leasePaid, rentStatement } from "./accounts";
 import type {
@@ -82,6 +83,7 @@ const tenantValues = (input: In<typeof createLeaseSchema> | In<typeof updateLeas
   tenantNameAr: input.tenantNameAr,
   tenantIdNumber: input.tenantIdNumber,
   tenantPhone: input.tenantPhone,
+  tenantWhatsappOptIn: input.tenantWhatsappOptIn,
   tenantEmail: input.tenantEmail,
   tenantAddress: input.tenantAddress,
   activity: input.activity,
@@ -126,6 +128,7 @@ export async function createLease(ctx: TenantCtx, input: In<typeof createLeaseSc
       unitId: target.id,
       name: input.tenantName,
       phone: input.tenantPhone,
+      whatsappOptIn: input.tenantWhatsappOptIn,
       email: input.tenantEmail,
       sinceOn: input.startOn,
     });
@@ -172,6 +175,7 @@ export async function updateLease(ctx: TenantCtx, input: In<typeof updateLeaseSc
         .set({
           lastName: input.tenantName,
           phone: input.tenantPhone,
+          whatsappOptIn: input.tenantWhatsappOptIn,
           email: input.tenantEmail,
           ...(before.renewedFromId ? {} : { sinceOn: input.startOn }),
         })
@@ -263,6 +267,7 @@ export async function renewLease(ctx: TenantCtx, input: In<typeof renewLeaseSche
         tenantNameAr: current.tenantNameAr,
         tenantIdNumber: current.tenantIdNumber,
         tenantPhone: current.tenantPhone,
+        tenantWhatsappOptIn: current.tenantWhatsappOptIn,
         tenantEmail: current.tenantEmail,
         tenantAddress: current.tenantAddress,
         activity: current.activity,
@@ -358,6 +363,7 @@ export async function recordRentPayment(ctx: TenantCtx, input: In<typeof recordR
       { organizationId: ctx.orgId, kind: "rent_receipt", id: row.id },
       { singletonKey: `rent_receipt:${row.id}` },
     );
+    await notifyRentPayment(tx, ctx, current.id, { amount: input.amount, receiptNumber: number });
     return { paymentId: row.id, receiptNumber: number };
   });
 }

@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import {
+  boolean,
   date,
   foreignKey,
   index,
@@ -51,6 +52,8 @@ export const buyer = pgTable(
     idCardIssuedBy: text(),
     phone: text().notNull(),
     phone2: text(),
+    /** Agreed to WhatsApp notifications on `phone` (CLAUDE.md §7 WhatsApp). */
+    whatsappOptIn: boolean().notNull().default(false),
     email: text(),
     address: text(),
     commune: text(),

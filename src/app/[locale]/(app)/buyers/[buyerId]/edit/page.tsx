@@ -53,6 +53,7 @@ export default async function EditBuyerPage({
           idCardIssuedBy: text(b.idCardIssuedBy),
           phone: formatPhone(b.phone),
           phone2: b.phone2 ? formatPhone(b.phone2) : "",
+          whatsappOptIn: b.whatsappOptIn,
           email: text(b.email),
           address: text(b.address),
           commune: text(b.commune),

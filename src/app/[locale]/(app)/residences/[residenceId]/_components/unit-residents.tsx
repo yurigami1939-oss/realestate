@@ -16,6 +16,7 @@ import { TextField } from "@/components/forms/text-field";
 import { useAction } from "@/components/forms/use-action";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -26,12 +27,14 @@ import {
 } from "@/components/ui/dialog";
 import { FieldGroup } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { formatDate } from "@/lib/dates";
 import { residentKinds } from "@/lib/residences";
 import { addResidentAction, endResidentAction } from "@/server/residences/actions";
 import type { PortalAccess } from "@/server/portal/invitations";
 import type { UnitResident } from "@/server/residences/queries";
 import { addResidentSchema } from "@/server/residences/schemas";
+import { setResidentWhatsappAction } from "@/server/whatsapp/actions";
 
 type Values = z.input<typeof addResidentSchema>;
 
@@ -61,6 +64,42 @@ function EndResident({ residentId, today }: { residentId: string; today: string 
       >
         {t("end")}
       </Button>
+    </div>
+  );
+}
+
+/** The resident's consent to WhatsApp notifications (gestionnaire), or its state. */
+function ResidentWhatsapp({
+  residentId,
+  optIn,
+  editable,
+}: {
+  residentId: string;
+  optIn: boolean;
+  editable: boolean;
+}) {
+  const t = useTranslations("residences.residents");
+  const save = useAction(setResidentWhatsappAction);
+  if (!editable) {
+    return optIn ? <span className="text-xs text-muted-foreground">{t("whatsappOn")}</span> : null;
+  }
+  const id = `whatsapp-${residentId}`;
+  return (
+    <div className="flex items-center gap-1.5">
+      <Checkbox
+        id={id}
+        checked={optIn}
+        disabled={save.pending}
+        onCheckedChange={(checked) =>
+          void save.run(
+            { residentId, optIn: checked === true },
+            { onSuccess: () => toast.success(t("whatsappSaved")) },
+          )
+        }
+      />
+      <Label htmlFor={id} className="text-xs font-normal">
+        {t("whatsapp")}
+      </Label>
     </div>
   );
 }
@@ -105,6 +144,7 @@ export function UnitResidents({
     lastNameAr: "",
     firstNameAr: "",
     phone: "",
+    whatsappOptIn: false,
     email: "",
     address: "",
     sinceOn: today,
@@ -153,7 +193,12 @@ export function UnitResidents({
                       {details}
                     </div>
                     {r.untilOn === null ? (
-                      <div className="mt-1">
+                      <div className="mt-1 flex flex-wrap items-center gap-3">
+                        <ResidentWhatsapp
+                          residentId={r.id}
+                          optIn={r.whatsappOptIn}
+                          editable={editable}
+                        />
                         <PortalAccessControl
                           target={{ kind: "resident", id: r.id }}
                           email={r.email}
@@ -240,6 +285,11 @@ export function UnitResidents({
               </div>
               <TextField control={form.control} name="address" label={t("fields.address")} />
               <CheckboxField control={form.control} name="isMain" label={t("fields.isMain")} />
+              <CheckboxField
+                control={form.control}
+                name="whatsappOptIn"
+                label={t("fields.whatsappOptIn")}
+              />
             </FieldGroup>
             <Button type="submit" disabled={add.pending}>
               {t("addSubmit")}

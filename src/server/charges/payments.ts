@@ -15,6 +15,7 @@ import { recordAudit } from "@/server/audit/record-audit";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
 import { nextDocumentNumber } from "@/server/numbering/next-document-number";
 import { loadResidence } from "@/server/residences/service";
+import { notifyChargePayment } from "@/server/whatsapp/notify";
 
 import { chargeStatement, liveCalls, paidByUnit } from "./accounts";
 import type {
@@ -129,6 +130,12 @@ export async function insertChargePayment(
     { organizationId: actor.orgId, kind: "charge_receipt", id: row.id },
     { singletonKey: `charge_receipt:${row.id}` },
   );
+  await notifyChargePayment(tx, actor, {
+    residenceId: home.id,
+    unitId,
+    amount: input.amount,
+    receiptNumber: number,
+  });
   return { paymentId: row.id, receiptNumber: number, credit: after.credit - before.credit };
 }
 

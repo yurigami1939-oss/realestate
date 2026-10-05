@@ -75,6 +75,8 @@ export const statement = {
   handover: ["read", "update"],
   /** Rentals (module 5): leases of the units the promoter keeps, their end and renewal. */
   lease: ["read", "update"],
+  /** The log of the WhatsApp messages sent to buyers, residents and tenants. */
+  notification: ["read"],
 } as const;
 
 export const ac = createAccessControl(statement);
@@ -116,6 +118,7 @@ export const roles = {
     construction: ["read", "update"],
     handover: ["read", "update"],
     lease: ["read", "update"],
+    notification: ["read"],
   }),
   sales_manager: ac.newRole({
     inventory: ["read"],
@@ -134,6 +137,7 @@ export const roles = {
     construction: ["read"],
     handover: ["read", "update"],
     lease: ["read", "update"],
+    notification: ["read"],
   }),
   sales_agent: ac.newRole({
     inventory: ["read"],
@@ -157,6 +161,7 @@ export const roles = {
     staff: ["read", "update"],
     construction: ["read"],
     lease: ["read"],
+    notification: ["read"],
   }),
   cashier: ac.newRole({
     inventory: ["read"],
@@ -167,6 +172,7 @@ export const roles = {
     charge: ["read", "remind"],
     construction: ["read"],
     lease: ["read"],
+    notification: ["read"],
   }),
   property_manager: ac.newRole({
     inventory: ["read"],
@@ -182,6 +188,7 @@ export const roles = {
     construction: ["read"],
     handover: ["read"],
     lease: ["read", "update"],
+    notification: ["read"],
   }),
   /** Responsable technique (module 4): construction follow-up and deliveries, no sales or money. */
   technical_manager: ac.newRole({

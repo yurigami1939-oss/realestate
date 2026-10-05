@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import type { z } from "zod";
 
 import { applyFieldErrors } from "@/components/forms/apply-field-errors";
-import { SelectField, TextareaField } from "@/components/forms/fields";
+import { CheckboxField, SelectField, TextareaField } from "@/components/forms/fields";
 import { TextField } from "@/components/forms/text-field";
 import { useAction } from "@/components/forms/use-action";
 import { Button } from "@/components/ui/button";
@@ -37,6 +37,7 @@ export const emptyBuyer: BuyerFormValues = {
   idCardIssuedBy: "",
   phone: "",
   phone2: "",
+  whatsappOptIn: false,
   email: "",
   address: "",
   commune: "",
@@ -65,7 +66,7 @@ export function BuyerForm({
     resolver: zodResolver(createBuyerSchema),
     defaultValues,
   });
-  type Name = Exclude<keyof BuyerFormValues, "leadId">;
+  type Name = Exclude<keyof BuyerFormValues, "leadId" | "whatsappOptIn">;
   type InputExtras = Pick<React.ComponentProps<"input">, "dir" | "lang" | "type" | "inputMode">;
   const field = (name: Name, extra: InputExtras = {}) => (
     <TextField control={form.control} name={name} label={t(`fields.${name}`)} {...extra} />
@@ -148,6 +149,11 @@ export function BuyerForm({
               {field("phone2", { ...ltr, type: "tel", inputMode: "tel" })}
               {field("email", { ...ltr, type: "email" })}
             </div>
+            <CheckboxField
+              control={form.control}
+              name="whatsappOptIn"
+              label={t("fields.whatsappOptIn")}
+            />
             {field("address")}
             <div className="grid gap-4 sm:grid-cols-2">
               {field("commune")}

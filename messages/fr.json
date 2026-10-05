@@ -246,7 +246,9 @@
     "suppliers": "Fournisseurs",
     "tickets": "Réclamations",
     "onlinePayments": "Paiements en ligne",
-    "paymentGateway": "Paiement en ligne"
+    "paymentGateway": "Paiement en ligne",
+    "whatsappLog": "Messages WhatsApp",
+    "whatsappSettings": "WhatsApp"
   },
   "shell": {
     "organizations": "Sociétés",
@@ -977,7 +979,8 @@
       "profession": "Profession",
       "employer": "Employeur",
       "maritalStatus": "Situation familiale",
-      "notes": "Notes"
+      "notes": "Notes",
+      "whatsappOptIn": "Accepte les notifications WhatsApp sur ce numéro (consentement recueilli)"
     },
     "civility": {
       "mr": "M.",
@@ -1772,7 +1775,8 @@
       "monthlyChargesHint": "Provision pour charges ajoutée au loyer ; vide = aucune.",
       "frequency": "Paiement",
       "deposit": "Dépôt de garantie (DA)",
-      "notes": "Remarques"
+      "notes": "Remarques",
+      "tenantWhatsappOptIn": "Le locataire accepte les notifications WhatsApp (quittances)"
     },
     "form": {
       "unitAndTenant": "Lot et locataire",
@@ -1967,7 +1971,8 @@
         "create": "Création de la société",
         "update": "Paramètres de la société modifiés",
         "logo": "Logo de la société modifié",
-        "online_payment": "Paiement en ligne (SATIM) configuré"
+        "online_payment": "Paiement en ligne (SATIM) configuré",
+        "whatsapp": "WhatsApp configuré"
       },
       "member": {
         "join": "Arrivée d'un membre",
@@ -2238,10 +2243,14 @@
         "phone": "Téléphone",
         "email": "E-mail",
         "address": "Adresse postale",
-        "isMain": "Principal (reçoit les appels de charges)"
+        "isMain": "Principal (reçoit les appels de charges)",
+        "whatsappOptIn": "Accepte les notifications WhatsApp sur ce numéro"
       },
       "periodSince": "Depuis le {since}",
-      "periodUntil": "Jusqu'au {until}"
+      "periodUntil": "Jusqu'au {until}",
+      "whatsapp": "WhatsApp",
+      "whatsappOn": "Notifications WhatsApp acceptées",
+      "whatsappSaved": "Consentement WhatsApp enregistré."
     },
     "errors": {
       "projectNotFound": "Projet introuvable.",
@@ -3374,6 +3383,84 @@
       "standIn": "La plateforme de test est simulée par l'application (développement) : aucun identifiant SATIM n'est nécessaire pour essayer.",
       "help": "Pour obtenir un compte marchand : votre banque (membre du réseau CIB) demande l'adhésion au paiement en ligne auprès de la SATIM, qui fournit l'identifiant, le mot de passe et le n° de terminal de test, puis ceux de production après la certification.",
       "helpLine": "Numéro vert de la SATIM : {number}"
+    }
+  },
+  "whatsapp": {
+    "title": "Messages WhatsApp",
+    "description": "Les notifications envoyées aux acquéreurs, résidents et locataires qui les ont acceptées, avec leur état chez WhatsApp.",
+    "count": "{count, plural, =0 {Aucun message} one {# message} other {# messages}}",
+    "empty": "Aucun message pour ces critères.",
+    "columns": {
+      "date": "Date",
+      "kind": "Notification",
+      "recipient": "Destinataire",
+      "status": "État",
+      "record": "Dossier"
+    },
+    "filters": {
+      "status": "État",
+      "allStatuses": "Tous les états",
+      "kind": "Notification",
+      "allKinds": "Toutes les notifications"
+    },
+    "status": {
+      "queued": "En attente",
+      "sent": "Envoyé",
+      "delivered": "Distribué",
+      "read": "Lu",
+      "failed": "Échec"
+    },
+    "kind": {
+      "payment_received": "Paiement reçu",
+      "payment_call": "Appel de fonds",
+      "payment_reminder": "Relance d'échéances",
+      "handover_appointment": "Rendez-vous de remise des clés",
+      "charge_call": "Appel de charges",
+      "charge_received": "Paiement de charges reçu",
+      "charge_reminder": "Relance de charges",
+      "rent_received": "Quittance de loyer",
+      "announcement": "Avis aux résidents",
+      "assembly_convocation": "Convocation à l'assemblée générale"
+    },
+    "ref": {
+      "reservation": "Vente",
+      "lease": "Bail",
+      "residence": "Résidence"
+    },
+    "language": {
+      "fr": "Français",
+      "ar": "Arabe"
+    },
+    "errors": {
+      "templateName": "Lettres minuscules, chiffres et _ seulement.",
+      "numericId": "Chiffres seulement."
+    },
+    "settings": {
+      "title": "WhatsApp",
+      "description": "Le numéro WhatsApp Business de la société (API Cloud de Meta) : les acquéreurs, résidents et locataires qui l'ont accepté reçoivent leurs reçus, appels, relances et avis.",
+      "enabled": "Envoyer les notifications WhatsApp",
+      "phoneNumberId": "Identifiant du numéro (Phone number ID)",
+      "businessAccountId": "Identifiant du compte WhatsApp Business (facultatif)",
+      "accessToken": "Jeton d'accès permanent",
+      "accessTokenHint": "Jeton d'un utilisateur système de Meta Business, avec la permission whatsapp_business_messaging.",
+      "appSecret": "Clé secrète de l'application (App Secret)",
+      "appSecretHint": "Vérifie les accusés de réception et les réponses « STOP » envoyés par Meta.",
+      "secretKept": "Laisser vide pour garder la valeur enregistrée.",
+      "language": "Langue des messages",
+      "languageHint": "Chaque modèle est approuvé dans cette langue.",
+      "notifications": "Notifications",
+      "notificationsHint": "Créez chaque modèle dans WhatsApp Manager (catégorie « Utilité ») avec le texte indiqué, puis cochez-le une fois approuvé. Seuls les contacts qui ont accepté reçoivent les messages.",
+      "templateName": "Nom du modèle pour {kind}",
+      "templateText": "Texte du modèle {name}",
+      "webhook": "Webhook (accusés de réception)",
+      "webhookHint": "À renseigner dans l'application Meta (WhatsApp › Configuration), champ « messages ».",
+      "webhookUrl": "URL de rappel",
+      "verifyToken": "Jeton de vérification",
+      "noAppSecret": "Sans clé secrète de l'application, les accusés de réception et les « STOP » sont ignorés.",
+      "submit": "Enregistrer",
+      "saved": "Paramètres WhatsApp enregistrés.",
+      "standIn": "L'API WhatsApp est simulée par l'application (développement) : les messages sont acceptés sans être envoyés.",
+      "help": "Pour démarrer : un compte Meta Business vérifié, un numéro WhatsApp Business dédié, une application Meta avec le produit WhatsApp et un jeton d'utilisateur système."
     }
   }
 }

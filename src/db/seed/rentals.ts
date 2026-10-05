@@ -60,6 +60,8 @@ type LeaseSpec = {
   monthlyCharges?: string;
   frequency: "monthly" | "quarterly" | "half_yearly" | "yearly";
   deposit: string;
+  /** The tenant agreed to WhatsApp notifications. */
+  whatsapp?: boolean;
 };
 
 async function lease({ manager }: Actors, spec: LeaseSpec) {
@@ -73,6 +75,7 @@ async function lease({ manager }: Actors, spec: LeaseSpec) {
       tenantNameAr: spec.tenantNameAr,
       tenantIdNumber: spec.tenantIdNumber ?? "",
       tenantPhone: spec.tenantPhone,
+      tenantWhatsappOptIn: spec.whatsapp ?? false,
       tenantEmail: spec.tenantEmail ?? "",
       tenantAddress: "",
       activity: spec.activity ?? "",
@@ -191,6 +194,7 @@ export async function seedRentals(actors: Actors) {
     tenantNameAr: "حميدي ياسمين",
     tenantPhone: "0661 48 20 73",
     tenantEmail: "y.hamidi@example.test",
+    whatsapp: true,
     startDaysAgo: 320,
     durationMonths: 12,
     monthlyRent: "35 000",

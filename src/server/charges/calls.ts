@@ -26,6 +26,7 @@ import { recordAudit } from "@/server/audit/record-audit";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
 import { nextDocumentNumber } from "@/server/numbering/next-document-number";
 import { currentResident, loadResidence } from "@/server/residences/service";
+import { notifyChargeCall } from "@/server/whatsapp/notify";
 
 import { loadBudget } from "./budgets";
 import type { cancelChargePeriodSchema, issueChargePeriodSchema } from "./schemas";
@@ -101,6 +102,7 @@ export async function mainCoOwners(tx: Tx, residenceId: string, day: string) {
       firstNameAr: resident.firstNameAr,
       address: resident.address,
       phone: resident.phone,
+      whatsappOptIn: resident.whatsappOptIn,
     })
     .from(resident)
     .where(
@@ -219,6 +221,20 @@ export async function issueChargePeriod(ctx: TenantCtx, input: In<typeof issueCh
         { organizationId: ctx.orgId, kind: "charge_call", id: row.id },
         { singletonKey: `charge_call:${row.id}` },
       );
+      await notifyChargeCall(tx, ctx, {
+        residenceId: home.id,
+        unitId: call.unitId,
+        number,
+        amount: call.amount,
+        dueOn: input.dueOn,
+        owner: owner
+          ? {
+              phone: owner.phone,
+              name: `${owner.firstName} ${owner.lastName}`.trim(),
+              optIn: owner.whatsappOptIn,
+            }
+          : null,
+      });
     }
 
     await recordAudit(tx, ctx, {

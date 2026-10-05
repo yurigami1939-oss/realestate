@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import {
+  boolean,
   check,
   date,
   foreignKey,
@@ -55,6 +56,8 @@ export const lease = pgTable(
     /** NIN of a person, RC number of a company. */
     tenantIdNumber: text(),
     tenantPhone: text().notNull(),
+    /** The tenant agreed to WhatsApp notifications (CLAUDE.md §7 WhatsApp). */
+    tenantWhatsappOptIn: boolean().notNull().default(false),
     tenantEmail: text(),
     tenantAddress: text(),
     /** Trade carried on in a commercial unit. */

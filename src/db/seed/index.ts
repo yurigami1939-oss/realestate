@@ -12,6 +12,7 @@ import { seedCrm } from "./crm";
 import { seedDeliveries } from "./deliveries";
 import { seedInventory } from "./inventory";
 import { seedOnlinePayments } from "./online-payments";
+import { seedWhatsapp } from "./whatsapp";
 import { seedPortal } from "./portal";
 import { seedRentals } from "./rentals";
 import { seedSales } from "./reservations";
@@ -131,5 +132,7 @@ export async function seedDemo(): Promise<void> {
       cashier: ctx("cashier", ["cashier"]),
     });
     await seedOnlinePayments(ctx("owner", ["owner"]));
+    // Last: the business data above was recorded before WhatsApp, without messages.
+    await seedWhatsapp(ctx("owner", ["owner"]));
   }
 }

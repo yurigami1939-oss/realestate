@@ -16,6 +16,7 @@ import { transitionUnit } from "@/server/inventory/transition-unit";
 import { nextDocumentNumber } from "@/server/numbering/next-document-number";
 import { addSaleBuyersAsCoOwners, hasCurrentCoOwner } from "@/server/residences/service";
 import { paidTotals } from "@/server/sales/sale-queries";
+import { notifyHandoverAppointment } from "@/server/whatsapp/notify";
 
 import type {
   addPunchItemSchema,
@@ -87,7 +88,7 @@ export async function scheduleHandover(ctx: TenantCtx, input: In<typeof schedule
     if (!sale) throw new AppError("NOT_FOUND");
     if (sale.status !== "sold") throw new AppError("CONFLICT", "handovers.errors.notSold");
     const [existing] = await tx
-      .select({ id: handover.id, status: handover.status })
+      .select({ id: handover.id, status: handover.status, scheduledAt: handover.scheduledAt })
       .from(handover)
       .where(eq(handover.reservationId, sale.id))
       .for("update");
@@ -97,6 +98,9 @@ export async function scheduleHandover(ctx: TenantCtx, input: In<typeof schedule
         .update(handover)
         .set({ scheduledAt: input.scheduledAt, notes: input.notes })
         .where(eq(handover.id, existing.id));
+      if (existing.scheduledAt?.getTime() !== input.scheduledAt.getTime()) {
+        await notifyHandoverAppointment(tx, ctx, sale.id, input.scheduledAt);
+      }
       return { id: existing.id };
     }
     const [row] = await tx
@@ -111,6 +115,7 @@ export async function scheduleHandover(ctx: TenantCtx, input: In<typeof schedule
       })
       .returning({ id: handover.id });
     if (!row) throw new Error("scheduleHandover: no row returned");
+    await notifyHandoverAppointment(tx, ctx, sale.id, input.scheduledAt);
     return { id: row.id };
   });
 }

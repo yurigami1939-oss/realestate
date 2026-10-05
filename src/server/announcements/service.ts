@@ -11,6 +11,7 @@ import { todayInAlgiers } from "@/lib/dates";
 import { AppError } from "@/lib/result";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
 import { loadResidence } from "@/server/residences/service";
+import { notifyAnnouncement } from "@/server/whatsapp/notify";
 
 import type { createAnnouncementSchema, updateAnnouncementSchema } from "./schemas";
 
@@ -96,6 +97,11 @@ export async function publishAnnouncement(ctx: TenantCtx, announcementId: string
       { organizationId: ctx.orgId, kind: "announcement", id: row.id },
       { singletonKey: `announcement:${row.id}` },
     );
+    await notifyAnnouncement(tx, ctx, {
+      residenceId: row.residenceId,
+      title: row.title,
+      titleAr: row.titleAr,
+    });
   });
 }
 

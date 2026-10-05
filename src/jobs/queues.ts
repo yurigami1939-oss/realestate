@@ -28,6 +28,11 @@ export const queues = {
    * Settles an online payment the payer left on the gateway's page (scheduled after its
    * session); retried every 10 minutes while the gateway still has it in progress.
    */
+  /**
+   * Sends one WhatsApp template message (Cloud API); retried while Meta is unreachable or
+   * throttling, then failed.
+   */
+  "whatsapp.send": { retryLimit: 5, retryDelay: 60, retryBackoff: true, expireInSeconds: 60 },
   "online_payment.check": {
     retryLimit: 6,
     retryDelay: 600,
@@ -82,4 +87,5 @@ export type JobPayloads = {
   /** `date`: the Algiers day of the digest (one per organization and day). */
   "reminders.digest": { organizationId: string; date: string };
   "online_payment.check": { organizationId: string; onlinePaymentId: string };
+  "whatsapp.send": { organizationId: string; messageId: string };
 };

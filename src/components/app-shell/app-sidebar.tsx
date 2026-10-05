@@ -16,6 +16,7 @@ import {
   KeyRound,
   Landmark,
   LayoutDashboard,
+  MessageCircle,
   Percent,
   PhoneCall,
   ScrollText,
@@ -70,7 +71,9 @@ type NavKey =
   | "rentals"
   | "rentsOverdue"
   | "onlinePayments"
-  | "paymentGateway";
+  | "paymentGateway"
+  | "whatsappLog"
+  | "whatsappSettings";
 /** `permission`: shown only to roles that have it (display only; services enforce). */
 type NavItem = { href: string; key: NavKey; icon: LucideIcon; permission?: Permission };
 
@@ -83,6 +86,12 @@ const mainNav: NavItem[] = [
     key: "onlinePayments",
     icon: CreditCard,
     permission: "payment:read",
+  },
+  {
+    href: "/whatsapp",
+    key: "whatsappLog",
+    icon: MessageCircle,
+    permission: "notification:read",
   },
 ];
 const salesNav: NavItem[] = [
@@ -124,6 +133,12 @@ const settingsNav: NavItem[] = [
     href: "/settings/online-payment",
     key: "paymentGateway",
     icon: Landmark,
+    permission: "organization:update",
+  },
+  {
+    href: "/settings/whatsapp",
+    key: "whatsappSettings",
+    icon: MessageCircle,
     permission: "organization:update",
   },
   { href: "/settings/audit", key: "audit", icon: ScrollText, permission: "audit:read" },

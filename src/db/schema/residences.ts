@@ -111,6 +111,8 @@ export const resident = pgTable(
     lastNameAr: text(),
     firstNameAr: text(),
     phone: text(),
+    /** Agreed to WhatsApp notifications on `phone` (CLAUDE.md §7 WhatsApp). */
+    whatsappOptIn: boolean().notNull().default(false),
     email: text(),
     /** Postal address when the co-owner does not live in the unit. */
     address: text(),

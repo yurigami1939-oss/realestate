@@ -50,6 +50,7 @@ export default async function EditLeasePage({
           tenantNameAr: lease.tenantNameAr ?? "",
           tenantIdNumber: lease.tenantIdNumber ?? "",
           tenantPhone: lease.tenantPhone,
+          tenantWhatsappOptIn: lease.tenantWhatsappOptIn,
           tenantEmail: lease.tenantEmail ?? "",
           tenantAddress: lease.tenantAddress ?? "",
           activity: lease.activity ?? "",

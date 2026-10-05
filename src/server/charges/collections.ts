@@ -16,6 +16,7 @@ import { assertCan, type TenantCtx } from "@/server/auth/session";
 import { chargesDigestEmail } from "@/server/email/templates";
 import { loadCompanyProfile } from "@/server/organizations/settings";
 import { loadResidence } from "@/server/residences/service";
+import { notifyChargeReminder } from "@/server/whatsapp/notify";
 
 import { chargeStatement, liveCalls, paidByUnit } from "./accounts";
 import { mainCoOwners } from "./calls";
@@ -171,6 +172,12 @@ export async function issueChargeReminder(
       { organizationId: ctx.orgId, kind: "charge_reminder", id: row.id },
       { singletonKey: `charge_reminder:${row.id}` },
     );
+    await notifyChargeReminder(tx, ctx, {
+      residenceId: home.id,
+      unitId: input.unitId,
+      overdue: statement.overdue,
+      payBy: input.payBy,
+    });
     return { id: row.id, overdue: statement.overdue };
   });
 }

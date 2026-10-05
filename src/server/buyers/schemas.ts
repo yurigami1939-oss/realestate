@@ -35,6 +35,8 @@ export const buyerFields = z.object({
   idCardIssuedBy: optionalText(80),
   phone: phoneText(),
   phone2: optionalPhoneText(),
+  /** Consent to WhatsApp notifications on `phone` (CLAUDE.md §7 WhatsApp). */
+  whatsappOptIn: z.boolean().default(false),
   email: optionalEmailText(),
   address: optionalText(300),
   commune: optionalText(80),

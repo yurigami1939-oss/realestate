@@ -276,6 +276,7 @@ export async function addLeaseOccupant(
     unitId: string;
     name: string;
     phone: string | null;
+    whatsappOptIn: boolean;
     email: string | null;
     sinceOn: string;
   },
@@ -297,6 +298,7 @@ export async function addLeaseOccupant(
       lastName: input.name,
       firstName: "",
       phone: input.phone,
+      whatsappOptIn: input.whatsappOptIn,
       email: input.email,
       sinceOn: input.sinceOn,
       createdBy: actor.userId,
@@ -368,6 +370,7 @@ export async function addSaleBuyersAsCoOwners(
       lastNameAr: buyer.lastNameAr,
       firstNameAr: buyer.firstNameAr,
       phone: buyer.phone,
+      whatsappOptIn: buyer.whatsappOptIn,
       email: buyer.email,
       address: buyer.address,
     })
@@ -387,6 +390,7 @@ export async function addSaleBuyersAsCoOwners(
       lastNameAr: b.lastNameAr,
       firstNameAr: b.firstNameAr,
       phone: b.phone,
+      whatsappOptIn: b.whatsappOptIn,
       email: b.email,
       address: b.address,
       buyerId: b.id,

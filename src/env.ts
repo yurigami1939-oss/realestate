@@ -37,6 +37,8 @@ const serverEnvSchema = z.object({
   /** SATIM REST base URLs; the test one defaults to the stand-in when DEV_GATEWAYS is on. */
   SATIM_TEST_URL: z.url().optional(),
   SATIM_PRODUCTION_URL: z.url().default("https://cib.satim.dz/payment/rest"),
+  /** WhatsApp Cloud API (Graph API, with its version); the stand-in when DEV_GATEWAYS is on. */
+  WHATSAPP_API_URL: z.url().optional(),
 });
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>;

@@ -20,6 +20,7 @@ import { recordAudit } from "@/server/audit/record-audit";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
 import { mainCoOwners } from "@/server/charges/calls";
 import { loadResidence } from "@/server/residences/service";
+import { notifyAssemblyConvocation } from "@/server/whatsapp/notify";
 
 import type {
   addResolutionSchema,
@@ -186,6 +187,12 @@ export async function conveneAssembly(ctx: TenantCtx, assemblyId: string) {
       { organizationId: ctx.orgId, kind: "assembly_convocation", id: assembly.id },
       { singletonKey: `assembly_convocation:${assembly.id}` },
     );
+    await notifyAssemblyConvocation(tx, ctx, {
+      residenceId: assembly.residenceId,
+      heldOn: assembly.heldOn,
+      startTime: assembly.startTime,
+      place: assembly.place,
+    });
     await recordAudit(tx, ctx, {
       actorUserId: ctx.userId,
       action: "assembly.convene",

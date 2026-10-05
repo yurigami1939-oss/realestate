@@ -53,6 +53,7 @@ export async function seedPortal(
       lastNameAr: "شريف",
       firstNameAr: "محمد",
       phone: "0661 50 12 34",
+      whatsappOptIn: true,
       email: account.email,
       address: "Lotissement El Yasmine, lot 7",
       commune: "Chéraga",

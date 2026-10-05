@@ -44,6 +44,8 @@ const tenantFields = {
   /** NIN of a person, RC number of a company. */
   tenantIdNumber: optionalText(40),
   tenantPhone: phoneText(),
+  /** The tenant's consent to WhatsApp notifications (quittances). */
+  tenantWhatsappOptIn: z.boolean().default(false),
   tenantEmail: optionalEmailText(),
   tenantAddress: optionalText(300),
   /** Trade carried on in a commercial unit. */

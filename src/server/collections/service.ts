@@ -17,6 +17,7 @@ import { overdueDigestEmail } from "@/server/email/templates";
 import { loadCompanyProfile, loadSalesSettings } from "@/server/organizations/settings";
 import { loadVisibleReservation } from "@/server/sales/access";
 import { paidTotals } from "@/server/sales/sale-queries";
+import { notifyPaymentReminder } from "@/server/whatsapp/notify";
 
 import { loadOverdueSales } from "./overdue";
 import type { issueReminderSchema } from "./schemas";
@@ -92,6 +93,10 @@ export async function issueReminderLetter(ctx: TenantCtx, input: In<typeof issue
       { organizationId: ctx.orgId, kind: "reminder_letter", id: row.id },
       { singletonKey: `reminder_letter:${row.id}` },
     );
+    await notifyPaymentReminder(tx, ctx, sale.id, {
+      overdue: statement.overdue,
+      payBy: input.payBy,
+    });
     return { id: row.id, overdue: statement.overdue };
   });
 }

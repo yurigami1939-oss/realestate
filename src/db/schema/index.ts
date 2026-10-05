@@ -17,3 +17,4 @@ export * from "./sales";
 export * from "./staff";
 export * from "./suppliers";
 export * from "./tickets";
+export * from "./whatsapp";

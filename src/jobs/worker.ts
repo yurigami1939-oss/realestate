@@ -13,6 +13,7 @@ import { handleIssuePaymentCalls } from "./handlers/issue-payment-calls";
 import { handleDailyReminders, handleOverdueDigest } from "./handlers/reminders";
 import { handleRenderDocument } from "./handlers/render-document";
 import { handleSendEmail } from "./handlers/send-email";
+import { handleSendWhatsapp } from "./handlers/send-whatsapp";
 
 const boss = new PgBoss({
   connectionString: env.DATABASE_URL,
@@ -31,8 +32,9 @@ await boss.work("payment_call.issue", { batchSize: 1 }, handleIssuePaymentCalls)
 await boss.work("reminders.daily", { batchSize: 1 }, handleDailyReminders);
 await boss.work("reminders.digest", { batchSize: 1 }, handleOverdueDigest);
 await boss.work("online_payment.check", { batchSize: 1 }, handleCheckOnlinePayment);
+await boss.work("whatsapp.send", { batchSize: 1 }, handleSendWhatsapp);
 console.log(
-  "[worker] started: email.send, pdf.document, option.expire, payment_call.issue, reminders, online_payment.check",
+  "[worker] started: email.send, pdf.document, option.expire, payment_call.issue, reminders, online_payment.check, whatsapp.send",
 );
 
 let stopping = false;

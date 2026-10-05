@@ -14,6 +14,7 @@ import { assertCan, type TenantCtx } from "@/server/auth/session";
 import { nextDocumentNumber } from "@/server/numbering/next-document-number";
 import { loadSalesSettings } from "@/server/organizations/settings";
 import { paidTotals } from "@/server/sales/sale-queries";
+import { notifyPaymentCall } from "@/server/whatsapp/notify";
 
 import type { validateMilestoneSchema } from "./schemas";
 
@@ -181,6 +182,11 @@ export async function issueMilestonePaymentCalls(
           { organizationId, kind: "payment_call", id: row.id },
           { singletonKey: `payment_call:${row.id}` },
         );
+        await notifyPaymentCall(tx, scope, saleId, {
+          number,
+          amount: line.remaining,
+          dueOn: target.dueOn,
+        });
         issued += 1;
       }
     }
