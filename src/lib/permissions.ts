@@ -73,6 +73,8 @@ export const statement = {
   construction: ["read", "update"],
   /** Deliveries (module 4): handover appointments, reserves (punch list), handover PV. */
   handover: ["read", "update"],
+  /** Rentals (module 5): leases of the units the promoter keeps, their end and renewal. */
+  lease: ["read", "update"],
 } as const;
 
 export const ac = createAccessControl(statement);
@@ -113,6 +115,7 @@ export const roles = {
     portal: ["invite"],
     construction: ["read", "update"],
     handover: ["read", "update"],
+    lease: ["read", "update"],
   }),
   sales_manager: ac.newRole({
     inventory: ["read"],
@@ -130,6 +133,7 @@ export const roles = {
     portal: ["invite"],
     construction: ["read"],
     handover: ["read", "update"],
+    lease: ["read", "update"],
   }),
   sales_agent: ac.newRole({
     inventory: ["read"],
@@ -152,6 +156,7 @@ export const roles = {
     supplier: ["read", "update"],
     staff: ["read", "update"],
     construction: ["read"],
+    lease: ["read"],
   }),
   cashier: ac.newRole({
     inventory: ["read"],
@@ -161,6 +166,7 @@ export const roles = {
     residence: ["read"],
     charge: ["read", "remind"],
     construction: ["read"],
+    lease: ["read"],
   }),
   property_manager: ac.newRole({
     inventory: ["read"],
@@ -175,6 +181,7 @@ export const roles = {
     portal: ["invite"],
     construction: ["read"],
     handover: ["read"],
+    lease: ["read", "update"],
   }),
   /** Responsable technique (module 4): construction follow-up and deliveries, no sales or money. */
   technical_manager: ac.newRole({

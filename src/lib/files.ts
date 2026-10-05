@@ -40,6 +40,11 @@ export const uploadPurposes = {
     accept: ["image/png", "image/jpeg"],
     maxBytes: 2 * 1024 * 1024,
   },
+  /** Signed lease (scan). */
+  "lease.contract": {
+    accept: ["application/pdf", "image/png", "image/jpeg", "image/webp"],
+    maxBytes: MAX_UPLOAD_BYTES,
+  },
   /** Site photo of a construction progress report (shown to buyers when the report is published). */
   "construction_report.photo": {
     accept: ["image/png", "image/jpeg", "image/webp"],

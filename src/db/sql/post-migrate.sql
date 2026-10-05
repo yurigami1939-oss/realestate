@@ -87,3 +87,9 @@ GRANT UPDATE (pdf_file_id) ON public.charge_reminder TO realestate_app;
 REVOKE UPDATE, DELETE, TRUNCATE ON public.ticket_event FROM realestate_app;
 -- A handover is never deleted: once its PV is signed it is final (the service refuses changes).
 REVOKE DELETE, TRUNCATE ON public.handover FROM realestate_app;
+-- Leases are never deleted (ended instead); rent payments and their quittances are immutable:
+-- only their cancellation, a cheque's clearance and the PDF link change.
+REVOKE DELETE, TRUNCATE ON public.lease FROM realestate_app;
+REVOKE UPDATE, DELETE, TRUNCATE ON public.rent_payment FROM realestate_app;
+GRANT UPDATE (status, cancelled_at, cancelled_by, cancellation_reason, cheque_cleared_on, pdf_file_id)
+  ON public.rent_payment TO realestate_app;

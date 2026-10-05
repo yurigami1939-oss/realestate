@@ -94,7 +94,7 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
     │   │   ├── (auth)/       # sign-in, sign-up, forgot/reset password, onboarding, accept-invitation
     │   │   ├── (app)/        # back-office shell (guard + sidebar) · dashboard · settings (members,
     │   │   │                 # company + logo, audit log) · projects · construction · leads · buyers · sales
-    │   │   │                 # · commissions · deliveries · residences
+    │   │   │                 # · commissions · deliveries · rentals · residences
     │   │   └── (portal)/     # portal of buyers, co-owners and occupants (module 7): own shell, /portal
     │   ├── api/auth/[...all] # Better Auth handler (Route Handlers: auth, files, webhooks, /api/v1)
     │   ├── api/files/        # upload (POST) · [fileId] download (GET → presigned redirect)
@@ -110,6 +110,7 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
     │   ├── sales/            # sale/installment badges, option dialogs, DocumentPdf (+ refresher), VSP warnings
     │   ├── construction/     # building progress bars, report dialog and card, site photos, milestone validation
     │   ├── handovers/        # delivery state badges, filters, appointment / reserve / PV dialogs, PV links
+    │   ├── rentals/          # lease form (schedule preview), payment / end / renewal / deposit dialogs, badges
     │   ├── residences/ · staff/ · suppliers/ · tickets/ · assemblies/ · announcements/  # residence
     │   │                     # module: dialogs, ChargeDocumentPdf, attendance grid, payroll, attendance
     │   │                     # sheet, vote grid
@@ -146,6 +147,7 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
     │   ├── crm/              # leads, visits, follow-ups, merge, targets; access.ts (lead visibility)
     │   ├── payment-plans/    # construction milestones (planned, stage) and payment plan templates
     │   ├── construction/     # construction follow-up: progress reports, building progress, site photos
+    │   ├── rentals/          # leases (service.ts), derived rent account (accounts.ts), quittances (documents.ts)
     │   ├── handovers/        # deliveries: appointments, reserves, PV de remise des clés (unit delivered),
     │   │                     # PV de levée des réserves (documents.ts), units delivered before the app
     │   ├── quotations/       # issue/cancel, queries, pdf.ts (job: render + store once)
@@ -231,12 +233,12 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 | Role | FR | Scope today (extended per module) |
 |---|---|---|
 | `owner` | Gérant | Everything: organization, members, invitations, audit; approves withdrawals, sets commission rates; created with the organization, cannot be changed or removed |
-| `sales_manager` | Directeur commercial | CRM & sales, price lists, lead assignment, discounts, targets; reservations, VSP, contracts, transfers, unit swaps, bank loans, milestone validation, withdrawal proposals, reminder letters; construction follow-up (read), deliveries |
+| `sales_manager` | Directeur commercial | CRM & sales, price lists, lead assignment, discounts, targets; reservations, VSP, contracts, transfers, unit swaps, bank loans, milestone validation, withdrawal proposals, reminder letters; construction follow-up (read), deliveries, leases |
 | `sales_agent` | Commercial | Own leads/visits/quotations; buyer files, options and reservations of own leads; own sales and commissions (read) |
-| `accountant` | Comptable | Audit read; all sales (read), payments (record, cancel), withdrawal refunds, reminder letters, commissions (mark paid) |
-| `cashier` | Caissier | All sales (read); record payments (receipts), clear cheques, withdrawal refunds, reminder letters |
+| `accountant` | Comptable | Audit read; all sales (read), payments (record, cancel), withdrawal refunds, reminder letters, commissions (mark paid); leases (read) |
+| `cashier` | Caissier | All sales (read); record payments (receipts), clear cheques, withdrawal refunds, reminder letters; leases (read), rent payments |
 | `technical_manager` | Responsable technique | Module 4: construction follow-up (progress reports, photos) and deliveries; projects read-only; no sales, buyer files or money |
-| `property_manager` | Gestionnaire de résidence | Phase 2: residence module; construction follow-up and deliveries (read) |
+| `property_manager` | Gestionnaire de résidence | Phase 2: residence module; construction follow-up and deliveries (read); leases |
 | `resident` | Acquéreur / résident | Portal only (module 7): the records linked to the account by invitation (`portal_link`) |
 
 ### Jobs (pg-boss)
@@ -244,7 +246,7 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 - Worker = separate process (`pnpm worker`), graceful shutdown. Next.js only calls `enqueue()` (send-only instance).
 - Tenant jobs carry `organizationId` and run inside `withTenant`; platform jobs (auth emails) do not. Handlers are idempotent. Money in payloads = decimal string of centimes.
 - A job that follows a business write is enqueued **in the same transaction** with `enqueueInTx(tx, …)` (pg-boss `fromDrizzle`): it exists only if the write commits. `singletonKey` = the record id — on standard queues pg-boss only deduplicates **throttled** jobs (`singletonSeconds`), so handlers must be idempotent; once-a-day jobs use `singletonSeconds: 86_400`.
-- Queues today: `email.send`; `pdf.document` (`{ organizationId, kind, id }`, kinds `quotation`, `reservation_sheet`, `receipt`, `payment_call`, `reminder_letter`, `charge_call`, `charge_receipt`, `charge_reminder`, `assembly_convocation`, `assembly_minutes`, `announcement`, `handover_pv`, `handover_release`: one renderer per kind in `src/server/documents/render.ts`, each renders once and links the stored file; a running worker must be restarted to know a new kind); `option.expire` (scheduled at the option's expiry); `payment_call.issue` (after a milestone validation); `reminders.daily` (cron 08:00 Africa/Algiers, declared in `schedules` in `queues.ts` and installed by `db:migrate`) → one `reminders.digest` per organization, which sends both the overdue sales digest and the overdue charges digest. Planned: charge calls, lease alerts.
+- Queues today: `email.send`; `pdf.document` (`{ organizationId, kind, id }`, kinds `quotation`, `reservation_sheet`, `receipt`, `payment_call`, `reminder_letter`, `charge_call`, `charge_receipt`, `charge_reminder`, `assembly_convocation`, `assembly_minutes`, `announcement`, `handover_pv`, `handover_release`, `rent_receipt`: one renderer per kind in `src/server/documents/render.ts`, each renders once and links the stored file; a running worker must be restarted to know a new kind); `option.expire` (scheduled at the option's expiry); `payment_call.issue` (after a milestone validation); `reminders.daily` (cron 08:00 Africa/Algiers, declared in `schedules` in `queues.ts` and installed by `db:migrate`) → one `reminders.digest` per organization, which sends both the overdue sales digest and the overdue charges digest. Planned: charge calls, lease alerts.
 - `db:migrate` starts pg-boss once with the scheduler on so its internal cron queue exists before any worker (see §12). Stop dev workers by killing the node process tree (Windows keeps children of a stopped shell).
 
 ### Email
@@ -255,7 +257,7 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 - Private bucket. Key: `org/{orgId}/{entityType}/{entityId}/{fileId}.{ext}`; a tenant-scoped `file` row holds metadata (`entity_type` + `entity_id` = owner record).
 - **Upload**: `POST /api/files` (multipart `purpose`, `entityId`, `file`) → `Result<{ fileId }>`. Same-origin check, body capped while streaming (`readFormData`), then a switch on `purpose` calls the owning service (e.g. `setUnitFloorPlan`), which asserts the permission, runs `checkUpload` (size + **magic-byte** format check against `uploadPurposes` in `src/lib/files.ts`; the browser's MIME type is ignored) and `storeFile(tx, …)` (row insert, then S3 put, inside the tenant transaction). Client: `UploadButton`.
 - **Download**: `GET /api/files/{id}[?download]` → access check by `entity_type` (`readers` in `src/server/files/service.ts`: a unit plan needs `inventory:read`, a quotation PDF needs its lead to be visible, a buyer document its buyer, a sale's files its sale) → 302 to a 5-min presigned URL with the original name (`Content-Disposition` with UTF-8 `filename*`).
-- Upload purposes today: `unit.floor_plan`, `buyer.document` (variant = document kind), `reservation.contract`, `reservation.deed`, `organization.logo` (PNG/JPEG only, 2 MB; readable by any member of the organization), `construction_report.photo` (JPEG/PNG/WebP, 10 MB, up to 20 per report; entity `construction_report`, readers `construction:read`). Every document of a sale (reservation sheet, receipts, payment calls, reminder letters, signed scans) is filed under entity `reservation`, so its readers follow the sale's visibility. Residence documents (charge calls, receipts and reminders, assembly convocations and minutes, announcement notices) are filed under entity `residence`; readers need `charge:read`, `assembly:read` or `announcement:read`. Delivery PVs (remise des clés, levée des réserves) are filed under entity `handover`: readers with `handover:read`, or who see the sale.
+- Upload purposes today: `unit.floor_plan`, `buyer.document` (variant = document kind), `reservation.contract`, `reservation.deed`, `organization.logo` (PNG/JPEG only, 2 MB; readable by any member of the organization), `construction_report.photo` (JPEG/PNG/WebP, 10 MB, up to 20 per report; entity `construction_report`, readers `construction:read`), `lease.contract` (signed lease scan). Every document of a sale (reservation sheet, receipts, payment calls, reminder letters, signed scans) is filed under entity `reservation`, so its readers follow the sale's visibility. Residence documents (charge calls, receipts and reminders, assembly convocations and minutes, announcement notices) are filed under entity `residence`; readers need `charge:read`, `assembly:read` or `announcement:read`. Delivery PVs (remise des clés, levée des réserves) are filed under entity `handover`: readers with `handover:read`, or who see the sale. Lease documents (quittances, deposit receipts, signed lease scans) are filed under entity `lease`: readers with `lease:read`.
 - Replacing/removing a file soft-deletes the old row (`deleted_at`); the object stays in the bucket. New purpose = entry in `uploadPurposes` + service function + `case` in `src/app/api/files/route.ts` (+ a `readers` entry for a new entity type). Generated documents are stored with `storeFile(tx, { orgId, userId: null }, …)` by their job.
 - Issued documents are rendered once at issue; the stored PDF is served for reprints.
 
@@ -311,8 +313,10 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 | Remise des clés (rendez-vous, PV) | `handover` | one per sold unit: `scheduled` → `signed` (PV `PVL-`, unit `delivered`); PV de levée des réserves (`reserves_closed_on`) |
 | Réserves à la livraison (corps d'état) | `punch_item` (`punch_trade`) | numbered per handover; `open` → `lifted` / `cancelled` |
 | Réclamation SAV / résidence | `ticket` | |
-| Bail | `lease` | `residential` / `commercial` |
-| Dépôt de garantie / Loyer d'avance | `security_deposit` / `advance_rent` | |
+| Bail (habitation / commercial) | `lease` | `lease_kind` `residential` / `commercial`; numbered `BAL-`; `active` → `ended`; a renewal is a new lease (`renewed_from_id`) |
+| Loyer payé d'avance (mensuel, trimestriel, semestriel, annuel) | `rent_frequency` | rent periods derived (`buildRentPeriods`), due on their first day |
+| Dépôt de garantie | `lease.deposit` (+ `deposit_carried` on a renewal) | collected as a payment, settled at the end (refunded / retained) |
+| Quittance de loyer / reçu de dépôt | `rent_payment` (`kind` `rent` / `deposit`) | receipt `QIT-` on the same row |
 | État des lieux (entrée / sortie) | `inspection` | `check_in` / `check_out` |
 | Résidence (après livraison) | `residence` | |
 | Syndic / Administration des biens | `property_management` | |
@@ -363,6 +367,8 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 | Appel de charges | `charge_call` | `ADC` |
 | Reçu de charges | `charge_receipt` | `RCH` |
 | PV de remise des clés | `handover` | `PVL` |
+| Bail | `lease` | `BAL` |
+| Quittance de loyer / reçu de dépôt | `rent_receipt` | `QIT` |
 | Devis | `quotation` | `DEV` |
 - Format `{PREFIX}-{YYYY}-{NNNNNN}`, e.g. `REC-2026-000123`; sequence per organization, per `doc_type`, per Algiers year of the issue date.
 - `nextDocumentNumber(tx, scope, docType, issuedAt)` upserts the `document_sequence` row, then `UPDATE … SET last_value = last_value + 1 RETURNING` (row lock, same guarantee as `SELECT … FOR UPDATE`). It **must run in the transaction that inserts the document** — a rollback leaves no gap (tested, incl. 25 concurrent allocations).
@@ -380,6 +386,7 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 | `reserved` | `sold` | VSP signed at the notary |
 | `sold` | `delivered` | handover PV signed |
 | `available` / `blocked` | `delivered` | sold and handed over before the app (`recordPastDeliveries`, delivered project only) |
+| `blocked` | `rented` | lease of a unit kept by the company |
 | `blocked` / `rented` | `available` | unblock / lease ended |
 - Anything else → `INVALID_TRANSITION`. `delivered` is terminal on the sales side.
 - **Only** `transitionUnit(tx, actor, unitId, to, { reason, refType, refId })` (`src/server/inventory/transition-unit.ts`; `actor.userId` null for jobs) writes `unit.status`: row lock, validation, `unit_status_history`, audit `unit.status_change`. New units start `available` (history row, no transition).
@@ -437,6 +444,13 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 - **PV de levée des réserves** (`closeReserves`): once no reserve is open and at least one was lifted, dated from the PV and the last lifting on; closes the reserves (no more changes); audited `handover.close_reserves`; bilingual PDF (`handover_release`) listing every reserve with its lifting date or cancellation. Later defects go through tickets (residence).
 - **Delivered before the app** (`recordPastDeliveries`, `handover:update`): in a `delivered` project, units still `available` or `blocked` (never sold through the app) are marked `delivered` with a reason (status history); the form ticks the units that have a current co-owner. Units still owned by the promoter stay as they are.
 
+### Rentals (module 5)
+- **Leases** (`lease`; `lease:read`: gérant, directeur commercial, comptable, caissier, gestionnaire; `lease:update`: gérant, directeur commercial, gestionnaire) rent the units the promoter keeps: an `available` unit or one kept by the company (`blocked`) becomes `rented` (`transitionUnit`, ref `lease`); one active lease per unit. A lease (numbered `BAL-`, signed on a day not in the future) has a kind (habitation / commercial), a tenant (person or company: name, Arabic name, NIN or RC, phone, e-mail, address, activity), a start, a duration in months (1–120; the term's last day is derived), a monthly rent, an optional monthly charges provision, a payment frequency and a deposit. When the unit belongs to a residence, the tenant becomes its main occupant from the start (`occupant_id`).
+- **Rent schedule** (derived, `buildRentPeriods`, `src/lib/rentals.ts`): from the start, one period per frequency (the last one shorter), each due on its first day (paid in advance) for its months of rent and charges; FIFO statement like sales (`rentStatement`: paid, remaining, overdue; no penalties). State (`leaseState`): upcoming, running, ending (last day within 60 days), expired (term over, not ended), ended.
+- **Payments** (`rent_payment`, `payment:create`): rent (never above what remains on the schedule; allocation snapshot printed) or the deposit (never above what is missing of it, active leases only); methods cash, cheque, transfer, CCP; receipt `QIT-` in the same transaction (bilingual quittance / deposit receipt via the shared receipt template, filed under the lease); cheques « sous réserve », cleared later; cancelled by accountants with a reason (a settled deposit's payments no longer); audited on the lease.
+- **Corrections** (`updateLease`): the tenant's details at any time (the occupant follows); the terms only while no payment exists; a renewal keeps its start.
+- **End** (`endLease`, from the signature to today, reason): the unit is `available` again, the occupancy ends (removed if it had not started), periods starting after the last day are no longer due. **Renewal** (`renewLease`): a new lease `BAL-` for the same tenant and unit from the day after the term with its own terms; the current one ends on its last day (its end reason is the renewal's number), the deposit held is carried over (`deposit_carried`), the unit stays rented. **Deposit settlement** (`settleDeposit`, ended leases not renewed): refunded + retained = held, a reason when something is retained; final.
+
 ### Residence charges
 - `share` = integer weight per unit per residence (tantièmes, e.g. on a 10 000 basis). A residence enrols its project's live units with their inventory quote-part (`unit.share`, else 0); tantièmes are saved as a whole or split by area (living area, else usable area) with `allocate()`; audited `residence.shares`.
 - Distribution keys: `equal`, `share`, `per_building`, `custom` (explicit unit list, weighted `equal` or `share`, e.g. RDC excluded from elevator). Every distribution uses `allocate()` → lines sum exactly to the charge.
@@ -453,9 +467,9 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 - **Overdue charges** (reminders only, never penalties): `/residences/overdue` lists every unit with calls due before today and not covered, most late first; reminder letters (`charge:remind`: gérant, comptable, caissier, gestionnaire) keep the overdue calls as printed, a pay-by date (default 8 days) and the addressee, bilingual PDF; the daily digest e-mails property managers and cashiers when something is overdue.
 
 ### Audit & deletion
-- Audited: prices, payments, receipts, charge categories, budgets, charge periods, charge payments, supplier invoices, general assemblies (convening, closing with results), handovers (PV signed, reserves closed), contracts (reservation, sale, contract details), installments/schedules, unit status, milestone validation, withdrawals (propose / approve / reject / refund), transfers, unit swaps, commissions (paid, rates), organization creation, invitations, member joins/role changes/removals.
+- Audited: prices, payments, receipts, charge categories, budgets, charge periods, charge payments, supplier invoices, general assemblies (convening, closing with results), handovers (PV signed, reserves closed), leases (signed, corrected, ended, renewed, deposit settled) and rent payments, contracts (reservation, sale, contract details), installments/schedules, unit status, milestone validation, withdrawals (propose / approve / reject / refund), transfers, unit swaps, commissions (paid, rates), organization creation, invitations, member joins/role changes/removals.
 - `audit_log(organization_id, actor_user_id, action, entity_type, entity_id, before jsonb, after jsonb, reason, created_at)` written by `recordAudit(tx, scope, entry)` in the same transaction as the change (bigint → string, Date → ISO). `action` is semantic: `<entity>.<verb>`, e.g. `receipt.cancel`, `member.update_roles`. `actor_user_id` null for jobs.
-- DB grants enforce it (`post-migrate.sql`): no `UPDATE`/`DELETE`/`TRUNCATE` on `audit_log`, `reservation_transfer`, `unit_swap`; payments and receipts: no `DELETE`, column-level `UPDATE` (cancellation, cheque clearance, PDF link) only; payment calls and reminder letters: only their PDF link; reservations and withdrawals: no `DELETE`; charge periods: only their cancellation; charge calls: only their PDF link; charge call lines: append-only; charge payments: cancellation, cheque clearance and PDF link only; charge reminders: only their PDF link; ticket events: append-only; handovers: no `DELETE`.
+- DB grants enforce it (`post-migrate.sql`): no `UPDATE`/`DELETE`/`TRUNCATE` on `audit_log`, `reservation_transfer`, `unit_swap`; payments and receipts: no `DELETE`, column-level `UPDATE` (cancellation, cheque clearance, PDF link) only; payment calls and reminder letters: only their PDF link; reservations and withdrawals: no `DELETE`; charge periods: only their cancellation; charge calls: only their PDF link; charge call lines: append-only; charge payments: cancellation, cheque clearance and PDF link only; charge reminders: only their PDF link; ticket events: append-only; handovers and leases: no `DELETE`; rent payments: cancellation, cheque clearance and PDF link only.
 - Business records are soft-deleted (`softDelete()` helper: `deleted_at`, `deleted_by`); queries exclude them by default.
 
 ## 8. Coding conventions
@@ -602,6 +616,9 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
   - [x] Units delivered before the app (delivered project)
   - [x] Seed (progress reports with site photos for Les Oliviers, La Corniche and Les Amandiers; « Résidence Les Amandiers » with handovers at every stage; El Yasmine's units delivered before the app) and e2e
 - [ ] Module 5 — Rentals
+  - [x] Leases of kept units (unit rented, tenant occupant of its residence), rent schedule paid in advance, rent and deposit payments with bilingual quittances (QIT-), corrections, end, renewal with the deposit carried over, deposit settlement, signed lease scan
+  - [ ] États des lieux, overdue rents (list, digest, dashboard), unit page link
+  - [ ] Seed and e2e
 - [ ] Online payment (CIB/Edahabia via SATIM)
 - [ ] WhatsApp Business API notifications
 
@@ -693,6 +710,9 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 | 2026-10-05 | **Portal access (user)**: by invitation from the back office only — staff invite a buyer file or a co-owner / occupant record; the bilingual e-mail creates the account (role `resident`) already linked to that record. |
 | 2026-10-05 | **Portal content (user)**: buyers see their schedule and payments (receipts), sale documents (reservation sheet, payment calls, reminder letters, signed scans), construction progress and their bank loan's stage; co-owners see their charges account (calls, payments, receipts, reminder letters), announcements, tickets (open and follow) and general assemblies (convocations, PVs); **occupants** get a limited access: announcements and tickets only. |
 | 2026-10-05 | Portal invitations are created by our service (a Better Auth invitation row with role `resident`) rather than Better Auth's API, so the directeur commercial and the gestionnaire can invite without the staff `invitation:create` right; portal accounts and invitations are kept off the members page. |
+| 2026-10-05 | **Rentals (recommended, user delegated: "if there are questions, do what you recommend")**: the promoter rents the units it keeps (available, or blocked as kept by the company) — residential or commercial leases with a tenant (person or company), a duration in months, a monthly rent plus an optional charges provision, paid in advance monthly, quarterly, half-yearly or yearly, and a deposit. No penalties on late rent (reminders only, like charges). The app keeps the lease and its money; the lease contract itself is the signed scan (no generated contract: legal text, notary for commercial leases). |
+| 2026-10-05 | Rent receipts: one numbering `QIT-` for quittances and deposit receipts, bilingual, filed under the lease. Leases numbered `BAL-`. `lease:update` for the gérant, the directeur commercial and the gestionnaire; rent is collected by whoever records payments (`payment:create`) and cancelled by accountants. A lease's terms are fixed once money is received (a rent change = a renewal). |
+| 2026-10-05 | A renewal is a new lease starting the day after the term, the deposit held carried over; ending a lease early drops the periods not started (no prorata); a tenant of a unit in a residence is its main occupant for the lease (portal: announcements and tickets once invited). Rent accounts are not on the portal yet. |
 | 2026-10-05 | The members page no longer offers the portal role `resident`: a staff invitation with it created a portal account linked to no record (and hidden from the pending invitations), and giving it to a staff member made them portal-only. Staff forms and their schema use `staffRoles`; `invitableRoles` is gone. |
 | 2026-10-05 | **Module 4 scope (user: "answer the questions with what you recommend")**: construction follow-up = dated progress reports per project (text FR, Arabic optional; progress in % per building; site photos), published to the buyers or kept internal; the existing milestones keep driving the payment calls. Delivery = per sold unit: appointment, reserves (punch list), numbered bilingual PV de remise des clés → unit `delivered`, reserves lifted then a PV de levée des réserves. |
 | 2026-10-05 | New role `technical_manager` (Responsable technique): construction follow-up and deliveries, projects read-only, no access to sales, buyer files or payments. `construction:read` for every staff role, `construction:update` for the gérant and the responsable technique (milestone validation stays with the gérant and the directeur commercial: it issues payment calls). |

@@ -9,6 +9,7 @@ import {
   FileSignature,
   HardHat,
   Hotel,
+  House,
   IdCard,
   Kanban,
   KeyRound,
@@ -63,7 +64,8 @@ type NavKey =
   | "suppliers"
   | "tickets"
   | "construction"
-  | "deliveries";
+  | "deliveries"
+  | "rentals";
 /** `permission`: shown only to roles that have it (display only; services enforce). */
 type NavItem = { href: string; key: NavKey; icon: LucideIcon; permission?: Permission };
 
@@ -89,6 +91,9 @@ const constructionNav: NavItem[] = [
   { href: "/construction", key: "construction", icon: HardHat, permission: "construction:read" },
   { href: "/deliveries", key: "deliveries", icon: KeyRound, permission: "handover:read" },
 ];
+const rentalsNav: NavItem[] = [
+  { href: "/rentals", key: "rentals", icon: House, permission: "lease:read" },
+];
 const residenceNav: NavItem[] = [
   { href: "/residences", key: "residences", icon: Hotel, permission: "residence:read" },
   {
@@ -111,6 +116,7 @@ const allItems = [
   ...salesNav,
   ...contractsNav,
   ...constructionNav,
+  ...rentalsNav,
   ...residenceNav,
   ...settingsNav,
 ];
@@ -178,6 +184,7 @@ export function AppSidebar({
         {renderGroup(t("nav.sales"), salesNav)}
         {renderGroup(t("nav.contracts"), contractsNav)}
         {renderGroup(t("nav.constructionGroup"), constructionNav)}
+        {renderGroup(t("nav.rentalsGroup"), rentalsNav)}
         {renderGroup(t("nav.residenceGroup"), residenceNav)}
         {renderGroup(t("nav.settings"), settingsNav)}
       </SidebarContent>

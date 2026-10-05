@@ -143,7 +143,7 @@ describe("append-only audit log", () => {
 });
 
 describe("records never deleted", () => {
-  it.each(["reservation", "withdrawal", "quotation", "handover"])(
+  it.each(["reservation", "withdrawal", "quotation", "handover", "lease"])(
     "%s: the app role may update but not delete or truncate",
     async (table) => {
       const { rows } = await db.execute<Record<string, boolean>>(sql`

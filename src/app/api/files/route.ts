@@ -9,6 +9,7 @@ import { setBuyerDocumentScan } from "@/server/buyers/service";
 import { addReportPhoto } from "@/server/construction/service";
 import { setUnitFloorPlan } from "@/server/inventory/floor-plans";
 import { setCompanyLogo } from "@/server/organizations/settings";
+import { setLeaseContractScan } from "@/server/rentals/service";
 import { setReservationScan } from "@/server/sales/reservations";
 import { assertSameOrigin, jsonResult, readFormData } from "@/server/route-handler";
 
@@ -66,6 +67,14 @@ export async function POST(request: Request) {
         if (fields.data.entityId !== ctx.orgId) throw new AppError("NOT_FOUND");
         const result = await setCompanyLogo(ctx, { upload });
         revalidatePath("/[locale]/settings/company", "page");
+        return result;
+      }
+      case "lease.contract": {
+        const result = await setLeaseContractScan(ctx, {
+          leaseId: fields.data.entityId,
+          upload,
+        });
+        revalidatePath("/[locale]/rentals", "layout");
         return result;
       }
       case "construction_report.photo": {

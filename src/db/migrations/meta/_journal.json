@@ -204,6 +204,13 @@
       "when": 1791185647474,
       "tag": "0028_handovers",
       "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1791206414124,
+      "tag": "0029_rentals",
+      "breakpoints": true
     }
   ]
 }

@@ -68,6 +68,8 @@ const readers: Record<string, Reader> = {
       .where(and(eq(handover.id, entityId), visibleSales(ctx)));
     return row !== undefined;
   },
+  // Lease documents: quittances, deposit receipts, signed contract scans.
+  lease: async (_tx, ctx) => can(ctx.roles, "lease:read"),
   // Site photos of construction progress reports.
   construction_report: async (_tx, ctx) => can(ctx.roles, "construction:read"),
   // A quotation PDF follows its lead: commercials only see their own leads' quotations.

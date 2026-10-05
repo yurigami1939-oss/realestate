@@ -24,6 +24,7 @@ describe("unit status machine", () => {
     ["available", "delivered"],
     ["blocked", "available"],
     ["blocked", "delivered"],
+    ["blocked", "rented"],
     ["rented", "available"],
   ] as const)("allows %s → %s", (from, to) => {
     expect(canTransition(from, to)).toBe(true);

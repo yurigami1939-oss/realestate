@@ -221,6 +221,8 @@
     "constructionGroup": "Chantiers",
     "construction": "Avancement des travaux",
     "deliveries": "Livraisons",
+    "rentalsGroup": "Gestion locative",
+    "rentals": "Baux",
     "audit": "Journal d'audit",
     "residenceGroup": "Gestion des résidences",
     "residences": "Résidences",
@@ -1665,6 +1667,172 @@
       "unitEngaged": "Un des lots choisis est engagé dans une vente."
     }
   },
+  "rentals": {
+    "title": "Baux",
+    "description": "Locations des lots conservés par la société : loyers, quittances et dépôts de garantie.",
+    "new": "Nouveau bail",
+    "newTitle": "Nouveau bail",
+    "editTitle": "Modifier le bail",
+    "empty": "Aucun bail pour ces critères.",
+    "noUnits": "Aucun lot disponible ou conservé par la société à louer.",
+    "created": "Bail {number} enregistré : le lot est loué.",
+    "detailTitle": "Bail {number}",
+    "renews": "Renouvelle le bail",
+    "renewedBy": "Renouvelé par le bail",
+    "endedLine": "Terminé le {date} : {reason}",
+    "schedule": "Loyers",
+    "payments": "Encaissements et quittances",
+    "tenant": "Locataire",
+    "terms": "Bail",
+    "termLine": "du {from} au {to} ({months} mois)",
+    "monthsCount": "{count, plural, one {# mois} other {# mois}}",
+    "occupant": "Occupant : {residence}",
+    "columns": {
+      "lease": "Bail",
+      "unit": "Lot",
+      "tenant": "Locataire",
+      "term": "Durée",
+      "rent": "Loyer mensuel",
+      "status": "État",
+      "overdue": "En retard",
+      "period": "Période",
+      "amount": "Montant",
+      "paid": "Payé",
+      "state": "État",
+      "kind": "Nature"
+    },
+    "totals": {
+      "total": "Loyers du bail",
+      "paid": "Encaissé",
+      "remaining": "Reste à payer",
+      "overdue": "En retard"
+    },
+    "filters": {
+      "active": "En cours",
+      "ended": "Terminés",
+      "all": "Tous",
+      "allProjects": "Tous les projets"
+    },
+    "kind": {
+      "residential": "Habitation",
+      "commercial": "Commercial"
+    },
+    "frequency": {
+      "monthly": "Mensuel",
+      "quarterly": "Trimestriel",
+      "half_yearly": "Semestriel",
+      "yearly": "Annuel"
+    },
+    "state": {
+      "upcoming": "À venir",
+      "running": "En cours",
+      "ending": "Échéance proche",
+      "expired": "Échu",
+      "ended": "Terminé"
+    },
+    "paymentKind": {
+      "rent": "Loyer",
+      "deposit": "Dépôt de garantie"
+    },
+    "fields": {
+      "unit": "Lot",
+      "kind": "Nature du bail",
+      "tenantName": "Locataire (nom ou raison sociale)",
+      "tenantNameAr": "Nom en arabe (facultatif)",
+      "tenantIdNumber": "NIN ou n° de registre du commerce",
+      "tenantPhone": "Téléphone",
+      "tenantEmail": "E-mail",
+      "tenantAddress": "Adresse",
+      "activity": "Activité (local commercial)",
+      "signedOn": "Signé le",
+      "startOn": "Début",
+      "durationMonths": "Durée (mois)",
+      "term": "Durée",
+      "monthlyRent": "Loyer mensuel (DA)",
+      "monthlyCharges": "Charges mensuelles (DA)",
+      "monthlyChargesHint": "Provision pour charges ajoutée au loyer ; vide = aucune.",
+      "frequency": "Paiement",
+      "deposit": "Dépôt de garantie (DA)",
+      "notes": "Remarques"
+    },
+    "form": {
+      "unitAndTenant": "Lot et locataire",
+      "chooseUnit": "Choisir un lot",
+      "kept": "conservé par la société",
+      "terms": "Conditions",
+      "preview": "Échéancier",
+      "term": "Du {from} au {to}",
+      "morePeriods": "{count, plural, one {et # autre échéance} other {et # autres échéances}}",
+      "previewHint": "Indiquez le début, la durée et le loyer pour voir les échéances.",
+      "submit": "Enregistrer le bail"
+    },
+    "payment": {
+      "open": {
+        "rent": "Encaisser un loyer",
+        "deposit": "Encaisser le dépôt"
+      },
+      "title": {
+        "rent": "Encaissement de loyer",
+        "deposit": "Encaissement du dépôt de garantie"
+      },
+      "hint": {
+        "rent": "Appliqué aux échéances les plus anciennes ; reste à payer sur le bail : {amount}.",
+        "deposit": "Reste à recevoir sur le dépôt de garantie : {amount}."
+      },
+      "cancelLabel": "Annuler le reçu {number}"
+    },
+    "end": {
+      "open": "Terminer le bail",
+      "title": "Terminer le bail",
+      "description": "Le locataire quitte le lot : le lot redevient disponible et les échéances non commencées ne sont plus dues.",
+      "date": "Date de sortie",
+      "reason": "Motif",
+      "submit": "Terminer le bail",
+      "done": "Bail terminé : le lot est disponible."
+    },
+    "renew": {
+      "open": "Renouveler",
+      "title": "Renouveler le bail",
+      "description": "Un nouveau bail pour le même locataire à partir du {date} ; le dépôt de garantie est reporté.",
+      "submit": "Renouveler",
+      "done": "Bail {number} enregistré."
+    },
+    "deposit": {
+      "held": "Dépôt reçu",
+      "carried": "dont {amount} reporté du bail précédent",
+      "settledLine": "Soldé le {date} : {refunded} restitué, {retained} retenu",
+      "movedToRenewal": "Reporté sur le bail de renouvellement.",
+      "open": "Solder le dépôt",
+      "title": "Solder le dépôt de garantie",
+      "description": "Indiquez ce qui est restitué au locataire ; le reste est retenu avec son motif. Définitif.",
+      "date": "Date",
+      "refunded": "Restitué (DA)",
+      "reason": "Motif de la retenue",
+      "submit": "Solder le dépôt",
+      "done": "Dépôt de garantie soldé."
+    },
+    "scan": {
+      "title": "Bail signé (scan)"
+    },
+    "errors": {
+      "futureDate": "La date ne peut pas être dans le futur.",
+      "unitNotFound": "Lot introuvable.",
+      "unitNotFree": "Ce lot n'est ni disponible ni conservé par la société.",
+      "ended": "Ce bail est terminé.",
+      "termsLocked": "Des encaissements existent : les conditions du bail ne changent plus.",
+      "renewalStart": "Un renouvellement commence le lendemain du bail qu'il renouvelle.",
+      "beforeSigning": "La sortie ne peut précéder la signature du bail.",
+      "aboveRemaining": "Le montant dépasse le reste à payer du bail.",
+      "aboveDeposit": "Le montant dépasse ce qui reste à recevoir du dépôt.",
+      "depositSettled": "Le dépôt de garantie est déjà soldé.",
+      "notEnded": "Le bail doit d'abord être terminé.",
+      "depositCarried": "Le dépôt a été reporté sur le bail de renouvellement.",
+      "noDeposit": "Aucun dépôt de garantie reçu.",
+      "aboveHeld": "Le montant dépasse le dépôt reçu.",
+      "retentionReason": "Indiquez le motif de la retenue.",
+      "beforeEnd": "Le solde ne peut précéder la fin du bail."
+    }
+  },
   "audit": {
     "title": "Journal d'audit",
     "description": "Les opérations sensibles avec leur auteur, leur date et l'état avant / après. Le journal ne peut être ni modifié ni supprimé.",
@@ -1714,7 +1882,8 @@
       "staff_member": "Agent de résidence",
       "general_assembly": "Assemblée générale",
       "portal_link": "Accès à l'espace client",
-      "handover": "Livraison (remise des clés)"
+      "handover": "Livraison (remise des clés)",
+      "lease": "Bail"
     },
     "actions": {
       "organization": {
@@ -1825,6 +1994,18 @@
       "handover": {
         "sign": "PV de remise des clés signé",
         "close_reserves": "Réserves levées (PV de levée)"
+      },
+      "lease": {
+        "create": "Bail signé",
+        "update": "Bail modifié",
+        "end": "Bail terminé",
+        "renew": "Bail renouvelé",
+        "settle_deposit": "Dépôt de garantie soldé"
+      },
+      "rent_payment": {
+        "create": "Loyer ou dépôt encaissé",
+        "cancel": "Encaissement de loyer annulé",
+        "cheque_cleared": "Chèque de loyer encaissé"
       }
     }
   },

@@ -10,6 +10,7 @@ export * from "./handovers";
 export * from "./inventory";
 export * from "./platform";
 export * from "./portal";
+export * from "./rentals";
 export * from "./residences";
 export * from "./sales";
 export * from "./staff";

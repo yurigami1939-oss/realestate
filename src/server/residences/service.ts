@@ -265,6 +265,69 @@ export async function addResident(ctx: TenantCtx, input: In<typeof addResidentSc
   });
 }
 
+/**
+ * The tenant of a lease as main occupant of its unit from the lease start, when the unit
+ * belongs to a residence (the caller checks the permission). Returns the resident id, or null.
+ */
+export async function addLeaseOccupant(
+  tx: Tx,
+  actor: { orgId: string; userId: string },
+  input: {
+    unitId: string;
+    name: string;
+    phone: string | null;
+    email: string | null;
+    sinceOn: string;
+  },
+): Promise<string | null> {
+  const [member] = await tx
+    .select({ residenceId: residenceUnit.residenceId })
+    .from(residenceUnit)
+    .where(eq(residenceUnit.unitId, input.unitId));
+  if (!member) return null;
+  await clearMain(tx, input.unitId, "occupant");
+  const [row] = await tx
+    .insert(resident)
+    .values({
+      organizationId: actor.orgId,
+      residenceId: member.residenceId,
+      unitId: input.unitId,
+      kind: "occupant",
+      isMain: true,
+      lastName: input.name,
+      firstName: "",
+      phone: input.phone,
+      email: input.email,
+      sinceOn: input.sinceOn,
+      createdBy: actor.userId,
+    })
+    .returning({ id: resident.id });
+  return row?.id ?? null;
+}
+
+/** Ends a lease's occupancy on a day; one that had not started yet is removed. */
+export async function endLeaseOccupant(
+  tx: Tx,
+  actor: { userId: string },
+  residentId: string,
+  untilOn: string,
+) {
+  const [row] = await tx
+    .select({ sinceOn: resident.sinceOn, untilOn: resident.untilOn })
+    .from(resident)
+    .where(and(eq(resident.id, residentId), isNull(resident.deletedAt)))
+    .for("update");
+  if (!row || row.untilOn) return;
+  if (row.sinceOn && untilOn < row.sinceOn) {
+    await tx
+      .update(resident)
+      .set({ deletedAt: new Date(), deletedBy: actor.userId, isMain: false })
+      .where(eq(resident.id, residentId));
+    return;
+  }
+  await tx.update(resident).set({ untilOn, isMain: false }).where(eq(resident.id, residentId));
+}
+
 /** Ends an ownership or occupancy on a day (the unit is sold, the tenant leaves). */
 export async function endResident(ctx: TenantCtx, input: In<typeof endResidentSchema>) {
   assertCan(ctx, "residence:update");

@@ -247,6 +247,7 @@ async function recordLinks(
       .where(inArray(handover.id, handoverIds));
     for (const h of handovers) links.set(`handover:${h.id}`, `/deliveries/${h.saleId}`);
   }
+  for (const id of ids("lease")) links.set(`lease:${id}`, `/rentals/${id}`);
   return links;
 }
 
