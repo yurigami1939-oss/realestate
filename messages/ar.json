@@ -2611,6 +2611,37 @@
       "alreadyActive": "هذا الملف ظاهر من قبل في فضاء زبون.",
       "staffEmail": "هذا البريد الإلكتروني لعضو في الفريق.",
       "revoked": "سُحب حق الدخول هذا من قبل."
-    }
+    },
+    "sale": {
+      "title": "مقتنياتي",
+      "back": "الرئيسية",
+      "reserved": "الحجز {number} بتاريخ {date}",
+      "vsp": "البيع على التصاميم {number} موقع في {date}",
+      "buyers": "المقتني(ون): {names}",
+      "schedule": "جدول الاستحقاقات",
+      "atMilestone": "عند طلب الدفع «{milestone}»",
+      "payments": "المدفوعات والوصولات",
+      "noPayments": "لا يوجد أي دفع مسجل.",
+      "cancelled": "ملغى",
+      "chequePending": "صك قيد التحصيل",
+      "receipt": "الوصل {number}",
+      "documents": "الوثائق",
+      "noDocuments": "لا توجد وثيقة في الوقت الحالي.",
+      "sheet": "بطاقة الحجز",
+      "contract": "عقد الحجز الموقع",
+      "deed": "عقد البيع على التصاميم",
+      "call": "طلب الدفع {number} · {label}",
+      "reminder": "رسالة تذكير بتاريخ {date}",
+      "payBy": "يُسدد قبل {date}",
+      "progress": "تقدم الأشغال",
+      "noMilestones": "لا توجد مرحلة مبرمجة في الوقت الحالي.",
+      "done": "أُنجزت في {date}",
+      "planned": "مبرمجة في {date}",
+      "notPlanned": "التاريخ لاحقاً",
+      "loanAmount": "المبلغ: {amount}",
+      "loanSubmitted": "أُودع في {date}",
+      "loanDecided": "الرد في {date}"
+    },
+    "pendingDocument": "قيد الإعداد"
   }
 }

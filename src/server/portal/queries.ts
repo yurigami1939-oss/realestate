@@ -1,11 +1,12 @@
 import "server-only";
 
-import { and, asc, desc, eq, exists, inArray } from "drizzle-orm";
+import { asc, desc, eq, inArray } from "drizzle-orm";
 
-import { project, reservation, reservationBuyer, residence, resident, unit } from "@/db/schema";
+import { project, reservation, residence, resident, unit } from "@/db/schema";
 import { withTenant } from "@/db/tenant";
 
 import { type PortalCtx, portalScope } from "./context";
+import { portalSales } from "./sales";
 
 /** The portal home: the account's purchases (live sales of its buyer files) and its units. */
 export async function getPortalOverview(ctx: PortalCtx) {
@@ -26,22 +27,7 @@ export async function getPortalOverview(ctx: PortalCtx) {
             .from(reservation)
             .innerJoin(unit, eq(unit.id, reservation.unitId))
             .innerJoin(project, eq(project.id, reservation.projectId))
-            .where(
-              and(
-                inArray(reservation.status, ["reserved", "sold"]),
-                exists(
-                  tx
-                    .select({ id: reservationBuyer.buyerId })
-                    .from(reservationBuyer)
-                    .where(
-                      and(
-                        eq(reservationBuyer.reservationId, reservation.id),
-                        inArray(reservationBuyer.buyerId, scope.buyerIds),
-                      ),
-                    ),
-                ),
-              ),
-            )
+            .where(portalSales(tx, scope.buyerIds))
             .orderBy(desc(reservation.reservedOn));
     const units =
       scope.residents.length === 0

@@ -12,11 +12,12 @@ import {
   type FileContentType,
   type UploadPurpose,
 } from "@/lib/files";
-import { can } from "@/lib/permissions";
+import { can, isPortalOnly } from "@/lib/permissions";
 import { AppError } from "@/lib/result";
 import type { TenantCtx } from "@/server/auth/session";
 import { visibleBuyers } from "@/server/buyers/access";
 import { visibleLeads } from "@/server/crm/access";
+import { portalCanRead } from "@/server/portal/files";
 import { visibleSales } from "@/server/sales/access";
 
 import { presignDownload, putObject, storageKey } from "./storage";
@@ -144,6 +145,13 @@ export async function getFileDownloadUrl(
       .from(file)
       .where(and(eq(file.id, fileId), isNull(file.deletedAt)));
     if (!found) throw new AppError("NOT_FOUND");
+    // Portal accounts read the documents of their own records only (CLAUDE.md §5).
+    if (isPortalOnly(ctx.roles)) {
+      if (!(await portalCanRead(tx, ctx.userId, { ...found, id: fileId }))) {
+        throw new AppError("FORBIDDEN");
+      }
+      return found;
+    }
     const reader = readers[found.entityType];
     if (!reader || !(await reader(tx, ctx, found.entityId))) throw new AppError("FORBIDDEN");
     return found;

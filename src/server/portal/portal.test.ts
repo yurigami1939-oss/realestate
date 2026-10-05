@@ -12,7 +12,11 @@ import { auth } from "@/server/auth/auth";
 import type { TenantCtx } from "@/server/auth/session";
 import { createBuyerSchema } from "@/server/buyers/schemas";
 import { createBuyer } from "@/server/buyers/service";
+import { getFileDownloadUrl } from "@/server/files/service";
 import { listMembers, listPendingInvitations } from "@/server/organizations/queries";
+import { renderAndStoreReceipt } from "@/server/payments/documents";
+import { recordPaymentSchema } from "@/server/payments/schemas";
+import { recordPayment } from "@/server/payments/service";
 import { addResidentSchema, createResidenceSchema } from "@/server/residences/schemas";
 import { addResident, createResidence } from "@/server/residences/service";
 import { createReservation } from "@/server/sales/reservations";
@@ -25,6 +29,7 @@ import { createSaleSetup } from "../../../tests/sales-fixtures";
 import type { PortalCtx } from "./context";
 import { getPortalAccess, inviteToPortal, revokePortalLink } from "./invitations";
 import { getPortalOverview } from "./queries";
+import { getPortalSale } from "./sales";
 
 afterAll(async () => {
   await stopEnqueue();
@@ -204,5 +209,71 @@ describe("portal access", () => {
     await expect(
       inviteToPortal(manager, { kind: "resident", id: staffResident }),
     ).rejects.toMatchObject({ messageKey: "portal.errors.staffEmail" });
+  });
+
+  it("shows a buyer their sale and its documents, and nothing of other sales", async () => {
+    const { team, setup, email, buyerId, reservationId } = await scenario();
+    await inviteToPortal(team.manager, { kind: "buyer", id: buyerId });
+    const portal = await acceptAs(email, team.orgId);
+    const cashier = await addMember(team.orgId, ["cashier"]);
+    const pay = async (saleId: string, amount: string) => {
+      const { receiptId } = await recordPayment(
+        cashier,
+        recordPaymentSchema.parse({
+          reservationId: saleId,
+          amount,
+          method: "cash",
+          paidOn: todayInAlgiers(),
+          payerName: "Karim Bensalem",
+        }),
+      );
+      await renderAndStoreReceipt(team.orgId, receiptId);
+    };
+    await pay(reservationId, "1 000 000");
+
+    const sale = await getPortalSale(portal, reservationId);
+    expect(sale).toMatchObject({
+      id: reservationId,
+      unitCode: "A-03-01",
+      buyers: [{ lastName: "Bensalem", firstName: "Karim" }],
+      calls: [],
+      loans: [],
+    });
+    expect(sale?.statement.paid).toBe(1_000_000_00n);
+    expect(sale?.statement.lines).toHaveLength(3);
+    expect(sale?.milestones.map((m) => m.name)).toEqual(["Fondations", "Gros œuvre"]);
+    const receiptFile = sale?.payments[0]?.receiptPdfFileId ?? "";
+    expect(receiptFile).not.toBe("");
+
+    // Another buyer's sale of the same company: neither the sale nor its receipt.
+    const neighbour = await buyerWith(team.manager, newEmail());
+    const { id: otherSale } = await createReservation(
+      team.manager,
+      createReservationSchema.parse({
+        unitId: setup.unitIds[1],
+        buyerIds: [neighbour],
+        paymentPlanId: setup.planId,
+        discount: "",
+        reservedOn: todayInAlgiers(),
+        notary: "",
+        reference: "",
+        notes: "",
+      }),
+    );
+    await pay(otherSale, "500 000");
+    expect(await getPortalSale(portal, otherSale)).toBeNull();
+
+    // Downloads: the account's own receipt, never the neighbour's.
+    const asMember: TenantCtx = { ...portal, roles: ["resident"] };
+    expect(await getFileDownloadUrl(asMember, receiptFile, "inline")).toMatch(/^http/);
+    const { rows } = await withTenant(team.owner, (tx) =>
+      tx.execute<{ id: string }>(sql`
+        select r.pdf_file_id as id from receipt r join payment p on p.id = r.payment_id
+        where p.reservation_id = ${otherSale}
+      `),
+    );
+    await expect(getFileDownloadUrl(asMember, rows[0]?.id ?? "", "inline")).rejects.toMatchObject({
+      code: "FORBIDDEN",
+    });
   });
 });

@@ -46,7 +46,7 @@ export const getPortalCtx = cache(async (): Promise<PortalCtx> => {
  * What a portal account may see: its live links — buyer files, and co-owners / occupants
  * still current today (a former co-owner no longer sees the unit).
  */
-export async function portalScope(tx: Tx, ctx: PortalCtx) {
+export async function portalScope(tx: Tx, ctx: Pick<PortalCtx, "userId">) {
   const links = await tx
     .select({ buyerId: portalLink.buyerId, residentId: portalLink.residentId })
     .from(portalLink)

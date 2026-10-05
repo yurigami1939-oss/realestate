@@ -5,6 +5,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { SaleStatusBadge } from "@/components/sales/badges";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Link } from "@/i18n/navigation";
 import { toLocale } from "@/i18n/locales";
 import { formatDate } from "@/lib/dates";
 import { requirePortalCtx } from "@/server/portal/page-guard";
@@ -43,7 +44,9 @@ export default async function PortalHomePage({ params }: PageProps<"/[locale]/po
                 <Card>
                   <CardHeader className="flex flex-row items-start justify-between gap-2">
                     <CardTitle className="text-base">
-                      {s.projectName} · <bdi dir="ltr">{s.unitCode}</bdi>
+                      <Link href={`/portal/sales/${s.id}`} className="hover:underline">
+                        {s.projectName} · <bdi dir="ltr">{s.unitCode}</bdi>
+                      </Link>
                     </CardTitle>
                     <SaleStatusBadge status={s.status} />
                   </CardHeader>

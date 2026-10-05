@@ -2611,6 +2611,37 @@
       "alreadyActive": "Ce dossier est déjà visible depuis un espace client.",
       "staffEmail": "Cette adresse est celle d'un membre de l'équipe.",
       "revoked": "Cet accès est déjà retiré."
-    }
+    },
+    "sale": {
+      "title": "Mon acquisition",
+      "back": "Accueil",
+      "reserved": "réservation {number} du {date}",
+      "vsp": "Vente sur plans {number} signée le {date}",
+      "buyers": "Acquéreur(s) : {names}",
+      "schedule": "Échéancier",
+      "atMilestone": "À l'appel de fonds « {milestone} »",
+      "payments": "Paiements et reçus",
+      "noPayments": "Aucun paiement enregistré.",
+      "cancelled": "Annulé",
+      "chequePending": "Chèque en cours d'encaissement",
+      "receipt": "Reçu {number}",
+      "documents": "Documents",
+      "noDocuments": "Aucun document pour le moment.",
+      "sheet": "Fiche de réservation",
+      "contract": "Contrat de réservation signé",
+      "deed": "Acte de vente sur plans",
+      "call": "Appel de fonds {number} · {label}",
+      "reminder": "Lettre de relance du {date}",
+      "payBy": "à régler avant le {date}",
+      "progress": "Avancement des travaux",
+      "noMilestones": "Aucune étape planifiée pour le moment.",
+      "done": "Réalisée le {date}",
+      "planned": "Prévue le {date}",
+      "notPlanned": "Date à venir",
+      "loanAmount": "Montant : {amount}",
+      "loanSubmitted": "déposé le {date}",
+      "loanDecided": "réponse le {date}"
+    },
+    "pendingDocument": "en préparation"
   }
 }
