@@ -248,7 +248,8 @@
     "onlinePayments": "Paiements en ligne",
     "paymentGateway": "Paiement en ligne",
     "whatsappLog": "Messages WhatsApp",
-    "whatsappSettings": "WhatsApp"
+    "whatsappSettings": "WhatsApp",
+    "exports": "Exports Excel"
   },
   "shell": {
     "organizations": "Sociétés",
@@ -1972,7 +1973,8 @@
         "update": "Paramètres de la société modifiés",
         "logo": "Logo de la société modifié",
         "online_payment": "Paiement en ligne (SATIM) configuré",
-        "whatsapp": "WhatsApp configuré"
+        "whatsapp": "WhatsApp configuré",
+        "export": "Export Excel"
       },
       "member": {
         "join": "Arrivée d'un membre",
@@ -3467,6 +3469,173 @@
       "saved": "Paramètres WhatsApp enregistrés.",
       "standIn": "L'API WhatsApp est simulée par l'application (développement) : les messages sont acceptés sans être envoyés.",
       "help": "Pour démarrer : un compte Meta Business vérifié, un numéro WhatsApp Business dédié, une application Meta avec le produit WhatsApp et un jeton d'utilisateur système."
+    }
+  },
+  "exports": {
+    "button": "Exporter (Excel)",
+    "download": "Télécharger (Excel)",
+    "yes": "Oui",
+    "no": "Non",
+    "valid": "Valide",
+    "cancelled": "Annulé",
+    "total": "Total",
+    "unassigned": "Lot non attribué",
+    "reserveFund": "Fonds de réserve",
+    "nature": {
+      "sale": "Vente",
+      "charges": "Charges",
+      "rent": "Loyer",
+      "deposit": "Dépôt de garantie"
+    },
+    "sheets": {
+      "collections": "Encaissements",
+      "summary": "Récapitulatif",
+      "sales": "Ventes",
+      "installments": "Échéancier",
+      "units": "Lots",
+      "leads": "Prospects",
+      "buyers": "Acquéreurs",
+      "accounts": "Comptes des lots",
+      "residents": "Résidents",
+      "leases": "Baux",
+      "invoices": "Factures fournisseurs"
+    },
+    "columns": {
+      "date": "Date",
+      "receipt": "N° de reçu",
+      "nature": "Nature",
+      "payer": "Versé par",
+      "object": "Objet",
+      "method": "Mode",
+      "reference": "Référence",
+      "bank": "Banque",
+      "amount": "Montant (DA)",
+      "state": "État",
+      "clearedOn": "Chèque encaissé le",
+      "cancellation": "Motif d'annulation",
+      "recordedBy": "Saisi par",
+      "count": "Nombre",
+      "reservation": "Réservation",
+      "reservedOn": "Réservée le",
+      "buyers": "Acquéreurs",
+      "project": "Projet",
+      "unit": "Lot",
+      "listPrice": "Prix catalogue (DA)",
+      "price": "Prix de vente (DA)",
+      "paid": "Encaissé (DA)",
+      "remaining": "Reste (DA)",
+      "overdue": "En retard (DA)",
+      "vsp": "N° VSP",
+      "vspOn": "VSP signée le",
+      "notary": "Notaire",
+      "commercial": "Commercial",
+      "dueOn": "Échéance",
+      "position": "N°",
+      "label": "Libellé",
+      "milestone": "Étape attendue",
+      "building": "Bâtiment",
+      "floor": "Étage",
+      "type": "Type",
+      "typology": "Typologie",
+      "duplex": "Duplex",
+      "livingArea": "Surface habitable (m²)",
+      "usableArea": "Surface utile (m²)",
+      "share": "Quote-part",
+      "name": "Nom",
+      "phone": "Téléphone",
+      "phone2": "Téléphone 2",
+      "email": "E-mail",
+      "city": "Ville",
+      "source": "Source",
+      "stage": "Étape",
+      "budget": "Budget (DA)",
+      "financing": "Financement",
+      "createdAt": "Créé le",
+      "lastActivity": "Dernière activité",
+      "lastName": "Nom",
+      "firstName": "Prénom",
+      "lastNameAr": "Nom (arabe)",
+      "firstNameAr": "Prénom (arabe)",
+      "birthDate": "Date de naissance",
+      "nin": "NIN",
+      "address": "Adresse",
+      "commune": "Commune",
+      "wilaya": "Wilaya",
+      "profession": "Profession",
+      "employer": "Employeur",
+      "whatsapp": "WhatsApp",
+      "coOwner": "Copropriétaire principal",
+      "called": "Appelé (DA)",
+      "credit": "Avance (DA)",
+      "reserveCollected": "Fonds de réserve versé (DA)",
+      "residentKind": "Qualité",
+      "main": "Principal",
+      "since": "Depuis le",
+      "until": "Jusqu'au",
+      "lease": "Bail",
+      "leaseKind": "Type de bail",
+      "tenant": "Locataire",
+      "start": "Début",
+      "end": "Fin",
+      "rent": "Loyer mensuel (DA)",
+      "monthlyCharges": "Charges mensuelles (DA)",
+      "frequency": "Périodicité",
+      "supplier": "Fournisseur",
+      "residence": "Résidence",
+      "invoiceNumber": "N° de facture",
+      "booking": "Imputation",
+      "paidOn": "Payée le"
+    },
+    "errors": {
+      "tooMany": "Trop de lignes pour un export : réduisez les filtres.",
+      "period": "La fin de la période précède son début."
+    },
+    "page": {
+      "title": "Exports Excel",
+      "description": "Les listes au format Excel (.xlsx), avec des montants et des dates exploitables, pour la comptabilité et le suivi.",
+      "none": "Aucun export disponible pour vos rôles.",
+      "from": "Du",
+      "to": "Au",
+      "project": "Projet",
+      "allProjects": "Tous les projets",
+      "residence": "Résidence",
+      "allResidences": "Toutes les résidences",
+      "collections": {
+        "title": "Journal des encaissements",
+        "description": "Tous les paiements reçus sur la période (ventes, charges, loyers et dépôts), avec leur reçu, leur mode et leur état, et un récapitulatif par nature et par mode."
+      },
+      "sales": {
+        "title": "Ventes",
+        "description": "Réservations et VSP avec le prix, l'encaissé, le reste et les retards."
+      },
+      "installments": {
+        "title": "Échéancier des ventes",
+        "description": "Chaque échéance des ventes en cours, par date : payé, reste et état — la base des prévisions d'encaissement."
+      },
+      "units": {
+        "title": "Stock des lots",
+        "description": "Les lots avec leurs surfaces, leur prix et leur état."
+      },
+      "leads": {
+        "title": "Prospects",
+        "description": "Les prospects avec leurs coordonnées, leur source et leur étape."
+      },
+      "buyers": {
+        "title": "Acquéreurs",
+        "description": "Les dossiers acquéreurs avec leur identité et leurs coordonnées."
+      },
+      "charges": {
+        "title": "Copropriété",
+        "description": "Le compte de charges de chaque lot d'une résidence, puis ses copropriétaires et occupants."
+      },
+      "leases": {
+        "title": "Baux",
+        "description": "Les baux avec leurs conditions, leur état et les loyers impayés."
+      },
+      "invoices": {
+        "title": "Factures fournisseurs",
+        "description": "Les factures avec leur imputation et leur paiement."
+      }
     }
   }
 }

@@ -27,7 +27,7 @@ const missingDocuments = sql<number>`(
   )
 )::int`;
 
-function searchCondition(q: string | undefined): SQL | undefined {
+export function searchCondition(q: string | undefined): SQL | undefined {
   if (!q) return undefined;
   const like = `%${q.replace(/[%_\\]/g, "\\$&")}%`;
   const digits = phoneSearchDigits(q);

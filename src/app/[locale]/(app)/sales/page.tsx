@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { PageHeader } from "@/components/app-shell/page-header";
+import { ExportButton } from "@/components/exports/export-button";
 import { Pagination } from "@/components/data-table/pagination";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
@@ -38,14 +39,17 @@ export default async function SalesPage({ params, searchParams }: PageProps<"/[l
         title={t("title")}
         description={t("description")}
         actions={
-          can(ctx.roles, "sale:create") ? (
-            <Button asChild>
-              <Link href="/sales/new">
-                <Plus data-icon="inline-start" />
-                {t("new")}
-              </Link>
-            </Button>
-          ) : null
+          <>
+            <ExportButton kind="sales" params={{ q: filters.q, status: filters.status }} />
+            {can(ctx.roles, "sale:create") ? (
+              <Button asChild>
+                <Link href="/sales/new">
+                  <Plus data-icon="inline-start" />
+                  {t("new")}
+                </Link>
+              </Button>
+            ) : null}
+          </>
         }
       />
       <SaleFilters />

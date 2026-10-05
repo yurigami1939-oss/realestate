@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { PageHeader } from "@/components/app-shell/page-header";
+import { ExportButton } from "@/components/exports/export-button";
 import { Pagination } from "@/components/data-table/pagination";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
@@ -40,6 +41,16 @@ export default async function LeadsPage({ params, searchParams }: PageProps<"/[l
         description={t("leads.description")}
         actions={
           <>
+            <ExportButton
+              kind="leads"
+              params={{
+                q: filters.q,
+                stage: filters.stage,
+                source: filters.source,
+                assignee: filters.assignee,
+                duplicates: filters.duplicates,
+              }}
+            />
             {can(ctx.roles, "lead:merge") ? (
               <Button asChild variant="outline">
                 <Link href="/leads/duplicates">

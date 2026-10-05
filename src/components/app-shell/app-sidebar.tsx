@@ -8,6 +8,7 @@ import {
   Contact,
   CreditCard,
   FileSignature,
+  FileSpreadsheet,
   HardHat,
   Hotel,
   House,
@@ -73,7 +74,8 @@ type NavKey =
   | "onlinePayments"
   | "paymentGateway"
   | "whatsappLog"
-  | "whatsappSettings";
+  | "whatsappSettings"
+  | "exports";
 /** `permission`: shown only to roles that have it (display only; services enforce). */
 type NavItem = { href: string; key: NavKey; icon: LucideIcon; permission?: Permission };
 
@@ -141,6 +143,7 @@ const settingsNav: NavItem[] = [
     icon: MessageCircle,
     permission: "organization:update",
   },
+  { href: "/exports", key: "exports", icon: FileSpreadsheet },
   { href: "/settings/audit", key: "audit", icon: ScrollText, permission: "audit:read" },
 ];
 

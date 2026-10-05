@@ -43,6 +43,7 @@ export async function listLeases(ctx: TenantCtx, filters: LeaseFilters = {}) {
         status: lease.status,
         kind: lease.kind,
         tenantName: lease.tenantName,
+        tenantPhone: lease.tenantPhone,
         signedOn: lease.signedOn,
         startOn: lease.startOn,
         durationMonths: lease.durationMonths,

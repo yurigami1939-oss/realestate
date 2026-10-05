@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { PageHeader } from "@/components/app-shell/page-header";
+import { ExportButton } from "@/components/exports/export-button";
 import { LeaseFilters, LeaseStateBadge } from "@/components/rentals/rentals-ui";
 import { Button } from "@/components/ui/button";
 import {
@@ -49,14 +50,17 @@ export default async function RentalsPage({
         title={t("title")}
         description={t("description")}
         actions={
-          can(ctx.roles, "lease:update") ? (
-            <Button asChild>
-              <Link href="/rentals/new">
-                <Plus data-icon="inline-start" />
-                {t("new")}
-              </Link>
-            </Button>
-          ) : null
+          <>
+            <ExportButton kind="leases" params={{ status, project: projectId }} />
+            {can(ctx.roles, "lease:update") ? (
+              <Button asChild>
+                <Link href="/rentals/new">
+                  <Plus data-icon="inline-start" />
+                  {t("new")}
+                </Link>
+              </Button>
+            ) : null}
+          </>
         }
       />
       <LeaseFilters projects={projects} />

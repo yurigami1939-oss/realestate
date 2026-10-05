@@ -77,7 +77,7 @@ export async function buyerNames(tx: Tx, reservationIds: string[]) {
   return names;
 }
 
-function searchCondition(q: string | undefined): SQL | undefined {
+export function searchCondition(q: string | undefined): SQL | undefined {
   if (!q) return undefined;
   const like = `%${q.replace(/[%_\\]/g, "\\$&")}%`;
   return or(

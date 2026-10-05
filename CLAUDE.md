@@ -39,6 +39,7 @@ Exact versions are pinned in `package.json` (`.npmrc`: `save-exact`, `engine-str
 | Email | `nodemailer` · Mailpit (local SMTP catcher) | 10.0.13 · `axllent/mailpit:v1.31` |
 | Dates | `date-fns` · `@date-fns/tz` (schedules, Phase 1) | 4.4.0 · 1.5.0 |
 | Phones | `libphonenumber-js` (default "min" metadata) | 1.13.14 |
+| Spreadsheets | `write-excel-file` (exports) · `read-excel-file` (imports), .xlsx, server side | 4.1.1 · 9.3.10 |
 | Font | IBM Plex Sans Arabic (OFL, Arabic + Latin), `src/assets/fonts/` | 1.101 |
 | Tests | `vitest` · `@playwright/test` | 5.0.3 · 1.63.0 |
 | Tooling | `eslint` + `eslint-config-next` (flat) · `prettier` + `prettier-plugin-tailwindcss` · `tsx` | 9.39.5 + 16.3.7 · 3.9.9 + 0.8.1 · 4.23.15 |
@@ -96,12 +97,13 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
     │   │   │                 # company + logo, audit log) · projects · construction · leads · buyers · sales
     │   │   │                 # · commissions · deliveries · rentals · residences · online-payments
     │   │   │                 # · settings/online-payment (SATIM account) · whatsapp (message log)
-    │   │   │                 # · settings/whatsapp (number, webhook, templates)
+    │   │   │                 # · settings/whatsapp (number, webhook, templates) · exports (Excel exports)
     │   │   └── (portal)/     # portal of buyers, co-owners and occupants (module 7): own shell, /portal,
     │   │                     # /portal/payments (online payment results), /portal/payment-terms
     │   ├── api/auth/[...all] # Better Auth handler (Route Handlers: auth, files, webhooks, /api/v1)
     │   ├── api/files/        # upload (POST) · [fileId] download (GET → presigned redirect)
     │   ├── api/online-payments/return # where SATIM sends the payer back (confirm, then result page)
+    │   ├── api/exports/[kind] # .xlsx exports (GET, the list's filters, `locale`)
     │   ├── api/dev/          # local stand-ins (DEV_GATEWAYS only): satim/[...path] (SATIM REST + page),
     │   │                     # whatsapp/[...path] (Cloud API)
     │   ├── api/webhooks/whatsapp/[orgId] # Meta's webhook: verification, delivery statuses, « STOP »
@@ -122,6 +124,7 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
     │   ├── online-payments/  # « Payer en ligne » dialog, status / test / cards badges, result page actions,
     │   │                     # staff filters, re-check and refund
     │   ├── whatsapp/         # message status badge, log filters
+    │   ├── exports/          # ExportButton (« Exporter (Excel) » on the lists), the exports page's forms
     │   ├── residences/ · staff/ · suppliers/ · tickets/ · assemblies/ · announcements/  # residence
     │   │                     # module: dialogs, ChargeDocumentPdf, attendance grid, payroll, attendance
     │   │                     # sheet, vote grid
@@ -198,6 +201,8 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
     │   │                     # account.ts (account, API URL, template per kind), notify.ts (queue a message
     │   │                     # per event: the business services call it), service.ts (settings, send job,
     │   │                     # webhook, residents' consent), queries.ts
+    │   ├── exports/          # xlsx.ts (typed workbook), builders.ts (one per export), service.ts
+    │   │                     # (buildExport: filters, rights, audit), schemas.ts (kinds, filters, links)
     │   ├── secrets.ts        # encryptSecret / decryptSecret (AES-256-GCM, SECRETS_KEY): organization secrets
     │   ├── stand-ins.ts      # devGatewaysEnabled, standInUrl (the /api/dev/* stand-ins)
     │   └── <module>/         # schemas.ts (isomorphic) · queries.ts · service.ts · actions.ts · *.test.ts
@@ -244,7 +249,7 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 ### Mutations
 - Server Actions in `src/server/<module>/actions.ts` (`'use server'`), each `defineAction({ input, permission }, handler)`: zod parse → `getTenantCtx()` → `assertCan` → handler → `Result<T>`. Never throws to the client except Next control flow. Handlers call services, then `revalidatePath`.
 - Client components run actions with `useAction(action)` (translated error toasts).
-- Route Handlers only for: Better Auth (`/api/auth/[...all]`), file upload/download (`/api/files`), the payment gateway's return (`/api/online-payments/return`), the WhatsApp webhook (`/api/webhooks/whatsapp/[orgId]`), the local stand-ins of external services (`/api/dev/*`, DEV_GATEWAYS only), future mobile API (`/api/v1/*`). They answer the same `Result<T>` JSON via `jsonResult()` (HTTP status from the error code) and call services exactly like actions.
+- Route Handlers only for: Better Auth (`/api/auth/[...all]`), file upload/download (`/api/files`), spreadsheet exports (`/api/exports/[kind]`), the payment gateway's return (`/api/online-payments/return`), the WhatsApp webhook (`/api/webhooks/whatsapp/[orgId]`), the local stand-ins of external services (`/api/dev/*`, DEV_GATEWAYS only), future mobile API (`/api/v1/*`). They answer the same `Result<T>` JSON via `jsonResult()` (HTTP status from the error code) and call services exactly like actions.
 
 ### Auth & roles
 - Better Auth: email + password, password reset, organization plugin, invitations by email (7 days). `session.activeOrganizationId` = current tenant; new sessions land in the user's first organization (database hook); the org switcher changes it.
@@ -295,6 +300,10 @@ The WhatsApp message log (`notification:read`) is open to the gérant, the direc
 - Documents are React components rendered to static HTML (`src/pdf/templates/*`) inside `PdfDocument` (embedded font, base CSS), then printed by headless Chromium (`renderPdf`, one browser per process, CSS `@page` for size). Render in the worker, not in requests.
 - Arabic blocks use `dir="rtl" lang="ar"`; values that may mix scripts are wrapped in `<bdi>`. Chromium must be installed where PDFs render (`playwright install chromium`).
 - Every document starts with the shared `Letterhead` (`src/pdf/templates/letterhead.tsx`): logo, legal name, address, identifiers. Renderers load it with `loadCompanyLetterhead(tx, orgId)`, which embeds the logo as a data URI (Chromium renders offline). A logo change only affects documents issued afterwards.
+
+### Exports
+- `GET /api/exports/{kind}?filters&locale=fr|ar` → an .xlsx attachment (`buildExport`): the filters of the list it comes from (`exportParams`), the rows read with the member's rights and visibility (a commercial gets their own leads and sales), headers in the member's language, right to left in Arabic. Kinds: `collections` (journal des encaissements over a period — sales REC, charges RCH, rents and deposits QIT, valid and cancelled, with a summary by nature and method; each source needs its reading right), `sales`, `installments` (every installment of the live sales: paid, remaining, state), `units`, `leads`, `buyers`, `charges` (a residence's unit accounts and residents), `leases`, `invoices`.
+- Cells are typed: amounts in dinars with two decimals (`excelAmount`: the one place a bigint becomes a number), calendar days as dates, instants at their Algiers time; 50 000 rows at most per sheet (narrow the filters). Every export is audited (`organization.export`: kind, filters, rows — Loi 18-07). Lists carry an « Exporter (Excel) » button with their current filters; `/exports` gathers them (the journal by period, a project's stock, a residence's accounts).
 
 ### Caching
 - Tenant data is dynamic by default. Any `use cache` / cached function on tenant data must include `orgId` in its key and be tagged `org:{orgId}:{entity}`.
@@ -564,8 +573,9 @@ The WhatsApp message log (`notification:read`) is open to the gérant, the direc
 | Concurrency | Vitest + Postgres | parallel `nextDocumentNumber` → exactly 1…N; rollback leaves no gap |
 | Jobs/email | Vitest + Mailpit | handler delivers via SMTP (checked through Mailpit API); enqueue stores the job |
 | PDF | Vitest + Chromium | template HTML (RTL blocks, `<bdi>`, amounts in words) and one-page PDF |
+| Exports | Vitest | workbooks read back with `read-excel-file`: typed cells (dinars, dates, Algiers times), the journal per reader's rights (valid and cancelled, summary), visibility of sales, audit |
 | Files | Vitest + SeaweedFS | magic-byte sniffing, file names, `Content-Disposition`, upload size cap and origin check (route helpers), floor plans stored/replaced/removed, presigned download |
-| E2E | Playwright, production build, `realestate_e2e` reset + seeded | anonymous redirect, sign-in error, members, org switch, FR→AR RTL, role-based UI; inventory: project → building → generated units → per-m² price list → block → floor plan, read-only commercial, Arabic unit sheet; CRM: lead (flagged duplicate) → call → visit → quotation → PDF by the worker, commercial scope, merge, discount + cancel, targets; sales golden path: lead → option → buyer file → reservation of the optioned unit → sheet PDF → cashier payment → receipt PDF, commercial scope, overdue list; seeded VSP with payment call, bank loan and commission; dashboard sections and overdue link; residence (gestionnaire): next quarter's charge calls → ADC PDF, overdue co-owner → charge receipt RCH PDF, lift ticket resolved, general assembly draft → convocation PDF → attendance with a proxy → votes → closing → PV PDF, announcement published → notice PDF, a supplier invoice's scan, Arabic residence; portal (resident): back office refused, own sale → schedule, receipt and sheet PDFs, co-owned unit's charges, announcements, a ticket reported and received by the gestionnaire, assemblies → PV PDF, published construction reports with their photos, Arabic portal; construction (responsable technique): no sales access, progress report prefilled with the current progress → site photo, internal report kept in the back office, Arabic follow-up; deliveries: list order, appointment → reserve → PV de remise PDF → lifting → PV de levée PDF, unpaid balance warning, Arabic deliveries, dashboard to-dos (next handover, late reserves); rentals (gestionnaire): new lease with its schedule preview → deposit and rent receipts (QIT PDF) → entry inspection PDF → end → deposit settled, overdue rents from the sidebar, Arabic leases; online payment (resident, SATIM stand-in): installment paid by card → result page → REC PDF, declined card with SATIM's message, history; the cashier's list; the gérant's SATIM account (password never shown), Arabic settings; WhatsApp (cashier, Cloud API stand-in): a counter payment → « Paiement reçu » to the consenting buyer, sent by the worker; the gérant's number, webhook and ten templates; Arabic log |
+| E2E | Playwright, production build, `realestate_e2e` reset + seeded | anonymous redirect, sign-in error, members, org switch, FR→AR RTL, role-based UI; inventory: project → building → generated units → per-m² price list → block → floor plan, read-only commercial, Arabic unit sheet; CRM: lead (flagged duplicate) → call → visit → quotation → PDF by the worker, commercial scope, merge, discount + cancel, targets; sales golden path: lead → option → buyer file → reservation of the optioned unit → sheet PDF → cashier payment → receipt PDF, commercial scope, overdue list; seeded VSP with payment call, bank loan and commission; dashboard sections and overdue link; residence (gestionnaire): next quarter's charge calls → ADC PDF, overdue co-owner → charge receipt RCH PDF, lift ticket resolved, general assembly draft → convocation PDF → attendance with a proxy → votes → closing → PV PDF, announcement published → notice PDF, a supplier invoice's scan, Arabic residence; portal (resident): back office refused, own sale → schedule, receipt and sheet PDFs, co-owned unit's charges, announcements, a ticket reported and received by the gestionnaire, assemblies → PV PDF, published construction reports with their photos, Arabic portal; construction (responsable technique): no sales access, progress report prefilled with the current progress → site photo, internal report kept in the back office, Arabic follow-up; deliveries: list order, appointment → reserve → PV de remise PDF → lifting → PV de levée PDF, unpaid balance warning, Arabic deliveries, dashboard to-dos (next handover, late reserves); rentals (gestionnaire): new lease with its schedule preview → deposit and rent receipts (QIT PDF) → entry inspection PDF → end → deposit settled, overdue rents from the sidebar, Arabic leases; online payment (resident, SATIM stand-in): installment paid by card → result page → REC PDF, declined card with SATIM's message, history; the cashier's list; the gérant's SATIM account (password never shown), Arabic settings; WhatsApp (cashier, Cloud API stand-in): a counter payment → « Paiement reçu » to the consenting buyer, sent by the worker; the gérant's number, webhook and ten templates; Arabic log; exports (cashier): the journal of collections and a filtered sales list, downloaded and read back |
 
 - Vitest `globalSetup` migrates the test DB and creates the S3 bucket once; each test creates its own organization(s) (`tests/factories.ts`, `tests/auth-helpers.ts`) → isolation without truncation.
 - The e2e global setup starts `src/jobs/worker.ts` after the reset, waits (up to 300 s) for the documents queued by the seed, and stops its process tree at the end (documents render during e2e).
@@ -602,7 +612,7 @@ The WhatsApp message log (`notification:read`) is open to the gérant, the direc
 
 ## 11. Roadmap
 
-**Current: Phases 1 and 2 done (sales; residence management; buyer / resident portal) and modules 4 (construction follow-up & deliveries) and 5 (rentals) of Phase 3, each module with its seed and e2e; online payment by card (SATIM) and WhatsApp notifications, both working against local stand-ins until the promoter's accounts exist (SATIM merchant account, Meta WhatsApp Business). Next: plug in those accounts (certification, template approval), then the open business questions. Steps are committed straight to `main` (§12, 2026-10-04).**
+**Current: Phases 1 and 2 done (sales; residence management; buyer / resident portal) and modules 4 (construction follow-up & deliveries) and 5 (rentals) of Phase 3, each module with its seed and e2e; online payment by card (SATIM) and WhatsApp notifications, both working against local stand-ins until the promoter's accounts exist (SATIM merchant account, Meta WhatsApp Business). Phase 4 (adoption, from the functional audit) in progress: exports done; next the data import, then the certificates. Then plug in the SATIM and Meta accounts. Steps are committed straight to `main` (§12, 2026-10-04).**
 
 ### Phase 0 — Foundations ✅
 - [x] `CLAUDE.md` approved (2026-09-30)
@@ -681,6 +691,11 @@ The WhatsApp message log (`notification:read`) is open to the gérant, the direc
 - [x] WhatsApp Business API notifications
   - [x] The promoter's number (encrypted token and app secret, template language), consent on buyer files, residents and leases, ten notifications queued with their events (payments, calls, reminders, handovers, charges, rent, announcements, assemblies), send job with retries, signed webhook (statuses, « STOP »), message log, local Cloud API stand-in, seed and e2e
   - [ ] With a Meta Business account: a verified business, the WhatsApp number, the ten templates approved, the webhook set up
+
+### Phase 4 — Adoption (functional audit, 2026-10-05)
+- [x] Excel exports: journal of collections by period, sales, installments, stock, leads, buyers, residence accounts and residents, leases, supplier invoices; « Exporter (Excel) » on the lists, `/exports` page
+- [ ] Data import (reprise): units, buyers, ongoing sales with their schedules and past payments, co-owners and shares — templates, checks, then all-or-nothing import
+- [ ] Certificates for banks and buyers: attestation de réservation, de versements, de solde, d'avancement des travaux, statement of account (numbered, bilingual, portal)
 
 ## 12. Decisions log
 
@@ -789,6 +804,8 @@ The WhatsApp message log (`notification:read`) is open to the gérant, the direc
 | 2026-10-05 | Organization secrets (SATIM password, later the WhatsApp token) are encrypted with AES-256-GCM under `SECRETS_KEY` (derived from `BETTER_AUTH_SECRET` when absent). Payment conditions shown to payers are a generic text (SATIM's process, allocation, refunds, SATIM's 3020, loi 18-07) for the promoter's lawyer to validate. |
 | 2026-10-05 | **WhatsApp (recommended, user delegated; no credentials yet)**: each promoter sends from its own WhatsApp Business number (Cloud API), set up by the gérant; ten template notifications (payment received, appel de fonds, sales reminder, handover appointment, charge call, charge payment, charge reminder, rent received, announcement, assembly convened), each switched on once Meta approves its template; one template language per organization (French or Arabic) rather than a per-contact language. |
 | 2026-10-05 | WhatsApp messages only go to people whose consent staff recorded (buyer file, resident, lease; co-owners from a sale and lease occupants inherit it), mobiles only; « STOP » withdraws it. Messages are queued in the event's transaction and sent by the worker; a sending problem never blocks the business event. The webhook trusts only calls signed with the app secret. |
+| 2026-10-05 | **Functional audit (user asked)**: first group built for adoption — Excel exports, data import, certificates for banks and buyers; then money controls (cash desk, construction costs), legal exposure (delivery penalties, FGCMPI, warranties), then syndic, rentals and commercial depth. |
+| 2026-10-05 | Exports are .xlsx (not CSV: Arabic text and French number formats survive) built server side with `write-excel-file`, imports read with `read-excel-file` (both maintained, only `fflate` beneath; `exceljs` is unmaintained). Amounts become dinars as numbers only in spreadsheet cells; exports follow each list's filters and rights and are audited. |
 
 ### Open items
 - **WhatsApp**: needs the promoter's Meta Business account (verified), a WhatsApp Business number, the ten templates approved in WhatsApp Manager (texts on the settings page) and the webhook set up with the app secret.

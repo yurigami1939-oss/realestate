@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { PageHeader } from "@/components/app-shell/page-header";
+import { ExportButton } from "@/components/exports/export-button";
 import { ContractDialog } from "@/components/suppliers/contract-dialog";
 import { ContractsTable } from "@/components/suppliers/contracts-table";
 import { InvoiceDialog } from "@/components/suppliers/invoice-dialogs";
@@ -65,6 +66,7 @@ export default async function ResidenceExpensesPage({
         title={home.name}
         description={home.projectName}
         crumbs={[{ label: tr("title"), href: "/residences" }]}
+        actions={<ExportButton kind="invoices" params={{ residence: residenceId, year }} />}
       />
       <ResidenceNav residenceId={residenceId} current="expenses" roles={ctx.roles} />
       <Card>

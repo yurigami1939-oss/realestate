@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { PageHeader } from "@/components/app-shell/page-header";
+import { ExportButton } from "@/components/exports/export-button";
 import { Pagination } from "@/components/data-table/pagination";
 import { SearchInput } from "@/components/data-table/search-input";
 import { Button } from "@/components/ui/button";
@@ -37,14 +38,17 @@ export default async function BuyersPage({ params, searchParams }: PageProps<"/[
         title={t("title")}
         description={t("description")}
         actions={
-          can(ctx.roles, "buyer:create") ? (
-            <Button asChild>
-              <Link href="/buyers/new">
-                <Plus data-icon="inline-start" />
-                {t("new")}
-              </Link>
-            </Button>
-          ) : null
+          <>
+            <ExportButton kind="buyers" params={{ q: filters.q }} />
+            {can(ctx.roles, "buyer:create") ? (
+              <Button asChild>
+                <Link href="/buyers/new">
+                  <Plus data-icon="inline-start" />
+                  {t("new")}
+                </Link>
+              </Button>
+            ) : null}
+          </>
         }
       />
       <SearchInput label={t("search")} />

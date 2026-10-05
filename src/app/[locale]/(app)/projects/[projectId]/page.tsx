@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { PageHeader } from "@/components/app-shell/page-header";
+import { ExportButton } from "@/components/exports/export-button";
 import { ConfirmAction } from "@/components/forms/confirm-action";
 import { ProjectStatusBadge, StatsBar } from "@/components/inventory/status";
 import { Badge } from "@/components/ui/badge";
@@ -56,6 +57,7 @@ export default async function ProjectPage({ params }: PageProps<"/[locale]/proje
         }
         actions={
           <>
+            <ExportButton kind="units" params={{ project: project.id }} />
             <Button asChild variant="outline">
               <Link href={`/projects/${project.id}/price-lists`}>
                 <Tags data-icon="inline-start" />

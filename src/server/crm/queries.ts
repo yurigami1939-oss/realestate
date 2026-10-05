@@ -47,7 +47,7 @@ const followUpOverdue = sql<boolean>`exists (
 
 const ALGIERS_TODAY = sql`(now() at time zone 'Africa/Algiers')::date`;
 
-function listConditions(ctx: TenantCtx, params: LeadListParams): SQL | undefined {
+export function listConditions(ctx: TenantCtx, params: LeadListParams): SQL | undefined {
   const conditions: (SQL | undefined)[] = [isNull(lead.deletedAt), visibleLeads(ctx)];
   if (params.stage) conditions.push(eq(lead.stage, params.stage));
   if (params.source) conditions.push(eq(lead.source, params.source));

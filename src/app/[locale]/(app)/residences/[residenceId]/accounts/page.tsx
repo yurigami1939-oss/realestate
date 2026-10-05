@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getLocale, getTranslations, setRequestLocale } from "next-intl/server";
 
 import { PageHeader } from "@/components/app-shell/page-header";
+import { ExportButton } from "@/components/exports/export-button";
 import {
   Table,
   TableBody,
@@ -54,6 +55,7 @@ export default async function ResidenceAccountsPage({
         title={accounts.residence.name}
         description={accounts.residence.projectName}
         crumbs={[{ label: tr("title"), href: "/residences" }]}
+        actions={<ExportButton kind="charges" params={{ residence: residenceId }} />}
       />
       <ResidenceNav residenceId={residenceId} current="accounts" roles={ctx.roles} />
       <dl
