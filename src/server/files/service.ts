@@ -56,6 +56,8 @@ const readers: Record<string, Reader> = {
     can(ctx.roles, "charge:read") ||
     can(ctx.roles, "assembly:read") ||
     can(ctx.roles, "announcement:read"),
+  // Site photos of construction progress reports.
+  construction_report: async (_tx, ctx) => can(ctx.roles, "construction:read"),
   // A quotation PDF follows its lead: commercials only see their own leads' quotations.
   quotation: async (tx, ctx, entityId) => {
     if (!can(ctx.roles, "lead:read")) return false;

@@ -7,6 +7,7 @@ import {
   CalendarDays,
   Contact,
   FileSignature,
+  HardHat,
   Hotel,
   IdCard,
   Kanban,
@@ -59,7 +60,8 @@ type NavKey =
   | "residences"
   | "chargesOverdue"
   | "suppliers"
-  | "tickets";
+  | "tickets"
+  | "construction";
 /** `permission`: shown only to roles that have it (display only; services enforce). */
 type NavItem = { href: string; key: NavKey; icon: LucideIcon; permission?: Permission };
 
@@ -81,6 +83,9 @@ const contractsNav: NavItem[] = [
   { href: "/buyers", key: "buyers", icon: IdCard, permission: "buyer:read" },
   { href: "/commissions", key: "commissions", icon: Percent, permission: "commission:read" },
 ];
+const constructionNav: NavItem[] = [
+  { href: "/construction", key: "construction", icon: HardHat, permission: "construction:read" },
+];
 const residenceNav: NavItem[] = [
   { href: "/residences", key: "residences", icon: Hotel, permission: "residence:read" },
   {
@@ -98,7 +103,14 @@ const settingsNav: NavItem[] = [
   { href: "/settings/audit", key: "audit", icon: ScrollText, permission: "audit:read" },
 ];
 
-const allItems = [...mainNav, ...salesNav, ...contractsNav, ...residenceNav, ...settingsNav];
+const allItems = [
+  ...mainNav,
+  ...salesNav,
+  ...contractsNav,
+  ...constructionNav,
+  ...residenceNav,
+  ...settingsNav,
+];
 
 /** The most specific entry matching the path ("/leads/pipeline" beats "/leads"). */
 function activeHref(pathname: string): string | undefined {
@@ -162,6 +174,7 @@ export function AppSidebar({
         {renderGroup(t("nav.main"), mainNav)}
         {renderGroup(t("nav.sales"), salesNav)}
         {renderGroup(t("nav.contracts"), contractsNav)}
+        {renderGroup(t("nav.constructionGroup"), constructionNav)}
         {renderGroup(t("nav.residenceGroup"), residenceNav)}
         {renderGroup(t("nav.settings"), settingsNav)}
       </SidebarContent>

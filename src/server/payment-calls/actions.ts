@@ -13,6 +13,7 @@ export const validateMilestoneAction = defineAction(
     const result = await validateMilestone(ctx, input);
     revalidatePath("/[locale]/projects", "layout");
     revalidatePath("/[locale]/sales", "layout");
+    revalidatePath("/[locale]/construction", "layout");
     return result;
   },
 );

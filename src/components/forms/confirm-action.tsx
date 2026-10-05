@@ -34,6 +34,7 @@ export function ConfirmAction<I, T>({
   redirectTo,
   destructive = false,
   variant = "outline",
+  size = "default",
 }: {
   action: (input: I) => Promise<Result<T>>;
   input: I;
@@ -46,6 +47,8 @@ export function ConfirmAction<I, T>({
   redirectTo?: string;
   destructive?: boolean;
   variant?: "outline" | "default" | "ghost" | "destructive";
+  /** `icon`: the trigger shows the icon only, the label becomes its accessible name. */
+  size?: "default" | "sm" | "icon";
 }) {
   const tc = useTranslations("common");
   const router = useRouter();
@@ -55,9 +58,9 @@ export function ConfirmAction<I, T>({
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>
-        <Button variant={variant}>
+        <Button variant={variant} size={size} aria-label={size === "icon" ? label : undefined}>
           {icon}
-          {label}
+          {size === "icon" ? null : label}
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent>

@@ -31,6 +31,12 @@ export const demoUsers = [
   { key: "accountant", name: "Samira Hamdi", email: "comptable@demo.test", roles: ["accountant"] },
   { key: "cashier", name: "Amina Haddad", email: "caisse@demo.test", roles: ["cashier"] },
   {
+    key: "technicalManager",
+    name: "Mourad Bouzid",
+    email: "technique@demo.test",
+    roles: ["technical_manager"],
+  },
+  {
     key: "propertyManager",
     name: "Rachid Ouali",
     email: "syndic@demo.test",

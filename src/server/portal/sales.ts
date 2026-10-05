@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, asc, desc, eq, exists, inArray, sql } from "drizzle-orm";
+import { and, asc, desc, eq, exists, inArray, isNull, sql } from "drizzle-orm";
 
 import type { Tx } from "@/db/client";
 import {
@@ -8,6 +8,7 @@ import {
   buyer,
   building,
   constructionMilestone,
+  constructionReport,
   installment,
   payment,
   paymentCall,
@@ -22,6 +23,7 @@ import { withTenant } from "@/db/tenant";
 import { todayInAlgiers } from "@/lib/dates";
 import { isUuid } from "@/lib/ids";
 import { computeStatement } from "@/lib/statement";
+import { latestProgress, loadReports } from "@/server/construction/queries";
 import { loadMilestones } from "@/server/payment-plans/queries";
 import { paidTotals } from "@/server/sales/sale-queries";
 
@@ -59,10 +61,42 @@ export async function isPortalSale(tx: Tx, userId: string, reservationId: string
   return row !== undefined;
 }
 
+/** Whether a site photo's report is published for a project the portal account bought in. */
+export async function isPortalReport(tx: Tx, userId: string, reportId: string) {
+  const { buyerIds } = await portalScope(tx, { userId });
+  if (buyerIds.length === 0) return false;
+  const [row] = await tx
+    .select({ id: constructionReport.id })
+    .from(constructionReport)
+    .where(
+      and(
+        eq(constructionReport.id, reportId),
+        isNull(constructionReport.deletedAt),
+        eq(constructionReport.published, true),
+        exists(
+          tx
+            .select({ id: reservation.id })
+            .from(reservation)
+            .where(
+              and(
+                eq(reservation.projectId, constructionReport.projectId),
+                portalSales(tx, buyerIds),
+              ),
+            ),
+        ),
+      ),
+    );
+  return row !== undefined;
+}
+
+/** Published construction reports shown to buyers on their sale's page. */
+const PORTAL_REPORTS = 10;
+
 /**
  * A sale of the portal account, as its buyer sees it (CLAUDE.md §12): the unit, schedule and
  * statement (no penalties), payments with their receipts, documents (sheet, signed scans,
- * payment calls, reminder letters), the project's construction progress and the bank loan.
+ * payment calls, reminder letters), the project's construction progress (milestones, its
+ * building's progress and the published reports with their photos) and the bank loan.
  * Null when the sale is not one of the account's.
  */
 export async function getPortalSale(ctx: PortalCtx, saleId: string) {
@@ -83,6 +117,7 @@ export async function getPortalSale(ctx: PortalCtx, saleId: string) {
         contractFileId: reservation.reservationScanFileId,
         deedFileId: reservation.saleScanFileId,
         projectId: reservation.projectId,
+        buildingId: unit.buildingId,
         unitCode: unit.code,
         unitFloor: unit.floor,
         unitType: unit.type,
@@ -178,6 +213,13 @@ export async function getPortalSale(ctx: PortalCtx, saleId: string) {
       calls,
       reminders,
       milestones: await loadMilestones(tx, row.projectId),
+      progress:
+        (await latestProgress(tx, [row.projectId], { publishedOnly: true })).get(row.buildingId) ??
+        null,
+      reports: await loadReports(tx, row.projectId, {
+        publishedOnly: true,
+        limit: PORTAL_REPORTS,
+      }),
       loans,
     };
   });

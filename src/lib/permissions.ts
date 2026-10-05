@@ -69,6 +69,10 @@ export const statement = {
   announcement: ["read", "update"],
   /** Inviting buyers and co-owners / occupants to the portal (and withdrawing their access). */
   portal: ["invite"],
+  /** Construction follow-up (module 4): progress reports per project, progress per building, photos. */
+  construction: ["read", "update"],
+  /** Deliveries (module 4): handover appointments, reserves (punch list), handover PV. */
+  handover: ["read", "update"],
 } as const;
 
 export const ac = createAccessControl(statement);
@@ -107,6 +111,8 @@ export const roles = {
     assembly: ["read", "update"],
     announcement: ["read", "update"],
     portal: ["invite"],
+    construction: ["read", "update"],
+    handover: ["read", "update"],
   }),
   sales_manager: ac.newRole({
     inventory: ["read"],
@@ -122,6 +128,8 @@ export const roles = {
     milestone: ["validate"],
     commission: ["read", "read_all"],
     portal: ["invite"],
+    construction: ["read"],
+    handover: ["read", "update"],
   }),
   sales_agent: ac.newRole({
     inventory: ["read"],
@@ -130,6 +138,7 @@ export const roles = {
     buyer: ["read", "create", "update"],
     sale: ["read", "create"],
     commission: ["read"],
+    construction: ["read"],
   }),
   accountant: ac.newRole({
     audit: ["read"],
@@ -142,6 +151,7 @@ export const roles = {
     charge: ["read", "cancel", "remind"],
     supplier: ["read", "update"],
     staff: ["read", "update"],
+    construction: ["read"],
   }),
   cashier: ac.newRole({
     inventory: ["read"],
@@ -150,6 +160,7 @@ export const roles = {
     payment: ["read", "create"],
     residence: ["read"],
     charge: ["read", "remind"],
+    construction: ["read"],
   }),
   property_manager: ac.newRole({
     inventory: ["read"],
@@ -162,6 +173,14 @@ export const roles = {
     assembly: ["read", "update"],
     announcement: ["read", "update"],
     portal: ["invite"],
+    construction: ["read"],
+    handover: ["read"],
+  }),
+  /** Responsable technique (module 4): construction follow-up and deliveries, no sales or money. */
+  technical_manager: ac.newRole({
+    inventory: ["read"],
+    construction: ["read", "update"],
+    handover: ["read", "update"],
   }),
   resident: ac.newRole({}),
 };
@@ -176,6 +195,7 @@ export const invitableRoles = [
   "sales_agent",
   "accountant",
   "cashier",
+  "technical_manager",
   "property_manager",
   "resident",
 ] as const satisfies readonly Exclude<Role, "owner">[];

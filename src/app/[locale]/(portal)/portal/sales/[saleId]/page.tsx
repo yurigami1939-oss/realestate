@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
+import { BuildingProgressBar } from "@/components/construction/building-progress";
+import { ReportCard } from "@/components/construction/report-card";
 import { PortalDocument } from "@/components/portal/portal-document";
 import { InstallmentStateBadge, SaleStatusBadge } from "@/components/sales/badges";
 import { Badge } from "@/components/ui/badge";
@@ -32,8 +34,9 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function PortalSalePage({
   params,
 }: PageProps<"/[locale]/portal/sales/[saleId]">) {
-  const { locale, saleId } = await params;
-  setRequestLocale(toLocale(locale));
+  const { locale: raw, saleId } = await params;
+  const locale = toLocale(raw);
+  setRequestLocale(locale);
   const ctx = await requirePortalCtx();
   const sale = await getPortalSale(ctx, saleId);
   if (!sale) notFound();
@@ -41,7 +44,7 @@ export default async function PortalSalePage({
   const ts = await getTranslations("sales.statement");
   const tm = await getTranslations("payments.method");
   const tl = await getTranslations("sales.loan");
-  const money = (v: bigint) => formatDZD(v, toLocale(locale));
+  const money = (v: bigint) => formatDZD(v, locale);
   const { statement } = sale;
   const area = sale.livingArea ?? sale.usableArea;
   const hasDocuments =
@@ -247,7 +250,8 @@ export default async function PortalSalePage({
         <CardHeader>
           <CardTitle className="text-base">{t("progress")}</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
+          <BuildingProgressBar name={sale.buildingName} progress={sale.progress} />
           {sale.milestones.length === 0 ? (
             <p className="text-sm text-muted-foreground">{t("noMilestones")}</p>
           ) : (
@@ -275,6 +279,15 @@ export default async function PortalSalePage({
           )}
         </CardContent>
       </Card>
+
+      {sale.reports.length > 0 ? (
+        <section className="space-y-3" data-testid="portal-reports">
+          <h2 className="text-lg font-semibold">{t("reports")}</h2>
+          {sale.reports.map((report) => (
+            <ReportCard key={report.id} report={report} variant="portal" locale={locale} />
+          ))}
+        </section>
+      ) : null}
 
       {sale.loans.length > 0 ? (
         <Card>

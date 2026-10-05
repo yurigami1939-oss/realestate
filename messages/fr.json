@@ -145,6 +145,7 @@
     "sales_agent": "Commercial",
     "accountant": "Comptable",
     "cashier": "Caissier",
+    "technical_manager": "Responsable technique",
     "property_manager": "Gestionnaire de résidence",
     "resident": "Acquéreur / résident"
   },
@@ -216,6 +217,8 @@
     "saleList": "Réservations et ventes",
     "overdue": "Impayés",
     "commissions": "Commissions",
+    "constructionGroup": "Chantiers",
+    "construction": "Avancement des travaux",
     "audit": "Journal d'audit",
     "residenceGroup": "Gestion des résidences",
     "residences": "Résidences",
@@ -1404,6 +1407,79 @@
       "hint": "Laissez vide pour appliquer le taux de la société ({rate}). Un taux s'applique aux VSP signées ensuite ; chaque commission garde son taux.",
       "save": "Enregistrer les taux",
       "saved": "Taux enregistrés."
+    }
+  },
+  "construction": {
+    "title": "Avancement des travaux",
+    "description": "Suivi des chantiers : avancement de chaque bâtiment, étapes et comptes rendus.",
+    "noProjects": "Aucun projet pour le moment.",
+    "noBuildings": "Aucun bâtiment.",
+    "projectLink": "Suivi des travaux",
+    "projectSheet": "Fiche du projet",
+    "projectDescription": "Suivi des travaux du projet.",
+    "reports": "Comptes rendus de chantier",
+    "noReports": "Aucun compte rendu pour le moment.",
+    "showAll": "Afficher les {count} comptes rendus",
+    "buildings": "Avancement par bâtiment",
+    "milestones": "Étapes du chantier",
+    "milestonesHint": "Une étape validée rend exigibles les échéances qui lui sont liées (appels de fonds).",
+    "noMilestones": "Aucune étape planifiée.",
+    "milestoneDone": "Réalisée le {date}",
+    "milestonePlanned": "Prévue le {date}",
+    "milestoneNotPlanned": "Date à venir",
+    "overview": {
+      "reports": "Comptes rendus",
+      "lastReport": "{count, plural, one {# compte rendu} other {# comptes rendus}}, le dernier le {date}",
+      "noReport": "Aucun",
+      "milestones": "Étapes",
+      "milestonesDone": "{done} sur {total} réalisées",
+      "next": "Prochaine étape",
+      "plannedOn": "prévue le {date}",
+      "delivery": "Livraison prévue"
+    },
+    "progress": {
+      "asOf": "au {date}",
+      "none": "Pas encore d'avancement saisi"
+    },
+    "report": {
+      "new": "Nouveau compte rendu",
+      "newTitle": "Nouveau compte rendu de chantier",
+      "newDescription": "Notez l'avancement du chantier ; les photos s'ajoutent ensuite sur le compte rendu.",
+      "editTitle": "Modifier le compte rendu",
+      "created": "Compte rendu enregistré.",
+      "published": "Visible sur l'espace client",
+      "internal": "Interne",
+      "progressLabel": "Avancement",
+      "deleteTitle": "Supprimer « {title} » ?",
+      "deleteDescription": "Le compte rendu et ses photos disparaissent du suivi et de l'espace client.",
+      "deleted": "Compte rendu supprimé.",
+      "fields": {
+        "reportedOn": "Date",
+        "title": "Titre",
+        "body": "Texte",
+        "titleAr": "Titre en arabe (facultatif)",
+        "bodyAr": "Texte en arabe (facultatif)",
+        "progress": "Avancement des bâtiments",
+        "progressHint": "En pourcentage des travaux réalisés ; laissez vide un bâtiment non concerné.",
+        "buildingPercent": "{name} (%)",
+        "published": "Visible par les acquéreurs sur l'espace client"
+      }
+    },
+    "photos": {
+      "add": "Ajouter une photo",
+      "added": "Photo ajoutée.",
+      "open": "Voir la photo",
+      "alt": "Photo du chantier {index}",
+      "remove": "Retirer la photo {index}",
+      "removeTitle": "Retirer cette photo ?",
+      "removeDescription": "Elle n'apparaîtra plus sur le compte rendu ni sur l'espace client.",
+      "removeConfirm": "Retirer",
+      "removed": "Photo retirée."
+    },
+    "errors": {
+      "futureDate": "La date ne peut pas être dans le futur.",
+      "buildingNotFound": "Bâtiment introuvable dans ce projet.",
+      "tooManyPhotos": "Ce compte rendu a déjà 20 photos."
     }
   },
   "audit": {
@@ -2641,6 +2717,7 @@
       "done": "Réalisée le {date}",
       "planned": "Prévue le {date}",
       "notPlanned": "Date à venir",
+      "reports": "Comptes rendus de chantier",
       "loanAmount": "Montant : {amount}",
       "loanSubmitted": "déposé le {date}",
       "loanDecided": "réponse le {date}"

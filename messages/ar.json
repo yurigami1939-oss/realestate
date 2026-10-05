@@ -145,6 +145,7 @@
     "sales_agent": "مندوب مبيعات",
     "accountant": "المحاسب",
     "cashier": "أمين الصندوق",
+    "technical_manager": "المسؤول التقني",
     "property_manager": "مسيّر الإقامة",
     "resident": "مقتني / مقيم"
   },
@@ -216,6 +217,8 @@
     "saleList": "الحجوزات والمبيعات",
     "overdue": "الدفعات غير المسددة",
     "commissions": "العمولات",
+    "constructionGroup": "الورشات",
+    "construction": "تقدم الأشغال",
     "audit": "سجل التدقيق",
     "residenceGroup": "تسيير الإقامات",
     "residences": "الإقامات",
@@ -1404,6 +1407,79 @@
       "hint": "اتركوها فارغة لتطبيق نسبة الشركة ({rate}). تُطبق النسبة على عقود البيع الموقعة لاحقاً؛ وتحتفظ كل عمولة بنسبتها.",
       "save": "حفظ النسب",
       "saved": "تم حفظ النسب."
+    }
+  },
+  "construction": {
+    "title": "تقدم الأشغال",
+    "description": "متابعة الورشات: تقدم كل بناية والمراحل وتقارير الورشة.",
+    "noProjects": "لا يوجد أي مشروع حالياً.",
+    "noBuildings": "لا توجد أي بناية.",
+    "projectLink": "متابعة الأشغال",
+    "projectSheet": "بطاقة المشروع",
+    "projectDescription": "متابعة أشغال المشروع.",
+    "reports": "تقارير الورشة",
+    "noReports": "لا يوجد أي تقرير حالياً.",
+    "showAll": "عرض جميع التقارير ({count})",
+    "buildings": "التقدم حسب البناية",
+    "milestones": "مراحل الورشة",
+    "milestonesHint": "تأكيد إنجاز مرحلة يجعل الدفعات المرتبطة بها مستحقة (طلبات الدفع).",
+    "noMilestones": "لا توجد أي مرحلة مبرمجة.",
+    "milestoneDone": "أُنجزت في {date}",
+    "milestonePlanned": "مبرمجة في {date}",
+    "milestoneNotPlanned": "التاريخ لاحقاً",
+    "overview": {
+      "reports": "التقارير",
+      "lastReport": "{count, plural, zero {لا يوجد تقرير} one {تقرير واحد} two {تقريران} few {# تقارير} many {# تقريراً} other {# تقرير}}، آخرها في {date}",
+      "noReport": "لا يوجد",
+      "milestones": "المراحل",
+      "milestonesDone": "أُنجزت {done} من {total}",
+      "next": "المرحلة القادمة",
+      "plannedOn": "مبرمجة في {date}",
+      "delivery": "التسليم المتوقع"
+    },
+    "progress": {
+      "asOf": "إلى غاية {date}",
+      "none": "لم يُسجَّل أي تقدم بعد"
+    },
+    "report": {
+      "new": "تقرير جديد",
+      "newTitle": "تقرير ورشة جديد",
+      "newDescription": "سجّل تقدم الورشة، ثم أضف الصور إلى التقرير.",
+      "editTitle": "تعديل التقرير",
+      "created": "تم حفظ التقرير.",
+      "published": "ظاهر في فضاء الزبون",
+      "internal": "داخلي",
+      "progressLabel": "التقدم",
+      "deleteTitle": "حذف «{title}»؟",
+      "deleteDescription": "سيختفي التقرير وصوره من المتابعة ومن فضاء الزبون.",
+      "deleted": "تم حذف التقرير.",
+      "fields": {
+        "reportedOn": "التاريخ",
+        "title": "العنوان",
+        "body": "النص",
+        "titleAr": "العنوان بالعربية (اختياري)",
+        "bodyAr": "النص بالعربية (اختياري)",
+        "progress": "تقدم البنايات",
+        "progressHint": "بالنسبة المئوية من الأشغال المنجزة؛ اترك الخانة فارغة للبناية غير المعنية.",
+        "buildingPercent": "{name} (%)",
+        "published": "ظاهر للمقتنين في فضاء الزبون"
+      }
+    },
+    "photos": {
+      "add": "إضافة صورة",
+      "added": "تمت إضافة الصورة.",
+      "open": "عرض الصورة",
+      "alt": "صورة الورشة {index}",
+      "remove": "سحب الصورة {index}",
+      "removeTitle": "سحب هذه الصورة؟",
+      "removeDescription": "لن تظهر بعد الآن في التقرير ولا في فضاء الزبون.",
+      "removeConfirm": "سحب",
+      "removed": "تم سحب الصورة."
+    },
+    "errors": {
+      "futureDate": "لا يمكن أن يكون التاريخ في المستقبل.",
+      "buildingNotFound": "البناية غير موجودة في هذا المشروع.",
+      "tooManyPhotos": "يحتوي هذا التقرير على 20 صورة بالفعل."
     }
   },
   "audit": {
@@ -2641,6 +2717,7 @@
       "done": "أُنجزت في {date}",
       "planned": "مبرمجة في {date}",
       "notPlanned": "التاريخ لاحقاً",
+      "reports": "تقارير الورشة",
       "loanAmount": "المبلغ: {amount}",
       "loanSubmitted": "أُودع في {date}",
       "loanDecided": "الرد في {date}"

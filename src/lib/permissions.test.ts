@@ -21,6 +21,7 @@ describe("permissions", () => {
       "sales_agent",
       "accountant",
       "cashier",
+      "technical_manager",
       "resident",
     ] as const) {
       expect(can([role], "invitation:create"), role).toBe(false);
@@ -38,6 +39,20 @@ describe("permissions", () => {
     expect(can(["cashier"], "charge:read")).toBe(true);
     expect(can(["sales_manager"], "residence:read")).toBe(false);
     expect(can(["owner"], "assembly:update")).toBe(true);
+  });
+
+  it("gives the responsable technique the works and deliveries, not sales or money", () => {
+    expect(can(["technical_manager"], "construction:update")).toBe(true);
+    expect(can(["technical_manager"], "handover:update")).toBe(true);
+    expect(can(["technical_manager"], "inventory:read")).toBe(true);
+    expect(can(["technical_manager"], "sale:read")).toBe(false);
+    expect(can(["technical_manager"], "payment:read")).toBe(false);
+    expect(can(["sales_manager"], "construction:update")).toBe(false);
+    expect(can(["sales_manager"], "handover:update")).toBe(true);
+    expect(can(["sales_agent"], "construction:read")).toBe(true);
+    expect(can(["sales_agent"], "handover:read")).toBe(false);
+    expect(can(["property_manager"], "handover:read")).toBe(true);
+    expect(can(["property_manager"], "handover:update")).toBe(false);
   });
 
   it("grants the union of several roles", () => {

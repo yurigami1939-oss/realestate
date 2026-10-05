@@ -7,6 +7,7 @@ import { Controller, useFieldArray, useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import type { z } from "zod";
 
+import { ValidateMilestoneDialog } from "@/components/construction/validate-milestone-dialog";
 import { applyFieldErrors } from "@/components/forms/apply-field-errors";
 import { useTranslateKey } from "@/components/forms/text-field";
 import { useAction } from "@/components/forms/use-action";
@@ -24,8 +25,6 @@ import { formatDate } from "@/lib/dates";
 import { type ConstructionStage, constructionStages } from "@/lib/sales";
 import { saveMilestonesAction } from "@/server/payment-plans/actions";
 import { saveMilestonesSchema } from "@/server/payment-plans/schemas";
-
-import { ValidateMilestoneDialog } from "./validate-milestone-dialog";
 
 type Values = z.input<typeof saveMilestonesSchema>;
 

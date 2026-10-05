@@ -93,7 +93,8 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
     │   ├── [locale]/
     │   │   ├── (auth)/       # sign-in, sign-up, forgot/reset password, onboarding, accept-invitation
     │   │   ├── (app)/        # back-office shell (guard + sidebar) · dashboard · settings (members,
-    │   │   │                 # company + logo, audit log) · projects · leads · buyers · sales · commissions
+    │   │   │                 # company + logo, audit log) · projects · construction · leads · buyers · sales
+    │   │   │                 # · commissions · residences
     │   │   └── (portal)/     # portal of buyers, co-owners and occupants (module 7): own shell, /portal
     │   ├── api/auth/[...all] # Better Auth handler (Route Handlers: auth, files, webhooks, /api/v1)
     │   ├── api/files/        # upload (POST) · [fileId] download (GET → presigned redirect)
@@ -107,6 +108,7 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
     │   ├── crm/              # stage/visit badges, phone text + call/WhatsApp, follow-up/visit dialogs
     │   ├── inventory/        # unit/project status badges, stats bar, floor labels
     │   ├── sales/            # sale/installment badges, option dialogs, DocumentPdf (+ refresher), VSP warnings
+    │   ├── construction/     # building progress bars, report dialog and card, site photos, milestone validation
     │   ├── residences/ · staff/ · suppliers/ · tickets/ · assemblies/ · announcements/  # residence
     │   │                     # module: dialogs, ChargeDocumentPdf, attendance grid, payroll, attendance
     │   │                     # sheet, vote grid
@@ -140,6 +142,7 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
     │   ├── inventory/        # projects, buildings, units, price lists, floor plans, transitionUnit
     │   ├── crm/              # leads, visits, follow-ups, merge, targets; access.ts (lead visibility)
     │   ├── payment-plans/    # construction milestones (planned, stage) and payment plan templates
+    │   ├── construction/     # construction follow-up: progress reports, building progress, site photos
     │   ├── quotations/       # issue/cancel, queries, pdf.ts (job: render + store once)
     │   ├── buyers/           # buyer files, documents checklist; access.ts (buyer visibility)
     │   ├── sales/            # options, reservations + VSP (reservations.ts), sale queries, withdrawals,
@@ -217,17 +220,18 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 - Member management (invite, cancel, change roles, remove) goes through `src/server/organizations/service.ts`: our permission check + owner protection, Better Auth performs the change, then `recordAudit` with the acting user. Joining and organization creation are audited by Better Auth hooks.
 - `proxy.ts` does locale routing only; `(app)/layout.tsx` redirects to `/sign-in` or `/onboarding`.
 - Post-login redirects go through `safeNext()` (same-site paths only).
-- **Portal accounts** (module 7): a member whose only role is `resident` (`isPortalOnly`). They see the `(portal)` shell only: `requireTenantCtx()` and the back-office layout redirect them to `/portal`, the portal layout sends staff back to `/dashboard`. Portal pages use `requirePortalCtx()` → `PortalCtx { userId, orgId, name, locale }`; every portal query starts from `portalScope(tx, ctx)` (the account's live `portal_link` rows: buyer files, co-owners / occupants still current) and never takes a record id from the client without checking it belongs to that scope. Staff lists (`listMembers`, `listPendingInvitations`) leave portal accounts and invitations out. Downloads: `/api/files` checks a portal account with `portalCanRead` (`src/server/portal/files.ts`) instead of the staff readers — the files of its own sales (entity `reservation` of a sale its buyer files take part in) and, under entity `residence`, its co-owned units' charge calls, receipts and reminder letters, its co-owned residences' convocations and PVs, and published notices of its residences. Portal mutations use `definePortalAction` (portal context, never a staff one).
+- **Portal accounts** (module 7): a member whose only role is `resident` (`isPortalOnly`). They see the `(portal)` shell only: `requireTenantCtx()` and the back-office layout redirect them to `/portal`, the portal layout sends staff back to `/dashboard`. Portal pages use `requirePortalCtx()` → `PortalCtx { userId, orgId, name, locale }`; every portal query starts from `portalScope(tx, ctx)` (the account's live `portal_link` rows: buyer files, co-owners / occupants still current) and never takes a record id from the client without checking it belongs to that scope. Staff lists (`listMembers`, `listPendingInvitations`) leave portal accounts and invitations out. Downloads: `/api/files` checks a portal account with `portalCanRead` (`src/server/portal/files.ts`) instead of the staff readers — the files of its own sales (entity `reservation` of a sale its buyer files take part in) and, under entity `residence`, its co-owned units' charge calls, receipts and reminder letters, its co-owned residences' convocations and PVs, and published notices of its residences; the site photos of the published progress reports of the projects it bought in (entity `construction_report`). Portal mutations use `definePortalAction` (portal context, never a staff one).
 - **Portal invitations** (`portal:invite`: gérant, directeur commercial, gestionnaire; `buyer:update` for a buyer file, `residence:update` for a co-owner / occupant): `inviteToPortal` inserts a Better Auth `invitation` row (role `resident`, 7 days) itself — staff below the gérant have no Better Auth `invitation:create` — and e-mails it bilingually; the existing accept-invitation page accepts it and the `afterAcceptInvitation` hook (`linkPortalAccount`) gives the account every record waiting on its e-mail. An e-mail already used by a portal account of the organization is linked at once; a staff member's e-mail is refused. One live link per record; withdrawing it (`revokePortalLink`) keeps the row (revoked) and cancels an invitation nobody else waits on. Audited `portal.invite` / `portal.revoke`.
 
 | Role | FR | Scope today (extended per module) |
 |---|---|---|
 | `owner` | Gérant | Everything: organization, members, invitations, audit; approves withdrawals, sets commission rates; created with the organization, cannot be changed or removed |
-| `sales_manager` | Directeur commercial | CRM & sales, price lists, lead assignment, discounts, targets; reservations, VSP, contracts, transfers, unit swaps, bank loans, milestone validation, withdrawal proposals, reminder letters |
+| `sales_manager` | Directeur commercial | CRM & sales, price lists, lead assignment, discounts, targets; reservations, VSP, contracts, transfers, unit swaps, bank loans, milestone validation, withdrawal proposals, reminder letters; construction follow-up (read), deliveries |
 | `sales_agent` | Commercial | Own leads/visits/quotations; buyer files, options and reservations of own leads; own sales and commissions (read) |
 | `accountant` | Comptable | Audit read; all sales (read), payments (record, cancel), withdrawal refunds, reminder letters, commissions (mark paid) |
 | `cashier` | Caissier | All sales (read); record payments (receipts), clear cheques, withdrawal refunds, reminder letters |
-| `property_manager` | Gestionnaire de résidence | Phase 2: residence module |
+| `technical_manager` | Responsable technique | Module 4: construction follow-up (progress reports, photos) and deliveries; projects read-only; no sales, buyer files or money |
+| `property_manager` | Gestionnaire de résidence | Phase 2: residence module; construction follow-up and deliveries (read) |
 | `resident` | Acquéreur / résident | Portal only (module 7): the records linked to the account by invitation (`portal_link`) |
 
 ### Jobs (pg-boss)
@@ -246,7 +250,7 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 - Private bucket. Key: `org/{orgId}/{entityType}/{entityId}/{fileId}.{ext}`; a tenant-scoped `file` row holds metadata (`entity_type` + `entity_id` = owner record).
 - **Upload**: `POST /api/files` (multipart `purpose`, `entityId`, `file`) → `Result<{ fileId }>`. Same-origin check, body capped while streaming (`readFormData`), then a switch on `purpose` calls the owning service (e.g. `setUnitFloorPlan`), which asserts the permission, runs `checkUpload` (size + **magic-byte** format check against `uploadPurposes` in `src/lib/files.ts`; the browser's MIME type is ignored) and `storeFile(tx, …)` (row insert, then S3 put, inside the tenant transaction). Client: `UploadButton`.
 - **Download**: `GET /api/files/{id}[?download]` → access check by `entity_type` (`readers` in `src/server/files/service.ts`: a unit plan needs `inventory:read`, a quotation PDF needs its lead to be visible, a buyer document its buyer, a sale's files its sale) → 302 to a 5-min presigned URL with the original name (`Content-Disposition` with UTF-8 `filename*`).
-- Upload purposes today: `unit.floor_plan`, `buyer.document` (variant = document kind), `reservation.contract`, `reservation.deed`, `organization.logo` (PNG/JPEG only, 2 MB; readable by any member of the organization). Every document of a sale (reservation sheet, receipts, payment calls, reminder letters, signed scans) is filed under entity `reservation`, so its readers follow the sale's visibility. Residence documents (charge calls, receipts and reminders, assembly convocations and minutes, announcement notices) are filed under entity `residence`; readers need `charge:read`, `assembly:read` or `announcement:read`.
+- Upload purposes today: `unit.floor_plan`, `buyer.document` (variant = document kind), `reservation.contract`, `reservation.deed`, `organization.logo` (PNG/JPEG only, 2 MB; readable by any member of the organization), `construction_report.photo` (JPEG/PNG/WebP, 10 MB, up to 20 per report; entity `construction_report`, readers `construction:read`). Every document of a sale (reservation sheet, receipts, payment calls, reminder letters, signed scans) is filed under entity `reservation`, so its readers follow the sale's visibility. Residence documents (charge calls, receipts and reminders, assembly convocations and minutes, announcement notices) are filed under entity `residence`; readers need `charge:read`, `assembly:read` or `announcement:read`.
 - Replacing/removing a file soft-deletes the old row (`deleted_at`); the object stays in the bucket. New purpose = entry in `uploadPurposes` + service function + `case` in `src/app/api/files/route.ts` (+ a `readers` entry for a new entity type). Generated documents are stored with `storeFile(tx, { orgId, userId: null }, …)` by their job.
 - Issued documents are rendered once at issue; the stored PDF is served for reprints.
 
@@ -297,7 +301,8 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 | Changement de lot | `unit_swap` | |
 | Crédit bancaire (dossier, accord, déblocage) | `bank_loan` | one followed loan per sale; disbursements = payments with method `bank_loan` |
 | Lettre de relance | `reminder_letter` | overdue lines kept as printed, bilingual PDF |
-| Avancement des travaux | `construction_milestone` | |
+| Étape des travaux | `construction_milestone` | planned per project (stage); validated → installments due, payment calls |
+| Compte rendu de chantier / avancement par bâtiment | `construction_report` / `building_progress` | dated, % per building, site photos; published ones shown to buyers |
 | Remise des clés (PV) | `handover` | |
 | Réserves à la livraison | `punch_item` | |
 | Réclamation SAV / résidence | `ticket` | |
@@ -414,6 +419,11 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 - **Bank loan** (`bank_loan`): one followed loan per sale (`preparing → submitted → approved | refused | cancelled`; approved needs the amount); disbursements are payments with method `bank_loan`.
 - **Commissions**: earned at the VSP; accountants mark them paid (`commission:update`); the gérant sets per-commercial rates (`organization:update`); each commission keeps its rate.
 
+### Construction follow-up (module 4)
+- **Progress reports** (`construction_report`; `construction:update`: gérant, responsable technique; `construction:read`: every staff role): per project, dated (never in the future), a title and a text in French, Arabic optional, published to the project's buyers (portal) or internal, with the progress of the buildings reported on (0–100 %, `building_progress`; a blank building is not reported this time) and site photos (JPEG/PNG/WebP, 10 MB, up to 20). Rewritten as a whole; deleting soft-deletes the report and discards its photos. A building's current progress is the one of its latest live report (date, then entry); `/construction` lists every project with its buildings' progress, its last report and its next milestone.
+- Milestones keep their role (§ Payment plans): planned on the payment plans page, validated (`milestone:validate`) there or on the project's construction page.
+- Buyers (portal) see on their sale's page their building's progress from published reports only, the milestones and the latest 10 published reports of the project with their photos.
+
 ### Residence charges
 - `share` = integer weight per unit per residence (tantièmes, e.g. on a 10 000 basis). A residence enrols its project's live units with their inventory quote-part (`unit.share`, else 0); tantièmes are saved as a whole or split by area (living area, else usable area) with `allocate()`; audited `residence.shares`.
 - Distribution keys: `equal`, `share`, `per_building`, `custom` (explicit unit list, weighted `equal` or `share`, e.g. RDC excluded from elevator). Every distribution uses `allocate()` → lines sum exactly to the charge.
@@ -510,7 +520,7 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 
 ## 11. Roadmap
 
-**Current: Phases 1 and 2 done (sales; residence management; buyer / resident portal), each module with its seed and e2e. Next: Phase 3 (module 4 construction & delivery first). Steps are committed straight to `main` (§12, 2026-10-04).**
+**Current: Phases 1 and 2 done (sales; residence management; buyer / resident portal), each module with its seed and e2e. Phase 3 in progress: module 4 (construction & delivery). Steps are committed straight to `main` (§12, 2026-10-04).**
 
 ### Phase 0 — Foundations ✅
 - [x] `CLAUDE.md` approved (2026-09-30)
@@ -574,6 +584,9 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 
 ### Phase 3
 - [ ] Module 4 — Construction & delivery
+  - [x] Role responsable technique; construction follow-up: progress reports per project (progress per building, site photos), the published ones on the buyers' portal
+  - [ ] Deliveries: handover appointments, reserves (punch list), numbered bilingual PV de remise des clés → unit delivered; reserves lifted, PV de levée des réserves
+  - [ ] Units delivered before the app; seed and e2e
 - [ ] Module 5 — Rentals
 - [ ] Online payment (CIB/Edahabia via SATIM)
 - [ ] WhatsApp Business API notifications
@@ -666,6 +679,9 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 | 2026-10-05 | **Portal access (user)**: by invitation from the back office only — staff invite a buyer file or a co-owner / occupant record; the bilingual e-mail creates the account (role `resident`) already linked to that record. |
 | 2026-10-05 | **Portal content (user)**: buyers see their schedule and payments (receipts), sale documents (reservation sheet, payment calls, reminder letters, signed scans), construction progress and their bank loan's stage; co-owners see their charges account (calls, payments, receipts, reminder letters), announcements, tickets (open and follow) and general assemblies (convocations, PVs); **occupants** get a limited access: announcements and tickets only. |
 | 2026-10-05 | Portal invitations are created by our service (a Better Auth invitation row with role `resident`) rather than Better Auth's API, so the directeur commercial and the gestionnaire can invite without the staff `invitation:create` right; portal accounts and invitations are kept off the members page. |
+| 2026-10-05 | **Module 4 scope (user: "answer the questions with what you recommend")**: construction follow-up = dated progress reports per project (text FR, Arabic optional; progress in % per building; site photos), published to the buyers or kept internal; the existing milestones keep driving the payment calls. Delivery = per sold unit: appointment, reserves (punch list), numbered bilingual PV de remise des clés → unit `delivered`, reserves lifted then a PV de levée des réserves. |
+| 2026-10-05 | New role `technical_manager` (Responsable technique): construction follow-up and deliveries, projects read-only, no access to sales, buyer files or payments. `construction:read` for every staff role, `construction:update` for the gérant and the responsable technique (milestone validation stays with the gérant and the directeur commercial: it issues payment calls). |
+| 2026-10-05 | Buyers see their building's progress from published reports only, plus the project's latest 10 published reports with their photos (every building). Site photos: JPEG/PNG/WebP, 10 MB, 20 per report. |
 
 ### Open items
 - **GitHub**: repo `yurigami1939-oss/realestate` is **public** — make it private before real client data or configuration lands. Steps are committed straight to `main` (CI runs on every push).

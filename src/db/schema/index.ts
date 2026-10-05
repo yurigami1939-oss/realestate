@@ -3,6 +3,7 @@ export * from "./assemblies";
 export * from "./auth";
 export * from "./buyers";
 export * from "./charges";
+export * from "./construction";
 export * from "./crm";
 export * from "./files";
 export * from "./inventory";

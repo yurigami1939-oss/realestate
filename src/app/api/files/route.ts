@@ -6,6 +6,7 @@ import { AppError } from "@/lib/result";
 import { buyerDocumentKinds } from "@/lib/sales";
 import { getTenantCtx } from "@/server/auth/session";
 import { setBuyerDocumentScan } from "@/server/buyers/service";
+import { addReportPhoto } from "@/server/construction/service";
 import { setUnitFloorPlan } from "@/server/inventory/floor-plans";
 import { setCompanyLogo } from "@/server/organizations/settings";
 import { setReservationScan } from "@/server/sales/reservations";
@@ -65,6 +66,11 @@ export async function POST(request: Request) {
         if (fields.data.entityId !== ctx.orgId) throw new AppError("NOT_FOUND");
         const result = await setCompanyLogo(ctx, { upload });
         revalidatePath("/[locale]/settings/company", "page");
+        return result;
+      }
+      case "construction_report.photo": {
+        const result = await addReportPhoto(ctx, { reportId: fields.data.entityId, upload });
+        revalidatePath("/[locale]/construction", "layout");
         return result;
       }
       case "buyer.document": {

@@ -28,6 +28,8 @@ import {
   saveBudgetSchema,
 } from "@/server/charges/schemas";
 import { createBuyer } from "@/server/buyers/service";
+import { createReportSchema } from "@/server/construction/schemas";
+import { addReportPhoto, createConstructionReport } from "@/server/construction/service";
 import { getFileDownloadUrl } from "@/server/files/service";
 import { listMembers, listPendingInvitations } from "@/server/organizations/queries";
 import { renderAndStoreReceipt } from "@/server/payments/documents";
@@ -300,6 +302,44 @@ describe("portal access", () => {
       `),
     );
     await expect(getFileDownloadUrl(asMember, rows[0]?.id ?? "", "inline")).rejects.toMatchObject({
+      code: "FORBIDDEN",
+    });
+  });
+
+  it("shows a buyer the published progress of their building, with its photos", async () => {
+    const { team, setup, email, buyerId, reservationId } = await scenario();
+    await inviteToPortal(team.manager, { kind: "buyer", id: buyerId });
+    const portal = await acceptAs(email, team.orgId);
+    const technical = await addMember(team.orgId, ["technical_manager"]);
+    const report = async (title: string, published: boolean, percent: string) => {
+      const { id } = await createConstructionReport(
+        technical,
+        createReportSchema.parse({
+          projectId: setup.projectId,
+          reportedOn: todayInAlgiers(),
+          title,
+          titleAr: "",
+          body: "",
+          bodyAr: "",
+          published,
+          progress: [{ buildingId: setup.buildingId, percent }],
+        }),
+      );
+      const upload = {
+        fileName: "chantier.jpg",
+        bytes: new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 0, 0x10, 0x4a, 0x46, 0x49, 0x46]),
+      };
+      return (await addReportPhoto(technical, { reportId: id, upload })).fileId;
+    };
+    const shown = await report("Dalle du 3e étage coulée", true, "45");
+    const internal = await report("Note interne", false, "50");
+
+    const sale = await getPortalSale(portal, reservationId);
+    expect(sale?.progress?.percent).toBe(45);
+    expect(sale?.reports.map((r) => r.title)).toEqual(["Dalle du 3e étage coulée"]);
+    const asMember: TenantCtx = { ...portal, roles: ["resident"] };
+    expect(await getFileDownloadUrl(asMember, shown, "inline")).toMatch(/^http/);
+    await expect(getFileDownloadUrl(asMember, internal, "inline")).rejects.toMatchObject({
       code: "FORBIDDEN",
     });
   });
