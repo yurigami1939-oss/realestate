@@ -217,10 +217,16 @@ export default async function PortalSalePage({
                       </Badge>
                     ) : null}
                   </div>
-                  <PortalDocument
-                    fileId={p.receiptPdfFileId}
-                    label={t("receipt", { number: p.receiptNumber })}
-                  />
+                  {p.receiptNumber !== null ? (
+                    <PortalDocument
+                      fileId={p.receiptPdfFileId}
+                      label={t("receipt", { number: p.receiptNumber })}
+                    />
+                  ) : (
+                    <span className="text-xs text-muted-foreground">
+                      {t("importedReceipt", { number: p.legacyReceipt ?? "—" })}
+                    </span>
+                  )}
                 </li>
               ))}
             </ul>

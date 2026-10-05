@@ -572,6 +572,10 @@ export const payment = pgTable(
     payerName: text().notNull(),
     chequeClearedOn: date({ mode: "string" }),
     notes: text(),
+    /** Brought in by a data import: receipted by the previous system, so no REC- receipt here. */
+    imported: boolean().notNull().default(false),
+    /** That system's receipt number, when known. */
+    legacyReceipt: text(),
     status: paymentStatus().notNull().default("valid"),
     cancelledAt: instant(),
     cancelledBy: userRef(),

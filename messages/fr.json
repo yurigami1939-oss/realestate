@@ -249,7 +249,8 @@
     "paymentGateway": "Paiement en ligne",
     "whatsappLog": "Messages WhatsApp",
     "whatsappSettings": "WhatsApp",
-    "exports": "Exports Excel"
+    "exports": "Exports Excel",
+    "imports": "Reprise de données"
   },
   "shell": {
     "organizations": "Sociétés",
@@ -1354,7 +1355,8 @@
       "notPendingCheque": "Ce paiement n'est pas un chèque en attente d'encaissement.",
       "beforePayment": "L'encaissement ne peut précéder la remise du chèque."
     },
-    "valid": "Valide"
+    "valid": "Valide",
+    "imported": "Reprise · reçu de l'ancien système"
   },
   "paymentCalls": {
     "title": "Appels de fonds",
@@ -1974,7 +1976,8 @@
         "logo": "Logo de la société modifié",
         "online_payment": "Paiement en ligne (SATIM) configuré",
         "whatsapp": "WhatsApp configuré",
-        "export": "Export Excel"
+        "export": "Export Excel",
+        "import": "Reprise de données (import Excel)"
       },
       "member": {
         "join": "Arrivée d'un membre",
@@ -2006,7 +2009,8 @@
         "create": "Réservation enregistrée",
         "update_contract": "Contrat de réservation modifié",
         "transfer": "Cession de réservation",
-        "swap_unit": "Changement de lot"
+        "swap_unit": "Changement de lot",
+        "import": "Vente reprise (import)"
       },
       "sale": {
         "sign": "VSP signée"
@@ -3207,7 +3211,8 @@
       "handoverReserveOpen": "en cours de levée",
       "handoverReserveLifted": "levée le {date}",
       "handoverReserveCancelled": "annulée",
-      "handoverRelease": "Procès-verbal de levée des réserves"
+      "handoverRelease": "Procès-verbal de levée des réserves",
+      "importedReceipt": "Reçu {number} (ancien système)"
     },
     "pendingDocument": "en préparation",
     "unit": {
@@ -3636,6 +3641,98 @@
         "title": "Factures fournisseurs",
         "description": "Les factures avec leur imputation et leur paiement."
       }
+    }
+  },
+  "imports": {
+    "page": {
+      "title": "Reprise de données",
+      "description": "Importez vos données existantes depuis Excel : téléchargez le modèle, remplissez-le, vérifiez-le, puis importez. Rien n'est écrit tant qu'une ligne pose problème.",
+      "none": "Votre rôle ne permet aucun import.",
+      "template": "Télécharger le modèle",
+      "file": "Fichier Excel (.xlsx)",
+      "check": "Vérifier",
+      "import": "Importer",
+      "project": "Projet",
+      "residence": "Résidence",
+      "choose": "Choisir…",
+      "ready": "Prêt à importer",
+      "nothing": "Rien à importer",
+      "imported": "Importé",
+      "done": "Import terminé.",
+      "blocked": "{count, plural, one {# problème à corriger} other {# problèmes à corriger}} avant d'importer",
+      "leftAside": "{count, plural, one {# ligne laissée de côté} other {# lignes laissées de côté}} (déjà présentes) :",
+      "more": "… et {count} autres."
+    },
+    "columns": {
+      "sheet": "Feuille",
+      "row": "Ligne",
+      "column": "Colonne",
+      "problem": "Problème"
+    },
+    "kinds": {
+      "units": {
+        "title": "Lots d'un projet",
+        "description": "Les lots d'un projet dont les bâtiments existent déjà : type, étage, surfaces, prix, lots gardés par la société. Les codes déjà présents sont laissés de côté."
+      },
+      "buyers": {
+        "title": "Acquéreurs",
+        "description": "Les dossiers acquéreurs (identité, NIN, téléphones). Un acquéreur déjà présent (même NIN, ou même téléphone et nom) est laissé de côté."
+      },
+      "sales": {
+        "title": "Ventes en cours",
+        "description": "Les ventes signées avant l'application : réservation, VSP, échéancier et paiements déjà reçus (avec le n° de reçu de l'ancien système). Importez d'abord les lots et les acquéreurs."
+      },
+      "residents": {
+        "title": "Copropriétaires et tantièmes",
+        "description": "Les copropriétaires et occupants d'une résidence, avec les tantièmes de chaque lot."
+      }
+    },
+    "counts": {
+      "units": "{count, plural, one {# lot} other {# lots}}",
+      "buyers": "{count, plural, one {# acquéreur} other {# acquéreurs}}",
+      "sales": "{count, plural, one {# vente} other {# ventes}}",
+      "installments": "{count, plural, one {# échéance} other {# échéances}}",
+      "payments": "{count, plural, one {# paiement} other {# paiements}}",
+      "shares": "{count, plural, one {# quote-part} other {# quotes-parts}}",
+      "residents": "{count, plural, one {# résident} other {# résidents}}"
+    },
+    "errors": {
+      "noFile": "Choisissez un fichier.",
+      "notExcel": "Ce fichier n'est pas un classeur Excel (.xlsx).",
+      "projectRequired": "Choisissez le projet.",
+      "residenceRequired": "Choisissez la résidence.",
+      "sheetMissing": "Feuille introuvable dans le fichier (gardez les noms du modèle).",
+      "columnMissing": "Colonne obligatoire absente (gardez les en-têtes du modèle).",
+      "duplicateInFile": "« {value} » figure deux fois dans le fichier.",
+      "buildingNotFound": "Bâtiment « {code} » introuvable dans le projet (créez-le d'abord).",
+      "floor": "Étage invalide (un nombre, ou RDC).",
+      "floorOutOfRange": "L'étage {floor} n'existe pas dans le bâtiment {building}.",
+      "choice": "Valeur non reconnue : « {value} ».",
+      "yesNo": "Répondez oui ou non.",
+      "date": "Date invalide (jj/mm/aaaa).",
+      "projectNotFound": "Projet « {code} » introuvable.",
+      "unitNotFound": "Lot « {code} » introuvable dans le projet.",
+      "unitNotAvailable": "Le lot « {code} » n'est pas disponible (déjà engagé).",
+      "buyerNotFound": "Acquéreur « {value} » introuvable (NIN ou téléphone).",
+      "buyerAmbiguous": "Plusieurs acquéreurs correspondent à « {value} » : donnez le NIN.",
+      "listPrice": "Le prix catalogue ne peut pas être inférieur au prix de vente.",
+      "saleDate": "La date de la VSP doit suivre la réservation sans dépasser aujourd'hui.",
+      "memberNotFound": "Aucun membre de la société avec l'e-mail « {value} ».",
+      "saleNotFound": "Vente « {value} » absente de la feuille Ventes.",
+      "position": "Numéro d'échéance invalide.",
+      "dueOrMilestone": "Donnez la date d'échéance ou l'étape des travaux.",
+      "milestoneNotFound": "Étape des travaux « {value} » introuvable dans le projet.",
+      "noSchedule": "La vente « {value} » n'a pas d'échéancier.",
+      "scheduleTotal": "L'échéancier de la vente « {value} » ne totalise pas son prix.",
+      "paidAbovePrice": "Les paiements de la vente « {value} » dépassent son prix.",
+      "unitNotInResidence": "Lot « {code} » absent de la résidence.",
+      "share": "Tantièmes invalides (nombre entier).",
+      "shareTwice": "Deux tantièmes différents pour le lot « {code} »."
+    },
+    "warnings": {
+      "unitExists": "Le lot « {code} » existe déjà.",
+      "buyerExists": "{name} a déjà un dossier.",
+      "residentExists": "{name} est déjà enregistré sur ce lot."
     }
   }
 }

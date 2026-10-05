@@ -96,6 +96,7 @@ async function collections(
         .select({
           paidOn: payment.paidOn,
           number: receipt.number,
+          legacyReceipt: payment.legacyReceipt,
           payer: payment.payerName,
           saleNumber: reservation.number,
           projectName: project.name,
@@ -119,6 +120,8 @@ async function collections(
       for (const r of rows) {
         lines.push({
           ...r,
+          // An imported payment keeps the previous system's receipt number.
+          number: r.number ?? r.legacyReceipt,
           nature: t("exports.nature.sale"),
           object: `${r.saleNumber} · ${r.projectName} · ${r.unitCode}`,
           method: t(`payments.method.${r.method}`),

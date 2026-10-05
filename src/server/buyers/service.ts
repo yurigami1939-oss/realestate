@@ -36,26 +36,30 @@ async function uniqueNin<T>(write: () => Promise<T>): Promise<T> {
  * Creates a buyer file, usually from a lead: the buyer is then followed by the lead's
  * commercial. A commercial can only start from a lead they own.
  */
-export async function createBuyer(ctx: TenantCtx, input: In<typeof createBuyerSchema>) {
+export async function createBuyer(ctx: TenantCtx, input: In<typeof createBuyerSchema>, outer?: Tx) {
   assertCan(ctx, "buyer:create");
-  return withTenant(ctx, async (tx) => {
-    const { leadId, ...fields } = input;
-    const lead = leadId ? await loadVisibleLead(tx, ctx, leadId) : null;
-    const [row] = await uniqueNin(() =>
-      tx
-        .insert(buyer)
-        .values({
-          ...fields,
-          organizationId: ctx.orgId,
-          leadId,
-          ownerUserId: lead?.assignedTo ?? ctx.userId,
-          createdBy: ctx.userId,
-        })
-        .returning({ id: buyer.id }),
-    );
-    if (!row) throw new Error("createBuyer: no row returned");
-    return { id: row.id };
-  });
+  return withTenant(
+    ctx,
+    async (tx) => {
+      const { leadId, ...fields } = input;
+      const lead = leadId ? await loadVisibleLead(tx, ctx, leadId) : null;
+      const [row] = await uniqueNin(() =>
+        tx
+          .insert(buyer)
+          .values({
+            ...fields,
+            organizationId: ctx.orgId,
+            leadId,
+            ownerUserId: lead?.assignedTo ?? ctx.userId,
+            createdBy: ctx.userId,
+          })
+          .returning({ id: buyer.id }),
+      );
+      if (!row) throw new Error("createBuyer: no row returned");
+      return { id: row.id };
+    },
+    outer,
+  );
 }
 
 export async function updateBuyer(ctx: TenantCtx, input: In<typeof updateBuyerSchema>) {

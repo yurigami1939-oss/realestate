@@ -120,7 +120,7 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
       (can(ctx.roles, "commission:read") && sale.commission.userId === ctx.userId));
   const pendingDocuments =
     (live && sale.sheetFileId === null) ||
-    payments.some((p) => p.receiptPdfFileId === null) ||
+    payments.some((p) => p.receiptId !== null && p.receiptPdfFileId === null) ||
     calls.some((c) => c.pdfFileId === null) ||
     reminders.some((r) => r.pdfFileId === null);
   const mainBuyer = sale.buyers[0];
@@ -364,7 +364,7 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
                       const pendingCheque =
                         p.method === "cheque" && !cancelled && p.chequeClearedOn === null;
                       return (
-                        <TableRow key={p.id} data-receipt={p.receiptNumber}>
+                        <TableRow key={p.id} data-receipt={p.receiptNumber ?? p.legacyReceipt}>
                           <TableCell className="tabular-nums" dir="ltr">
                             {formatDate(p.paidOn)}
                           </TableCell>
@@ -387,12 +387,19 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
                             ) : null}
                           </TableCell>
                           <TableCell>
-                            <DocumentPdf
-                              fileId={p.receiptPdfFileId}
-                              kind="receipt"
-                              id={p.receiptId}
-                              label={p.receiptNumber}
-                            />
+                            {p.receiptId !== null && p.receiptNumber !== null ? (
+                              <DocumentPdf
+                                fileId={p.receiptPdfFileId}
+                                kind="receipt"
+                                id={p.receiptId}
+                                label={p.receiptNumber}
+                              />
+                            ) : (
+                              <span className="text-xs text-muted-foreground">
+                                {p.legacyReceipt ? <bdi dir="ltr">{p.legacyReceipt}</bdi> : null}
+                                <span className="block">{t("payments.imported")}</span>
+                              </span>
+                            )}
                           </TableCell>
                           <TableCell className="whitespace-normal">
                             {cancelled ? (
@@ -430,7 +437,7 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
                               {!cancelled && can(ctx.roles, "payment:cancel") ? (
                                 <CancelPaymentDialog
                                   paymentId={p.id}
-                                  receiptNumber={p.receiptNumber}
+                                  receiptNumber={p.receiptNumber ?? p.legacyReceipt ?? ""}
                                 />
                               ) : null}
                             </div>

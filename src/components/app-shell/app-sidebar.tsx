@@ -9,6 +9,7 @@ import {
   CreditCard,
   FileSignature,
   FileSpreadsheet,
+  FileUp,
   HardHat,
   Hotel,
   House,
@@ -75,9 +76,18 @@ type NavKey =
   | "paymentGateway"
   | "whatsappLog"
   | "whatsappSettings"
-  | "exports";
-/** `permission`: shown only to roles that have it (display only; services enforce). */
-type NavItem = { href: string; key: NavKey; icon: LucideIcon; permission?: Permission };
+  | "exports"
+  | "imports";
+/**
+ * `permission`: shown only to roles that have it, or one of them (display only; services
+ * enforce).
+ */
+type NavItem = {
+  href: string;
+  key: NavKey;
+  icon: LucideIcon;
+  permission?: Permission | Permission[];
+};
 
 /** Each module adds its entries here as it lands (CLAUDE.md §11 Roadmap). */
 const mainNav: NavItem[] = [
@@ -144,6 +154,12 @@ const settingsNav: NavItem[] = [
     permission: "organization:update",
   },
   { href: "/exports", key: "exports", icon: FileSpreadsheet },
+  {
+    href: "/imports",
+    key: "imports",
+    icon: FileUp,
+    permission: ["unit:create", "buyer:create", "residence:update"],
+  },
   { href: "/settings/audit", key: "audit", icon: ScrollText, permission: "audit:read" },
 ];
 
@@ -183,7 +199,9 @@ export function AppSidebar({
   const active = activeHref(pathname);
 
   const renderGroup = (label: string, all: NavItem[]) => {
-    const items = all.filter((item) => !item.permission || can(roles, item.permission));
+    const items = all.filter(
+      (item) => !item.permission || [item.permission].flat().some((p) => can(roles, p)),
+    );
     if (items.length === 0) return null;
     return (
       <SidebarGroup>

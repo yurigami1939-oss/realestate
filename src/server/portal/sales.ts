@@ -167,9 +167,10 @@ export async function getPortalSale(ctx: PortalCtx, saleId: string) {
         chequeClearedOn: payment.chequeClearedOn,
         receiptNumber: receipt.number,
         receiptPdfFileId: receipt.pdfFileId,
+        legacyReceipt: payment.legacyReceipt,
       })
       .from(payment)
-      .innerJoin(receipt, eq(receipt.paymentId, payment.id))
+      .leftJoin(receipt, eq(receipt.paymentId, payment.id))
       .where(eq(payment.reservationId, row.id))
       .orderBy(desc(payment.paidOn), desc(payment.createdAt));
     const calls = await tx

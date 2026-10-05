@@ -249,7 +249,8 @@
     "paymentGateway": "الدفع الإلكتروني",
     "whatsappLog": "رسائل واتساب",
     "whatsappSettings": "واتساب",
-    "exports": "التصدير إلى Excel"
+    "exports": "التصدير إلى Excel",
+    "imports": "استرجاع البيانات"
   },
   "shell": {
     "organizations": "الشركات",
@@ -1354,7 +1355,8 @@
       "notPendingCheque": "هذه الدفعة ليست صكاً قيد التحصيل.",
       "beforePayment": "لا يمكن أن يسبق التحصيل تسليم الصك."
     },
-    "valid": "صالح"
+    "valid": "صالح",
+    "imported": "استرجاع · وصل النظام السابق"
   },
   "paymentCalls": {
     "title": "طلبات الدفع",
@@ -1974,7 +1976,8 @@
         "logo": "تعديل شعار الشركة",
         "online_payment": "ضبط الدفع الإلكتروني (ساتيم)",
         "whatsapp": "ضبط واتساب",
-        "export": "تصدير Excel"
+        "export": "تصدير Excel",
+        "import": "استرجاع البيانات (استيراد Excel)"
       },
       "member": {
         "join": "انضمام عضو",
@@ -2006,7 +2009,8 @@
         "create": "تسجيل حجز",
         "update_contract": "تعديل عقد الحجز",
         "transfer": "التنازل عن حجز",
-        "swap_unit": "تغيير الوحدة"
+        "swap_unit": "تغيير الوحدة",
+        "import": "بيع مسترجع (استيراد)"
       },
       "sale": {
         "sign": "توقيع البيع على التصاميم"
@@ -3207,7 +3211,8 @@
       "handoverReserveOpen": "قيد الرفع",
       "handoverReserveLifted": "رُفع في {date}",
       "handoverReserveCancelled": "ملغى",
-      "handoverRelease": "محضر رفع التحفظات"
+      "handoverRelease": "محضر رفع التحفظات",
+      "importedReceipt": "الوصل {number} (النظام السابق)"
     },
     "pendingDocument": "قيد الإعداد",
     "unit": {
@@ -3636,6 +3641,98 @@
         "title": "فواتير الموردين",
         "description": "الفواتير مع تخصيصها ودفعها."
       }
+    }
+  },
+  "imports": {
+    "page": {
+      "title": "استرجاع البيانات",
+      "description": "استورد بياناتك الحالية من Excel: نزّل النموذج، املأه، تحقّق منه ثم استورده. لا يُسجَّل أي شيء ما دام في سطر ما مشكل.",
+      "none": "دورك لا يسمح بأي استيراد.",
+      "template": "تنزيل النموذج",
+      "file": "ملف Excel (.xlsx)",
+      "check": "تحقّق",
+      "import": "استيراد",
+      "project": "المشروع",
+      "residence": "الإقامة",
+      "choose": "اختر…",
+      "ready": "جاهز للاستيراد",
+      "nothing": "لا شيء للاستيراد",
+      "imported": "تم الاستيراد",
+      "done": "انتهى الاستيراد.",
+      "blocked": "{count, plural, one {مشكل واحد يجب تصحيحه} two {مشكلان يجب تصحيحهما} few {# مشاكل يجب تصحيحها} other {# مشكلاً يجب تصحيحه}} قبل الاستيراد",
+      "leftAside": "{count, plural, one {سطر واحد تُرك جانباً} two {سطران تُركا جانباً} few {# أسطر تُركت جانباً} other {# سطراً تُرك جانباً}} (موجودة مسبقاً):",
+      "more": "… و{count} أخرى."
+    },
+    "columns": {
+      "sheet": "الورقة",
+      "row": "السطر",
+      "column": "العمود",
+      "problem": "المشكل"
+    },
+    "kinds": {
+      "units": {
+        "title": "وحدات مشروع",
+        "description": "وحدات مشروع عماراته منشأة مسبقاً: النوع، الطابق، المساحات، السعر، الوحدات التي تحتفظ بها الشركة. الرموز الموجودة تُترك جانباً."
+      },
+      "buyers": {
+        "title": "المشترون",
+        "description": "ملفات المشترين (الهوية، رقم التعريف الوطني، الهواتف). المشتري الموجود مسبقاً (نفس الرقم الوطني، أو نفس الهاتف واللقب) يُترك جانباً."
+      },
+      "sales": {
+        "title": "المبيعات الجارية",
+        "description": "المبيعات الموقعة قبل التطبيق: الحجز، البيع على التصاميم، الرزنامة والدفعات المستلمة (برقم وصل النظام السابق). استورد أولاً الوحدات والمشترين."
+      },
+      "residents": {
+        "title": "الملاك المشتركون والحصص",
+        "description": "الملاك المشتركون وشاغلو إقامة، مع حصة كل وحدة."
+      }
+    },
+    "counts": {
+      "units": "{count, plural, one {وحدة واحدة} two {وحدتان} few {# وحدات} other {# وحدة}}",
+      "buyers": "{count, plural, one {مشترٍ واحد} two {مشتريان} few {# مشترين} other {# مشترياً}}",
+      "sales": "{count, plural, one {بيع واحد} two {بيعان} few {# بيوع} other {# بيعاً}}",
+      "installments": "{count, plural, one {قسط واحد} two {قسطان} few {# أقساط} other {# قسطاً}}",
+      "payments": "{count, plural, one {دفعة واحدة} two {دفعتان} few {# دفعات} other {# دفعة}}",
+      "shares": "{count, plural, one {حصة واحدة} two {حصتان} few {# حصص} other {# حصة}}",
+      "residents": "{count, plural, one {مقيم واحد} two {مقيمان} few {# مقيمين} other {# مقيماً}}"
+    },
+    "errors": {
+      "noFile": "اختر ملفاً.",
+      "notExcel": "هذا الملف ليس مصنف Excel (.xlsx).",
+      "projectRequired": "اختر المشروع.",
+      "residenceRequired": "اختر الإقامة.",
+      "sheetMissing": "الورقة غير موجودة في الملف (احتفظ بأسماء النموذج).",
+      "columnMissing": "عمود إجباري غير موجود (احتفظ بعناوين النموذج).",
+      "duplicateInFile": "«{value}» مكرر في الملف.",
+      "buildingNotFound": "العمارة «{code}» غير موجودة في المشروع (أنشئها أولاً).",
+      "floor": "طابق غير صالح (رقم، أو RDC).",
+      "floorOutOfRange": "الطابق {floor} غير موجود في العمارة {building}.",
+      "choice": "قيمة غير معروفة: «{value}».",
+      "yesNo": "أجب بنعم أو لا.",
+      "date": "تاريخ غير صالح (يوم/شهر/سنة).",
+      "projectNotFound": "المشروع «{code}» غير موجود.",
+      "unitNotFound": "الوحدة «{code}» غير موجودة في المشروع.",
+      "unitNotAvailable": "الوحدة «{code}» غير متاحة (ملتزم بها).",
+      "buyerNotFound": "المشتري «{value}» غير موجود (الرقم الوطني أو الهاتف).",
+      "buyerAmbiguous": "عدة مشترين يوافقون «{value}»: أعط الرقم الوطني.",
+      "listPrice": "لا يمكن أن يقل سعر القائمة عن سعر البيع.",
+      "saleDate": "يجب أن يلي تاريخ البيع على التصاميم الحجز دون تجاوز اليوم.",
+      "memberNotFound": "لا يوجد عضو في الشركة بالبريد «{value}».",
+      "saleNotFound": "البيع «{value}» غير موجود في ورقة المبيعات.",
+      "position": "رقم القسط غير صالح.",
+      "dueOrMilestone": "أعط تاريخ الاستحقاق أو مرحلة الأشغال.",
+      "milestoneNotFound": "مرحلة الأشغال «{value}» غير موجودة في المشروع.",
+      "noSchedule": "البيع «{value}» بلا رزنامة دفع.",
+      "scheduleTotal": "مجموع رزنامة البيع «{value}» لا يساوي سعره.",
+      "paidAbovePrice": "دفعات البيع «{value}» تتجاوز سعره.",
+      "unitNotInResidence": "الوحدة «{code}» ليست في الإقامة.",
+      "share": "حصة غير صالحة (عدد صحيح).",
+      "shareTwice": "حصتان مختلفتان للوحدة «{code}»."
+    },
+    "warnings": {
+      "unitExists": "الوحدة «{code}» موجودة مسبقاً.",
+      "buyerExists": "لـ{name} ملف مسبقاً.",
+      "residentExists": "{name} مسجل مسبقاً في هذه الوحدة."
     }
   }
 }

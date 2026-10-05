@@ -188,12 +188,16 @@ async function writeShares(
 }
 
 /** Tantièmes entered by the manager, saved as a whole. */
-export async function saveShares(ctx: TenantCtx, input: In<typeof saveSharesSchema>) {
+export async function saveShares(ctx: TenantCtx, input: In<typeof saveSharesSchema>, outer?: Tx) {
   assertCan(ctx, "residence:update");
-  return withTenant(ctx, async (tx) => {
-    await loadResidence(tx, input.residenceId, { forUpdate: true });
-    return writeShares(tx, ctx, input.residenceId, input.shares, "manual");
-  });
+  return withTenant(
+    ctx,
+    async (tx) => {
+      await loadResidence(tx, input.residenceId, { forUpdate: true });
+      return writeShares(tx, ctx, input.residenceId, input.shares, "manual");
+    },
+    outer,
+  );
 }
 
 /**
@@ -241,28 +245,32 @@ async function clearMain(tx: Tx, unitId: string, kind: "co_owner" | "occupant") 
 }
 
 /** A co-owner or occupant of a unit of the residence. */
-export async function addResident(ctx: TenantCtx, input: In<typeof addResidentSchema>) {
+export async function addResident(ctx: TenantCtx, input: In<typeof addResidentSchema>, outer?: Tx) {
   assertCan(ctx, "residence:update");
-  return withTenant(ctx, async (tx) => {
-    await loadResidence(tx, input.residenceId);
-    const [member] = await tx
-      .select({ unitId: residenceUnit.unitId })
-      .from(residenceUnit)
-      .where(
-        and(
-          eq(residenceUnit.residenceId, input.residenceId),
-          eq(residenceUnit.unitId, input.unitId),
-        ),
-      );
-    if (!member) throw invalid("unitId", "residences.errors.unitNotInResidence");
-    if (input.isMain) await clearMain(tx, input.unitId, input.kind);
-    const [row] = await tx
-      .insert(resident)
-      .values({ ...input, organizationId: ctx.orgId, createdBy: ctx.userId })
-      .returning({ id: resident.id });
-    if (!row) throw new Error("addResident: no row returned");
-    return { id: row.id };
-  });
+  return withTenant(
+    ctx,
+    async (tx) => {
+      await loadResidence(tx, input.residenceId);
+      const [member] = await tx
+        .select({ unitId: residenceUnit.unitId })
+        .from(residenceUnit)
+        .where(
+          and(
+            eq(residenceUnit.residenceId, input.residenceId),
+            eq(residenceUnit.unitId, input.unitId),
+          ),
+        );
+      if (!member) throw invalid("unitId", "residences.errors.unitNotInResidence");
+      if (input.isMain) await clearMain(tx, input.unitId, input.kind);
+      const [row] = await tx
+        .insert(resident)
+        .values({ ...input, organizationId: ctx.orgId, createdBy: ctx.userId })
+        .returning({ id: resident.id });
+      if (!row) throw new Error("addResident: no row returned");
+      return { id: row.id };
+    },
+    outer,
+  );
 }
 
 /**

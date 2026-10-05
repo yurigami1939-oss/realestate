@@ -176,33 +176,37 @@ export async function deleteBuilding(ctx: TenantCtx, input: In<typeof deleteBuil
 
 // ── Units ───────────────────────────────────────────────────────────────────
 
-export async function createUnit(ctx: TenantCtx, input: In<typeof createUnitSchema>) {
+export async function createUnit(ctx: TenantCtx, input: In<typeof createUnitSchema>, outer?: Tx) {
   assertCan(ctx, "unit:create");
-  return withTenant(ctx, async (tx) => {
-    const parent = await getLiveBuilding(tx, input.buildingId);
-    assertFloorInBuilding(input.floor, parent);
-    const created = await uniqueCode(async () => {
-      const [row] = await tx
-        .insert(unit)
-        .values({
-          ...input,
-          organizationId: ctx.orgId,
-          projectId: parent.projectId,
-          createdBy: ctx.userId,
-        })
-        .returning({ id: unit.id });
-      if (!row) throw new AppError("UNEXPECTED");
-      return row;
-    });
-    await tx.insert(unitStatusHistory).values({
-      organizationId: ctx.orgId,
-      unitId: created.id,
-      fromStatus: null,
-      toStatus: "available",
-      actorUserId: ctx.userId,
-    });
-    return created;
-  });
+  return withTenant(
+    ctx,
+    async (tx) => {
+      const parent = await getLiveBuilding(tx, input.buildingId);
+      assertFloorInBuilding(input.floor, parent);
+      const created = await uniqueCode(async () => {
+        const [row] = await tx
+          .insert(unit)
+          .values({
+            ...input,
+            organizationId: ctx.orgId,
+            projectId: parent.projectId,
+            createdBy: ctx.userId,
+          })
+          .returning({ id: unit.id });
+        if (!row) throw new AppError("UNEXPECTED");
+        return row;
+      });
+      await tx.insert(unitStatusHistory).values({
+        organizationId: ctx.orgId,
+        unitId: created.id,
+        fromStatus: null,
+        toStatus: "available",
+        actorUserId: ctx.userId,
+      });
+      return created;
+    },
+    outer,
+  );
 }
 
 /** Edits the unit sheet. Status and price have their own audited paths. */
@@ -307,10 +311,16 @@ export async function generateUnits(ctx: TenantCtx, input: In<typeof generateUni
   });
 }
 
-export async function blockUnit(ctx: TenantCtx, input: In<typeof unitStatusReasonSchema>) {
+export async function blockUnit(
+  ctx: TenantCtx,
+  input: In<typeof unitStatusReasonSchema>,
+  outer?: Tx,
+) {
   assertCan(ctx, "unit:block");
-  await withTenant(ctx, (tx) =>
-    transitionUnit(tx, ctx, input.unitId, "blocked", { reason: input.reason }),
+  await withTenant(
+    ctx,
+    (tx) => transitionUnit(tx, ctx, input.unitId, "blocked", { reason: input.reason }),
+    outer,
   );
 }
 
@@ -332,34 +342,42 @@ export async function unblockUnit(ctx: TenantCtx, input: In<typeof unitStatusRea
 }
 
 /** One-off list-price change (price lists change many units at once). Audited. */
-export async function updateUnitPrice(ctx: TenantCtx, input: In<typeof updateUnitPriceSchema>) {
+export async function updateUnitPrice(
+  ctx: TenantCtx,
+  input: In<typeof updateUnitPriceSchema>,
+  outer?: Tx,
+) {
   assertCan(ctx, "price:update");
-  await withTenant(ctx, async (tx) => {
-    const [current] = await tx
-      .select({ listPrice: unit.listPrice })
-      .from(unit)
-      .where(and(eq(unit.id, input.unitId), isNull(unit.deletedAt)))
-      .for("update");
-    if (!current) throw new AppError("NOT_FOUND");
-    if (current.listPrice === input.price) return;
+  await withTenant(
+    ctx,
+    async (tx) => {
+      const [current] = await tx
+        .select({ listPrice: unit.listPrice })
+        .from(unit)
+        .where(and(eq(unit.id, input.unitId), isNull(unit.deletedAt)))
+        .for("update");
+      if (!current) throw new AppError("NOT_FOUND");
+      if (current.listPrice === input.price) return;
 
-    await tx.update(unit).set({ listPrice: input.price }).where(eq(unit.id, input.unitId));
-    await tx.insert(unitPriceHistory).values({
-      organizationId: ctx.orgId,
-      unitId: input.unitId,
-      oldPrice: current.listPrice,
-      newPrice: input.price,
-      reason: input.reason,
-      actorUserId: ctx.userId,
-    });
-    await recordAudit(tx, ctx, {
-      actorUserId: ctx.userId,
-      action: "unit.price_change",
-      entityType: "unit",
-      entityId: input.unitId,
-      before: { listPrice: current.listPrice },
-      after: { listPrice: input.price },
-      reason: input.reason,
-    });
-  });
+      await tx.update(unit).set({ listPrice: input.price }).where(eq(unit.id, input.unitId));
+      await tx.insert(unitPriceHistory).values({
+        organizationId: ctx.orgId,
+        unitId: input.unitId,
+        oldPrice: current.listPrice,
+        newPrice: input.price,
+        reason: input.reason,
+        actorUserId: ctx.userId,
+      });
+      await recordAudit(tx, ctx, {
+        actorUserId: ctx.userId,
+        action: "unit.price_change",
+        entityType: "unit",
+        entityId: input.unitId,
+        before: { listPrice: current.listPrice },
+        after: { listPrice: input.price },
+        reason: input.reason,
+      });
+    },
+    outer,
+  );
 }
