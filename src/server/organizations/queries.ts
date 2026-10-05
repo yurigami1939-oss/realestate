@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, asc, eq, gt } from "drizzle-orm";
+import { and, asc, eq, gt, ne } from "drizzle-orm";
 
 import { db } from "@/db/client";
 import { invitation, member, organization, user } from "@/db/schema";
@@ -74,12 +74,13 @@ const memberColumns = {
   joinedAt: member.createdAt,
 };
 
+/** Staff of the organization: portal accounts (role `resident` only) are managed from their records. */
 export async function listMembers(orgId: string): Promise<MemberRow[]> {
   const rows = await db
     .select(memberColumns)
     .from(member)
     .innerJoin(user, eq(user.id, member.userId))
-    .where(eq(member.organizationId, orgId))
+    .where(and(eq(member.organizationId, orgId), ne(member.role, "resident")))
     .orderBy(asc(member.createdAt));
   return rows.map(({ role, ...r }) => ({ ...r, roles: parseRoles(role) }));
 }
@@ -98,6 +99,7 @@ export async function getMember(orgId: string, memberId: string): Promise<Member
 
 export type InvitationRow = { id: string; email: string; roles: Role[]; expiresAt: Date };
 
+/** Pending staff invitations (portal invitations are shown on their records). */
 export async function listPendingInvitations(orgId: string): Promise<InvitationRow[]> {
   const rows = await db
     .select({
@@ -111,6 +113,7 @@ export async function listPendingInvitations(orgId: string): Promise<InvitationR
       and(
         eq(invitation.organizationId, orgId),
         eq(invitation.status, "pending"),
+        ne(invitation.role, "resident"),
         gt(invitation.expiresAt, new Date()),
       ),
     )

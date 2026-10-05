@@ -26,6 +26,7 @@ import {
   importSaleBuyersAction,
   saveSharesAction,
 } from "@/server/residences/actions";
+import type { PortalAccess } from "@/server/portal/invitations";
 import type { ResidenceDetail, UnitResident } from "@/server/residences/queries";
 
 import { UnitResidents } from "./unit-residents";
@@ -36,11 +37,13 @@ export function SharesEditor({
   history,
   editable,
   today,
+  portal,
 }: {
   residence: ResidenceDetail;
   history: UnitResident[];
   editable: boolean;
   today: string;
+  portal: { access: Record<string, PortalAccess>; editable: boolean };
 }) {
   const t = useTranslations("residences");
   const translate = useTranslateKey();
@@ -145,6 +148,7 @@ export function SharesEditor({
                       history={history.filter((r) => r.unitId === u.unitId)}
                       editable={editable}
                       today={today}
+                      portal={portal}
                     />
                   </TableCell>
                 </TableRow>

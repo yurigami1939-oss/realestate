@@ -67,6 +67,8 @@ export const statement = {
   assembly: ["read", "update"],
   /** Announcements to the residents of a residence (notices, portal). */
   announcement: ["read", "update"],
+  /** Inviting buyers and co-owners / occupants to the portal (and withdrawing their access). */
+  portal: ["invite"],
 } as const;
 
 export const ac = createAccessControl(statement);
@@ -104,6 +106,7 @@ export const roles = {
     ticket: ["read", "create", "update"],
     assembly: ["read", "update"],
     announcement: ["read", "update"],
+    portal: ["invite"],
   }),
   sales_manager: ac.newRole({
     inventory: ["read"],
@@ -118,6 +121,7 @@ export const roles = {
     payment: ["read"],
     milestone: ["validate"],
     commission: ["read", "read_all"],
+    portal: ["invite"],
   }),
   sales_agent: ac.newRole({
     inventory: ["read"],
@@ -157,6 +161,7 @@ export const roles = {
     ticket: ["read", "create", "update"],
     assembly: ["read", "update"],
     announcement: ["read", "update"],
+    portal: ["invite"],
   }),
   resident: ac.newRole({}),
 };
@@ -191,6 +196,10 @@ export function parseRoles(value: string | null | undefined): Role[] {
     .map((r) => r.trim())
     .filter(isRole);
 }
+
+/** A portal account (buyer, co-owner or occupant): no back-office role in this organization. */
+export const isPortalOnly = (userRoles: readonly Role[]): boolean =>
+  userRoles.length > 0 && userRoles.every((role) => role === "resident");
 
 export function can(userRoles: readonly Role[], permission: Permission): boolean {
   const [resource, action] = permission.split(":") as [keyof Statement, string];

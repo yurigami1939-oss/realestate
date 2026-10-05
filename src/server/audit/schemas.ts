@@ -24,6 +24,7 @@ export const auditEntityTypes = [
   "supplier_invoice",
   "staff_member",
   "general_assembly",
+  "portal_link",
 ] as const;
 export type AuditEntityType = (typeof auditEntityTypes)[number];
 

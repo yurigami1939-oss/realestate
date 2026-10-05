@@ -10,7 +10,7 @@ import ar from "../../../messages/ar.json";
 import fr from "../../../messages/fr.json";
 
 const catalogs = { fr, ar } as const;
-type EmailKind = "invitation" | "resetPassword";
+type EmailKind = "invitation" | "portalInvitation" | "resetPassword";
 type Values = Record<string, string>;
 
 const escapeHtml = (value: string) =>
@@ -52,6 +52,21 @@ export function invitationEmail(input: {
 }): EmailMessage {
   return bilingual(
     "invitation",
+    input.to,
+    { organization: input.organization, inviter: input.inviter },
+    input.url,
+  );
+}
+
+/** Invitation of a buyer, co-owner or occupant to the portal (bilingual, like staff ones). */
+export function portalInvitationEmail(input: {
+  to: string;
+  organization: string;
+  inviter: string;
+  url: string;
+}): EmailMessage {
+  return bilingual(
+    "portalInvitation",
     input.to,
     { organization: input.organization, inviter: input.inviter },
     input.url,

@@ -94,7 +94,7 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
     │   │   ├── (auth)/       # sign-in, sign-up, forgot/reset password, onboarding, accept-invitation
     │   │   ├── (app)/        # back-office shell (guard + sidebar) · dashboard · settings (members,
     │   │   │                 # company + logo, audit log) · projects · leads · buyers · sales · commissions
-    │   │   └── (portal)/     # buyer/resident portal (Phase 2)
+    │   │   └── (portal)/     # portal of buyers, co-owners and occupants (module 7): own shell, /portal
     │   ├── api/auth/[...all] # Better Auth handler (Route Handlers: auth, files, webhooks, /api/v1)
     │   ├── api/files/        # upload (POST) · [fileId] download (GET → presigned redirect)
     │   └── fonts.ts          # next/font/local for the shared font
@@ -159,6 +159,8 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
     │   ├── assemblies/       # general assemblies: agenda, convening, attendance and proxies, votes,
     │   │                     # closing (frozen results), convocation and minutes PDFs (documents.ts)
     │   ├── announcements/    # residence announcements: drafts, publication (printable notice), withdrawal
+    │   ├── portal/           # portal access (invitations.ts, link.ts), context.ts (getPortalCtx, portalScope),
+    │   │                     # page-guard.ts (requirePortalCtx), queries.ts (portal pages)
     │   ├── documents/        # render.ts: `pdf.document` dispatcher (one renderer per kind)
     │   └── <module>/         # schemas.ts (isomorphic) · queries.ts · service.ts · actions.ts · *.test.ts
     ├── jobs/                 # queues.ts (names, retry policy, payload types), enqueue.ts, worker.ts, handlers/
@@ -212,6 +214,8 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 - Member management (invite, cancel, change roles, remove) goes through `src/server/organizations/service.ts`: our permission check + owner protection, Better Auth performs the change, then `recordAudit` with the acting user. Joining and organization creation are audited by Better Auth hooks.
 - `proxy.ts` does locale routing only; `(app)/layout.tsx` redirects to `/sign-in` or `/onboarding`.
 - Post-login redirects go through `safeNext()` (same-site paths only).
+- **Portal accounts** (module 7): a member whose only role is `resident` (`isPortalOnly`). They see the `(portal)` shell only: `requireTenantCtx()` and the back-office layout redirect them to `/portal`, the portal layout sends staff back to `/dashboard`. Portal pages use `requirePortalCtx()` → `PortalCtx { userId, orgId, name, locale }`; every portal query starts from `portalScope(tx, ctx)` (the account's live `portal_link` rows: buyer files, co-owners / occupants still current) and never takes a record id from the client without checking it belongs to that scope. Staff lists (`listMembers`, `listPendingInvitations`) leave portal accounts and invitations out.
+- **Portal invitations** (`portal:invite`: gérant, directeur commercial, gestionnaire; `buyer:update` for a buyer file, `residence:update` for a co-owner / occupant): `inviteToPortal` inserts a Better Auth `invitation` row (role `resident`, 7 days) itself — staff below the gérant have no Better Auth `invitation:create` — and e-mails it bilingually; the existing accept-invitation page accepts it and the `afterAcceptInvitation` hook (`linkPortalAccount`) gives the account every record waiting on its e-mail. An e-mail already used by a portal account of the organization is linked at once; a staff member's e-mail is refused. One live link per record; withdrawing it (`revokePortalLink`) keeps the row (revoked) and cancels an invitation nobody else waits on. Audited `portal.invite` / `portal.revoke`.
 
 | Role | FR | Scope today (extended per module) |
 |---|---|---|
@@ -221,7 +225,7 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 | `accountant` | Comptable | Audit read; all sales (read), payments (record, cancel), withdrawal refunds, reminder letters, commissions (mark paid) |
 | `cashier` | Caissier | All sales (read); record payments (receipts), clear cheques, withdrawal refunds, reminder letters |
 | `property_manager` | Gestionnaire de résidence | Phase 2: residence module |
-| `resident` | Acquéreur / résident | Portal only (Phase 2), own records only |
+| `resident` | Acquéreur / résident | Portal only (module 7): the records linked to the account by invitation (`portal_link`) |
 
 ### Jobs (pg-boss)
 - Schema `pgboss` is owned by the app role; `db:migrate` creates it and creates/updates every queue declared in `src/jobs/queues.ts` (name, retry policy, payload type).
@@ -310,6 +314,7 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 | Fournisseur / Prestataire, contrat, facture | `supplier` / `supplier_contract` / `supplier_invoice` | |
 | Agent de sécurité, femme de ménage… | `staff_member` | `staff_role` enum |
 | Pointage / Paie / Avance sur salaire | `attendance` / `payroll` / `salary_advance` | |
+| Espace client (portail) / accès | `portal_link` | one live link per buyer file or resident record; `user_id` set at acceptance |
 | Annonce / avis aux résidents | `announcement` | `announcement_category`: `general`, `works`, `outage`, `meeting`, `safety`; state `draft` → `published` → `archived` (`expired` derived) |
 | Assemblée générale, résolution, feuille de présence, vote | `general_assembly` / `assembly_resolution` / `assembly_attendance` / `assembly_vote` | `assembly_kind`: `ordinary`, `extraordinary`; attendance `present`, `represented` (with `proxy_name`), `absent` |
 | Procès-verbal (PV) / Convocation | `general_assembly.minutes_file_id` / `convocation_file_id` | bilingual PDFs |
@@ -559,6 +564,10 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
   - [x] Announcements: drafts, publication with a printable bilingual notice, withdrawal, expiry
   - [x] Seed (delivered « Résidence El Yasmine »: co-owners, charges, calls, payments, overdue, suppliers, staff, tickets, assemblies, announcements) and e2e golden path
 - [ ] Module 7 — Buyer/resident portal
+  - [x] Access: invitations from buyer files and co-owner / occupant records, linking at acceptance, portal shell and home
+  - [ ] Buyer pages: schedule and payments, sale documents, construction progress, bank loan
+  - [ ] Residence pages: charges account, announcements, tickets, general assemblies (occupants: announcements and tickets)
+  - [ ] Seed and e2e
 
 ### Phase 3
 - [ ] Module 4 — Construction & delivery
@@ -651,6 +660,9 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 | 2026-10-04 | The PV names the units that voted against or abstained on each resolution and carries the attendance sheet as an annex; the convocation and the PV are filed under the residence. |
 | 2026-10-04 | Announcements: per residence, written as drafts by the gérant or the gestionnaire; publishing renders a bilingual notice to post in the building and (module 7) shows it on the residents' portal; published announcements no longer change (withdraw and rewrite instead); an optional last day hides them automatically. No e-mail or SMS to residents (WhatsApp is Phase 3). |
 | 2026-10-05 | Demo residence: a separate project delivered in 2023, before the app (« Résidence El Yasmine », status `delivered`), whose units are **blocked** with that reason so they never count as stock for sale, and whose co-owners are entered by hand. Product gap to settle with module 4: a project delivered before the app has no unit status of its own (`delivered` only comes from a handover). |
+| 2026-10-05 | **Portal access (user)**: by invitation from the back office only — staff invite a buyer file or a co-owner / occupant record; the bilingual e-mail creates the account (role `resident`) already linked to that record. |
+| 2026-10-05 | **Portal content (user)**: buyers see their schedule and payments (receipts), sale documents (reservation sheet, payment calls, reminder letters, signed scans), construction progress and their bank loan's stage; co-owners see their charges account (calls, payments, receipts, reminder letters), announcements, tickets (open and follow) and general assemblies (convocations, PVs); **occupants** get a limited access: announcements and tickets only. |
+| 2026-10-05 | Portal invitations are created by our service (a Better Auth invitation row with role `resident`) rather than Better Auth's API, so the directeur commercial and the gestionnaire can invite without the staff `invitation:create` right; portal accounts and invitations are kept off the members page. |
 
 ### Open items
 - **GitHub**: repo `yurigami1939-oss/realestate` is **public** — make it private before real client data or configuration lands. Steps are committed straight to `main` (CI runs on every push).

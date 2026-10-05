@@ -12,6 +12,7 @@ import { todayInAlgiers } from "@/lib/dates";
 import { formatShare } from "@/lib/payment-plans";
 import { can } from "@/lib/permissions";
 import { requirePermission } from "@/server/auth/page-guard";
+import { getPortalAccess } from "@/server/portal/invitations";
 import { getResidence, listUnitResidents } from "@/server/residences/queries";
 
 import { ResidenceNav } from "./_components/residence-nav";
@@ -41,6 +42,14 @@ export default async function ResidencePage({
   const t = await getTranslations("residences");
   const tc = await getTranslations("common");
   const editable = can(ctx.roles, "residence:update");
+  const portalAccess = await getPortalAccess(
+    ctx,
+    history.filter((r) => r.untilOn === null).map((r) => ({ kind: "resident" as const, id: r.id })),
+  );
+  const portal = {
+    access: Object.fromEntries(portalAccess),
+    editable: editable && can(ctx.roles, "portal:invite"),
+  };
   const place = [residence.address, residence.commune, residence.wilaya].filter(Boolean).join(", ");
 
   return (
@@ -94,6 +103,7 @@ export default async function ResidencePage({
             history={history}
             editable={editable}
             today={todayInAlgiers()}
+            portal={portal}
           />
         </CardContent>
       </Card>

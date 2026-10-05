@@ -5,6 +5,7 @@ import { Separator } from "@/components/ui/separator";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { redirect } from "@/i18n/navigation";
 import { localeDirection, toLocale } from "@/i18n/locales";
+import { isPortalOnly } from "@/lib/permissions";
 import { getSession, getTenantCtx } from "@/server/auth/session";
 import { listUserOrganizations } from "@/server/organizations/queries";
 
@@ -21,6 +22,7 @@ export default async function AppLayout({ children, params }: LayoutProps<"/[loc
 
   const t = await getTranslations("shell");
   const ctx = await getTenantCtx();
+  if (isPortalOnly(ctx.roles)) return redirect({ href: "/portal", locale });
 
   return (
     <SidebarProvider>

@@ -15,6 +15,7 @@ import { ac, parseRoles, roles } from "@/lib/permissions";
 import { recordAudit } from "@/server/audit/record-audit";
 import { sendEmailLater } from "@/server/email/send-later";
 import { invitationEmail, resetPasswordEmail } from "@/server/email/templates";
+import { linkPortalAccount } from "@/server/portal/link";
 
 import {
   authIdStrategy,
@@ -86,6 +87,10 @@ export const auth = betterAuth({
           );
         },
         afterAcceptInvitation: async ({ organization: org, member: joined, user }) => {
+          // A portal invitation: the records waiting on this e-mail join the account.
+          if (parseRoles(joined.role).includes("resident")) {
+            await linkPortalAccount(org.id, { id: user.id, email: user.email });
+          }
           await withTenant({ orgId: org.id }, (tx) =>
             recordAudit(
               tx,

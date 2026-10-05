@@ -6,6 +6,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { PageHeader } from "@/components/app-shell/page-header";
 import { PhoneActions, PhoneText } from "@/components/crm/phone";
+import { PortalAccessControl } from "@/components/portal/portal-access";
 import { SaleStatusBadge } from "@/components/sales/badges";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -18,6 +19,7 @@ import { formatDZD } from "@/lib/money";
 import { can } from "@/lib/permissions";
 import { requirePermission } from "@/server/auth/page-guard";
 import { getBuyer, type BuyerDetail } from "@/server/buyers/queries";
+import { getPortalAccess, type PortalAccess } from "@/server/portal/invitations";
 import { listBuyerSales } from "@/server/sales/sale-queries";
 
 import { DocumentsChecklist } from "./_components/documents-checklist";
@@ -43,6 +45,10 @@ export default async function BuyerPage({ params }: PageProps<"/[locale]/buyers/
   const sales = can(ctx.roles, "sale:read") ? await listBuyerSales(ctx, buyer.id) : null;
   const ts = await getTranslations("sales");
   const money = (v: bigint) => formatDZD(v, toLocale(locale));
+  const portal = {
+    access: (await getPortalAccess(ctx, [{ kind: "buyer", id: buyer.id }])).get(buyer.id) ?? null,
+    editable: editable && can(ctx.roles, "portal:invite"),
+  };
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
@@ -79,7 +85,7 @@ export default async function BuyerPage({ params }: PageProps<"/[locale]/buyers/
       />
       <div className="grid gap-6 lg:grid-cols-3">
         <IdentityCard buyer={buyer} />
-        <ContactCard buyer={buyer} />
+        <ContactCard buyer={buyer} portal={portal} />
       </div>
       {sales && sales.length > 0 ? (
         <Card>
@@ -206,8 +212,15 @@ function IdentityCard({ buyer }: { buyer: BuyerDetail }) {
   );
 }
 
-function ContactCard({ buyer }: { buyer: BuyerDetail }) {
+function ContactCard({
+  buyer,
+  portal,
+}: {
+  buyer: BuyerDetail;
+  portal: { access: PortalAccess | null; editable: boolean };
+}) {
   const t = useTranslations("buyers");
+  const tp = useTranslations("portal.access");
   return (
     <Card>
       <CardHeader>
@@ -249,6 +262,15 @@ function ContactCard({ buyer }: { buyer: BuyerDetail }) {
         {buyer.notes ? (
           <p className="text-sm whitespace-pre-line text-muted-foreground">{buyer.notes}</p>
         ) : null}
+        <div className="space-y-2 border-t pt-3">
+          <div className="text-sm font-medium">{tp("title")}</div>
+          <PortalAccessControl
+            target={{ kind: "buyer", id: buyer.id }}
+            email={buyer.email}
+            access={portal.access}
+            editable={portal.editable}
+          />
+        </div>
       </CardContent>
     </Card>
   );

@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 import { demoUsers } from "../src/db/seed/demo";
+import { isPortalOnly } from "../src/lib/permissions";
 
 import { authFile, email, signIn } from "./helpers";
 
@@ -24,8 +25,9 @@ test("the gérant manages members, switches organization and language", async ({
   await signIn(page, "owner");
 
   await page.getByRole("link", { name: "Membres" }).click();
+  // Staff only: portal accounts (role resident) are managed from their records.
   await expect(page.getByTestId("members-table").getByRole("row")).toHaveCount(
-    demoUsers.length + 1,
+    demoUsers.filter((u) => !isPortalOnly(u.roles)).length + 1,
   );
   await expect(page.getByRole("heading", { name: "Inviter un membre" })).toBeVisible();
 

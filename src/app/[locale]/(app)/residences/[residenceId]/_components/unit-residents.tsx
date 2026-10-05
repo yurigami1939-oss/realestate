@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import type { z } from "zod";
 
 import { PhoneText } from "@/components/crm/phone";
+import { PortalAccessControl } from "@/components/portal/portal-access";
 import { applyFieldErrors } from "@/components/forms/apply-field-errors";
 import { CheckboxField, SelectField } from "@/components/forms/fields";
 import { TextField } from "@/components/forms/text-field";
@@ -28,6 +29,7 @@ import { Input } from "@/components/ui/input";
 import { formatDate } from "@/lib/dates";
 import { residentKinds } from "@/lib/residences";
 import { addResidentAction, endResidentAction } from "@/server/residences/actions";
+import type { PortalAccess } from "@/server/portal/invitations";
 import type { UnitResident } from "@/server/residences/queries";
 import { addResidentSchema } from "@/server/residences/schemas";
 
@@ -63,7 +65,7 @@ function EndResident({ residentId, today }: { residentId: string; today: string 
   );
 }
 
-/** Co-owners and occupants of a unit over time; add one, end one. */
+/** Co-owners and occupants of a unit over time; add one, end one, invite one to the portal. */
 export function UnitResidents({
   residenceId,
   unitId,
@@ -71,6 +73,7 @@ export function UnitResidents({
   history,
   editable,
   today,
+  portal,
 }: {
   residenceId: string;
   unitId: string;
@@ -78,6 +81,7 @@ export function UnitResidents({
   history: UnitResident[];
   editable: boolean;
   today: string;
+  portal: { access: Record<string, PortalAccess>; editable: boolean };
 }) {
   const t = useTranslations("residences.residents");
   const tc = useTranslations("common");
@@ -148,6 +152,16 @@ export function UnitResidents({
                       {r.phone && details ? " · " : null}
                       {details}
                     </div>
+                    {r.untilOn === null ? (
+                      <div className="mt-1">
+                        <PortalAccessControl
+                          target={{ kind: "resident", id: r.id }}
+                          email={r.email}
+                          access={portal.access[r.id] ?? null}
+                          editable={portal.editable}
+                        />
+                      </div>
+                    ) : null}
                   </div>
                   {editable && r.untilOn === null ? (
                     <EndResident residentId={r.id} today={today} />

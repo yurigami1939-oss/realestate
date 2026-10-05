@@ -14,7 +14,9 @@ import {
   generalAssembly,
   member,
   payment,
+  portalLink,
   priceList,
+  resident,
   staffMember,
   supplierInvoice,
   unit,
@@ -208,6 +210,22 @@ async function recordLinks(
       .where(inArray(staffMember.id, staffIds));
     for (const a of agents) {
       links.set(`staff_member:${a.id}`, `/residences/${a.residenceId}/staff/${a.id}`);
+    }
+  }
+  const portalIds = ids("portal_link");
+  if (portalIds.length > 0) {
+    const accesses = await tx
+      .select({
+        id: portalLink.id,
+        buyerId: portalLink.buyerId,
+        residenceId: resident.residenceId,
+      })
+      .from(portalLink)
+      .leftJoin(resident, eq(resident.id, portalLink.residentId))
+      .where(inArray(portalLink.id, portalIds));
+    for (const a of accesses) {
+      if (a.buyerId) links.set(`portal_link:${a.id}`, `/buyers/${a.buyerId}`);
+      else if (a.residenceId) links.set(`portal_link:${a.id}`, `/residences/${a.residenceId}`);
     }
   }
   const assemblyIds = ids("general_assembly");

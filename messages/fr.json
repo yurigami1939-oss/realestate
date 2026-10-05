@@ -189,6 +189,12 @@
       "more": "… et {count} autres lots (voir la liste complète).",
       "cta": "Voir les charges impayées",
       "promoter": "Promoteur"
+    },
+    "portalInvitation": {
+      "subject": "Votre espace client {organization}",
+      "body": "{inviter} vous invite à votre espace client {organization} sur PRODUCT_NAME : vos acquisitions, paiements, documents et la vie de votre résidence.",
+      "notice": "Ce lien est valable 7 jours. Créez votre compte avec cette adresse e-mail.",
+      "cta": "Accéder à mon espace"
     }
   },
   "nav": {
@@ -1447,7 +1453,8 @@
       "charge_payment": "Paiement de charges",
       "supplier_invoice": "Facture fournisseur",
       "staff_member": "Agent de résidence",
-      "general_assembly": "Assemblée générale"
+      "general_assembly": "Assemblée générale",
+      "portal_link": "Accès à l'espace client"
     },
     "actions": {
       "organization": {
@@ -1550,6 +1557,10 @@
       "assembly": {
         "convene": "Assemblée générale convoquée",
         "close": "Assemblée générale clôturée"
+      },
+      "portal": {
+        "invite": "Invitation à l'espace client",
+        "revoke": "Accès à l'espace client retiré"
       }
     }
   },
@@ -2554,6 +2565,52 @@
       "notPublished": "Cette annonce n'est pas publiée.",
       "archived": "Cette annonce est déjà retirée.",
       "expiresPast": "La date de fin d'affichage est passée."
+    }
+  },
+  "portal": {
+    "access": {
+      "title": "Espace client",
+      "none": "Pas encore d'accès à l'espace client.",
+      "noEmail": "Ajoutez une adresse e-mail pour l'inviter à l'espace client.",
+      "state": {
+        "active": "Compte actif · {email}",
+        "invited": "Invitation envoyée · {email}",
+        "expired": "Invitation expirée · {email}"
+      },
+      "invite": "Inviter à l'espace client",
+      "reinvite": "Renvoyer l'invitation",
+      "inviteTitle": "Inviter à l'espace client ?",
+      "inviteDescription": "Une invitation est envoyée à {email} ; elle est valable 7 jours. La personne verra uniquement ses propres dossiers.",
+      "invitedDone": "Invitation envoyée.",
+      "linkedDone": "Dossier ajouté à son espace client existant.",
+      "revoke": "Retirer l'accès",
+      "revokeTitle": "Retirer l'accès à l'espace client ?",
+      "revokeDescription": "Ce dossier ne sera plus visible depuis son espace client.",
+      "revokedDone": "Accès retiré."
+    },
+    "shell": {
+      "title": "Espace client",
+      "nav": {
+        "label": "Rubriques de l'espace client",
+        "home": "Accueil"
+      }
+    },
+    "home": {
+      "welcome": "Bonjour {name}",
+      "empty": "Aucun dossier n'est encore lié à votre compte. Contactez votre promoteur pour qu'il vous y donne accès.",
+      "sales": "Mes acquisitions",
+      "units": "Mes lots en résidence",
+      "reservedOn": "réservé le {date}",
+      "kind": {
+        "co_owner": "Copropriétaire",
+        "occupant": "Occupant"
+      }
+    },
+    "errors": {
+      "noEmail": "Ce dossier n'a pas d'adresse e-mail.",
+      "alreadyActive": "Ce dossier est déjà visible depuis un espace client.",
+      "staffEmail": "Cette adresse est celle d'un membre de l'équipe.",
+      "revoked": "Cet accès est déjà retiré."
     }
   }
 }
