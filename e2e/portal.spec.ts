@@ -24,6 +24,11 @@ test.describe("acquéreur et copropriétaire", () => {
     await expect(page.getByTestId("portal-schedule").getByRole("row").nth(1)).toBeVisible();
     await expect(page.getByTestId("portal-payments")).toContainText("Virement");
     await expect(page.getByTestId("portal-progress")).toBeVisible();
+    // Construction reports: the published ones only, with their site photos.
+    const reports = page.getByTestId("portal-reports");
+    await expect(reports).toContainText("Gros œuvre achevé");
+    await expect(reports).not.toContainText("Réunion de chantier");
+    await expect(reports.getByRole("img").first()).toBeVisible();
     await expectPdf(
       page,
       page.getByTestId("portal-payments").getByRole("link", { name: /^Reçu REC-/ }),

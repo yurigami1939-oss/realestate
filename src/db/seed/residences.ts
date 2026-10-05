@@ -1,7 +1,8 @@
 /**
  * Demo residence management (module 6): « Résidence El Yasmine », a building delivered in 2023,
- * before the app — its project is `delivered` and its units are blocked, so they never show as
- * stock for sale — whose co-owners were entered by hand. Charges (categories, an approved
+ * before the app — its project is `delivered`, the units sold then are marked delivered before
+ * the app (module 4) and the shop the company kept is blocked — whose co-owners were entered by
+ * hand. Charges (categories, an approved
  * budget, two quarters called: the first overdue for two co-owners, one of whom got a reminder
  * letter), suppliers with a contract and invoices, two agents with attendance, an advance and
  * their pay, tickets, a closed general assembly with its PV, an upcoming one and announcements.
@@ -57,6 +58,8 @@ import {
   createUnitSchema,
   unitStatusReasonSchema,
 } from "@/server/inventory/schemas";
+import { pastDeliveriesSchema } from "@/server/handovers/schemas";
+import { recordPastDeliveries } from "@/server/handovers/service";
 import { blockUnit, createBuilding, createProject, createUnit } from "@/server/inventory/service";
 import { addResidentSchema, createResidenceSchema } from "@/server/residences/schemas";
 import { addResident, createResidence, distributeSharesByArea } from "@/server/residences/service";
@@ -192,7 +195,7 @@ const need = (map: Map<string, string>, key: string) => {
   return value;
 };
 
-/** The delivered project, its building and units (blocked: never stock for sale). */
+/** The delivered project, its building and units. */
 async function seedBuilding(owner: TenantCtx) {
   const { id: projectId } = await createProject(
     owner,
@@ -235,7 +238,6 @@ async function seedBuilding(owner: TenantCtx) {
         orientations: [],
       }),
     );
-    await blockUnit(owner, unitStatusReasonSchema.parse({ unitId: id, reason: DELIVERED }));
     unitIds.set(unitCode, id);
   }
   return { projectId, unitIds };
@@ -890,6 +892,23 @@ export async function seedResidences(actors: Actors) {
       firstName: "Anis",
       phone: "0663 27 54 81",
       sinceOn: "2025-09-01",
+    }),
+  );
+  // The flats and the shop sold in 2023 were handed over before the app; the company keeps
+  // the other shop (never stock for sale).
+  await recordPastDeliveries(
+    owner,
+    pastDeliveriesSchema.parse({
+      projectId,
+      unitIds: [...new Set(coOwners.map((c) => need(unitIds, c.unit)))],
+      reason: DELIVERED,
+    }),
+  );
+  await blockUnit(
+    owner,
+    unitStatusReasonSchema.parse({
+      unitId: need(unitIds, code(0, 2)),
+      reason: "Local commercial conservé par la société",
     }),
   );
   const { categories, budgetId } = await seedCharges(manager, residenceId, unitIds);

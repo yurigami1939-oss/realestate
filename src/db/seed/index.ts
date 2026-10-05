@@ -6,8 +6,10 @@ import type { Role } from "@/lib/permissions";
 import { auth } from "@/server/auth/auth";
 import type { TenantCtx } from "@/server/auth/session";
 
+import { seedConstruction } from "./construction";
 import { DEMO_PASSWORD, demoOrganizations, demoUsers } from "./demo";
 import { seedCrm } from "./crm";
+import { seedDeliveries } from "./deliveries";
 import { seedInventory } from "./inventory";
 import { seedPortal } from "./portal";
 import { seedSales } from "./reservations";
@@ -112,5 +114,15 @@ export async function seedDemo(): Promise<void> {
       },
       { units: unitIds, plans },
     );
+    const technical = ctx("technicalManager", ["technical_manager"]);
+    const amandiers = await seedDeliveries({
+      owner: ctx("owner", ["owner"]),
+      salesManager,
+      agent: agentB,
+      cashier: ctx("cashier", ["cashier"]),
+      technical,
+      propertyManager: ctx("propertyManager", ["property_manager"]),
+    });
+    await seedConstruction(technical, new Map([...projectIds, ["AMND", amandiers.projectId]]));
   }
 }

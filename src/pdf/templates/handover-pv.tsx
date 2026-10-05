@@ -71,7 +71,7 @@ th{font-size:8.5pt;color:#525252;font-weight:600}
 td.num{white-space:nowrap}
 .warning{border-color:#d97706;background:#fffbeb}
 .signatures{display:flex;justify-content:space-between;margin-top:26pt}
-.signatures div{width:45%;border-top:1pt solid #a3a3a3;padding-top:4pt}
+.signatures>div{width:45%;border-top:1pt solid #a3a3a3;padding-top:4pt}
 `;
 
 /** Unit and buyers boxes, shared by the PV de remise and the PV de levée des réserves. */

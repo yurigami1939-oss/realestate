@@ -1,12 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-import { authFile } from "./helpers";
-
-/** 1×1 PNG: enough for the magic-byte check and an <img> preview. */
-const PNG = Buffer.from(
-  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==",
-  "base64",
-);
+import { authFile, PNG } from "./helpers";
 
 test.describe("sales manager", () => {
   test.use({ storageState: authFile("salesManager") });

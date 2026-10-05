@@ -7,6 +7,7 @@ const roles: DemoUserKey[] = [
   "salesManager",
   "salesAgent",
   "cashier",
+  "technicalManager",
   "propertyManager",
   "resident",
 ];

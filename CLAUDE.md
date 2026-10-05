@@ -121,9 +121,11 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
     │   ├── seed/             # demo.ts (users, SARLs), inventory.ts (118 units), crm.ts (25 leads,
     │   │                     # visits, follow-ups, targets), sales.ts (plans, quotations), reservations.ts
     │   │                     # (settings, buyers, sales, payments, VSP, loan, calls, letter), residences.ts
-    │   │                     # (delivered « Résidence El Yasmine »: co-owners, charges, calls, payments,
-    │   │                     # suppliers, staff, tickets, assemblies, announcements), portal.ts (the demo
-    │   │                     # resident account linked to its own sale and co-owner record); grows per module
+    │   │                     # (delivered « Résidence El Yasmine »: units delivered before the app, co-owners,
+    │   │                     # charges, calls, payments, suppliers, staff, tickets, assemblies, announcements),
+    │   │                     # portal.ts (the demo resident account linked to its own sale and co-owner record),
+    │   │                     # deliveries.ts (« Résidence Les Amandiers »: sold units, handovers, reserves, PVs),
+    │   │                     # construction.ts (progress reports; photos.ts draws the site photos); grows per module
     │   ├── client.ts         # pg Pool + drizzle (app role)
     │   ├── tenant.ts         # withTenant(scope, fn, tx?)
     │   └── migrate.ts        # migrateDatabase(): migrations + post-migrate + pg-boss
@@ -494,10 +496,10 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 | Jobs/email | Vitest + Mailpit | handler delivers via SMTP (checked through Mailpit API); enqueue stores the job |
 | PDF | Vitest + Chromium | template HTML (RTL blocks, `<bdi>`, amounts in words) and one-page PDF |
 | Files | Vitest + SeaweedFS | magic-byte sniffing, file names, `Content-Disposition`, upload size cap and origin check (route helpers), floor plans stored/replaced/removed, presigned download |
-| E2E | Playwright, production build, `realestate_e2e` reset + seeded | anonymous redirect, sign-in error, members, org switch, FR→AR RTL, role-based UI; inventory: project → building → generated units → per-m² price list → block → floor plan, read-only commercial, Arabic unit sheet; CRM: lead (flagged duplicate) → call → visit → quotation → PDF by the worker, commercial scope, merge, discount + cancel, targets; sales golden path: lead → option → buyer file → reservation of the optioned unit → sheet PDF → cashier payment → receipt PDF, commercial scope, overdue list; seeded VSP with payment call, bank loan and commission; dashboard sections and overdue link; residence (gestionnaire): next quarter's charge calls → ADC PDF, overdue co-owner → charge receipt RCH PDF, lift ticket resolved, general assembly draft → convocation PDF → attendance with a proxy → votes → closing → PV PDF, announcement published → notice PDF, Arabic residence; portal (resident): back office refused, own sale → schedule, receipt and sheet PDFs, co-owned unit's charges, announcements, a ticket reported and received by the gestionnaire, assemblies → PV PDF, Arabic portal |
+| E2E | Playwright, production build, `realestate_e2e` reset + seeded | anonymous redirect, sign-in error, members, org switch, FR→AR RTL, role-based UI; inventory: project → building → generated units → per-m² price list → block → floor plan, read-only commercial, Arabic unit sheet; CRM: lead (flagged duplicate) → call → visit → quotation → PDF by the worker, commercial scope, merge, discount + cancel, targets; sales golden path: lead → option → buyer file → reservation of the optioned unit → sheet PDF → cashier payment → receipt PDF, commercial scope, overdue list; seeded VSP with payment call, bank loan and commission; dashboard sections and overdue link; residence (gestionnaire): next quarter's charge calls → ADC PDF, overdue co-owner → charge receipt RCH PDF, lift ticket resolved, general assembly draft → convocation PDF → attendance with a proxy → votes → closing → PV PDF, announcement published → notice PDF, Arabic residence; portal (resident): back office refused, own sale → schedule, receipt and sheet PDFs, co-owned unit's charges, announcements, a ticket reported and received by the gestionnaire, assemblies → PV PDF, published construction reports with their photos, Arabic portal; construction (responsable technique): no sales access, progress report prefilled with the current progress → site photo, internal report kept in the back office, Arabic follow-up; deliveries: list order, appointment → reserve → PV de remise PDF → lifting → PV de levée PDF, unpaid balance warning, Arabic deliveries, dashboard to-dos (next handover, late reserves) |
 
 - Vitest `globalSetup` migrates the test DB and creates the S3 bucket once; each test creates its own organization(s) (`tests/factories.ts`, `tests/auth-helpers.ts`) → isolation without truncation.
-- The e2e global setup starts `src/jobs/worker.ts` after the reset and stops its process tree at the end (documents render during e2e).
+- The e2e global setup starts `src/jobs/worker.ts` after the reset, waits (up to 300 s) for the documents queued by the seed, and stops its process tree at the end (documents render during e2e).
 - E2E specs reuse one session per role (`test.use({ storageState: authFile("salesManager") })`, written by `e2e/auth.setup.ts` through the sign-in API): production builds rate-limit sign-in (3 per 10 s). Only the smoke tests sign in through the form.
 - No mocking of the database or RLS. `server-only` is stubbed in Vitest and shimmed for tsx scripts.
 - Every service function has at least one integration test; a bug fix starts with a failing test.
@@ -531,7 +533,7 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 
 ## 11. Roadmap
 
-**Current: Phases 1 and 2 done (sales; residence management; buyer / resident portal), each module with its seed and e2e. Phase 3 in progress: module 4 (construction & delivery). Steps are committed straight to `main` (§12, 2026-10-04).**
+**Current: Phases 1 and 2 done (sales; residence management; buyer / resident portal) and module 4 of Phase 3 (construction follow-up & deliveries), each module with its seed and e2e. Next: module 5 (rentals). Steps are committed straight to `main` (§12, 2026-10-04).**
 
 ### Phase 0 — Foundations ✅
 - [x] `CLAUDE.md` approved (2026-09-30)
@@ -594,11 +596,11 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
   - [x] Seed (the demo resident account: its own reservation in Les Oliviers, its co-owner record in El Yasmine) and e2e
 
 ### Phase 3
-- [ ] Module 4 — Construction & delivery
+- [x] Module 4 — Construction & delivery
   - [x] Role responsable technique; construction follow-up: progress reports per project (progress per building, site photos), the published ones on the buyers' portal
   - [x] Deliveries: handover appointments, reserves (punch list), numbered bilingual PV de remise des clés → unit delivered (buyers become co-owners of its residence); reserves lifted, PV de levée des réserves; dashboard to-dos, portal
   - [x] Units delivered before the app (delivered project)
-  - [ ] Seed and e2e
+  - [x] Seed (progress reports with site photos for Les Oliviers, La Corniche and Les Amandiers; « Résidence Les Amandiers » with handovers at every stage; El Yasmine's units delivered before the app) and e2e
 - [ ] Module 5 — Rentals
 - [ ] Online payment (CIB/Edahabia via SATIM)
 - [ ] WhatsApp Business API notifications
@@ -697,6 +699,7 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 | 2026-10-05 | **Deliveries (recommended, user delegated)**: one handover per sold unit (VSP signed); the appointment is not e-mailed (portal, WhatsApp later); reserves noted at the visit or after it, until a PV de levée closes them; the PV de remise is numbered `PVL-`, final, and makes the unit `delivered`; a sale not fully paid can still be handed over — the PV shows what remains (warning in the form, never blocking, like the VSP limits). |
 | 2026-10-05 | A project is "ready" for handovers when it is `delivered` or its handover-stage milestone is validated; before that its sold units show as "travaux en cours" in the deliveries list (sorting only). Deliveries are visible organization-wide to `handover:read` (not to commercials, who see the unit status). Delivery PVs are filed under their handover (entity `handover`) so the responsable technique, without access to sales, reads them. |
 | 2026-10-05 | At the handover PV, the buyers become co-owners of the unit's residence (when the unit has none) from the PV date — the same rule as the import from sales, which keeps the VSP date. |
+| 2026-10-05 | Demo data for module 4: « Résidence Les Amandiers » (AMND, finished this month, its « Remise des clés » milestone validated): five sales — one delivered with its reserves closed, one delivered with open reserves (one late), one appointment, two to schedule (one not fully paid) — and its residence, whose co-owners come from the handovers; El Yasmine's sold units are now `delivered` before the app, the shop the company kept stays blocked. Site photos are drawn by the seed (`photos.ts`, PNG via `node:zlib`, no dependency). |
 | 2026-10-05 | **Units sold before the app** (settles the gap of the demo residence): in a `delivered` project, `available` / `blocked` units can be marked `delivered` with a reason (new transitions, used by `recordPastDeliveries` only); units still owned by the promoter keep their status. |
 
 ### Open items

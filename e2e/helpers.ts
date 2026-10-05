@@ -6,6 +6,12 @@ export type DemoUserKey = (typeof demoUsers)[number]["key"];
 
 export const email = (key: DemoUserKey) => demoUsers.find((u) => u.key === key)?.email ?? "";
 
+/** 1×1 PNG: enough for the magic-byte check and an <img> preview. */
+export const PNG = Buffer.from(
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==",
+  "base64",
+);
+
 /** Saved session of a demo user, written by `auth.setup.ts`. */
 export const authFile = (key: DemoUserKey) => `e2e/.auth/${key}.json`;
 

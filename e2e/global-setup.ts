@@ -38,6 +38,9 @@ function startWorker(): Promise<() => void> {
   });
 }
 
+/** The seed queues about a hundred PDFs; the worker renders one every ~2 s. */
+const SEED_JOBS_SECONDS = 300;
+
 /**
  * Waits until the jobs queued by the seed (document PDFs, payment calls) are done, so the specs
  * do not wait behind them for their own documents.
@@ -46,7 +49,7 @@ async function waitForSeedJobs(stop: () => void) {
   const client = new Client({ connectionString: e2eEnv.DATABASE_URL });
   await client.connect();
   try {
-    for (let elapsed = 0; elapsed < 180; elapsed++) {
+    for (let elapsed = 0; elapsed < SEED_JOBS_SECONDS; elapsed++) {
       const { rows } = await client.query<{ n: number }>(
         `select count(*)::int as n from pgboss.job
          where name in ('pdf.document', 'payment_call.issue') and state in ('created', 'retry', 'active')`,
@@ -55,7 +58,7 @@ async function waitForSeedJobs(stop: () => void) {
       await new Promise((resolve) => setTimeout(resolve, 1000));
     }
     stop();
-    throw new Error("e2e: the seeded jobs were not done within 180 s");
+    throw new Error(`e2e: the seeded jobs were not done within ${SEED_JOBS_SECONDS} s`);
   } finally {
     await client.end();
   }
