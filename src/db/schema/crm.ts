@@ -23,6 +23,7 @@ import {
   lostReasons,
   visitStatuses,
 } from "../../lib/crm";
+import { partnerKinds } from "../../lib/partners";
 
 import {
   createdAt,
@@ -49,6 +50,35 @@ export const leadActivityType = pgEnum("lead_activity_type", leadActivityTypes);
  * Prospect. Phones are E.164. The same phone may exist on several leads (flagged as possible
  * duplicates, merged by a manager: `mergedIntoId`). A commercial sees the leads assigned to them.
  */
+export const partnerKind = pgEnum("partner_kind", partnerKinds);
+
+/**
+ * An outside real-estate agency or a business introducer (apporteur d'affaires) who brings
+ * buyers; its commission rate applies to the net price of the sales of its leads, at the VSP.
+ */
+export const partner = pgTable(
+  "partner",
+  {
+    id: id(),
+    organizationId: organizationId(),
+    kind: partnerKind().notNull(),
+    name: text().notNull(),
+    contactName: text(),
+    phone: text(),
+    email: text(),
+    nif: text(),
+    rcNumber: text(),
+    commissionRateBp: integer().notNull().default(0),
+    notes: text(),
+    ...timestamps(),
+    ...softDelete(),
+  },
+  (t) => [
+    unique().on(t.organizationId, t.id),
+    check("partner_rate", sql`${t.commissionRateBp} between 0 and 2000`),
+  ],
+);
+
 export const lead = pgTable(
   "lead",
   {
@@ -74,6 +104,8 @@ export const lead = pgTable(
     financing: financingMode(),
     notes: text(),
     assignedTo: userRef(),
+    /** The agency or introducer who brought the lead (its commission at the VSP). */
+    partnerId: uuid(),
     mergedIntoId: uuid(),
     lastActivityAt: instant().notNull().defaultNow(),
     ...timestamps(),
@@ -85,6 +117,11 @@ export const lead = pgTable(
       name: "lead_project_fk",
       columns: [t.organizationId, t.projectId],
       foreignColumns: [project.organizationId, project.id],
+    }),
+    foreignKey({
+      name: "lead_partner_fk",
+      columns: [t.organizationId, t.partnerId],
+      foreignColumns: [partner.organizationId, partner.id],
     }),
     foreignKey({
       name: "lead_merged_into_fk",

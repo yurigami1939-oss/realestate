@@ -43,7 +43,7 @@ import {
   userRef,
 } from "./_columns";
 import { buyer } from "./buyers";
-import { lead } from "./crm";
+import { lead, partner } from "./crm";
 import { file } from "./files";
 import { project, unit } from "./inventory";
 import { treasuryAccount } from "./treasury";
@@ -1053,5 +1053,54 @@ export const bankLoan = pgTable(
       "bank_loan_amounts",
       sql`${t.requested} > 0 and (${t.approved} is null or ${t.approved} > 0)`,
     ),
+  ],
+);
+
+/**
+ * Commission of the agency or introducer who brought a sale's lead (CLAUDE.md §7 CRM): earned
+ * at the VSP at the partner's rate on the net price, paid from an account, cancelled when the
+ * sale is undone.
+ */
+export const partnerCommission = pgTable(
+  "partner_commission",
+  {
+    id: id(),
+    organizationId: organizationId(),
+    reservationId: uuid().notNull(),
+    partnerId: uuid().notNull(),
+    base: money().notNull(),
+    rateBp: integer().notNull(),
+    amount: money().notNull(),
+    earnedOn: date({ mode: "string" }).notNull(),
+    status: commissionStatus().notNull().default("earned"),
+    paidOn: date({ mode: "string" }),
+    paymentMethod: paymentMethod(),
+    accountId: uuid(),
+    paidBy: userRef(),
+    cancelledAt: instant(),
+    cancelledBy: userRef(),
+    cancelReason: text(),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    unique().on(t.organizationId, t.id),
+    unique().on(t.organizationId, t.reservationId),
+    foreignKey({
+      name: "partner_commission_reservation_fk",
+      columns: [t.organizationId, t.reservationId],
+      foreignColumns: [reservation.organizationId, reservation.id],
+    }),
+    foreignKey({
+      name: "partner_commission_partner_fk",
+      columns: [t.organizationId, t.partnerId],
+      foreignColumns: [partner.organizationId, partner.id],
+    }),
+    foreignKey({
+      name: "partner_commission_account_fk",
+      columns: [t.organizationId, t.accountId],
+      foreignColumns: [treasuryAccount.organizationId, treasuryAccount.id],
+    }),
+    index().on(t.organizationId, t.partnerId),
+    check("partner_commission_amount", sql`${t.amount} > 0`),
   ],
 );

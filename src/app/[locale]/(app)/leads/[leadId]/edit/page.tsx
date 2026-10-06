@@ -9,6 +9,7 @@ import { formatPhone } from "@/lib/phone";
 import { requirePermission } from "@/server/auth/page-guard";
 import { getLead } from "@/server/crm/queries";
 import { listProjectOptions } from "@/server/inventory/queries";
+import { listPartnerChoices } from "@/server/partners/service";
 
 import { LeadForm } from "../../_components/lead-form";
 
@@ -53,7 +54,9 @@ export default async function EditLeadPage({ params }: PageProps<"/[locale]/lead
           financing: lead.financing ?? "",
           notes: lead.notes ?? "",
           assignedTo: "",
+          partnerId: lead.partnerId ?? "",
         }}
+        partners={await listPartnerChoices(ctx)}
       />
     </div>
   );

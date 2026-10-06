@@ -104,6 +104,7 @@ async function recordLinks(
   for (const id of ids("organization")) links.set(`organization:${id}`, "/settings/company");
   for (const id of ids("residence")) links.set(`residence:${id}`, `/residences/${id}`);
   for (const id of ids("treasury_account")) links.set(`treasury_account:${id}`, `/treasury/${id}`);
+  for (const id of ids("partner")) links.set(`partner:${id}`, "/partners");
   for (const type of ["member", "invitation"]) {
     for (const id of ids(type)) links.set(`${type}:${id}`, "/settings/members");
   }

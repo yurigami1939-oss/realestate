@@ -7,6 +7,7 @@ import { can } from "@/lib/permissions";
 import { requirePermission } from "@/server/auth/page-guard";
 import { listLeadOwners } from "@/server/crm/queries";
 import { listProjectOptions } from "@/server/inventory/queries";
+import { listPartnerChoices } from "@/server/partners/service";
 
 import { LeadForm } from "../_components/lead-form";
 
@@ -25,7 +26,7 @@ export default async function NewLeadPage({ params }: PageProps<"/[locale]/leads
   return (
     <div className="mx-auto max-w-4xl space-y-6">
       <PageHeader title={t("new")} crumbs={[{ label: t("title"), href: "/leads" }]} />
-      <LeadForm projects={projects} owners={owners} />
+      <LeadForm projects={projects} owners={owners} partners={await listPartnerChoices(ctx)} />
     </div>
   );
 }

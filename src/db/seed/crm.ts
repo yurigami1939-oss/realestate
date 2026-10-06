@@ -19,6 +19,8 @@ import {
 } from "@/server/crm/schemas";
 import { saveTargets } from "@/server/crm/targets";
 import { scheduleVisit, updateVisit } from "@/server/crm/visits";
+import { createPartnerSchema } from "@/server/partners/schemas";
+import { createPartner } from "@/server/partners/service";
 import { saveMarketingSpend } from "@/server/reports/marketing";
 import { saveMarketingSpendSchema } from "@/server/reports/schemas";
 
@@ -489,5 +491,30 @@ export async function seedMarketingSpend(manager: TenantCtx) {
         saveMarketingSpendSchema.parse({ month, source, amount, notes }),
       );
     }
+  }
+}
+
+/** An outside agency and an introducer who bring buyers (their commission at the VSP). */
+export async function seedPartners(manager: TenantCtx) {
+  for (const partner of [
+    {
+      kind: "agency",
+      name: "Agence immobilière El Bahia",
+      contactName: "Nassim Bouzid",
+      phone: "0550 31 42 53",
+      commissionRate: "1,5",
+    },
+    {
+      kind: "introducer",
+      name: "Hocine Merabet",
+      contactName: "",
+      phone: "0661 72 83 94",
+      commissionRate: "1",
+    },
+  ] as const) {
+    await createPartner(
+      manager,
+      createPartnerSchema.parse({ ...partner, email: "", nif: "", rcNumber: "", notes: "" }),
+    );
   }
 }

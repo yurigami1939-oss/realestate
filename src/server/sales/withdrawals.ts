@@ -25,6 +25,7 @@ import { assertCan, type TenantCtx } from "@/server/auth/session";
 import { recordLeadActivity } from "@/server/crm/activity";
 import { transitionUnit } from "@/server/inventory/transition-unit";
 import { loadSalesSettings } from "@/server/organizations/settings";
+import { cancelPartnerCommission } from "@/server/partners/service";
 import { resolvePaymentAccount } from "@/server/treasury/service";
 
 import { loadVisibleReservation } from "./access";
@@ -216,6 +217,7 @@ export async function decideWithdrawal(ctx: TenantCtx, input: In<typeof decideWi
         cancelReason: row.reason,
       })
       .where(and(eq(commission.reservationId, sale.id), eq(commission.status, "earned")));
+    await cancelPartnerCommission(tx, ctx, sale.id, row.reason);
     await transitionUnit(tx, ctx, sale.unitId, "available", {
       reason: row.reason,
       refType: "reservation",

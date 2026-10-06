@@ -35,6 +35,7 @@ import { loadVisibleBuyer } from "@/server/buyers/access";
 import { recordLeadActivity } from "@/server/crm/activity";
 import { advanceLeadStage } from "@/server/crm/leads";
 import { assertDiscountAllowed } from "@/server/discounts/service";
+import { earnPartnerCommission } from "@/server/partners/service";
 import { checkUpload, discardFile, storeFile, type Upload } from "@/server/files/service";
 import { transitionUnit } from "@/server/inventory/transition-unit";
 import { nextDocumentNumber } from "@/server/numbering/next-document-number";
@@ -421,6 +422,14 @@ export async function recordSale(ctx: TenantCtx, input: In<typeof recordSaleSche
       }
     }
 
+    // The agency or introducer who brought the lead earns its commission too.
+    const partnerCommissionAmount = await earnPartnerCommission(
+      tx,
+      ctx,
+      { id: current.id, leadId: current.leadId, price: current.price },
+      input.signedOn,
+    );
+
     const [target] = await tx
       .select({ code: unit.code })
       .from(unit)
@@ -443,6 +452,7 @@ export async function recordSale(ctx: TenantCtx, input: In<typeof recordSaleSche
         signedOn: input.signedOn,
         notary: input.notary,
         commission: commissionAmount,
+        partnerCommission: partnerCommissionAmount,
       },
     });
 

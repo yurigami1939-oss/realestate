@@ -44,6 +44,8 @@ export const leadFields = z.object({
   budget: optionalMoneyText(),
   financing: optionalEnum(financingModes),
   notes: optionalText(2000),
+  /** The agency or introducer who brought the lead. */
+  partnerId: optionalId(),
 });
 
 /** `assignedTo` is only honoured for managers; a commercial's lead is always theirs. */

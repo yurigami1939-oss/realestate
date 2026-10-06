@@ -46,6 +46,9 @@ const flows = sql`
     union all
     select deposit_refund_account_id, -deposit_refunded, deposit_settled_on from lease
       where deposit_settled_on is not null and deposit_refund_account_id is not null
+    union all
+    select account_id, -amount, paid_on from partner_commission
+      where status = 'paid' and account_id is not null
   )`;
 
 export type AccountTotals = {

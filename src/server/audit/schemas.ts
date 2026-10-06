@@ -30,6 +30,7 @@ export const auditEntityTypes = [
   "online_payment",
   "discount_request",
   "treasury_account",
+  "partner",
 ] as const;
 export type AuditEntityType = (typeof auditEntityTypes)[number];
 

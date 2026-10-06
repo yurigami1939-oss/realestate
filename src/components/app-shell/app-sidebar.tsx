@@ -12,6 +12,7 @@ import {
   FileSignature,
   FileSpreadsheet,
   FileUp,
+  Handshake,
   HardHat,
   Inbox,
   Hotel,
@@ -70,6 +71,7 @@ type NavKey =
   | "discounts"
   | "requests"
   | "leadCapture"
+  | "partners"
   | "commissions"
   | "audit"
   | "residences"
@@ -124,6 +126,12 @@ const salesNav: NavItem[] = [
   { href: "/follow-ups", key: "followUps", icon: PhoneCall, permission: "lead:read" },
   { href: "/visits", key: "visits", icon: CalendarDays, permission: "lead:read" },
   { href: "/targets", key: "targets", icon: Target, permission: "lead:read" },
+  {
+    href: "/partners",
+    key: "partners",
+    icon: Handshake,
+    permission: ["lead:assign", "commission:read_all"],
+  },
 ];
 const contractsNav: NavItem[] = [
   { href: "/sales", key: "saleList", icon: FileSignature, permission: "sale:read" },

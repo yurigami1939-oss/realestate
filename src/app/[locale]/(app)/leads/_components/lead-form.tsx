@@ -36,6 +36,7 @@ export const emptyLead: LeadFormValues = {
   financing: "",
   notes: "",
   assignedTo: "",
+  partnerId: "",
 };
 
 type Option = { id: string; name: string };
@@ -46,10 +47,13 @@ export function LeadForm({
   defaultValues = emptyLead,
   projects,
   owners,
+  partners = [],
 }: {
   leadId?: string;
   defaultValues?: LeadFormValues;
   projects: Option[];
+  /** Agencies and introducers a lead can name. */
+  partners?: Option[];
   /** Assignable members (managers creating a lead); null hides the field. */
   owners: Option[] | null;
 }) {
@@ -132,6 +136,15 @@ export function LeadForm({
               />
               <TextField control={form.control} name="sourceDetail" label={f("sourceDetail")} />
             </div>
+            {partners.length > 0 ? (
+              <SelectField
+                control={form.control}
+                name="partnerId"
+                label={f("partnerId")}
+                emptyLabel={t("leads.noPartner")}
+                options={partners.map((p) => ({ value: p.id, label: p.name }))}
+              />
+            ) : null}
             {owners ? (
               <SelectField
                 control={form.control}

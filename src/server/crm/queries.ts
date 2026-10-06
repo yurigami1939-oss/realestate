@@ -16,7 +16,17 @@ import {
 } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 
-import { followUp, lead, leadActivity, member, project, unit, user, visit } from "@/db/schema";
+import {
+  followUp,
+  lead,
+  leadActivity,
+  member,
+  partner,
+  project,
+  unit,
+  user,
+  visit,
+} from "@/db/schema";
 import { withTenant } from "@/db/tenant";
 import { leadStages, openLeadStages, type LeadStage } from "@/lib/crm";
 import { isUuid } from "@/lib/ids";
@@ -114,10 +124,16 @@ export async function getLead(ctx: TenantCtx, leadId: string) {
   if (!isUuid(leadId)) return null;
   return withTenant(ctx, async (tx) => {
     const [row] = await tx
-      .select({ lead, projectName: project.name, assigneeName: assignee.name })
+      .select({
+        lead,
+        projectName: project.name,
+        assigneeName: assignee.name,
+        partnerName: partner.name,
+      })
       .from(lead)
       .leftJoin(project, eq(project.id, lead.projectId))
       .leftJoin(assignee, eq(assignee.id, lead.assignedTo))
+      .leftJoin(partner, eq(partner.id, lead.partnerId))
       .where(and(eq(lead.id, leadId), isNull(lead.deletedAt), visibleLeads(ctx)));
     if (!row) return null;
 
@@ -197,6 +213,7 @@ export async function getLead(ctx: TenantCtx, leadId: string) {
       ...row.lead,
       projectName: row.projectName,
       assigneeName: row.assigneeName,
+      partnerName: row.partnerName,
       activities,
       visits,
       followUps,

@@ -255,7 +255,8 @@
     "reports": "Rapports",
     "discounts": "Remises",
     "requests": "Demandes clients",
-    "leadCapture": "Capture de prospects"
+    "leadCapture": "Capture de prospects",
+    "partners": "Agences et apporteurs"
   },
   "shell": {
     "organizations": "Sociétés",
@@ -629,7 +630,8 @@
         "budget": "Budget (DA)",
         "financing": "Financement",
         "notes": "Notes",
-        "assignedTo": "Commercial"
+        "assignedTo": "Commercial",
+        "partnerId": "Apporté par"
       },
       "sections": {
         "contact": "Contact",
@@ -682,7 +684,8 @@
         "discount_approved": "Remise de {amount} accordée sur le lot {unit}",
         "discount_rejected": "Remise refusée sur le lot {unit}",
         "terminated": "Résiliation pour non-paiement (réservation {number})"
-      }
+      },
+      "noPartner": "Aucun (vente directe)"
     },
     "pipeline": {
       "title": "Pipeline",
@@ -2084,7 +2087,8 @@
       "lease": "Bail",
       "online_payment": "Paiement en ligne",
       "discount_request": "Demande de remise",
-      "treasury_account": "Caisse / compte"
+      "treasury_account": "Caisse / compte",
+      "partner": "Partenaire"
     },
     "actions": {
       "organization": {
@@ -2282,6 +2286,11 @@
         "assign": "Réclamation confiée à une entreprise",
         "fix": "Reprise en garantie faite",
         "reject": "Réclamation en garantie rejetée"
+      },
+      "partner": {
+        "create": "Partenaire créé",
+        "update": "Partenaire modifié",
+        "commission_pay": "Commission de partenaire payée"
       }
     }
   },
@@ -4120,7 +4129,8 @@
       "staff_pay": "Paie",
       "advance": "Avance sur salaire",
       "refund": "Remboursement (désistement, résiliation)",
-      "deposit_refund": "Restitution de dépôt de garantie"
+      "deposit_refund": "Restitution de dépôt de garantie",
+      "partner_commission": "Commission d'apporteur"
     },
     "movements": {
       "record": "Saisir un mouvement",
@@ -4680,5 +4690,54 @@
       "tooMany": "Trop d'envois avec cette clé : réessayez dans une minute.",
       "invalid": "Un nom et un numéro de téléphone valides sont requis."
     }
+  },
+  "partners": {
+    "title": "Agences et apporteurs d'affaires",
+    "description": "Les agences immobilières et apporteurs qui vous amènent des acquéreurs : un prospect indique qui l'a apporté ; la commission du partenaire est acquise à la VSP, sur le prix net, à son taux.",
+    "none": "Aucun partenaire pour l'instant.",
+    "new": "Nouveau partenaire",
+    "newTitle": "Nouveau partenaire",
+    "edit": "Modifier",
+    "editTitle": "Modifier le partenaire",
+    "save": "Enregistrer",
+    "created": "Partenaire créé.",
+    "saved": "Partenaire enregistré.",
+    "kind": {
+      "agency": "Agence immobilière",
+      "introducer": "Apporteur d'affaires"
+    },
+    "fields": {
+      "kind": "Type",
+      "name": "Nom",
+      "contactName": "Contact",
+      "phone": "Téléphone",
+      "email": "E-mail",
+      "nif": "NIF",
+      "rcNumber": "N° RC",
+      "commissionRate": "Commission (% du prix net)",
+      "notes": "Notes",
+      "paidOn": "Payée le"
+    },
+    "columns": {
+      "name": "Partenaire",
+      "contact": "Contact",
+      "rate": "Taux",
+      "leads": "Prospects",
+      "earned": "À payer",
+      "paid": "Payé",
+      "sale": "Vente",
+      "amount": "Commission",
+      "status": "État"
+    },
+    "commissions": "Commissions des partenaires",
+    "noCommissions": "Aucune commission de partenaire.",
+    "status": {
+      "earned": "À payer",
+      "paid": "Payée",
+      "cancelled": "Annulée"
+    },
+    "pay": "Payer",
+    "payTitle": "Paiement de la commission",
+    "paid": "Commission payée."
   }
 }

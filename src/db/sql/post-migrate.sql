@@ -79,6 +79,8 @@ REVOKE UPDATE, DELETE, TRUNCATE ON public.cheque_deposit_item FROM realestate_ap
 -- Unit sheets are kept as handed out; only their PDF link is set by the job.
 REVOKE UPDATE, DELETE, TRUNCATE ON public.unit_sheet FROM realestate_app;
 GRANT UPDATE (pdf_file_id) ON public.unit_sheet TO realestate_app;
+-- Partner commissions are paid or cancelled, never deleted.
+REVOKE DELETE, TRUNCATE ON public.partner_commission FROM realestate_app;
 -- Lead capture keys are revoked, never deleted.
 REVOKE DELETE, TRUNCATE ON public.lead_capture_key FROM realestate_app;
 -- Warranty claims are fixed or rejected, never deleted.

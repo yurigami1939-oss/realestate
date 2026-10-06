@@ -7,6 +7,8 @@ import {
   cashCount,
   chargePayment,
   lease,
+  partner,
+  partnerCommission,
   payment,
   receipt,
   reservation,
@@ -122,6 +124,7 @@ export type LedgerLine = {
     | "advance"
     | "refund"
     | "deposit_refund"
+    | "partner_commission"
     | MovementKind;
   label: string;
   /** Receipt number, movement reference… */
@@ -412,7 +415,43 @@ export async function getAccountLedger(ctx: TenantCtx, accountId: string, params
         ),
       );
 
+    const partnerPaid = await tx
+      .select({
+        id: partnerCommission.id,
+        on: partnerCommission.paidOn,
+        at: partnerCommission.createdAt,
+        amount: partnerCommission.amount,
+        method: partnerCommission.paymentMethod,
+        name: partner.name,
+        saleNumber: reservation.number,
+      })
+      .from(partnerCommission)
+      .innerJoin(partner, eq(partner.id, partnerCommission.partnerId))
+      .innerJoin(reservation, eq(reservation.id, partnerCommission.reservationId))
+      .where(
+        and(
+          eq(partnerCommission.accountId, account.id),
+          eq(partnerCommission.status, "paid"),
+          gte(partnerCommission.paidOn, start),
+          lte(partnerCommission.paidOn, to),
+        ),
+      );
+
     const lines: LedgerLine[] = [
+      ...partnerPaid.map((p) => ({
+        key: `partner_commission:${p.id}`,
+        on: p.on ?? start,
+        at: p.at,
+        source: "partner_commission" as const,
+        label: `${p.name} · ${p.saleNumber}`,
+        reference: null,
+        method: p.method,
+        amountIn: 0n,
+        amountOut: p.amount,
+        movementId: null,
+        href: "/partners",
+        pendingCheque: false,
+      })),
       ...pays.map((p) => ({
         key: `staff_pay:${p.id}`,
         on: p.on ?? start,

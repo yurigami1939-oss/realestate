@@ -9,7 +9,7 @@ import type { TenantCtx } from "@/server/auth/session";
 import { seedConstruction } from "./construction";
 import { seedCosts } from "./costs";
 import { DEMO_PASSWORD, demoOrganizations, demoUsers } from "./demo";
-import { seedCrm, seedMarketingSpend } from "./crm";
+import { seedCrm, seedMarketingSpend, seedPartners } from "./crm";
 import { seedDeliveries } from "./deliveries";
 import { seedInventory } from "./inventory";
 import { seedObligations } from "./obligations";
@@ -97,6 +97,7 @@ export async function seedDemo(): Promise<void> {
     const plans = await seedPaymentPlans(salesManager, projectIds);
     const leads = await seedCrm({ manager: salesManager, agentA, agentB }, projectIds);
     await seedMarketingSpend(salesManager);
+    await seedPartners(salesManager);
     await seedQuotations(
       { manager: salesManager, agentA, agentB },
       { leads, units: unitIds, plans },

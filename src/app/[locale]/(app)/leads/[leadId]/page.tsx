@@ -250,6 +250,7 @@ function ContactCard({ lead }: { lead: LeadDetail }) {
               [t(`source.${lead.source}`), lead.sourceDetail].filter(Boolean).join(" · "),
             ],
             [t("leads.fields.assignedTo"), lead.assigneeName ?? t("leads.unassigned")],
+            [t("leads.fields.partnerId"), lead.partnerName],
             [t("leads.columns.lastActivity"), formatDateTime(lead.lastActivityAt)],
           ]}
         />
