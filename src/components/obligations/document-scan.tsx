@@ -8,8 +8,8 @@ import { UploadButton } from "@/components/files/upload-button";
 import { useRouter } from "@/i18n/navigation";
 
 /**
- * The scan of a regulatory document or of a sale's FGCMPI guarantee: link, then attach or
- * replace.
+ * The scan of a regulatory document, a sale's FGCMPI guarantee, a works contract or a progress
+ * invoice: link, then attach or replace.
  */
 export function DocumentScan({
   purpose,
@@ -17,7 +17,11 @@ export function DocumentScan({
   fileId,
   editable,
 }: {
-  purpose: "project_document.scan" | "reservation.guarantee";
+  purpose:
+    | "project_document.scan"
+    | "reservation.guarantee"
+    | "works_contract.scan"
+    | "works_invoice.scan";
   entityId: string;
   fileId: string | null;
   editable: boolean;

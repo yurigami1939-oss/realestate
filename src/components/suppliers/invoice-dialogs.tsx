@@ -13,6 +13,7 @@ import { CheckboxField, SelectField, TextareaField } from "@/components/forms/fi
 import { FormDialog } from "@/components/forms/form-dialog";
 import { TextField } from "@/components/forms/text-field";
 import { useAction } from "@/components/forms/use-action";
+import { AccountField, type AccountOption } from "@/components/treasury/account-field";
 import { Button } from "@/components/ui/button";
 import { formatAmountInput } from "@/lib/money";
 import { chargePaymentMethods } from "@/lib/residences";
@@ -189,10 +190,13 @@ export function PayInvoiceDialog({
   invoiceId,
   number,
   today,
+  accounts,
 }: {
   invoiceId: string;
   number: string;
   today: string;
+  /** Cash desks and accounts it may be paid from. */
+  accounts: AccountOption[];
 }) {
   const t = useTranslations("suppliers.invoices");
   const tp = useTranslations("payments");
@@ -200,8 +204,15 @@ export function PayInvoiceDialog({
   const pay = useAction(payInvoiceAction);
   const form = useForm<PayValues, unknown, z.output<typeof payInvoiceSchema>>({
     resolver: zodResolver(payInvoiceSchema),
-    defaultValues: { invoiceId, paidOn: today, method: "bank_transfer", reference: "" },
+    defaultValues: {
+      invoiceId,
+      paidOn: today,
+      method: "bank_transfer",
+      reference: "",
+      accountId: "",
+    },
   });
+  const method = useWatch({ control: form.control, name: "method" });
   return (
     <FormDialog
       open={open}
@@ -242,6 +253,13 @@ export function PayInvoiceDialog({
         />
       </div>
       <TextField control={form.control} name="reference" label={tp("fields.reference")} dir="ltr" />
+      <AccountField
+        control={form.control}
+        name="accountId"
+        method={method}
+        accounts={accounts}
+        outgoing
+      />
     </FormDialog>
   );
 }

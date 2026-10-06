@@ -5,6 +5,7 @@ export * from "./buyers";
 export * from "./certificates";
 export * from "./charges";
 export * from "./construction";
+export * from "./costs";
 export * from "./crm";
 export * from "./files";
 export * from "./handovers";

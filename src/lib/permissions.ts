@@ -84,6 +84,12 @@ export const statement = {
    * movements (expenses, transfers…), `count` the cash (arrêté de caisse).
    */
   treasury: ["read", "update", "count"],
+  /**
+   * Construction costs of a project: `read` budget, contracts, margin and forecast; `update`
+   * the budget, contracts, progress invoices and acceptances; `pay` progress invoices and
+   * retentions.
+   */
+  cost: ["read", "update", "pay"],
 } as const;
 
 export const ac = createAccessControl(statement);
@@ -128,6 +134,7 @@ export const roles = {
     lease: ["read", "update"],
     notification: ["read"],
     treasury: ["read", "update", "count"],
+    cost: ["read", "update", "pay"],
   }),
   sales_manager: ac.newRole({
     inventory: ["read"],
@@ -182,6 +189,7 @@ export const roles = {
     lease: ["read"],
     notification: ["read"],
     treasury: ["read", "update", "count"],
+    cost: ["read", "pay"],
   }),
   cashier: ac.newRole({
     inventory: ["read"],
@@ -211,11 +219,15 @@ export const roles = {
     lease: ["read", "update"],
     notification: ["read"],
   }),
-  /** Responsable technique (module 4): construction follow-up and deliveries, no sales or money. */
+  /**
+   * Responsable technique (module 4): construction follow-up and deliveries, the contractors'
+   * contracts and progress invoices; no sales, no payments.
+   */
   technical_manager: ac.newRole({
     inventory: ["read"],
     construction: ["read", "update"],
     handover: ["read", "update"],
+    cost: ["read", "update"],
   }),
   resident: ac.newRole({}),
 };

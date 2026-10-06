@@ -101,4 +101,6 @@ export const payInvoiceSchema = z.object({
   paidOn: dateText(),
   method: z.enum(chargePaymentMethods),
   reference: optionalText(60),
+  /** The account it is paid from; empty = the method's default account. */
+  accountId: z.uuid().or(z.literal("")).optional(),
 });

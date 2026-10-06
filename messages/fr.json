@@ -2145,6 +2145,24 @@
       },
       "cash_count": {
         "create": "Arrêté de caisse"
+      },
+      "project_budget": {
+        "save": "Budget du projet enregistré"
+      },
+      "works_contract": {
+        "create": "Marché enregistré",
+        "update": "Marché modifié",
+        "delete": "Marché supprimé",
+        "accept_provisional": "Réception provisoire",
+        "accept_final": "Réception définitive",
+        "terminate": "Marché résilié",
+        "release_retention": "Retenue de garantie restituée"
+      },
+      "works_invoice": {
+        "create": "Situation de travaux enregistrée",
+        "update": "Situation de travaux modifiée",
+        "delete": "Situation de travaux supprimée",
+        "pay": "Situation de travaux payée"
       }
     }
   },
@@ -3927,7 +3945,8 @@
       "counted": "Espèces comptées (DA)",
       "note": "Explication de l'écart",
       "landsOn": "Encaissé sur",
-      "defaultAccount": "Compte par défaut"
+      "defaultAccount": "Compte par défaut",
+      "paidFrom": "Payé depuis"
     },
     "movementKind": {
       "income": "Autre recette",
@@ -3943,7 +3962,10 @@
       "expense": "Dépense",
       "bank_fee": "Frais",
       "transfer": "Virement",
-      "adjustment": "Écart de caisse"
+      "adjustment": "Écart de caisse",
+      "works": "Situation de travaux",
+      "retention": "Retenue restituée",
+      "supplier": "Facture fournisseur"
     },
     "movements": {
       "record": "Saisir un mouvement",
@@ -3997,6 +4019,179 @@
       "adjustment": "Un écart de caisse ne s'annule pas : arrêtez la caisse à nouveau.",
       "notCash": "Seule une caisse s'arrête.",
       "differenceNote": "Expliquez l'écart."
+    }
+  },
+  "costs": {
+    "title": "Coûts et marge",
+    "link": "Coûts et marge",
+    "description": "Budget de l'opération, marchés des entreprises et bureaux d'études, situations de travaux avec retenue de garantie, marge et trésorerie prévisionnelle.",
+    "category": {
+      "land": "Foncier",
+      "studies": "Études",
+      "works": "Travaux",
+      "networks": "VRD et réseaux",
+      "fees": "Honoraires et taxes",
+      "financial": "Frais financiers",
+      "marketing": "Commercialisation",
+      "other": "Divers"
+    },
+    "state": {
+      "active": "En cours",
+      "provisional": "Réception provisoire",
+      "final": "Réception définitive",
+      "terminated": "Résilié"
+    },
+    "summary": {
+      "signed": "Ventes signées",
+      "collected": "Encaissé",
+      "stock": "Stock au prix catalogue",
+      "revenue": "Chiffre d'affaires prévu",
+      "cost": "Coût prévu",
+      "margin": "Marge prévue",
+      "rate": "Taux de marge : {rate}"
+    },
+    "budget": {
+      "title": "Budget, engagé, facturé, payé",
+      "edit": "Budget",
+      "editTitle": "Budget de l'opération",
+      "editDescription": "Une ligne par poste (foncier, études, travaux, VRD, honoraires…) ; le coût prévu retient, par catégorie, le plus grand du budget et de l'engagé.",
+      "saved": "Budget enregistré.",
+      "addLine": "Ajouter une ligne",
+      "owed": "Reste à payer sur situations : {unpaid} · retenues de garantie détenues : {retention}"
+    },
+    "columns": {
+      "budget": "Budget",
+      "committed": "Engagé",
+      "invoiced": "Facturé",
+      "paid": "Payé",
+      "gap": "Reste au budget",
+      "total": "Total",
+      "retention": "Retenue",
+      "state": "État",
+      "unpaid": "Reste à payer",
+      "situation": "Situation",
+      "net": "Net à payer",
+      "payment": "Paiement"
+    },
+    "contracts": {
+      "title": "Marchés",
+      "empty": "Aucun marché enregistré.",
+      "create": "Nouveau marché",
+      "createTitle": "Nouveau marché",
+      "editTitle": "Modifier le marché",
+      "description": "Le marché d'une entreprise ou d'un bureau d'études : montant TTC, retenue de garantie sur chaque situation.",
+      "created": "Marché enregistré.",
+      "saved": "Marché enregistré.",
+      "terminate": "Résilier",
+      "terminateTitle": "Résilier ce marché ?",
+      "terminateDescription": "Plus aucune situation ne sera acceptée ; ce qui est facturé reste dû.",
+      "terminated": "Marché résilié.",
+      "terminatedOn": "Résilié le {date}",
+      "deleteTitle": "Supprimer ce marché ?",
+      "deleteDescription": "Il n'a aucune situation ; il disparaît des coûts du projet.",
+      "deleted": "Marché supprimé.",
+      "details": "Marché",
+      "progress": "Avancement financier"
+    },
+    "contractors": {
+      "create": "Nouveau prestataire",
+      "createTitle": "Nouvelle entreprise ou nouveau bureau d'études",
+      "created": "Prestataire ajouté.",
+      "name": "Raison sociale",
+      "activity": "Activité (gros œuvre, électricité, BET…)",
+      "nif": "NIF",
+      "rib": "RIB"
+    },
+    "fields": {
+      "category": "Catégorie",
+      "label": "Libellé",
+      "amount": "Montant (DA)",
+      "contractor": "Entreprise / BET",
+      "reference": "N° du marché",
+      "title": "Objet",
+      "contractAmount": "Montant du marché (DA)",
+      "retention": "Retenue de garantie (%)",
+      "signedOn": "Signé le",
+      "plannedEndOn": "Fin prévue",
+      "notes": "Remarques",
+      "invoiceNumber": "N° de facture",
+      "period": "Période / avancement",
+      "invoicedOn": "Facturée le",
+      "dueOn": "À payer le",
+      "gross": "Montant de la situation (DA)",
+      "paidOn": "Payée le",
+      "acceptedOn": "Date de la réception",
+      "acceptanceNotes": "Réserves et observations",
+      "terminatedOn": "Résilié le",
+      "reason": "Motif"
+    },
+    "invoices": {
+      "title": "Situations de travaux",
+      "empty": "Aucune situation enregistrée.",
+      "create": "Nouvelle situation",
+      "createTitle": "Situation de travaux",
+      "editTitle": "Modifier la situation",
+      "description": "La retenue de garantie du marché est déduite ; le net est payé à l'entreprise.",
+      "created": "Situation enregistrée.",
+      "saved": "Situation enregistrée.",
+      "split": "Retenue : {retention} · net à payer : {net}",
+      "pay": "Payer",
+      "payTitle": "Payer la situation",
+      "payDescription": "Net à payer : {amount}",
+      "paid": "Situation payée.",
+      "paidOn": "Payée le {date}",
+      "dueOn": "À payer le {date}",
+      "unpaid": "À payer",
+      "situation": "Situation n° {position}",
+      "deleteTitle": "Supprimer cette situation ?",
+      "deleteDescription": "Seule la dernière situation non payée peut être supprimée.",
+      "deleted": "Situation supprimée."
+    },
+    "acceptance": {
+      "provisional": "Réception provisoire",
+      "final": "Réception définitive",
+      "provisionalTitle": "Réception provisoire des travaux",
+      "finalTitle": "Réception définitive des travaux",
+      "provisionalDescription": "Les travaux sont reçus, avec leurs réserves éventuelles.",
+      "finalDescription": "La fin du délai de garantie : les réserves sont levées et la retenue de garantie peut être restituée.",
+      "recorded": "Réception enregistrée.",
+      "provisionalOn": "Réception provisoire le {date}",
+      "finalOn": "Réception définitive le {date}"
+    },
+    "retention": {
+      "release": "Restituer la retenue",
+      "releaseTitle": "Restitution de la retenue de garantie",
+      "releaseDescription": "Retenue détenue : {amount}",
+      "released": "Retenue restituée.",
+      "releasedOn": "Retenue de {amount} restituée le {date}"
+    },
+    "forecast": {
+      "title": "Trésorerie prévisionnelle (12 mois)",
+      "description": "Encaissements attendus des échéanciers (retards ramenés au mois en cours) contre décaissements prévus (situations à payer, reste des marchés réparti jusqu'à leur fin prévue).",
+      "month": "Mois",
+      "in": "Encaissements",
+      "out": "Décaissements",
+      "net": "Solde du mois",
+      "cumulative": "Cumul",
+      "notes": "Échéances liées à des étapes non encore atteintes : {undated} · au-delà de 12 mois : encaissements {laterIn}, décaissements {laterOut}."
+    },
+    "errors": {
+      "supplierNotFound": "Prestataire introuvable.",
+      "contractClosed": "Ce marché est clôturé ou résilié.",
+      "belowInvoiced": "Le montant ne peut pas être inférieur au déjà facturé.",
+      "retentionFixed": "La retenue ne change plus une fois une situation enregistrée.",
+      "contractInvoiced": "Ce marché a des situations : il ne peut pas être supprimé.",
+      "beforeSigning": "Date antérieure à la signature du marché.",
+      "alreadyAccepted": "Cette réception est déjà enregistrée.",
+      "provisionalFirst": "Enregistrez d'abord la réception provisoire.",
+      "beforeProvisional": "Date antérieure à la réception provisoire.",
+      "notFinal": "La retenue se restitue après la réception définitive.",
+      "released": "La retenue est déjà restituée.",
+      "beforeFinal": "Date antérieure à la réception définitive.",
+      "noRetention": "Aucune retenue n'est détenue sur ce marché.",
+      "aboveContract": "Le total des situations dépasserait le montant du marché.",
+      "invoicePaid": "Cette situation est payée : elle ne change plus.",
+      "notLastInvoice": "Seule la dernière situation peut être supprimée."
     }
   }
 }

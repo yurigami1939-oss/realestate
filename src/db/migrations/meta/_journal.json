@@ -267,6 +267,13 @@
       "when": 1791244188186,
       "tag": "0037_treasury",
       "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1791294078475,
+      "tag": "0038_costs",
+      "breakpoints": true
     }
   ]
 }

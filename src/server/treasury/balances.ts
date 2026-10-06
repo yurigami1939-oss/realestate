@@ -8,7 +8,8 @@ import type { Centimes } from "@/lib/money";
 
 /**
  * Every flow of the accounts as signed amounts by day: valid collections (sales, charges,
- * rents and deposits) and live movements. Flows dated before an account's opening are in its
+ * rents and deposits), live movements, and what left them (contractors' progress invoices and
+ * retentions, supplier invoices). Flows dated before an account's opening are in its
  * opening balance, so they are left out.
  */
 const flows = sql`
@@ -24,6 +25,15 @@ const flows = sql`
     union all
     select account_id, case when direction = 'in' then amount else -amount end, moved_on
       from treasury_movement where cancelled_at is null
+    union all
+    select account_id, -net, paid_on from works_invoice
+      where paid_on is not null and account_id is not null
+    union all
+    select retention_account_id, -retention_released, retention_released_on from works_contract
+      where retention_released_on is not null and retention_account_id is not null
+    union all
+    select account_id, -amount, paid_on from supplier_invoice
+      where paid_on is not null and account_id is not null and deleted_at is null
   )`;
 
 export type AccountTotals = {

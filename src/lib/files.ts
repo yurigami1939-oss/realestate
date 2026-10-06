@@ -40,6 +40,16 @@ export const uploadPurposes = {
     accept: ["application/pdf", "image/png", "image/jpeg", "image/webp"],
     maxBytes: MAX_UPLOAD_BYTES,
   },
+  /** A works contract (marché) signed with a contractor, scanned. */
+  "works_contract.scan": {
+    accept: ["application/pdf", "image/png", "image/jpeg", "image/webp"],
+    maxBytes: MAX_UPLOAD_BYTES,
+  },
+  /** A contractor's progress invoice (situation de travaux), scanned. */
+  "works_invoice.scan": {
+    accept: ["application/pdf", "image/png", "image/jpeg", "image/webp"],
+    maxBytes: MAX_UPLOAD_BYTES,
+  },
   /** A buyer's document scan; `variant` = the document kind. */
   "buyer.document": {
     accept: ["application/pdf", "image/png", "image/jpeg", "image/webp"],

@@ -12,10 +12,14 @@ import {
   reservation,
   residence,
   rentPayment,
+  supplier,
+  supplierInvoice,
   treasuryAccount,
   treasuryMovement,
   unit,
   user,
+  worksContract,
+  worksInvoice,
 } from "@/db/schema";
 import { withTenant } from "@/db/tenant";
 import { addDays, type CalendarDate, todayInAlgiers } from "@/lib/dates";
@@ -23,6 +27,8 @@ import { isUuid } from "@/lib/ids";
 import type { Centimes } from "@/lib/money";
 import type { PaymentMethod } from "@/lib/sales";
 import { type MovementKind, runningBalance } from "@/lib/treasury";
+import { can } from "@/lib/permissions";
+import { AppError } from "@/lib/result";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
 
 import { accountTotals, balanceOn } from "./balances";
@@ -57,9 +63,18 @@ export async function listAccounts(ctx: TenantCtx) {
 
 export type AccountRow = Awaited<ReturnType<typeof listAccounts>>[number];
 
-/** Open accounts a collection may land on (the payment forms' choices, `payment:create`). */
+/**
+ * Open accounts money may land on or leave (the payment forms' choices): for whoever records
+ * collections, pays supplier invoices or contractors, or reads the treasury.
+ */
 export async function listAccountChoices(ctx: TenantCtx) {
-  assertCan(ctx, "payment:create");
+  if (
+    !(["payment:create", "supplier:update", "cost:pay", "treasury:read"] as const).some((p) =>
+      can(ctx.roles, p),
+    )
+  ) {
+    throw new AppError("FORBIDDEN");
+  }
   return withTenant(ctx, (tx) =>
     tx
       .select({
@@ -85,7 +100,7 @@ export type LedgerLine = {
   key: string;
   on: CalendarDate;
   at: Date;
-  source: "sale" | "charges" | "rent" | MovementKind;
+  source: "sale" | "charges" | "rent" | "works" | "retention" | "supplier" | MovementKind;
   label: string;
   /** Receipt number, movement reference… */
   reference: string | null;
@@ -225,6 +240,74 @@ export async function getAccountLedger(ctx: TenantCtx, accountId: string, params
         ),
       );
 
+    const works = await tx
+      .select({
+        id: worksInvoice.id,
+        on: worksInvoice.paidOn,
+        at: worksInvoice.createdAt,
+        net: worksInvoice.net,
+        method: worksInvoice.paymentMethod,
+        reference: worksInvoice.paymentReference,
+        position: worksInvoice.position,
+        contractId: worksContract.id,
+        projectId: worksContract.projectId,
+        title: worksContract.title,
+        supplierName: supplier.name,
+      })
+      .from(worksInvoice)
+      .innerJoin(worksContract, eq(worksContract.id, worksInvoice.contractId))
+      .innerJoin(supplier, eq(supplier.id, worksContract.supplierId))
+      .where(
+        and(
+          eq(worksInvoice.accountId, account.id),
+          gte(worksInvoice.paidOn, start),
+          lte(worksInvoice.paidOn, to),
+        ),
+      );
+    const retentions = await tx
+      .select({
+        id: worksContract.id,
+        on: worksContract.retentionReleasedOn,
+        at: worksContract.updatedAt,
+        amount: worksContract.retentionReleased,
+        method: worksContract.retentionMethod,
+        reference: worksContract.retentionReference,
+        projectId: worksContract.projectId,
+        title: worksContract.title,
+        supplierName: supplier.name,
+      })
+      .from(worksContract)
+      .innerJoin(supplier, eq(supplier.id, worksContract.supplierId))
+      .where(
+        and(
+          eq(worksContract.retentionAccountId, account.id),
+          gte(worksContract.retentionReleasedOn, start),
+          lte(worksContract.retentionReleasedOn, to),
+        ),
+      );
+    const supplierPaid = await tx
+      .select({
+        id: supplierInvoice.id,
+        on: supplierInvoice.paidOn,
+        at: supplierInvoice.createdAt,
+        amount: supplierInvoice.amount,
+        method: supplierInvoice.paymentMethod,
+        reference: supplierInvoice.paymentReference,
+        number: supplierInvoice.number,
+        label: supplierInvoice.label,
+        supplierName: supplier.name,
+      })
+      .from(supplierInvoice)
+      .innerJoin(supplier, eq(supplier.id, supplierInvoice.supplierId))
+      .where(
+        and(
+          eq(supplierInvoice.accountId, account.id),
+          isNull(supplierInvoice.deletedAt),
+          gte(supplierInvoice.paidOn, start),
+          lte(supplierInvoice.paidOn, to),
+        ),
+      );
+
     const lines: LedgerLine[] = [
       ...sales.map((p) => ({
         key: `sale:${p.id}`,
@@ -267,6 +350,48 @@ export async function getAccountLedger(ctx: TenantCtx, accountId: string, params
         movementId: null,
         href: `/rentals/${p.leaseId}`,
         pendingCheque: p.method === "cheque" && p.chequeClearedOn === null,
+      })),
+      ...works.map((w) => ({
+        key: `works:${w.id}`,
+        on: w.on ?? start,
+        at: w.at,
+        source: "works" as const,
+        label: `${w.title} · ${w.supplierName} · n° ${w.position}`,
+        reference: w.reference,
+        method: w.method,
+        amountIn: 0n,
+        amountOut: w.net,
+        movementId: null,
+        href: `/projects/${w.projectId}/costs/${w.contractId}`,
+        pendingCheque: false,
+      })),
+      ...retentions.map((r) => ({
+        key: `retention:${r.id}`,
+        on: r.on ?? start,
+        at: r.at,
+        source: "retention" as const,
+        label: `${r.title} · ${r.supplierName}`,
+        reference: r.reference,
+        method: r.method,
+        amountIn: 0n,
+        amountOut: r.amount ?? 0n,
+        movementId: null,
+        href: `/projects/${r.projectId}/costs/${r.id}`,
+        pendingCheque: false,
+      })),
+      ...supplierPaid.map((i) => ({
+        key: `supplier:${i.id}`,
+        on: i.on ?? start,
+        at: i.at,
+        source: "supplier" as const,
+        label: `${i.supplierName} · ${i.number} · ${i.label}`,
+        reference: i.reference,
+        method: i.method,
+        amountIn: 0n,
+        amountOut: i.amount,
+        movementId: null,
+        href: null,
+        pendingCheque: false,
       })),
       ...movements.map((m) => ({
         key: `movement:${m.id}`,

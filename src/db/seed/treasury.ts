@@ -29,7 +29,7 @@ export async function seedTreasuryAccounts(owner: TenantCtx) {
       name: "BNA compte courant",
       bankName: "BNA, agence Didouche Mourad",
       accountNumber: "00100123012345678901",
-      openingBalance: "1 500 000",
+      openingBalance: "450 000 000",
     },
     {
       kind: "ccp",

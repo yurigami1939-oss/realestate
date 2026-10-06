@@ -1,4 +1,4 @@
-import { CalendarRange, Grid3x3, HardHat, Pencil, Tags, Trash2 } from "lucide-react";
+import { CalendarRange, Coins, Grid3x3, HardHat, Pencil, Tags, Trash2 } from "lucide-react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -42,6 +42,7 @@ export default async function ProjectPage({ params }: PageProps<"/[locale]/proje
   const tc = await getTranslations("common");
   const tp = await getTranslations("paymentPlans");
   const tw = await getTranslations("construction");
+  const tk = await getTranslations("costs");
   const canEdit = can(ctx.roles, "project:update");
   const documents = await listProjectDocuments(ctx, project.id);
 
@@ -73,6 +74,14 @@ export default async function ProjectPage({ params }: PageProps<"/[locale]/proje
                 {tp("title")}
               </Link>
             </Button>
+            {can(ctx.roles, "cost:read") ? (
+              <Button asChild variant="outline">
+                <Link href={`/projects/${project.id}/costs`}>
+                  <Coins data-icon="inline-start" />
+                  {tk("link")}
+                </Link>
+              </Button>
+            ) : null}
             {can(ctx.roles, "construction:read") ? (
               <Button asChild variant="outline">
                 <Link href={`/construction/${project.id}`}>

@@ -75,6 +75,8 @@ const readers: Record<string, Reader> = {
   supplier_invoice: async (_tx, ctx) => can(ctx.roles, "supplier:read"),
   // Regulatory documents of a project: whoever reads the projects.
   project_document: async (_tx, ctx) => can(ctx.roles, "inventory:read"),
+  // Works contracts and their progress invoices: the construction costs' readers.
+  works_contract: async (_tx, ctx) => can(ctx.roles, "cost:read"),
   // Site photos of construction progress reports.
   construction_report: async (_tx, ctx) => can(ctx.roles, "construction:read"),
   // A quotation PDF follows its lead: commercials only see their own leads' quotations.

@@ -17,6 +17,7 @@ import { can } from "@/lib/permissions";
 import { requirePermission } from "@/server/auth/page-guard";
 import { deleteSupplierAction } from "@/server/suppliers/actions";
 import { getSupplier, listContractTargets, listInvoices } from "@/server/suppliers/queries";
+import { listAccountChoices } from "@/server/treasury/queries";
 
 export async function generateMetadata({
   params,
@@ -38,6 +39,7 @@ export default async function SupplierPage({
   const invoices = await listInvoices(ctx, { supplierId: supplier.id });
   const t = await getTranslations("suppliers");
   const editable = can(ctx.roles, "supplier:update");
+  const accounts = editable ? await listAccountChoices(ctx) : [];
   const today = todayInAlgiers();
   const details = [
     { key: "phone", value: supplier.phone },
@@ -117,7 +119,13 @@ export default async function SupplierPage({
           <CardTitle className="text-base">{t("invoices.all")}</CardTitle>
         </CardHeader>
         <CardContent>
-          <InvoicesTable invoices={invoices} show="residence" editable={editable} today={today} />
+          <InvoicesTable
+            invoices={invoices}
+            show="residence"
+            editable={editable}
+            today={today}
+            accounts={accounts}
+          />
         </CardContent>
       </Card>
     </div>

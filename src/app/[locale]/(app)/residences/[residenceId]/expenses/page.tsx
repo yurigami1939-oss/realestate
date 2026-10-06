@@ -17,6 +17,7 @@ import { todayInAlgiers, yearInAlgiers } from "@/lib/dates";
 import { can } from "@/lib/permissions";
 import { requirePermission } from "@/server/auth/page-guard";
 import { getResidence } from "@/server/residences/queries";
+import { listAccountChoices } from "@/server/treasury/queries";
 import {
   listContractTargets,
   listInvoices,
@@ -57,6 +58,7 @@ export default async function ResidenceExpensesPage({
   const t = await getTranslations("suppliers");
   const tr = await getTranslations("residences");
   const editable = can(ctx.roles, "supplier:update");
+  const accounts = editable ? await listAccountChoices(ctx) : [];
   const today = todayInAlgiers();
   const yearHref = (y: number) => `/residences/${residenceId}/expenses?year=${y}`;
 
@@ -106,6 +108,7 @@ export default async function ResidenceExpensesPage({
             categories={categories}
             contracts={contracts}
             today={today}
+            accounts={accounts}
           />
         </CardContent>
       </Card>

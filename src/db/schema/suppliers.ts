@@ -17,6 +17,7 @@ import { chargeCategory } from "./charges";
 import { file } from "./files";
 import { residence } from "./residences";
 import { paymentMethod } from "./sales";
+import { treasuryAccount } from "./treasury";
 
 /**
  * Fournisseur / prestataire of the organization (lift maintenance, cleaning, security…),
@@ -124,6 +125,8 @@ export const supplierInvoice = pgTable(
     paidOn: date({ mode: "string" }),
     paymentMethod: paymentMethod(),
     paymentReference: text(),
+    /** The cash desk or account the payment left from (CLAUDE.md §7 Treasury). */
+    accountId: uuid(),
     notes: text(),
     /** The invoice (scan), attached at any time, even once paid. */
     scanFileId: uuid(),
@@ -132,6 +135,11 @@ export const supplierInvoice = pgTable(
   },
   (t) => [
     unique().on(t.organizationId, t.id),
+    foreignKey({
+      name: "supplier_invoice_account_fk",
+      columns: [t.organizationId, t.accountId],
+      foreignColumns: [treasuryAccount.organizationId, treasuryAccount.id],
+    }),
     foreignKey({
       name: "supplier_invoice_supplier_fk",
       columns: [t.organizationId, t.supplierId],

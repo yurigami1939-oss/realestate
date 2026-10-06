@@ -19,6 +19,7 @@ import { deleteInvoiceAction } from "@/server/suppliers/actions";
 import type { ContractRow, InvoiceRow } from "@/server/suppliers/queries";
 
 import { InvoiceDialog, PayInvoiceDialog } from "./invoice-dialogs";
+import type { AccountOption } from "@/components/treasury/account-field";
 import { SupplierScan } from "./supplier-scan";
 
 /** Supplier invoices with their booking and payment state; actions while unpaid. */
@@ -31,6 +32,7 @@ export function InvoicesTable({
   categories,
   contracts,
   today,
+  accounts = [],
 }: {
   invoices: InvoiceRow[];
   show: "supplier" | "residence";
@@ -40,6 +42,8 @@ export function InvoicesTable({
   categories?: { id: string; name: string }[];
   contracts?: ContractRow[];
   today: string;
+  /** Cash desks and accounts an invoice may be paid from. */
+  accounts?: AccountOption[];
 }) {
   const t = useTranslations("suppliers.invoices");
   const tp = useTranslations("payments");
@@ -127,7 +131,12 @@ export function InvoicesTable({
                 <TableCell className="text-end">
                   {i.paidOn === null ? (
                     <div className="flex justify-end gap-1">
-                      <PayInvoiceDialog invoiceId={i.id} number={i.number} today={today} />
+                      <PayInvoiceDialog
+                        invoiceId={i.id}
+                        number={i.number}
+                        today={today}
+                        accounts={accounts}
+                      />
                       {residenceId && suppliers && categories && contracts ? (
                         <InvoiceDialog
                           residenceId={residenceId}

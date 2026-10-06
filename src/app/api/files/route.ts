@@ -7,6 +7,7 @@ import { buyerDocumentKinds } from "@/lib/sales";
 import { getTenantCtx } from "@/server/auth/session";
 import { setBuyerDocumentScan } from "@/server/buyers/service";
 import { addReportPhoto } from "@/server/construction/service";
+import { setCostScan } from "@/server/costs/service";
 import { setUnitFloorPlan } from "@/server/inventory/floor-plans";
 import { setCompanyLogo } from "@/server/organizations/settings";
 import { setProjectDocumentScan } from "@/server/obligations/service";
@@ -101,6 +102,16 @@ export async function POST(request: Request) {
       case "project_document.scan": {
         const result = await setProjectDocumentScan(ctx, {
           documentId: fields.data.entityId,
+          upload,
+        });
+        revalidatePath("/[locale]/projects", "layout");
+        return result;
+      }
+      case "works_contract.scan":
+      case "works_invoice.scan": {
+        const result = await setCostScan(ctx, {
+          kind: fields.data.purpose === "works_contract.scan" ? "contract" : "invoice",
+          id: fields.data.entityId,
           upload,
         });
         revalidatePath("/[locale]/projects", "layout");

@@ -13,6 +13,7 @@ import { recordAudit } from "@/server/audit/record-audit";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
 import { checkUpload, discardFile, storeFile, type Upload } from "@/server/files/service";
 import { loadResidence } from "@/server/residences/service";
+import { resolvePaymentAccount } from "@/server/treasury/service";
 
 import type { createInvoiceSchema, payInvoiceSchema, updateInvoiceSchema } from "./schemas";
 import { checkCategory, loadSupplier } from "./service";
@@ -152,6 +153,7 @@ export async function payInvoice(ctx: TenantCtx, input: In<typeof payInvoiceSche
         paidOn: input.paidOn,
         paymentMethod: input.method,
         paymentReference: input.reference,
+        accountId: await resolvePaymentAccount(tx, input.method, input.accountId),
       })
       .where(eq(supplierInvoice.id, input.invoiceId));
     await recordAudit(tx, ctx, {

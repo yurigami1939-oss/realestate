@@ -11,19 +11,23 @@ import { accountKindsFor, type TreasuryAccountKind } from "@/lib/treasury";
 export type AccountOption = { id: string; name: string; kind: TreasuryAccountKind };
 
 /**
- * « Encaissé sur »: the cash desk or account a payment lands on, among those its method fits;
- * left empty, the method's default account (CLAUDE.md §7 Treasury). Hidden without accounts.
+ * « Encaissé sur » / « Payé depuis »: the cash desk or account money lands on or leaves, among
+ * those its method fits; left empty, the method's default account (CLAUDE.md §7 Treasury).
+ * Hidden without accounts.
  */
 export function AccountField<T extends FieldValues>({
   control,
   name,
   method,
   accounts,
+  outgoing = false,
 }: {
   control: FormControl<T>;
   name: FieldPath<T>;
   method: PaymentMethod;
   accounts: AccountOption[];
+  /** Money leaving the account (« Payé depuis ») rather than arriving. */
+  outgoing?: boolean;
 }) {
   const t = useTranslations("treasury.fields");
   if (accounts.length === 0) return null;
@@ -32,7 +36,7 @@ export function AccountField<T extends FieldValues>({
     <SelectField
       control={control}
       name={name}
-      label={t("landsOn")}
+      label={outgoing ? t("paidFrom") : t("landsOn")}
       emptyLabel={t("defaultAccount")}
       options={accounts
         .filter((a) => kinds.includes(a.kind))
