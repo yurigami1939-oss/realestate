@@ -36,6 +36,7 @@ import { listLeases } from "@/server/rentals/queries";
 import { visibleSales } from "@/server/sales/access";
 import { buyerNames, paidTotals, searchCondition as saleSearch } from "@/server/sales/sale-queries";
 import { listInvoices } from "@/server/suppliers/queries";
+import { getAccountLedger } from "@/server/treasury/queries";
 
 import type { ExportKind, ExportParams } from "./schemas";
 import { type ExportSheet, exportFileName, MAX_EXPORT_ROWS } from "./xlsx";
@@ -909,6 +910,49 @@ async function invoices(
   };
 }
 
+/** An account's ledger over a period: the balance before it, each line, the running balance. */
+async function ledger(
+  ctx: TenantCtx,
+  params: ExportParams<"ledger">,
+  t: Translate,
+): Promise<ExportResult> {
+  const found = await getAccountLedger(ctx, params.account, { from: params.from, to: params.to });
+  if (!found) throw new AppError("NOT_FOUND");
+  const lines = cap(found.lines);
+  return {
+    file: exportFileName(`tresorerie-${found.account.name}`, `${found.from}_${found.to}`),
+    rows: lines.length,
+    sheets: [
+      {
+        name: found.account.name,
+        columns: [
+          { header: t("exports.columns.date"), kind: "date" },
+          { header: t("exports.columns.nature"), width: 18 },
+          { header: t("exports.columns.label"), width: 40 },
+          { header: t("exports.columns.method"), width: 16 },
+          { header: t("exports.columns.reference"), width: 18 },
+          { header: t("exports.columns.in"), kind: "money" },
+          { header: t("exports.columns.out"), kind: "money" },
+          { header: t("exports.columns.balance"), kind: "money" },
+        ],
+        rows: [
+          [found.from, t("treasury.ledger.before"), null, null, null, null, null, found.before],
+          ...lines.map((l) => [
+            l.on,
+            t(`treasury.source.${l.source}`),
+            l.label,
+            l.method ? t(`payments.method.${l.method}`) : null,
+            l.reference,
+            l.amountIn > 0n ? l.amountIn : null,
+            l.amountOut > 0n ? l.amountOut : null,
+            l.balance,
+          ]),
+        ],
+      },
+    ],
+  };
+}
+
 type Builder<K extends ExportKind> = (
   ctx: TenantCtx,
   params: ExportParams<K>,
@@ -925,4 +969,5 @@ export const builders: { [K in ExportKind]: Builder<K> } = {
   charges,
   leases,
   invoices,
+  ledger,
 };

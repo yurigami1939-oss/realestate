@@ -43,6 +43,7 @@ import { buyer } from "./buyers";
 import { lead } from "./crm";
 import { file } from "./files";
 import { project, unit } from "./inventory";
+import { treasuryAccount } from "./treasury";
 
 export const planStepTrigger = pgEnum("plan_step_trigger", planStepTriggers);
 export const constructionStage = pgEnum("construction_stage", constructionStages);
@@ -603,6 +604,8 @@ export const payment = pgTable(
     imported: boolean().notNull().default(false),
     /** That system's receipt number, when known. */
     legacyReceipt: text(),
+    /** The cash desk or account the money landed on (CLAUDE.md §7 Treasury). */
+    accountId: uuid(),
     status: paymentStatus().notNull().default("valid"),
     cancelledAt: instant(),
     cancelledBy: userRef(),
@@ -617,6 +620,12 @@ export const payment = pgTable(
       columns: [t.organizationId, t.reservationId],
       foreignColumns: [reservation.organizationId, reservation.id],
     }),
+    foreignKey({
+      name: "payment_account_fk",
+      columns: [t.organizationId, t.accountId],
+      foreignColumns: [treasuryAccount.organizationId, treasuryAccount.id],
+    }),
+    index().on(t.organizationId, t.accountId),
     index().on(t.organizationId, t.reservationId),
     index().on(t.organizationId, t.paidOn),
     check("payment_amount", sql`${t.amount} > 0`),

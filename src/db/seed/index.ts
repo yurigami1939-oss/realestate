@@ -17,6 +17,7 @@ import { seedWhatsapp } from "./whatsapp";
 import { seedPortal } from "./portal";
 import { seedRentals } from "./rentals";
 import { seedSales } from "./reservations";
+import { seedTreasuryAccounts, seedTreasuryMovements } from "./treasury";
 import { seedResidences } from "./residences";
 import { seedPaymentPlans, seedQuotations } from "./sales";
 
@@ -90,6 +91,8 @@ export async function seedDemo(): Promise<void> {
       salesManager,
     });
     await seedObligations(ctx("owner", ["owner"]), projectIds);
+    // Before any payment: every seeded collection lands on its method's default account.
+    await seedTreasuryAccounts(ctx("owner", ["owner"]));
     const plans = await seedPaymentPlans(salesManager, projectIds);
     const leads = await seedCrm({ manager: salesManager, agentA, agentB }, projectIds);
     await seedQuotations(
@@ -134,6 +137,7 @@ export async function seedDemo(): Promise<void> {
       cashier: ctx("cashier", ["cashier"]),
     });
     await seedOnlinePayments(ctx("owner", ["owner"]));
+    await seedTreasuryMovements(ctx("owner", ["owner"]), ctx("cashier", ["cashier"]));
     // Last: the business data above was recorded before WhatsApp, without messages.
     await seedWhatsapp(ctx("owner", ["owner"]));
   }

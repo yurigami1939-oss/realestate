@@ -31,6 +31,7 @@ import { file } from "./files";
 import { building } from "./inventory";
 import { chargeFrequency, residence, residenceUnit, resident } from "./residences";
 import { paymentMethod, paymentStatus } from "./sales";
+import { treasuryAccount } from "./treasury";
 
 export const distributionKey = pgEnum("distribution_key", distributionKeys);
 export const distributionWeighting = pgEnum("distribution_weighting", distributionWeightings);
@@ -338,6 +339,8 @@ export const chargePayment = pgTable(
       .$type<{ number: string; amount: string }[]>()
       .notNull()
       .default(sql`'[]'::jsonb`),
+    /** The cash desk or account the money landed on (CLAUDE.md §7 Treasury). */
+    accountId: uuid(),
     status: paymentStatus().notNull().default("valid"),
     cancelledAt: instant(),
     cancelledBy: userRef(),
@@ -349,6 +352,12 @@ export const chargePayment = pgTable(
   (t) => [
     unique().on(t.organizationId, t.id),
     unique().on(t.organizationId, t.receiptNumber),
+    foreignKey({
+      name: "charge_payment_account_fk",
+      columns: [t.organizationId, t.accountId],
+      foreignColumns: [treasuryAccount.organizationId, treasuryAccount.id],
+    }),
+    index().on(t.organizationId, t.accountId),
     foreignKey({
       name: "charge_payment_residence_fk",
       columns: [t.organizationId, t.residenceId],

@@ -63,6 +63,11 @@ REVOKE UPDATE, DELETE, TRUNCATE ON public.payment_call FROM realestate_app;
 GRANT UPDATE (pdf_file_id) ON public.payment_call TO realestate_app;
 REVOKE UPDATE, DELETE, TRUNCATE ON public.reminder_letter FROM realestate_app;
 GRANT UPDATE (pdf_file_id) ON public.reminder_letter TO realestate_app;
+-- Treasury: accounts are closed, never deleted; movements only cancelled; cash counts final.
+REVOKE DELETE, TRUNCATE ON public.treasury_account FROM realestate_app;
+REVOKE UPDATE, DELETE, TRUNCATE ON public.treasury_movement FROM realestate_app;
+GRANT UPDATE (cancelled_at, cancelled_by, cancellation_reason) ON public.treasury_movement TO realestate_app;
+REVOKE UPDATE, DELETE, TRUNCATE ON public.cash_count FROM realestate_app;
 -- Certificates (attestations): kept as issued; only the PDF link is set by the job.
 REVOKE UPDATE, DELETE, TRUNCATE ON public.certificate FROM realestate_app;
 GRANT UPDATE (pdf_file_id) ON public.certificate TO realestate_app;

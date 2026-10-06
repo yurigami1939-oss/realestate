@@ -250,7 +250,8 @@
     "whatsappLog": "Messages WhatsApp",
     "whatsappSettings": "WhatsApp",
     "exports": "Exports Excel",
-    "imports": "Reprise de données"
+    "imports": "Reprise de données",
+    "treasury": "Trésorerie"
   },
   "shell": {
     "organizations": "Sociétés",
@@ -2132,6 +2133,18 @@
         "create": "Document administratif ajouté",
         "update": "Document administratif modifié",
         "delete": "Document administratif retiré"
+      },
+      "treasury_account": {
+        "create": "Compte de trésorerie ouvert",
+        "update": "Compte de trésorerie modifié",
+        "close": "Compte de trésorerie clôturé"
+      },
+      "treasury_movement": {
+        "create": "Mouvement de trésorerie",
+        "cancel": "Mouvement annulé"
+      },
+      "cash_count": {
+        "create": "Arrêté de caisse"
       }
     }
   },
@@ -3630,7 +3643,10 @@
       "residence": "Résidence",
       "invoiceNumber": "N° de facture",
       "booking": "Imputation",
-      "paidOn": "Payée le"
+      "paidOn": "Payée le",
+      "in": "Entrée",
+      "out": "Sortie",
+      "balance": "Solde"
     },
     "errors": {
       "tooMany": "Trop de lignes pour un export : réduisez les filtres.",
@@ -3855,6 +3871,132 @@
         "conformity_certificate": "Certificat de conformité",
         "other": "Autre document"
       }
+    }
+  },
+  "treasury": {
+    "title": "Trésorerie",
+    "description": "Caisses et comptes bancaires : où arrive chaque encaissement, les dépenses et virements, les arrêtés de caisse.",
+    "empty": "Aucun compte : ouvrez la caisse et les comptes bancaires de la société.",
+    "kind": {
+      "cash": "Caisse",
+      "bank": "Banque",
+      "ccp": "CCP"
+    },
+    "totals": {
+      "cash": "Total caisses",
+      "bank": "Total banques",
+      "ccp": "Total CCP"
+    },
+    "accounts": {
+      "create": "Nouveau compte",
+      "createTitle": "Ouvrir une caisse ou un compte",
+      "createDescription": "Le solde d'ouverture est celui du jour d'ouverture ; les encaissements antérieurs y sont compris.",
+      "created": "Compte ouvert.",
+      "editTitle": "Modifier le compte",
+      "saved": "Compte enregistré.",
+      "close": "Clôturer",
+      "closeTitle": "Clôturer ce compte ?",
+      "closeDescription": "Son solde doit être nul (virez d'abord le reste) ; il ne reçoit plus d'encaissement.",
+      "closed": "Compte clôturé.",
+      "default": "Par défaut",
+      "closedOn": "Clôturé le {date}",
+      "today": "Aujourd'hui : +{in} / −{out}",
+      "pendingCheques": "Dont chèques à encaisser : {amount}"
+    },
+    "fields": {
+      "kind": "Type",
+      "name": "Nom",
+      "bankName": "Banque",
+      "accountNumber": "RIB / RIP",
+      "openingBalance": "Solde d'ouverture (DA)",
+      "openingOn": "Ouvert le",
+      "isDefault": "Compte par défaut de ce type (les encaissements y arrivent)",
+      "notes": "Remarques",
+      "closedOn": "Clôturé le",
+      "movementKind": "Mouvement",
+      "account": "Compte",
+      "fromAccount": "Du compte",
+      "toAccount": "Vers le compte",
+      "amount": "Montant (DA)",
+      "movedOn": "Date",
+      "label": "Libellé",
+      "category": "Catégorie",
+      "reference": "Référence (pièce, bordereau…)",
+      "reason": "Motif",
+      "countedOn": "Arrêté au",
+      "counted": "Espèces comptées (DA)",
+      "note": "Explication de l'écart",
+      "landsOn": "Encaissé sur",
+      "defaultAccount": "Compte par défaut"
+    },
+    "movementKind": {
+      "income": "Autre recette",
+      "expense": "Dépense",
+      "bank_fee": "Frais bancaires",
+      "transfer": "Virement entre comptes"
+    },
+    "source": {
+      "sale": "Vente",
+      "charges": "Charges",
+      "rent": "Loyer",
+      "income": "Recette",
+      "expense": "Dépense",
+      "bank_fee": "Frais",
+      "transfer": "Virement",
+      "adjustment": "Écart de caisse"
+    },
+    "movements": {
+      "record": "Saisir un mouvement",
+      "recordTitle": "Mouvement de trésorerie",
+      "recordDescription": "Une dépense, une recette, des frais, ou un virement entre deux comptes (versement des espèces en banque…).",
+      "recorded": "Mouvement enregistré.",
+      "cancel": "Annuler le mouvement",
+      "cancelTitle": "Annuler ce mouvement ?",
+      "cancelDescription": "Il reste visible dans le journal d'audit ; un virement est annulé des deux côtés.",
+      "cancelled": "Mouvement annulé."
+    },
+    "counts": {
+      "title": "Arrêtés de caisse",
+      "record": "Arrêter la caisse",
+      "recordTitle": "Arrêté de caisse",
+      "recordDescription": "Comptez les espèces : un écart avec le solde du journal est expliqué puis passé en écart de caisse.",
+      "expected": "Solde du journal aujourd'hui : {amount}",
+      "difference": "Écart : {amount}",
+      "balanced": "Caisse arrêtée sans écart.",
+      "recorded": "Caisse arrêtée, écart de {difference} enregistré.",
+      "balancedShort": "Sans écart",
+      "differenceShort": "Écart {amount}"
+    },
+    "ledger": {
+      "from": "Du",
+      "to": "Au",
+      "balance": "Solde aujourd'hui",
+      "pendingCheques": "Chèques à encaisser",
+      "opening": "Ouverture",
+      "before": "Solde reporté",
+      "closing": "Solde au {date}",
+      "pendingCheque": "chèque à encaisser",
+      "columns": {
+        "date": "Date",
+        "label": "Libellé",
+        "reference": "Pièce",
+        "in": "Entrée",
+        "out": "Sortie",
+        "balance": "Solde",
+        "actions": "Actions"
+      }
+    },
+    "errors": {
+      "sameAccount": "Choisissez un autre compte.",
+      "accountClosed": "Ce compte est clôturé.",
+      "accountKind": "Ce mode de paiement n'arrive pas sur ce compte (espèces en caisse, le reste en banque ou CCP).",
+      "closed": "Ce compte est clôturé.",
+      "beforeOpening": "Date antérieure à l'ouverture du compte.",
+      "balanceNotNil": "Le solde du compte n'est pas nul : virez d'abord ce qui reste.",
+      "cancelled": "Ce mouvement est déjà annulé.",
+      "adjustment": "Un écart de caisse ne s'annule pas : arrêtez la caisse à nouveau.",
+      "notCash": "Seule une caisse s'arrête.",
+      "differenceNote": "Expliquez l'écart."
     }
   }
 }

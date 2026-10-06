@@ -89,6 +89,8 @@ export const recordRentPaymentSchema = z
     bank: optionalText(80),
     payerName: requiredText(160),
     notes: optionalText(500),
+    /** The cash desk or account it lands on; empty = the method's default account. */
+    accountId: z.uuid().or(z.literal("")).optional(),
   })
   .refine((v) => v.method !== "cheque" || (v.reference !== null && v.bank !== null), {
     path: ["reference"],

@@ -1,0 +1,146 @@
+import { sql } from "drizzle-orm";
+import {
+  boolean,
+  check,
+  date,
+  foreignKey,
+  index,
+  pgEnum,
+  pgTable,
+  text,
+  unique,
+  uniqueIndex,
+  uuid,
+} from "drizzle-orm/pg-core";
+
+import { movementDirections, movementKinds, treasuryAccountKinds } from "../../lib/treasury";
+
+import { createdAt, id, instant, money, organizationId, timestamps, userRef } from "./_columns";
+
+export const treasuryAccountKind = pgEnum("treasury_account_kind", treasuryAccountKinds);
+export const movementKind = pgEnum("movement_kind", movementKinds);
+export const movementDirection = pgEnum("movement_direction", movementDirections);
+
+/**
+ * A cash desk (caisse), bank or CCP account of the organization. Collections land on one
+ * (chosen, else the default account of their method's kind); its balance is derived from its
+ * opening balance, the valid collections and the movements. Closed accounts take no new money.
+ */
+export const treasuryAccount = pgTable(
+  "treasury_account",
+  {
+    id: id(),
+    organizationId: organizationId(),
+    kind: treasuryAccountKind().notNull(),
+    name: text().notNull(),
+    /** Bank (or post office) holding the account; null for a cash desk. */
+    bankName: text(),
+    /** RIB / RIP. */
+    accountNumber: text(),
+    openingBalance: money()
+      .notNull()
+      .default(sql`0`),
+    openingOn: date({ mode: "string" }).notNull(),
+    /** The account its kind's collections land on when none is chosen. */
+    isDefault: boolean().notNull().default(false),
+    closedOn: date({ mode: "string" }),
+    notes: text(),
+    ...timestamps(),
+  },
+  (t) => [
+    unique().on(t.organizationId, t.id),
+    uniqueIndex("treasury_account_one_default")
+      .on(t.organizationId, t.kind)
+      .where(sql`${t.isDefault} and ${t.closedOn} is null`),
+    check("treasury_account_opening", sql`${t.openingBalance} >= 0`),
+  ],
+);
+
+/**
+ * A manual movement of an account (income, expense, bank fee, one side of a transfer, a cash
+ * count's adjustment). Immutable: cancelled with a reason (grants), never deleted.
+ */
+export const treasuryMovement = pgTable(
+  "treasury_movement",
+  {
+    id: id(),
+    organizationId: organizationId(),
+    accountId: uuid().notNull(),
+    kind: movementKind().notNull(),
+    direction: movementDirection().notNull(),
+    amount: money().notNull(),
+    movedOn: date({ mode: "string" }).notNull(),
+    label: text().notNull(),
+    /** Expense / income category (free text: « Fournitures », « Frais de notaire »…). */
+    category: text(),
+    reference: text(),
+    /** The other side of a transfer (the same `transferId` on both rows). */
+    transferId: uuid(),
+    counterAccountId: uuid(),
+    createdAt: createdAt(),
+    createdBy: userRef(),
+    cancelledAt: instant(),
+    cancelledBy: userRef(),
+    cancellationReason: text(),
+  },
+  (t) => [
+    unique().on(t.organizationId, t.id),
+    foreignKey({
+      name: "treasury_movement_account_fk",
+      columns: [t.organizationId, t.accountId],
+      foreignColumns: [treasuryAccount.organizationId, treasuryAccount.id],
+    }),
+    foreignKey({
+      name: "treasury_movement_counter_fk",
+      columns: [t.organizationId, t.counterAccountId],
+      foreignColumns: [treasuryAccount.organizationId, treasuryAccount.id],
+    }),
+    index().on(t.organizationId, t.accountId, t.movedOn),
+    index().on(t.organizationId, t.transferId),
+    check("treasury_movement_amount", sql`${t.amount} > 0`),
+    check(
+      "treasury_movement_transfer",
+      sql`(${t.kind} = 'transfer') = (${t.transferId} is not null and ${t.counterAccountId} is not null)`,
+    ),
+  ],
+);
+
+/**
+ * Arrêté de caisse: the cash counted in a cash desk on a day against the ledger's balance;
+ * a difference is booked as an adjustment movement. Immutable.
+ */
+export const cashCount = pgTable(
+  "cash_count",
+  {
+    id: id(),
+    organizationId: organizationId(),
+    accountId: uuid().notNull(),
+    countedOn: date({ mode: "string" }).notNull(),
+    expected: money().notNull(),
+    counted: money().notNull(),
+    /** counted − expected (negative = missing cash). */
+    difference: money().notNull(),
+    note: text(),
+    adjustmentId: uuid(),
+    countedBy: userRef().notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    unique().on(t.organizationId, t.id),
+    foreignKey({
+      name: "cash_count_account_fk",
+      columns: [t.organizationId, t.accountId],
+      foreignColumns: [treasuryAccount.organizationId, treasuryAccount.id],
+    }),
+    foreignKey({
+      name: "cash_count_adjustment_fk",
+      columns: [t.organizationId, t.adjustmentId],
+      foreignColumns: [treasuryMovement.organizationId, treasuryMovement.id],
+    }),
+    index().on(t.organizationId, t.accountId, t.countedOn),
+    check(
+      "cash_count_amounts",
+      sql`${t.counted} >= 0 and ${t.difference} = ${t.counted} - ${t.expected}`,
+    ),
+  ],
+);

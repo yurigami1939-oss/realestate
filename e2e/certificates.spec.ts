@@ -47,7 +47,10 @@ test.describe("certificates", () => {
       .getByTestId("portal-sales")
       .getByRole("link", { name: "Résidence Les Oliviers · B-02-02" })
       .click();
+    // The sale's page first: reloading earlier would reload the home page.
+    await expect(buyer).toHaveURL(/\/fr\/portal\/sales\//);
     const mine = buyer.getByTestId("portal-certificates");
+    await expect(mine).toBeVisible();
     await expectPdf(
       buyer,
       mine.getByRole("link", { name: /^Attestation de versements · ATT-/ }).first(),

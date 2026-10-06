@@ -11,6 +11,7 @@ import { addDays, todayInAlgiers } from "@/lib/dates";
 import { leaseEndOn } from "@/lib/rentals";
 import { AppError } from "@/lib/result";
 import { recordAudit } from "@/server/audit/record-audit";
+import { resolvePaymentAccount } from "@/server/treasury/service";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
 import { checkUpload, discardFile, storeFile, type Upload } from "@/server/files/service";
 import { transitionUnit } from "@/server/inventory/transition-unit";
@@ -338,6 +339,7 @@ export async function recordRentPayment(ctx: TenantCtx, input: In<typeof recordR
         notes: input.notes,
         receiptNumber: number,
         allocation,
+        accountId: await resolvePaymentAccount(tx, input.method, input.accountId),
         recordedBy: ctx.userId,
       })
       .returning({ id: rentPayment.id });

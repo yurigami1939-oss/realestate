@@ -39,6 +39,7 @@ import { getDelivery } from "@/server/handovers/queries";
 import { listSalePaymentCalls } from "@/server/payment-calls/queries";
 import { listSaleCertificates } from "@/server/certificates/queries";
 import { listSalePayments } from "@/server/payments/queries";
+import { listAccountChoices } from "@/server/treasury/queries";
 import { getSalesSettings } from "@/server/organizations/settings";
 import { listSaleBankLoans } from "@/server/sales/bank-loans";
 import { listReservableUnits } from "@/server/sales/queries";
@@ -84,6 +85,7 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
   const withdrawals = await listSaleWithdrawals(ctx, saleId);
   const { loans, disbursed } = await listSaleBankLoans(ctx, saleId);
   const certificates = await listSaleCertificates(ctx, saleId);
+  const accounts = can(ctx.roles, "payment:create") ? await listAccountChoices(ctx) : [];
   const changeable = sale.status === "reserved" && can(ctx.roles, "sale:update");
   const buyerChoices = changeable
     ? (await listBuyerOptions(ctx)).map((b) => ({
@@ -189,6 +191,7 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
                 remaining={st.remaining}
                 payerName={mainBuyer ? `${mainBuyer.firstName} ${mainBuyer.lastName}` : ""}
                 today={today}
+                accounts={accounts}
               />
             ) : null}
             {sale.status === "reserved" && can(ctx.roles, "sale:sign") ? (

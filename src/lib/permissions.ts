@@ -79,6 +79,11 @@ export const statement = {
   lease: ["read", "update"],
   /** The log of the WhatsApp messages sent to buyers, residents and tenants. */
   notification: ["read"],
+  /**
+   * Cash desks and bank accounts: `read` balances and ledgers, `update` accounts and manual
+   * movements (expenses, transfers…), `count` the cash (arrêté de caisse).
+   */
+  treasury: ["read", "update", "count"],
 } as const;
 
 export const ac = createAccessControl(statement);
@@ -122,6 +127,7 @@ export const roles = {
     handover: ["read", "update"],
     lease: ["read", "update"],
     notification: ["read"],
+    treasury: ["read", "update", "count"],
   }),
   sales_manager: ac.newRole({
     inventory: ["read"],
@@ -175,6 +181,7 @@ export const roles = {
     construction: ["read"],
     lease: ["read"],
     notification: ["read"],
+    treasury: ["read", "update", "count"],
   }),
   cashier: ac.newRole({
     inventory: ["read"],
@@ -186,6 +193,7 @@ export const roles = {
     construction: ["read"],
     lease: ["read"],
     notification: ["read"],
+    treasury: ["read", "count"],
   }),
   property_manager: ac.newRole({
     inventory: ["read"],

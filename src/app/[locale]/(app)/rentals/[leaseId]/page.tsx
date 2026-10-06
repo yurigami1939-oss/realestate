@@ -37,6 +37,7 @@ import { formatDZD, toDecimalString } from "@/lib/money";
 import { can } from "@/lib/permissions";
 import { requirePermission } from "@/server/auth/page-guard";
 import { getLease } from "@/server/rentals/queries";
+import { listAccountChoices } from "@/server/treasury/queries";
 
 import { ContractScan } from "./_components/contract-scan";
 
@@ -58,6 +59,7 @@ export default async function LeasePage({ params }: PageProps<"/[locale]/rentals
   const locale = toLocale(raw);
   setRequestLocale(locale);
   const ctx = await requirePermission("lease:read");
+  const accounts = can(ctx.roles, "payment:create") ? await listAccountChoices(ctx) : [];
   const lease = await getLease(ctx, leaseId);
   if (!lease) notFound();
   const t = await getTranslations("rentals");
@@ -124,6 +126,7 @@ export default async function LeasePage({ params }: PageProps<"/[locale]/rentals
                 max={st.remaining}
                 payerName={lease.tenantName}
                 today={today}
+                accounts={accounts}
               />
             ) : null}
             {canPay && active && depositMissing > 0n ? (
@@ -133,6 +136,7 @@ export default async function LeasePage({ params }: PageProps<"/[locale]/rentals
                 max={depositMissing}
                 payerName={lease.tenantName}
                 today={today}
+                accounts={accounts}
               />
             ) : null}
             {editable ? (

@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Ban, Banknote, CheckCircle2, DoorOpen, HandCoins, RefreshCw } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
-import { type FieldValues, type UseFormReturn, useForm } from "react-hook-form";
+import { type FieldValues, type UseFormReturn, useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import type { z } from "zod";
 
@@ -13,6 +13,7 @@ import { SelectField, TextareaField } from "@/components/forms/fields";
 import { FormDialog } from "@/components/forms/form-dialog";
 import { TextField } from "@/components/forms/text-field";
 import { useAction } from "@/components/forms/use-action";
+import { AccountField, type AccountOption } from "@/components/treasury/account-field";
 import { Button } from "@/components/ui/button";
 import { formatDZD } from "@/lib/money";
 import { rentFrequencies, type RentPaymentKind, rentPaymentMethods } from "@/lib/rentals";
@@ -50,6 +51,7 @@ export function RecordRentPaymentDialog({
   max,
   payerName,
   today,
+  accounts,
 }: {
   leaseId: string;
   kind: RentPaymentKind;
@@ -57,6 +59,8 @@ export function RecordRentPaymentDialog({
   max: bigint;
   payerName: string;
   today: string;
+  /** Cash desks and accounts the payment may land on. */
+  accounts: AccountOption[];
 }) {
   const t = useTranslations("rentals.payment");
   const tp = useTranslations("payments");
@@ -75,8 +79,10 @@ export function RecordRentPaymentDialog({
       bank: "",
       payerName,
       notes: "",
+      accountId: "",
     },
   });
+  const method = useWatch({ control: form.control, name: "method" });
   return (
     <FormDialog
       open={open}
@@ -139,6 +145,7 @@ export function RecordRentPaymentDialog({
         <TextField control={form.control} name="bank" label={tp("fields.bank")} />
       </div>
       <TextField control={form.control} name="payerName" label={tp("fields.payerName")} />
+      <AccountField control={form.control} name="accountId" method={method} accounts={accounts} />
       <TextareaField control={form.control} name="notes" label={tp("fields.notes")} rows={2} />
     </FormDialog>
   );

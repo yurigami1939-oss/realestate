@@ -29,6 +29,7 @@ import { file } from "./files";
 import { project, unit } from "./inventory";
 import { resident } from "./residences";
 import { paymentMethod, paymentStatus } from "./sales";
+import { treasuryAccount } from "./treasury";
 
 export const leaseKind = pgEnum("lease_kind", leaseKinds);
 export const leaseStatus = pgEnum("lease_status", leaseStatuses);
@@ -180,6 +181,8 @@ export const rentPayment = pgTable(
       .$type<{ fromOn: string; toOn: string; amount: string }[]>()
       .notNull()
       .default(sql`'[]'::jsonb`),
+    /** The cash desk or account the money landed on (CLAUDE.md §7 Treasury). */
+    accountId: uuid(),
     status: paymentStatus().notNull().default("valid"),
     cancelledAt: instant(),
     cancelledBy: userRef(),
@@ -191,6 +194,12 @@ export const rentPayment = pgTable(
   (t) => [
     unique().on(t.organizationId, t.id),
     unique().on(t.organizationId, t.receiptNumber),
+    foreignKey({
+      name: "rent_payment_account_fk",
+      columns: [t.organizationId, t.accountId],
+      foreignColumns: [treasuryAccount.organizationId, treasuryAccount.id],
+    }),
+    index().on(t.organizationId, t.accountId),
     foreignKey({
       name: "rent_payment_lease_fk",
       columns: [t.organizationId, t.leaseId],

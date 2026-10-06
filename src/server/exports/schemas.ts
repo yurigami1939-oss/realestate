@@ -15,6 +15,7 @@ export const exportKinds = [
   "charges",
   "leases",
   "invoices",
+  "ledger",
 ] as const;
 export type ExportKind = (typeof exportKinds)[number];
 
@@ -43,6 +44,8 @@ export const exportParams = {
     residence: optionalId,
     year: z.coerce.number().int().min(2000).max(2100).optional().catch(undefined),
   }),
+  /** An account's ledger over a period (default: this month). */
+  ledger: z.object({ account: z.uuid(), from: day, to: day }),
 } as const satisfies Record<ExportKind, z.ZodType>;
 
 export type ExportParams<K extends ExportKind> = z.output<(typeof exportParams)[K]>;

@@ -99,6 +99,7 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
     │   │   │                 # · settings/online-payment (SATIM account) · whatsapp (message log)
     │   │   │                 # · settings/whatsapp (number, webhook, templates) · exports (Excel exports)
     │   │   │                 # · imports (reprise de données: templates, check, import)
+    │   │   │                 # · treasury (cash desks and accounts, ledgers, cash counts)
     │   │   └── (portal)/     # portal of buyers, co-owners and occupants (module 7): own shell, /portal,
     │   │                     # /portal/payments (online payment results), /portal/payment-terms
     │   ├── api/auth/[...all] # Better Auth handler (Route Handlers: auth, files, webhooks, /api/v1)
@@ -130,6 +131,7 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
     │   ├── imports/          # ImportPanel (template, file, check, import, report of issues)
     │   ├── certificates/     # IssueCertificateDialog (sale page), PortalStatementButton (portal)
     │   ├── obligations/      # ProjectDocuments (regulatory file), its dialog, DocumentScan
+    │   ├── treasury/         # account / movement / cash count dialogs, AccountField (« Encaissé sur »), ledger filters
     │   ├── residences/ · staff/ · suppliers/ · tickets/ · assemblies/ · announcements/  # residence
     │   │                     # module: dialogs, ChargeDocumentPdf, attendance grid, payroll, attendance
     │   │                     # sheet, vote grid
@@ -215,6 +217,8 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
     │   │                     # portal statement), queries.ts, documents.ts (PDF job), actions
     │   ├── obligations/      # the promoter's obligations: regulatory file of a project (service, queries,
     │   │                     # dashboard alerts), late deliveries
+    │   ├── treasury/         # cash desks and bank / CCP accounts: service.ts (accounts, movements, cash counts,
+    │   │                     # resolvePaymentAccount), balances.ts (balances from every flow), queries.ts (ledger)
     │   ├── secrets.ts        # encryptSecret / decryptSecret (AES-256-GCM, SECRETS_KEY): organization secrets
     │   ├── stand-ins.ts      # devGatewaysEnabled, standInUrl (the /api/dev/* stand-ins)
     │   └── <module>/         # schemas.ts (isomorphic) · queries.ts · service.ts · actions.ts · *.test.ts
@@ -234,7 +238,8 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
                               # assemblies (majorities, vote tallies), announcements (categories, state),
                               # online-payments (statuses, 50 DA minimum, amount offered), whatsapp (kinds,
                               # template texts, WhatsApp numbers, « STOP »), certificates (kinds, snapshot), obligations
-                              # (regulatory documents, delivery delay and indemnity, warranties)
+                              # (regulatory documents, delivery delay and indemnity, warranties), treasury (account kinds per
+                              # payment method, running balance)
 ```
 
 ## 5. Architecture rules
@@ -316,7 +321,7 @@ The WhatsApp message log (`notification:read`) is open to the gérant, the direc
 - Every document starts with the shared `Letterhead` (`src/pdf/templates/letterhead.tsx`): logo, legal name, address, identifiers. Renderers load it with `loadCompanyLetterhead(tx, orgId)`, which embeds the logo as a data URI (Chromium renders offline). A logo change only affects documents issued afterwards.
 
 ### Exports
-- `GET /api/exports/{kind}?filters&locale=fr|ar` → an .xlsx attachment (`buildExport`): the filters of the list it comes from (`exportParams`), the rows read with the member's rights and visibility (a commercial gets their own leads and sales), headers in the member's language, right to left in Arabic. Kinds: `collections` (journal des encaissements over a period — sales REC, charges RCH, rents and deposits QIT, valid and cancelled, with a summary by nature and method; each source needs its reading right), `sales`, `installments` (every installment of the live sales: paid, remaining, state), `units`, `leads`, `buyers`, `charges` (a residence's unit accounts and residents), `leases`, `invoices`.
+- `GET /api/exports/{kind}?filters&locale=fr|ar` → an .xlsx attachment (`buildExport`): the filters of the list it comes from (`exportParams`), the rows read with the member's rights and visibility (a commercial gets their own leads and sales), headers in the member's language, right to left in Arabic. Kinds: `collections` (journal des encaissements over a period — sales REC, charges RCH, rents and deposits QIT, valid and cancelled, with a summary by nature and method; each source needs its reading right), `sales`, `installments` (every installment of the live sales: paid, remaining, state), `units`, `leads`, `buyers`, `charges` (a residence's unit accounts and residents), `leases`, `invoices`, `ledger` (an account's ledger over a period, from its page).
 - Cells are typed: amounts in dinars with two decimals (`excelAmount`: the one place a bigint becomes a number), calendar days as dates, instants at their Algiers time; 50 000 rows at most per sheet (narrow the filters). Every export is audited (`organization.export`: kind, filters, rows — Loi 18-07). Lists carry an « Exporter (Excel) » button with their current filters; `/exports` gathers them (the journal by period, a project's stock, a residence's accounts).
 
 ### Imports (reprise de données)
@@ -407,7 +412,9 @@ The WhatsApp message log (`notification:read`) is open to the gérant, the direc
 | Assemblée générale, résolution, feuille de présence, vote | `general_assembly` / `assembly_resolution` / `assembly_attendance` / `assembly_vote` | `assembly_kind`: `ordinary`, `extraordinary`; attendance `present`, `represented` (with `proxy_name`), `absent` |
 | Procès-verbal (PV) / Convocation | `general_assembly.minutes_file_id` / `convocation_file_id` | bilingual PDFs |
 | Majorité | `majority` | `simple` (votes cast), `absolute`, `two_thirds`, `unanimity` (of all tantièmes) |
-| Caisse / Compte bancaire | `cash_register` / `bank_account` | |
+| Caisse / compte bancaire / compte CCP | `treasury_account` (`treasury_account_kind`: `cash`, `bank`, `ccp`) | one default per kind; closed, never deleted |
+| Mouvement de trésorerie (dépense, recette, frais, virement, écart de caisse) | `treasury_movement` (`movement_kind`, `direction`) | cancelled with a reason, never edited |
+| Arrêté de caisse | `cash_count` | counted vs ledger balance; the difference booked as an adjustment |
 | Journal d'audit | `audit_log` | |
 | Société (SARL) | `organization` | Better Auth table + legal fields below |
 | RC, NIF, NIS, AI (identifiants légaux SARL) | `organization.rc_number`, `nif`, `nis`, `ai_number` | + `legal_name`, `address`, `wilaya`, `phone`; printed on documents |
@@ -504,6 +511,14 @@ The WhatsApp message log (`notification:read`) is open to the gérant, the direc
 - **Regulatory file** (`project_document`, `project:update` to keep it, `inventory:read` to read it): per project, documents by kind (titre de propriété, permis de construire, permis de lotir, convention CTC, assurance RC professionnelle, affiliation FGCMPI, certificat de conformité, autre with a title) with reference, issue and expiry days, issuer, notes and scan; « autre » needs a title, expiry never before issue; deleting soft-deletes (the scan stays). The project page shows the essential documents held or missing and each one's validity (`documentValidity`: expired, to renew within 60 days); the dashboard counts expired / expiring documents and the projects not delivered that miss an essential one (`project:update`). Audited `project_document.create / update / delete` on the project.
 - **Warranties** (`warrantyEnds`): parfait achèvement one year and décennale ten years from the handover PV, shown on the sale page and the portal.
 
+### Treasury (cash desks and accounts)
+- **Accounts** (`treasury_account`; `treasury:read`: gérant, comptable, caissier; `treasury:update`: gérant, comptable; `treasury:count`: the three): cash desks (caisses), bank and CCP accounts with an opening balance on their opening day (flows dated before it are in it); one default account per kind among open ones; name, bank, RIB / RIP and notes editable, the opening fixed; closing needs a nil balance (transfer the rest first), then the account takes no money. Audited `treasury_account.create / update / close`.
+- **Where collections land** (`resolvePaymentAccount`, called by `insertSalePayment`, `insertChargePayment` and the rent payments): the account chosen in the form (« Encaissé sur », open, of a kind the method fits: cash → a cash desk; cheque, transfer, CCP, bank loan, card → a bank or CCP account), else the default account of the method's kind (a CCP payment falls back on the default bank); none when the organization keeps no accounts. Online payments land on the default bank account. A cancelled payment leaves its account's balance.
+- **Movements** (`treasury_movement`, `treasury:update`): an income, an expense (label, category, reference) or a bank fee on one account, or a transfer between two (two rows sharing `transfer_id`, e.g. the cash desk's takings paid into the bank); never in the future nor before the account's opening; immutable, cancelled with a reason (both sides of a transfer). Audited.
+- **Balance and ledger** (`accountTotals`, `getAccountLedger`): opening balance + valid collections (sales, charges, rents and deposits) + live movements, by day; today's money in and out; cheques received and not cleared (« dont chèques à encaisser »). `/treasury` lists the accounts with totals per kind; `/treasury/[accountId]` shows the ledger over a period (the current month by default): the balance carried forward, each line with its source, payment method and receipt, the running balance; Excel export (`ledger`).
+- **Arrêté de caisse** (`cash_count`, `treasury:count`, cash desks only): the cash counted on a day against the ledger's balance that day; a difference needs an explanation and is booked as an `adjustment` movement (never cancelled: count again), so the ledger follows the cash actually there. Final; audited `cash_count.create`.
+- Supplier invoices, staff pay, withdrawal refunds and deposit refunds are not yet tied to an account: record their payment as an expense movement (see §13).
+
 ### Certificates (attestations)
 - Issued on a live sale (`sale:certify`: gérant, directeur commercial, comptable, caissier; the sale must be visible) from the sale page, optionally addressed to a bank or an administration (« À l'attention de … », else « à qui de droit »): **attestation de réservation** (buyers with birth and NIN, the unit, the contract, the price in words; the VSP once signed), **attestation de versements** (needs a valid payment: total paid in words, every valid payment with its receipt — an imported one with the previous system's number — cheques not cleared marked « sous réserve d'encaissement », what remains), **attestation de paiement intégral** (nothing left to pay and no cheque awaiting clearance), **attestation d'avancement des travaux** (the building's progress from its latest live report, the milestones planned and reached), **relevé de compte** (schedule with paid / remaining / state, payments, totals; not an attestation, no signature).
 - `issueCertificate`: number `ATT-` in the transaction, everything printed frozen in `certificate.data` (`certificateSnapshot`: amounts as centime strings — later payments never change an issued certificate), bilingual PDF by the worker (`pdf.document` kind `certificate`: letterhead, « Nous soussignés … attestons que », « pour servir et valoir ce que de droit », place and date, signature and stamp box), filed under the sale; audited `certificate.issue` on the sale. Immutable (grants: only the PDF link).
@@ -568,9 +583,9 @@ The WhatsApp message log (`notification:read`) is open to the gérant, the direc
 - **Overdue charges** (reminders only, never penalties): `/residences/overdue` lists every unit with calls due before today and not covered, most late first; reminder letters (`charge:remind`: gérant, comptable, caissier, gestionnaire) keep the overdue calls as printed, a pay-by date (default 8 days) and the addressee, bilingual PDF; the daily digest e-mails property managers and cashiers when something is overdue.
 
 ### Audit & deletion
-- Audited: prices, payments, receipts, charge categories, budgets, charge periods, charge payments, supplier invoices, general assemblies (convening, closing with results), handovers (PV signed, reserves closed), leases (signed, corrected, ended, renewed, deposit settled, états des lieux) and rent payments, online payments (confirmed, refunded), certificates issued, imports, the regulatory files, the SATIM account and the WhatsApp number, contracts (reservation, sale, contract details), installments/schedules, unit status, milestone validation, withdrawals (propose / approve / reject / refund), transfers, unit swaps, commissions (paid, rates), organization creation, invitations, member joins/role changes/removals.
+- Audited: prices, payments, receipts, charge categories, budgets, charge periods, charge payments, supplier invoices, general assemblies (convening, closing with results), handovers (PV signed, reserves closed), leases (signed, corrected, ended, renewed, deposit settled, états des lieux) and rent payments, online payments (confirmed, refunded), certificates issued, imports, the regulatory files, treasury accounts, movements and cash counts, the SATIM account and the WhatsApp number, contracts (reservation, sale, contract details), installments/schedules, unit status, milestone validation, withdrawals (propose / approve / reject / refund), transfers, unit swaps, commissions (paid, rates), organization creation, invitations, member joins/role changes/removals.
 - `audit_log(organization_id, actor_user_id, action, entity_type, entity_id, before jsonb, after jsonb, reason, created_at)` written by `recordAudit(tx, scope, entry)` in the same transaction as the change (bigint → string, Date → ISO). `action` is semantic: `<entity>.<verb>`, e.g. `receipt.cancel`, `member.update_roles`. `actor_user_id` null for jobs.
-- DB grants enforce it (`post-migrate.sql`): no `UPDATE`/`DELETE`/`TRUNCATE` on `audit_log`, `reservation_transfer`, `unit_swap`; payments and receipts: no `DELETE`, column-level `UPDATE` (cancellation, cheque clearance, PDF link) only; payment calls, reminder letters and certificates: only their PDF link; reservations and withdrawals: no `DELETE`; charge periods: only their cancellation; charge calls: only their PDF link; charge call lines: append-only; charge payments: cancellation, cheque clearance and PDF link only; charge reminders: only their PDF link; ticket events: append-only; handovers and leases: no `DELETE`; rent payments: cancellation, cheque clearance and PDF link only; états des lieux: only their PDF link; online payments and WhatsApp messages: no `DELETE`.
+- DB grants enforce it (`post-migrate.sql`): no `UPDATE`/`DELETE`/`TRUNCATE` on `audit_log`, `reservation_transfer`, `unit_swap`; payments and receipts: no `DELETE`, column-level `UPDATE` (cancellation, cheque clearance, PDF link) only; payment calls, reminder letters and certificates: only their PDF link; reservations and withdrawals: no `DELETE`; charge periods: only their cancellation; charge calls: only their PDF link; charge call lines: append-only; charge payments: cancellation, cheque clearance and PDF link only; charge reminders: only their PDF link; ticket events: append-only; handovers and leases: no `DELETE`; rent payments: cancellation, cheque clearance and PDF link only; états des lieux: only their PDF link; online payments and WhatsApp messages: no `DELETE`; treasury accounts: no `DELETE`; treasury movements: only their cancellation; cash counts: final.
 - Business records are soft-deleted (`softDelete()` helper: `deleted_at`, `deleted_by`); queries exclude them by default.
 
 ## 8. Coding conventions
@@ -612,10 +627,11 @@ The WhatsApp message log (`notification:read`) is open to the gérant, the direc
 | PDF | Vitest + Chromium | template HTML (RTL blocks, `<bdi>`, amounts in words) and one-page PDF |
 | Imports | Vitest | templates (sheets per language, help), units (issues, warnings, all or nothing, prices and blocks, rights), buyers then sales (a refused file writes nothing, RES/VSP numbers, statement, imported payments without receipts, audit), co-owners and shares |
 | Obligations | Vitest | validity, delay, indemnity (rate, half-up, cap, off), warranties; regulatory file (rights, validation, scan, audit, dashboard alerts); delivery date snapshot and contract correction (audit), guarantee scan, late deliveries in the list and the dashboard |
+| Treasury | Vitest | collections on their accounts (chosen, default per method, CCP fallback, wrong kind refused, none without accounts), balances and cheques pending, cancelled payments, movements and transfers in the ledger (running balance), cancellation of both sides, cash counts with an explained difference, closing only when empty, closed accounts refused, rights, audit, immutability |
 | Certificates | Vitest + Chromium | rights, kinds refused (nothing paid, not paid in full, cheque pending), ATT- numbers, frozen snapshot, list visibility, audit, bilingual HTML and one stored PDF, the portal statement (reused the same day, another account refused) |
 | Exports | Vitest | workbooks read back with `read-excel-file`: typed cells (dinars, dates, Algiers times), the journal per reader's rights (valid and cancelled, summary), visibility of sales, audit |
 | Files | Vitest + SeaweedFS | magic-byte sniffing, file names, `Content-Disposition`, upload size cap and origin check (route helpers), floor plans stored/replaced/removed, presigned download |
-| E2E | Playwright, production build, `realestate_e2e` reset + seeded | anonymous redirect, sign-in error, members, org switch, FR→AR RTL, role-based UI; inventory: project → building → generated units → per-m² price list → block → floor plan, read-only commercial, Arabic unit sheet; CRM: lead (flagged duplicate) → call → visit → quotation → PDF by the worker, commercial scope, merge, discount + cancel, targets; sales golden path: lead → option → buyer file → reservation of the optioned unit → sheet PDF → cashier payment → receipt PDF, commercial scope, overdue list; seeded VSP with payment call, bank loan and commission; dashboard sections and overdue link; residence (gestionnaire): next quarter's charge calls → ADC PDF, overdue co-owner → charge receipt RCH PDF, lift ticket resolved, general assembly draft → convocation PDF → attendance with a proxy → votes → closing → PV PDF, announcement published → notice PDF, a supplier invoice's scan, Arabic residence; portal (resident): back office refused, own sale → schedule, receipt and sheet PDFs, co-owned unit's charges, announcements, a ticket reported and received by the gestionnaire, assemblies → PV PDF, published construction reports with their photos, Arabic portal; construction (responsable technique): no sales access, progress report prefilled with the current progress → site photo, internal report kept in the back office, Arabic follow-up; deliveries: list order, appointment → reserve → PV de remise PDF → lifting → PV de levée PDF, unpaid balance warning, Arabic deliveries, dashboard to-dos (next handover, late reserves); rentals (gestionnaire): new lease with its schedule preview → deposit and rent receipts (QIT PDF) → entry inspection PDF → end → deposit settled, overdue rents from the sidebar, Arabic leases; online payment (resident, SATIM stand-in): installment paid by card → result page → REC PDF, declined card with SATIM's message, history; the cashier's list; the gérant's SATIM account (password never shown), Arabic settings; WhatsApp (cashier, Cloud API stand-in): a counter payment → « Paiement reçu » to the consenting buyer, sent by the worker; the gérant's number, webhook and ten templates; Arabic log; exports (cashier): the journal of collections and a filtered sales list, downloaded and read back; imports (gérant): a buyers file checked (issues shown), fixed, imported, found in the list; Arabic page; certificates: the cashier's attestation de versements to a bank → PDF, found on the buyer's portal, the buyer's own relevé → PDF; Arabic sale page; obligations (gérant): dashboard to-dos, an FGCMPI affiliation added to La Corniche's file with its scan, Les Oliviers' insurance to renew, a late Amandiers delivery with its indemnity and missing guarantee, Arabic file |
+| E2E | Playwright, production build, `realestate_e2e` reset + seeded | anonymous redirect, sign-in error, members, org switch, FR→AR RTL, role-based UI; inventory: project → building → generated units → per-m² price list → block → floor plan, read-only commercial, Arabic unit sheet; CRM: lead (flagged duplicate) → call → visit → quotation → PDF by the worker, commercial scope, merge, discount + cancel, targets; sales golden path: lead → option → buyer file → reservation of the optioned unit → sheet PDF → cashier payment → receipt PDF, commercial scope, overdue list; seeded VSP with payment call, bank loan and commission; dashboard sections and overdue link; residence (gestionnaire): next quarter's charge calls → ADC PDF, overdue co-owner → charge receipt RCH PDF, lift ticket resolved, general assembly draft → convocation PDF → attendance with a proxy → votes → closing → PV PDF, announcement published → notice PDF, a supplier invoice's scan, Arabic residence; portal (resident): back office refused, own sale → schedule, receipt and sheet PDFs, co-owned unit's charges, announcements, a ticket reported and received by the gestionnaire, assemblies → PV PDF, published construction reports with their photos, Arabic portal; construction (responsable technique): no sales access, progress report prefilled with the current progress → site photo, internal report kept in the back office, Arabic follow-up; deliveries: list order, appointment → reserve → PV de remise PDF → lifting → PV de levée PDF, unpaid balance warning, Arabic deliveries, dashboard to-dos (next handover, late reserves); rentals (gestionnaire): new lease with its schedule preview → deposit and rent receipts (QIT PDF) → entry inspection PDF → end → deposit settled, overdue rents from the sidebar, Arabic leases; online payment (resident, SATIM stand-in): installment paid by card → result page → REC PDF, declined card with SATIM's message, history; the cashier's list; the gérant's SATIM account (password never shown), Arabic settings; WhatsApp (cashier, Cloud API stand-in): a counter payment → « Paiement reçu » to the consenting buyer, sent by the worker; the gérant's number, webhook and ten templates; Arabic log; exports (cashier): the journal of collections and a filtered sales list, downloaded and read back; imports (gérant): a buyers file checked (issues shown), fixed, imported, found in the list; Arabic page; certificates: the cashier's attestation de versements to a bank → PDF, found on the buyer's portal, the buyer's own relevé → PDF; Arabic sale page; obligations (gérant): dashboard to-dos, an FGCMPI affiliation added to La Corniche's file with its scan, Les Oliviers' insurance to renew, a late Amandiers delivery with its indemnity and missing guarantee, Arabic file; treasury: the cashier's cash desk ledger (seeded expense, transfer, count) and a cash count with an explained difference, « Encaissé sur » in the payment form; the gérant's transfer from the bank to the CCP; Arabic page |
 
 - Vitest `globalSetup` migrates the test DB and creates the S3 bucket once; each test creates its own organization(s) (`tests/factories.ts`, `tests/auth-helpers.ts`) → isolation without truncation.
 - The e2e global setup starts `src/jobs/worker.ts` after the reset, waits (up to 300 s) for the documents queued by the seed, and stops its process tree at the end (documents render during e2e).
@@ -652,7 +668,7 @@ The WhatsApp message log (`notification:read`) is open to the gérant, the direc
 
 ## 11. Roadmap
 
-**Current: Phases 1 and 2 done (sales; residence management; buyer / resident portal) and modules 4 (construction follow-up & deliveries) and 5 (rentals) of Phase 3, each module with its seed and e2e; online payment by card (SATIM) and WhatsApp notifications, both working against local stand-ins until the promoter's accounts exist (SATIM merchant account, Meta WhatsApp Business). Phase 4 (adoption, from the functional audit): first group done (exports, data import, certificates) and the promoter's obligations (delivery date and indemnity, FGCMPI guarantee, regulatory file, warranties); next the money controls (cash desk and bank accounts, construction costs). Then plug in the SATIM and Meta accounts. Steps are committed straight to `main` (§12, 2026-10-04).**
+**Current: Phases 1 and 2 done (sales; residence management; buyer / resident portal) and modules 4 (construction follow-up & deliveries) and 5 (rentals) of Phase 3, each module with its seed and e2e; online payment by card (SATIM) and WhatsApp notifications, both working against local stand-ins until the promoter's accounts exist (SATIM merchant account, Meta WhatsApp Business). Phase 4 (adoption, from the functional audit): first group done (exports, data import, certificates) and the promoter's obligations (delivery date and indemnity, FGCMPI guarantee, regulatory file, warranties); the treasury (cash desks and accounts); next the construction costs, then the audit backlog (§13). Then plug in the SATIM and Meta accounts. Steps are committed straight to `main` (§12, 2026-10-04).**
 
 ### Phase 0 — Foundations ✅
 - [x] `CLAUDE.md` approved (2026-09-30)
@@ -737,7 +753,8 @@ The WhatsApp message log (`notification:read`) is open to the gérant, the direc
 - [x] Data import (reprise): units, buyers, ongoing sales with their schedules and past payments, co-owners and shares — templates, checks, then all-or-nothing import
 - [x] Certificates for banks and buyers: attestation de réservation, de versements, de paiement intégral, d'avancement des travaux, relevé de compte (numbered `ATT-`, bilingual, frozen at issue; on the portal, with the buyer's own relevé)
 - [x] Promoter's obligations (Loi 11-04): contractual delivery date with the late-delivery indemnity (shown), FGCMPI guarantee per sale and membership number, regulatory file per project (validity, scans, dashboard alerts), warranties after delivery; seed and e2e
-- [ ] Money controls: cash desk and bank accounts (every collection on an account, transfers, cash count), construction costs (contractors, situations de travaux, retention)
+- [x] Treasury: cash desks, bank and CCP accounts, every collection on an account (default per method), movements and transfers, ledgers with running balance and Excel export, cash counts; seed and e2e
+- [ ] Construction costs: budget per project, contractors' contracts, progress invoices with retention, payments, acceptance, cash-flow forecast, margin
 
 ## 12. Decisions log
 
@@ -848,6 +865,8 @@ The WhatsApp message log (`notification:read`) is open to the gérant, the direc
 | 2026-10-05 | WhatsApp messages only go to people whose consent staff recorded (buyer file, resident, lease; co-owners from a sale and lease occupants inherit it), mobiles only; « STOP » withdraws it. Messages are queued in the event's transaction and sent by the worker; a sending problem never blocks the business event. The webhook trusts only calls signed with the app secret. |
 | 2026-10-05 | **Functional audit (user asked)**: first group built for adoption — Excel exports, data import, certificates for banks and buyers; then money controls (cash desk, construction costs), legal exposure (delivery penalties, FGCMPI, warranties), then syndic, rentals and commercial depth. |
 | 2026-10-05 | **Data import (recommended, user delegated)**: Excel templates per kind (units, buyers, ongoing sales with schedules and payments, co-owners and shares), checked row by row before anything is written, then imported all or nothing through the same services; rows already present are left aside with a warning. Imported sales keep their own dates (RES- / VSP- numbered at those dates) and earn no commission; their past payments keep the previous system's receipt numbers — no REC- receipt for money received before the app, nobody is notified. |
+| 2026-10-06 | **Treasury (recommended, user delegated)**: one table of accounts (cash desk, bank, CCP) with an opening balance and one default per kind; every collection lands on an account — the one chosen in the form, else the default of its method's kind — so balances are derived from the collections themselves, with manual movements only for what is recorded nowhere else (expenses, other income, fees, transfers). Cash counts book their difference as an adjustment (explained, final). An account closes only when empty. Movements are immutable (cancelled with a reason, both sides of a transfer). |
+| 2026-10-06 | **Audit backlog (user)**: every item of the functional audit is listed in §13 with its state, checked as it is finished. |
 | 2026-10-06 | **Promoter's obligations (recommended, user delegated)**: the contractual delivery date is snapshotted from the project's planned delivery and corrected per contract; the late-delivery indemnity owed to buyers is a company setting (monthly % of the price, cap; 0 % by default) shown on the sale and never booked; the FGCMPI guarantee certificate is recorded per sale (warning when missing on a sold sale); each project keeps a regulatory file of typed documents with expiry alerts (60 days) and a checklist of five essentials (title, building permit, CTC, insurance, FGCMPI) — warnings only, nothing blocks a sale. |
 | 2026-10-05 | **Certificates (recommended, user delegated)**: five documents on a sale — attestations de réservation, de versements, de paiement intégral (refused while anything remains or a cheque awaits clearance), d'avancement des travaux, and the relevé de compte — numbered `ATT-` (one sequence), bilingual, optionally addressed to a bank, content frozen at issue, issued by the gérant, the directeur commercial, the comptable and the caissier. Buyers download them from the portal and draw their own relevé there (unsigned, reused the same day); attestations stay staff-issued because banks want them signed and stamped. |
 | 2026-10-05 | Exports are .xlsx (not CSV: Arabic text and French number formats survive) built server side with `write-excel-file`, imports read with `read-excel-file` (both maintained, only `fflate` beneath; `exceljs` is unmaintained). Amounts become dinars as numbers only in spreadsheet cells; exports follow each list's filters and rights and are audited. |
@@ -860,3 +879,80 @@ The WhatsApp message log (`notification:read`) is open to the gérant, the direc
 ### Open business questions (ask before implementing)
 - Hosting location (Loi 18-07 restricts cross-border transfer of personal data).
 - Cumulative VSP payment limits per construction stage (décret 13-431), to configure once the notary confirms them.
+
+## 13. Functional audit backlog (2026-10-05)
+
+Every item of the functional audit (what an Algerian promoter, its syndic and its rentals activity still miss), checked when finished. Legal points (rates, deadlines, FGCMPI rules, VAT) are confirmed with a notary or lawyer before being encoded (§10).
+
+### Priority 1 — blocking for adoption or legal exposure
+- [x] **1. Importing existing data**: Excel templates and import wizards (row checks, all or nothing) for units, buyers, ongoing sales with their schedules and past payments, co-owners and shares.
+- [ ] **2. Excel exports and an accounting export**
+  - [x] Excel export of every list, the journal of collections (date, method, account) and each account's ledger
+  - [ ] Accounting export for the chartered accountant (SCF entries: sales, charge calls, collections) and G50 tax return figures
+- [x] **3. Certificates for banks and buyers**: attestation de réservation, de versements, de solde (paiement intégral), relevé de compte, attestation d'avancement des travaux; numbered, bilingual, downloadable from the portal.
+- [ ] **4. The promoter's obligations under Loi 11-04 and décret 13-431**
+  - [x] Contractual delivery date per sale and the late-delivery indemnity owed to the buyer (shown)
+  - [x] FGCMPI guarantee certificate per VSP (number, date, scan) and the membership number
+  - [ ] FGCMPI premium per guarantee
+  - [x] Project regulatory file with expiry alerts (title, permits, CTC, RC insurance, FGCMPI, certificat de conformité)
+  - [ ] Règlement de copropriété and état descriptif de division (décret 14-99 model), décennale and CAT-NAT insurance as their own document kinds
+- [ ] **5. Construction costs and contractors**
+  - [ ] Project budget (land, studies, works, utility networks VRD, fees)
+  - [ ] Contracts with contractors and design offices
+  - [ ] Contractors' progress invoices (situations de travaux), 5 % retention, payments
+  - [ ] Acceptance of works from contractors (réception provisoire / définitive)
+  - [ ] Cash-flow forecast (expected collections from the schedules against expected spending)
+  - [ ] Margin per project
+- [ ] **6. Cash desk and banks**
+  - [x] Cash desks, bank and CCP accounts per company; every collection on an account; movements and transfers; ledgers
+  - [x] Cash journal with daily closing (arrêté de caisse)
+  - [ ] Cheque deposit slips (bordereaux de remise de chèques)
+  - [ ] Bank statement import and reconciliation
+  - [ ] Supplier invoices, staff pay and refunds paid from an account
+
+### Priority 2 — important for daily operations
+- [ ] **7. Changes to a sale**
+  - [ ] Rescheduling the installment plan by amendment
+  - [ ] Several units in one contract (flat + parking + cellar)
+  - [ ] Termination by the promoter for non-payment (formal notices, then termination with retention)
+  - [ ] Discount requests from a commercial to a manager
+- [ ] **8. Financing sources**
+  - [ ] LPA with CNL aid and eligibility checks (income ceilings, no prior property), subsidised-rate loans
+  - [ ] FNPOS or employer aid, Islamic financing (Mourabaha)
+  - [ ] Financing plan per sale (own funds, bank, aid) with expected vs received
+- [ ] **9. Post-delivery warranties**
+  - [x] Warranty end dates (parfait achèvement, décennale) on the sale and the portal
+  - [ ] Warranty claims from buyers through the portal, passed to the contractor, with deadlines (incl. bon fonctionnement)
+- [ ] **10. Syndic depth**
+  - [ ] Exceptional calls for works voted in general assembly
+  - [ ] Individual water meters and consumption-based charges
+  - [ ] Repayment plans for arrears and a recovery procedure (formal notice, bailiff, injonction de payer)
+  - [ ] Building insurance, regulatory inspections (lifts, extinguishers, civil protection), preventive maintenance calendar
+  - [ ] Accounts approval pack for the general assembly, access for the residents' council
+  - [ ] Residences not built by the company (third-party buildings)
+- [ ] **11. Rentals depth**
+  - [ ] Annual rent revision and yearly settlement of tenants' charges
+  - [ ] Lease registration, rental taxes, guarantors
+  - [ ] Management mandates for other owners (owner statements, fees, payouts)
+  - [ ] Tenant portal with online rent payment
+- [ ] **12. Client communication**
+  - [ ] SMS through Mobilis, Djezzy or Ooredoo
+  - [ ] E-mailing receipts and payment calls to clients
+  - [ ] Buyers uploading their documents from the portal
+  - [ ] Requests from the portal (appointment, certificate)
+- [ ] **13. Lead capture and partners**
+  - [ ] Website / project page forms, Facebook Lead Ads, CSV import of leads
+  - [ ] Shareable unit sheet as a PDF (plan, price, availability)
+  - [ ] Outside agencies and business introducers with their commissions
+  - [ ] Cost and return per lead source
+- [ ] **14. Reporting**
+  - [ ] Sales by period, project and typology
+  - [ ] Receivables by age and collections forecast by month
+  - [ ] Stock value, commercial performance
+  - [ ] Consolidated view across the gérant's companies
+
+### Priority 3 — platform and nice-to-have
+- [ ] **15. Security and Loi 18-07**: two-factor authentication (gérant, comptable); individuals' requests (export, correction, erasure), retention periods, register of processing; consent beyond WhatsApp, logging who reads personal data.
+- [ ] **16. Configuration**: custom roles per company, editable wording on documents, reference list of wilayas and communes.
+- [ ] **17. Mobile**: installable app and push notifications for field staff and residents.
+- [ ] **18. Extras**: estimated notary fees and registration duties on quotations; payments from the diaspora (currency, exchange rate); electronic signature (loi 15-04); virtual tours, booking of common rooms, visitor management.

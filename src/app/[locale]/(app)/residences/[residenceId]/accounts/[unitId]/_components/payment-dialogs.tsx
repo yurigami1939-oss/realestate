@@ -4,13 +4,14 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Ban, Banknote, CheckCircle2 } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import type { z } from "zod";
 
 import { applyFieldErrors } from "@/components/forms/apply-field-errors";
 import { SelectField, TextareaField } from "@/components/forms/fields";
 import { FormDialog } from "@/components/forms/form-dialog";
+import { AccountField, type AccountOption } from "@/components/treasury/account-field";
 import { TextField } from "@/components/forms/text-field";
 import { useAction } from "@/components/forms/use-action";
 import { Button } from "@/components/ui/button";
@@ -37,6 +38,7 @@ export function RecordChargePaymentDialog({
   remaining,
   payerName,
   today,
+  accounts,
 }: {
   residenceId: string;
   unitId: string;
@@ -44,6 +46,8 @@ export function RecordChargePaymentDialog({
   remaining: bigint;
   payerName: string;
   today: string;
+  /** Cash desks and accounts the payment may land on. */
+  accounts: AccountOption[];
 }) {
   const t = useTranslations("payments");
   const tc = useTranslations("charges.accounts");
@@ -62,8 +66,10 @@ export function RecordChargePaymentDialog({
       bank: "",
       payerName,
       notes: "",
+      accountId: "",
     },
   });
+  const method = useWatch({ control: form.control, name: "method" });
   return (
     <FormDialog
       open={open}
@@ -122,6 +128,7 @@ export function RecordChargePaymentDialog({
         <TextField control={form.control} name="bank" label={t("fields.bank")} />
       </div>
       <TextField control={form.control} name="payerName" label={t("fields.payerName")} />
+      <AccountField control={form.control} name="accountId" method={method} accounts={accounts} />
       <TextareaField control={form.control} name="notes" label={t("fields.notes")} rows={2} />
     </FormDialog>
   );

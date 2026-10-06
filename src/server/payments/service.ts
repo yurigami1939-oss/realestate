@@ -13,6 +13,7 @@ import { AppError } from "@/lib/result";
 import type { PaymentMethod } from "@/lib/sales";
 import { computeStatement } from "@/lib/statement";
 import { recordAudit } from "@/server/audit/record-audit";
+import { resolvePaymentAccount } from "@/server/treasury/service";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
 import { nextDocumentNumber } from "@/server/numbering/next-document-number";
 import { loadVisibleReservation } from "@/server/sales/access";
@@ -52,6 +53,8 @@ export type SalePaymentEntry = {
   bank: string | null;
   payerName: string;
   notes: string | null;
+  /** The account chosen; absent or empty = the method's default account. */
+  accountId?: string | null;
 };
 
 /**
@@ -106,6 +109,7 @@ export async function insertSalePayment(
       bank: input.bank,
       payerName: input.payerName,
       notes: input.notes,
+      accountId: await resolvePaymentAccount(tx, input.method, input.accountId),
       recordedBy: actor.userId,
     })
     .returning({ id: payment.id });

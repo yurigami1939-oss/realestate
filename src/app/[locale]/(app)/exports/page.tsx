@@ -31,7 +31,8 @@ export default async function ExportsPage({ params }: PageProps<"/[locale]/expor
   const residences = allowed("residence:read") ? await listResidences(ctx) : [];
   const residenceChoices = residences.map((r) => ({ id: r.id, name: r.name }));
 
-  const sections: ({ key: ExportKind; control: React.ReactNode } | false)[] = [
+  // The ledger is exported from each account's page.
+  const sections: ({ key: Exclude<ExportKind, "ledger">; control: React.ReactNode } | false)[] = [
     allowed("payment:read") && {
       key: "collections",
       control: <CollectionsExport from={`${today.slice(0, 7)}-01`} to={today} />,

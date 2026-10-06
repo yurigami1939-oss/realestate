@@ -26,6 +26,7 @@ import {
   Truck,
   type LucideIcon,
   Users,
+  Wallet,
   Wrench,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -77,7 +78,8 @@ type NavKey =
   | "whatsappLog"
   | "whatsappSettings"
   | "exports"
-  | "imports";
+  | "imports"
+  | "treasury";
 /**
  * `permission`: shown only to roles that have it, or one of them (display only; services
  * enforce).
@@ -93,6 +95,7 @@ type NavItem = {
 const mainNav: NavItem[] = [
   { href: "/dashboard", key: "dashboard", icon: LayoutDashboard },
   { href: "/projects", key: "projects", icon: Building2, permission: "inventory:read" },
+  { href: "/treasury", key: "treasury", icon: Wallet, permission: "treasury:read" },
   {
     href: "/online-payments",
     key: "onlinePayments",

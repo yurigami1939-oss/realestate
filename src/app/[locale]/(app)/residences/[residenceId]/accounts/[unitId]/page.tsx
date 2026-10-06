@@ -24,6 +24,7 @@ import { can } from "@/lib/permissions";
 import { cn } from "@/lib/utils";
 import { requirePermission } from "@/server/auth/page-guard";
 import { getUnitAccount, listUnitReminders } from "@/server/charges/queries";
+import { listAccountChoices } from "@/server/treasury/queries";
 
 import {
   CancelChargePaymentDialog,
@@ -45,6 +46,7 @@ export default async function UnitAccountPage({
   const account = await getUnitAccount(ctx, residenceId, unitId);
   if (!account) notFound();
   const reminders = await listUnitReminders(ctx, residenceId, unitId);
+  const accounts = can(ctx.roles, "payment:create") ? await listAccountChoices(ctx) : [];
   const t = await getTranslations("charges.accounts");
   const tp = await getTranslations("charges.period");
   const tpay = await getTranslations("payments");
@@ -98,6 +100,7 @@ export default async function UnitAccountPage({
                 remaining={statement.remaining}
                 payerName={account.coOwner ?? ""}
                 today={today}
+                accounts={accounts}
               />
             ) : null}
           </>

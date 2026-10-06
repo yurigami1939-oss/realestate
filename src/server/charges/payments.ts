@@ -12,6 +12,7 @@ import type { Centimes } from "@/lib/money";
 import { AppError } from "@/lib/result";
 import type { PaymentMethod } from "@/lib/sales";
 import { recordAudit } from "@/server/audit/record-audit";
+import { resolvePaymentAccount } from "@/server/treasury/service";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
 import { nextDocumentNumber } from "@/server/numbering/next-document-number";
 import { loadResidence } from "@/server/residences/service";
@@ -55,6 +56,8 @@ export type ChargePaymentEntry = {
   bank: string | null;
   payerName: string;
   notes: string | null;
+  /** The account chosen; absent or empty = the method's default account. */
+  accountId?: string | null;
 };
 
 /**
@@ -103,6 +106,7 @@ export async function insertChargePayment(
       notes: input.notes,
       receiptNumber: number,
       allocation,
+      accountId: await resolvePaymentAccount(tx, input.method, input.accountId),
       recordedBy: actor.userId,
     })
     .returning({ id: chargePayment.id });

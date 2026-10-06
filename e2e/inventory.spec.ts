@@ -9,7 +9,7 @@ test.describe("sales manager", () => {
     await page.goto("/fr/dashboard");
 
     // Project
-    await page.getByRole("link", { name: "Projets" }).click();
+    await page.getByRole("link", { name: "Projets", exact: true }).click();
     await page.getByRole("link", { name: "Nouveau projet" }).click();
     await page.getByLabel("Nom").fill("Résidence du Jardin");
     await page.getByLabel("Code", { exact: true }).fill("jard");
@@ -96,7 +96,7 @@ test.describe("commercial", () => {
   test("browses the seeded stock without edit controls", async ({ page }) => {
     await page.goto("/fr/dashboard");
 
-    await page.getByRole("link", { name: "Projets" }).click();
+    await page.getByRole("link", { name: "Projets", exact: true }).click();
     await page.getByRole("link", { name: "Résidence Les Oliviers" }).click();
     await expect(page.getByRole("link", { name: "Modifier le projet" })).toHaveCount(0);
     await expect(page.getByRole("button", { name: "Ajouter un bâtiment" })).toHaveCount(0);
