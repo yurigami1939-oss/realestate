@@ -80,6 +80,11 @@ export const uploadPurposes = {
     accept: ["application/pdf", "image/png", "image/jpeg", "image/webp"],
     maxBytes: MAX_UPLOAD_BYTES,
   },
+  /** Certificate or report of a residence's inspection or maintenance visit. */
+  "residence_check.scan": {
+    accept: ["application/pdf", "image/png", "image/jpeg", "image/webp"],
+    maxBytes: MAX_UPLOAD_BYTES,
+  },
   /** Site photo of a construction progress report (shown to buyers when the report is published). */
   "construction_report.photo": {
     accept: ["image/png", "image/jpeg", "image/webp"],

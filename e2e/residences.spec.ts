@@ -177,6 +177,41 @@ test.describe("gestionnaire", () => {
     await expectPdf(page, invoice.getByRole("link", { name: "Scan", exact: true }));
   });
 
+  test("follows the inspections: the extinguishers checked, their certificate kept", async ({
+    page,
+  }) => {
+    await page.goto("/fr/dashboard");
+    await expect(page.getByTestId("dashboard-todo")).toContainText(
+      "Vérification des extincteurs (Résidence El Yasmine) : échéance dépassée",
+    );
+    await page.getByRole("link", { name: /^Vérification des extincteurs/ }).click();
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Résidence El Yasmine");
+    const checks = page.getByTestId("residence-checks");
+    const extinguishers = checks.locator('[data-check="Vérification des extincteurs"]');
+    await expect(extinguishers).toHaveAttribute("data-state", "overdue");
+    await expect(
+      checks.locator(`[data-check="Contrôle périodique de l'ascenseur"]`),
+    ).toHaveAttribute("data-state", "due_soon");
+
+    await extinguishers.getByRole("button", { name: "Visite effectuée" }).click();
+    const dialog = page.getByRole("dialog");
+    await dialog.getByLabel("Coût (DA)").fill("12 000");
+    await dialog.getByRole("button", { name: "Visite effectuée" }).click();
+    await expect(
+      page.getByText("Visite enregistrée, prochaine échéance mise à jour."),
+    ).toBeVisible();
+    await expect(extinguishers).toHaveAttribute("data-state", "ok");
+
+    const visit = extinguishers.getByTestId("check-visits").getByRole("listitem").first();
+    await visit.getByTestId("upload-residence_check.scan").setInputFiles({
+      name: "attestation.pdf",
+      mimeType: "application/pdf",
+      buffer: Buffer.from("%PDF-1.7\nattestation\n%%EOF"),
+    });
+    await expect(page.getByText("Attestation enregistrée.")).toBeVisible();
+    await expectPdf(page, visit.getByRole("link", { name: "Attestation", exact: true }));
+  });
+
   test("reads the residence in Arabic, right to left", async ({ page }) => {
     await openResidence(page, "ar");
     await expect(page.locator("html")).toHaveAttribute("dir", "rtl");

@@ -61,6 +61,8 @@ import {
 import { pastDeliveriesSchema } from "@/server/handovers/schemas";
 import { recordPastDeliveries } from "@/server/handovers/service";
 import { blockUnit, createBuilding, createProject, createUnit } from "@/server/inventory/service";
+import { createCheckSchema, recordVisitSchema } from "@/server/maintenance/schemas";
+import { createCheck, recordVisit } from "@/server/maintenance/service";
 import { addResidentSchema, createResidenceSchema } from "@/server/residences/schemas";
 import { addResident, createResidence, distributeSharesByArea } from "@/server/residences/service";
 import { saveAttendance as saveStaffAttendance } from "@/server/staff/attendance";
@@ -848,6 +850,71 @@ async function seedAnnouncements(manager: TenantCtx, residenceId: string, assemb
 }
 
 /** Seeds the demo residence; returns its id. */
+/**
+ * The deadlines El Yasmine keeps: the lift's yearly inspection due within the month (last one a
+ * year ago, with remarks), the extinguishers' check overdue, the building insurance renewed in
+ * the spring, the water tank cleaned every six months.
+ */
+async function seedChecks(manager: TenantCtx, residenceId: string, lifts: string) {
+  const today = todayInAlgiers();
+  const check = async (input: Record<string, string>) =>
+    (
+      await createCheck(
+        manager,
+        createCheckSchema.parse({
+          residenceId,
+          supplierId: "",
+          reference: "",
+          notes: "",
+          ...input,
+        }),
+      )
+    ).id;
+  const lift = await check({
+    kind: "inspection",
+    category: "lift",
+    title: "Contrôle périodique de l'ascenseur",
+    supplierId: lifts,
+    frequencyMonths: "12",
+    nextDueOn: addDays(today, -345),
+    notes: "Organisme agréé, en présence du prestataire de maintenance.",
+  });
+  await recordVisit(
+    manager,
+    recordVisitSchema.parse({
+      checkId: lift,
+      doneOn: addDays(today, -345),
+      supplierId: lifts,
+      result: "remarks",
+      notes: "Éclairage de cabine à remplacer.",
+      cost: "28 000",
+      nextDueOn: addDays(today, 20),
+    }),
+  );
+  await check({
+    kind: "inspection",
+    category: "fire_safety",
+    title: "Vérification des extincteurs",
+    frequencyMonths: "12",
+    nextDueOn: addDays(today, -12),
+  });
+  await check({
+    kind: "insurance",
+    category: "building",
+    title: "Assurance multirisque immeuble",
+    frequencyMonths: "12",
+    nextDueOn: addDays(today, 200),
+    reference: "CAAR-MRI-2026-1187",
+  });
+  await check({
+    kind: "maintenance",
+    category: "water_tank",
+    title: "Nettoyage et désinfection de la bâche d'eau",
+    frequencyMonths: "6",
+    nextDueOn: addDays(today, 95),
+  });
+}
+
 export async function seedResidences(actors: Actors) {
   const { owner, manager } = actors;
   const { projectId, unitIds } = await seedBuilding(owner);
@@ -919,6 +986,7 @@ export async function seedResidences(actors: Actors) {
   const { categories, budgetId } = await seedCharges(manager, residenceId, unitIds);
   await seedCalls(actors, residenceId, budgetId, unitIds);
   const { lifts } = await seedSuppliers(manager, residenceId, categories);
+  await seedChecks(manager, residenceId, lifts);
   const { guard } = await seedStaff(manager, residenceId, categories);
   await seedTickets(manager, residenceId, unitIds, { lifts, guard });
   const { extraordinaryOn } = await seedAssemblies(manager, residenceId, unitIds);

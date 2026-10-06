@@ -98,6 +98,7 @@ export default async function DashboardPage({ params }: PageProps<"/[locale]/das
     (todo.portalDocuments ?? 0) > 0 ||
     (todo.requests ?? 0) > 0 ||
     (todo.warrantyClaims?.length ?? 0) > 0 ||
+    (todo.checks?.length ?? 0) > 0 ||
     (todo.cheques?.count ?? 0) > 0 ||
     (todo.commissions?.count ?? 0) > 0 ||
     (todo.options?.length ?? 0) > 0 ||
@@ -150,6 +151,20 @@ export default async function DashboardPage({ params }: PageProps<"/[locale]/das
                       : "dashboard.todo.warrantyLate",
                     { unit: c.unitCode, project: c.projectName },
                   )}
+                </Link>
+              </li>
+            ))}
+            {todo.checks?.map((c) => (
+              <li key={c.id} className="py-2">
+                <Link
+                  href={`/residences/${c.residenceId}/checks`}
+                  className="font-medium hover:underline"
+                >
+                  {t(c.late ? "dashboard.todo.checkLate" : "dashboard.todo.checkSoon", {
+                    title: c.title,
+                    residence: c.residenceName,
+                    date: formatDate(c.nextDueOn),
+                  })}
                 </Link>
               </li>
             ))}

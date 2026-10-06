@@ -10,6 +10,7 @@ export * from "./crm";
 export * from "./files";
 export * from "./handovers";
 export * from "./inventory";
+export * from "./maintenance";
 export * from "./obligations";
 export * from "./online-payments";
 export * from "./platform";

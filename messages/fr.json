@@ -2349,7 +2349,9 @@
       "portalDocuments": "{count, plural, one {# pièce envoyée depuis l'espace client à vérifier} other {# pièces envoyées depuis l'espace client à vérifier}}",
       "requests": "{count, plural, one {# demande client en attente} other {# demandes clients en attente}}",
       "warrantyOpen": "Réclamation en garantie à qualifier : {unit} ({project})",
-      "warrantyLate": "Reprise en garantie en retard : {unit} ({project})"
+      "warrantyLate": "Reprise en garantie en retard : {unit} ({project})",
+      "checkLate": "{title} ({residence}) : échéance dépassée le {date}",
+      "checkSoon": "{title} ({residence}) : à faire avant le {date}"
     },
     "sales": {
       "title": "Ventes",
@@ -2503,7 +2505,8 @@
       "report": "Bilan",
       "staff": "Personnel",
       "assemblies": "Assemblées générales",
-      "announcements": "Annonces"
+      "announcements": "Annonces",
+      "checks": "Contrôles"
     }
   },
   "charges": {
@@ -4873,5 +4876,81 @@
     "total": "Total du groupe",
     "open": "Ouvrir",
     "hint": "Chaque société garde ses données séparées : « Ouvrir » en fait la société active, comme le sélecteur en haut du menu."
+  },
+  "maintenance": {
+    "title": "Contrôles et entretiens",
+    "description": "Assurance de l'immeuble, contrôles réglementaires (ascenseurs, extincteurs, installations) et entretiens périodiques : chaque échéance, ses visites et leurs attestations.",
+    "empty": "Aucun contrôle suivi pour cette résidence.",
+    "new": "Ajouter un contrôle",
+    "newTitle": "Nouveau contrôle",
+    "editTitle": "Modifier le contrôle",
+    "edit": "Modifier",
+    "save": "Enregistrer",
+    "saved": "Contrôle modifié.",
+    "created": "Contrôle ajouté.",
+    "formDescription": "La prochaine échéance (fin de la police d'assurance, date du prochain contrôle) et la périodicité qui calcule la suivante après chaque visite.",
+    "noSupplier": "Aucun",
+    "oneOff": "Échéance unique",
+    "everyMonths": "{count, plural, one {Tous les mois} =12 {Tous les ans} =24 {Tous les 2 ans} =36 {Tous les 3 ans} =60 {Tous les 5 ans} other {Tous les # mois}}",
+    "recordVisit": "Visite effectuée",
+    "visitTitle": "Enregistrer une visite",
+    "visitRecorded": "Visite enregistrée, prochaine échéance mise à jour.",
+    "archive": "Archiver",
+    "archiveTitle": "Archiver ce contrôle ?",
+    "archiveDescription": "Il ne sera plus suivi (équipement retiré, police remplacée) ; ses visites restent dans l'historique.",
+    "archived": "Contrôle archivé.",
+    "fields": {
+      "kind": "Nature",
+      "category": "Équipement",
+      "title": "Intitulé",
+      "supplier": "Prestataire",
+      "frequency": "Périodicité",
+      "nextDueOn": "Prochaine échéance",
+      "reference": "N° de police ou de contrat",
+      "notes": "Remarques",
+      "doneOn": "Effectuée le",
+      "result": "Résultat",
+      "doneBy": "Effectuée par",
+      "cost": "Coût (DA)",
+      "nextAfter": "Prochaine échéance",
+      "visitNotes": "Observations"
+    },
+    "kind": {
+      "insurance": "Assurance",
+      "inspection": "Contrôle réglementaire",
+      "maintenance": "Entretien"
+    },
+    "category": {
+      "lift": "Ascenseur",
+      "fire_safety": "Sécurité incendie",
+      "electricity": "Électricité",
+      "gas": "Gaz",
+      "water_tank": "Bâche d'eau",
+      "generator": "Groupe électrogène",
+      "pest_control": "Désinsectisation, dératisation",
+      "building": "Immeuble",
+      "other": "Autre"
+    },
+    "result": {
+      "compliant": "Conforme",
+      "remarks": "Avec réserves",
+      "non_compliant": "Non conforme"
+    },
+    "state": {
+      "overdue": "En retard",
+      "due_soon": "À prévoir",
+      "ok": "À jour"
+    },
+    "scan": {
+      "open": "Attestation",
+      "attach": "Joindre l'attestation",
+      "replace": "Remplacer",
+      "saved": "Attestation enregistrée."
+    },
+    "errors": {
+      "supplier": "Prestataire introuvable.",
+      "archived": "Ce contrôle est archivé.",
+      "nextBeforeVisit": "La prochaine échéance doit suivre la visite."
+    }
   }
 }

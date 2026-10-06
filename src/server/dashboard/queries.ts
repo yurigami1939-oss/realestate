@@ -30,6 +30,7 @@ import { visibleBuyers } from "@/server/buyers/access";
 import { seesAllLeads, visibleLeads } from "@/server/crm/access";
 import { countPendingDiscountRequests } from "@/server/discounts/queries";
 import { loadWarrantyTodo } from "@/server/handovers/warranty";
+import { loadCheckTodo } from "@/server/maintenance/service";
 import { countOpenPortalRequests } from "@/server/requests/service";
 import { countOnlinePaymentIssues } from "@/server/online-payments/queries";
 import { countLateDeliveries, loadDocumentAlerts } from "@/server/obligations/queries";
@@ -354,6 +355,8 @@ async function todo(tx: Tx, ctx: TenantCtx, today: CalendarDate) {
     : [null];
   // Warranty claims to qualify, or past the contractor's deadline (deliveries team).
   const warrantyClaims = await loadWarrantyTodo(tx, ctx);
+  // A residence's inspections, insurance and maintenance late or due soon (who keeps them).
+  const checks = await loadCheckTodo(tx, ctx);
   // Requests buyers sent from the portal about the sales the member sees.
   const requests = can(ctx.roles, "sale:read") ? await countOpenPortalRequests(tx, ctx) : null;
   // Discounts the commercials asked for, to decide (managers).
@@ -382,6 +385,7 @@ async function todo(tx: Tx, ctx: TenantCtx, today: CalendarDate) {
     portalDocuments: portalDocuments?.n ?? null,
     requests,
     warrantyClaims,
+    checks,
   };
 }
 

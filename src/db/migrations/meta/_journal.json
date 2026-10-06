@@ -379,6 +379,13 @@
       "when": 1791318579570,
       "tag": "0053_bank_reconciliation",
       "breakpoints": true
+    },
+    {
+      "idx": 54,
+      "version": "7",
+      "when": 1791321194003,
+      "tag": "0054_residence_checks",
+      "breakpoints": true
     }
   ]
 }

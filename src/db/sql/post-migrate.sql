@@ -86,6 +86,11 @@ REVOKE UPDATE, TRUNCATE ON public.bank_statement_line FROM realestate_app;
 GRANT UPDATE (dismissed_at, dismissed_by, dismissal_reason)
   ON public.bank_statement_line TO realestate_app;
 REVOKE UPDATE, TRUNCATE ON public.bank_match FROM realestate_app;
+-- A residence's checks are archived, never deleted; their visits are kept as recorded (only the
+-- certificate's scan is attached or replaced).
+REVOKE DELETE, TRUNCATE ON public.residence_check FROM realestate_app;
+REVOKE UPDATE, DELETE, TRUNCATE ON public.residence_check_visit FROM realestate_app;
+GRANT UPDATE (scan_file_id) ON public.residence_check_visit TO realestate_app;
 -- Partner commissions are paid or cancelled, never deleted.
 REVOKE DELETE, TRUNCATE ON public.partner_commission FROM realestate_app;
 -- Lead capture keys are revoked, never deleted.

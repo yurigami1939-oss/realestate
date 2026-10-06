@@ -9,6 +9,7 @@ import { setBuyerDocumentScan } from "@/server/buyers/service";
 import { addReportPhoto } from "@/server/construction/service";
 import { setCostScan } from "@/server/costs/service";
 import { setUnitFloorPlan } from "@/server/inventory/floor-plans";
+import { setVisitScan } from "@/server/maintenance/service";
 import { setCompanyLogo } from "@/server/organizations/settings";
 import { setProjectDocumentScan } from "@/server/obligations/service";
 import { setLeaseContractScan } from "@/server/rentals/service";
@@ -112,6 +113,11 @@ export async function POST(request: Request) {
       case "supplier_invoice.scan": {
         const result = await setInvoiceScan(ctx, { invoiceId: fields.data.entityId, upload });
         revalidatePath("/[locale]/suppliers", "layout");
+        revalidatePath("/[locale]/residences", "layout");
+        return result;
+      }
+      case "residence_check.scan": {
+        const result = await setVisitScan(ctx, { visitId: fields.data.entityId, upload });
         revalidatePath("/[locale]/residences", "layout");
         return result;
       }
