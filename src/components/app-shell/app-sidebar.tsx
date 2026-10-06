@@ -30,6 +30,7 @@ import {
   type LucideIcon,
   Users,
   Wallet,
+  Webhook,
   Wrench,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -68,6 +69,7 @@ type NavKey =
   | "overdue"
   | "discounts"
   | "requests"
+  | "leadCapture"
   | "commissions"
   | "audit"
   | "residences"
@@ -164,6 +166,7 @@ const settingsNav: NavItem[] = [
     icon: Landmark,
     permission: "organization:update",
   },
+  { href: "/settings/lead-capture", key: "leadCapture", icon: Webhook, permission: "lead:assign" },
   {
     href: "/settings/whatsapp",
     key: "whatsappSettings",

@@ -254,7 +254,8 @@
     "treasury": "Trésorerie",
     "reports": "Rapports",
     "discounts": "Remises",
-    "requests": "Demandes clients"
+    "requests": "Demandes clients",
+    "leadCapture": "Capture de prospects"
   },
   "shell": {
     "organizations": "Sociétés",
@@ -2085,7 +2086,9 @@
         "whatsapp": "WhatsApp configuré",
         "export": "Export Excel",
         "import": "Reprise de données (import Excel)",
-        "marketing_spend": "Dépense de communication saisie"
+        "marketing_spend": "Dépense de communication saisie",
+        "capture_key": "Clé de capture de prospects créée",
+        "capture_key_revoke": "Clé de capture de prospects révoquée"
       },
       "member": {
         "join": "Arrivée d'un membre",
@@ -4630,6 +4633,43 @@
       "closed": "Cette réclamation est close.",
       "notAssigned": "La réclamation doit d'abord être confiée à une entreprise.",
       "beforeAssignment": "La reprise ne peut précéder la date où elle a été confiée."
+    }
+  },
+  "capture": {
+    "title": "Capture de prospects",
+    "description": "Les formulaires de votre site et vos automatisations (Zapier, Make : Facebook Lead Ads…) envoient leurs prospects directement dans le CRM.",
+    "howTitle": "Comment envoyer un prospect",
+    "how": "Votre site (côté serveur) ou votre automatisation appelle cette adresse avec la clé, en JSON ou en champs de formulaire ; un nom et un téléphone suffisent. Le prospect arrive non attribué, avec la source et le projet de la clé si l'appel ne les donne pas ; un numéro déjà connu est signalé en doublon. Au plus {limit} envois par minute et par clé.",
+    "secret": "La clé est secrète : ne la placez jamais dans le code d'une page web visible par les visiteurs.",
+    "none": "Aucune clé pour l'instant.",
+    "create": "Créer une clé",
+    "createTitle": "Nouvelle clé de capture",
+    "createHint": "Une clé par site ou par automatisation : vous pourrez la révoquer seule.",
+    "keyTitle": "Votre clé",
+    "keyHint": "Copiez-la maintenant : elle ne sera plus affichée.",
+    "example": "Exemple d'appel",
+    "keySaved": "J'ai copié la clé",
+    "fields": {
+      "name": "Nom (site, campagne…)",
+      "source": "Source par défaut",
+      "project": "Projet par défaut",
+      "noProject": "Aucun"
+    },
+    "columns": {
+      "name": "Clé",
+      "key": "Début",
+      "defaults": "Par défaut",
+      "lastUsed": "Dernier envoi"
+    },
+    "createdBy": "Créée par {name} le {date}",
+    "revoke": "Révoquer",
+    "revokeTitle": "Révoquer la clé « {name} » ?",
+    "revokeHint": "Les envois avec cette clé seront refusés aussitôt.",
+    "revokedDone": "Clé révoquée.",
+    "revoked": "Révoquée",
+    "errors": {
+      "tooMany": "Trop d'envois avec cette clé : réessayez dans une minute.",
+      "invalid": "Un nom et un numéro de téléphone valides sont requis."
     }
   }
 }

@@ -145,3 +145,30 @@ export const saveTargetsSchema = z.object({
     )
     .max(200),
 });
+
+// ── Lead capture (websites, automations) ────────────────────────────────────
+
+/** A capture key: its name, and the source / project given to leads that do not say. */
+export const createCaptureKeySchema = z.object({
+  name: requiredText(80),
+  source: z.enum(leadSources),
+  projectId: optionalId(),
+});
+export const captureKeyIdSchema = z.object({ keyId: z.uuid() });
+
+/**
+ * What a website form or an automation sends (JSON or form fields, French or English names
+ * accepted by the route): a name and a phone at least.
+ */
+export const capturedLeadSchema = z.object({
+  fullName: requiredText(120),
+  phone: phoneText(),
+  email: optionalEmailText(),
+  city: optionalText(80),
+  source: z.enum(leadSources).optional().catch(undefined),
+  /** A project's code (« OLIV »). */
+  project: z.string().trim().max(20).optional().catch(undefined),
+  message: optionalText(2000),
+  /** Where it came from: the form, the campaign (shown on the lead). */
+  sourceDetail: optionalText(120),
+});

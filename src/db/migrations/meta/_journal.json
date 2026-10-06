@@ -344,6 +344,13 @@
       "when": 1791304067861,
       "tag": "0048_marketing_spend",
       "breakpoints": true
+    },
+    {
+      "idx": 49,
+      "version": "7",
+      "when": 1791304809698,
+      "tag": "0049_lead_capture",
+      "breakpoints": true
     }
   ]
 }

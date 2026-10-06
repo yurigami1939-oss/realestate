@@ -239,3 +239,40 @@ export const marketingSpend = pgTable(
     check("marketing_spend_month", sql`extract(day from ${t.month}) = 1`),
   ],
 );
+
+/**
+ * A key a website or an automation (Zapier, Make: Facebook Lead Ads…) uses to send leads to
+ * `POST /api/v1/organizations/{orgId}/leads` (CLAUDE.md §7 CRM). Only its SHA-256 is kept;
+ * leads are created as the member who made the key. Revoked, never deleted.
+ */
+export const leadCaptureKey = pgTable(
+  "lead_capture_key",
+  {
+    id: id(),
+    organizationId: organizationId(),
+    name: text().notNull(),
+    /** First characters of the key, to recognise it in the list. */
+    prefix: text().notNull(),
+    keyHash: text().notNull(),
+    /** Source and project given to the leads that do not say. */
+    source: leadSource().notNull().default("website"),
+    projectId: uuid(),
+    createdBy: userRef().notNull(),
+    createdAt: createdAt(),
+    lastUsedAt: instant(),
+    /** Calls of the current minute (rate limit). */
+    windowStart: instant(),
+    windowCount: integer().notNull().default(0),
+    revokedAt: instant(),
+    revokedBy: userRef(),
+  },
+  (t) => [
+    unique().on(t.organizationId, t.id),
+    unique("lead_capture_key_hash").on(t.keyHash),
+    foreignKey({
+      name: "lead_capture_key_project_fk",
+      columns: [t.organizationId, t.projectId],
+      foreignColumns: [project.organizationId, project.id],
+    }),
+  ],
+);
