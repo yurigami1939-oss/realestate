@@ -10,13 +10,8 @@ import { createSaleSetup } from "../../../tests/sales-fixtures";
 
 import { updateUnitPriceSchema } from "./schemas";
 import { updateUnitPrice } from "./service";
-import {
-  issueUnitSheet,
-  listUnitSheets,
-  loadUnitSheetData,
-  renderAndStoreUnitSheet,
-  unitSheetHtml,
-} from "./unit-sheets";
+import { loadUnitSheetData, renderAndStoreUnitSheet, unitSheetHtml } from "./unit-sheet-documents";
+import { issueUnitSheet, listUnitSheets } from "./unit-sheets";
 
 afterAll(async () => {
   await stopEnqueue();
