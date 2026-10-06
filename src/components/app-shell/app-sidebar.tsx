@@ -161,7 +161,7 @@ const settingsNav: NavItem[] = [
     href: "/imports",
     key: "imports",
     icon: FileUp,
-    permission: ["unit:create", "buyer:create", "residence:update"],
+    permission: ["unit:create", "buyer:create", "residence:update", "lead:create"],
   },
   { href: "/settings/audit", key: "audit", icon: ScrollText, permission: "audit:read" },
 ];

@@ -296,6 +296,7 @@ export function ContractDialog({
   deliveryDueOn,
   guaranteeNumber,
   guaranteeIssuedOn,
+  guaranteePremium,
 }: {
   reservationId: string;
   notary: string | null;
@@ -303,6 +304,8 @@ export function ContractDialog({
   deliveryDueOn: string | null;
   guaranteeNumber: string | null;
   guaranteeIssuedOn: string | null;
+  /** As typed in amount inputs ("" when none). */
+  guaranteePremium: string;
 }) {
   const t = useTranslations("sales");
   const tc = useTranslations("common");
@@ -317,6 +320,7 @@ export function ContractDialog({
       deliveryDueOn: deliveryDueOn ?? "",
       guaranteeNumber: guaranteeNumber ?? "",
       guaranteeIssuedOn: guaranteeIssuedOn ?? "",
+      guaranteePremium,
     },
   });
   return (
@@ -365,6 +369,13 @@ export function ContractDialog({
           dir="ltr"
         />
       </div>
+      <TextField
+        control={form.control}
+        name="guaranteePremium"
+        label={t("fields.guaranteePremium")}
+        inputMode="decimal"
+        dir="ltr"
+      />
     </FormDialog>
   );
 }

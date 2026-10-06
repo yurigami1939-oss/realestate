@@ -61,6 +61,7 @@ export const reservationContractSchema = z.object({
   /** FGCMPI guarantee certificate annexed to the VSP. */
   guaranteeNumber: optionalText(60),
   guaranteeIssuedOn: optionalDateText(),
+  guaranteePremium: optionalMoneyText(),
 });
 
 /** VSP signed at the notary: the unit is sold, the commission earned. */

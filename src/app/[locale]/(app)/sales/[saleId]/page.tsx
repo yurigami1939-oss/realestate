@@ -629,6 +629,9 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
                     deliveryDueOn={sale.deliveryDueOn}
                     guaranteeNumber={sale.guaranteeNumber}
                     guaranteeIssuedOn={sale.guaranteeIssuedOn}
+                    guaranteePremium={
+                      sale.guaranteePremium === null ? "" : moneyInput(sale.guaranteePremium)
+                    }
                   />
                 ) : null}
               </div>
@@ -729,6 +732,14 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
                       )}
                     </dd>
                   </div>
+                  {sale.guaranteePremium !== null ? (
+                    <div className="flex justify-between gap-3">
+                      <dt className="text-muted-foreground">{t("sales.obligations.premium")}</dt>
+                      <dd className="text-end tabular-nums" dir="ltr">
+                        {money(sale.guaranteePremium)}
+                      </dd>
+                    </div>
+                  ) : null}
                   {sale.obligations.warranties ? (
                     <>
                       <div className="flex justify-between gap-3">

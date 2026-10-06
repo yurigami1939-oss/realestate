@@ -1107,7 +1107,8 @@
       "notes": "ملاحظات",
       "deliveryDueOn": "التسليم التعاقدي",
       "guaranteeNumber": "رقم شهادة الضمان (FGCMPI)",
-      "guaranteeIssuedOn": "تاريخ إصدار الشهادة"
+      "guaranteeIssuedOn": "تاريخ إصدار الشهادة",
+      "guaranteePremium": "قسط FGCMPI (دج)"
     },
     "newBuyer": "مشترٍ جديد",
     "noBuyer": "لا يوجد مشترٍ: أنشئوا ملف المشتري أولاً.",
@@ -1325,7 +1326,8 @@
       "guaranteeMissing": "شهادة الضمان غير مسجلة",
       "completion": "ضمان حسن الإنجاز",
       "tenYear": "الضمان العشري",
-      "until": "إلى غاية {date}"
+      "until": "إلى غاية {date}",
+      "premium": "قسط FGCMPI"
     }
   },
   "payments": {
@@ -3724,7 +3726,7 @@
       "description": "استورد بياناتك الحالية من Excel: نزّل النموذج، املأه، تحقّق منه ثم استورده. لا يُسجَّل أي شيء ما دام في سطر ما مشكل.",
       "none": "دورك لا يسمح بأي استيراد.",
       "template": "تنزيل النموذج",
-      "file": "ملف Excel (.xlsx)",
+      "file": "ملف Excel (.xlsx) أو CSV",
       "check": "تحقّق",
       "import": "استيراد",
       "project": "المشروع",
@@ -3760,6 +3762,10 @@
       "residents": {
         "title": "الملاك المشتركون والحصص",
         "description": "الملاك المشتركون وشاغلو إقامة، مع حصة كل وحدة."
+      },
+      "leads": {
+        "title": "العملاء المحتملون",
+        "description": "ملفات العملاء المحتملين أو تصدير CSV (إعلانات فيسبوك، استمارات الموقع): الرقم المعروف مسبقاً يُترك جانباً."
       }
     },
     "counts": {
@@ -3769,11 +3775,12 @@
       "installments": "{count, plural, one {قسط واحد} two {قسطان} few {# أقساط} other {# قسطاً}}",
       "payments": "{count, plural, one {دفعة واحدة} two {دفعتان} few {# دفعات} other {# دفعة}}",
       "shares": "{count, plural, one {حصة واحدة} two {حصتان} few {# حصص} other {# حصة}}",
-      "residents": "{count, plural, one {مقيم واحد} two {مقيمان} few {# مقيمين} other {# مقيماً}}"
+      "residents": "{count, plural, one {مقيم واحد} two {مقيمان} few {# مقيمين} other {# مقيماً}}",
+      "leads": "{count, plural, one {عميل محتمل واحد} two {عميلان محتملان} few {# عملاء محتملين} other {# عميلاً محتملاً}}"
     },
     "errors": {
       "noFile": "اختر ملفاً.",
-      "notExcel": "هذا الملف ليس مصنف Excel (.xlsx).",
+      "notExcel": "هذا الملف ليس مصنف Excel (.xlsx) ولا ملف CSV.",
       "projectRequired": "اختر المشروع.",
       "residenceRequired": "اختر الإقامة.",
       "sheetMissing": "الورقة غير موجودة في الملف (احتفظ بأسماء النموذج).",
@@ -3807,7 +3814,8 @@
     "warnings": {
       "unitExists": "الوحدة «{code}» موجودة مسبقاً.",
       "buyerExists": "لـ{name} ملف مسبقاً.",
-      "residentExists": "{name} مسجل مسبقاً في هذه الوحدة."
+      "residentExists": "{name} مسجل مسبقاً في هذه الوحدة.",
+      "leadExists": "{name} عميل محتمل مسبقاً (نفس الهاتف)."
     }
   },
   "certificates": {
@@ -3887,7 +3895,11 @@
         "insurance": "تأمين المسؤولية المدنية المهنية",
         "fgcmpi": "الانخراط في صندوق الضمان والكفالة المتبادلة",
         "conformity_certificate": "شهادة المطابقة",
-        "other": "وثيقة أخرى"
+        "other": "وثيقة أخرى",
+        "co_ownership_rules": "نظام الملكية المشتركة",
+        "division_statement": "الجدول الوصفي للتقسيم",
+        "ten_year_insurance": "التأمين العشري",
+        "catnat_insurance": "التأمين على الكوارث الطبيعية"
       }
     }
   },

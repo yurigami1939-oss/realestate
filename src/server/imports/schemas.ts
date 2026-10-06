@@ -2,7 +2,7 @@
 import { z } from "zod";
 
 /** In the order a promoter brings its data in: units, buyers, then their sales; residences. */
-export const importKinds = ["units", "buyers", "sales", "residents"] as const;
+export const importKinds = ["units", "buyers", "sales", "residents", "leads"] as const;
 export type ImportKind = (typeof importKinds)[number];
 
 /** Sent with the file: the project (units) or residence (residents), and whether to write. */

@@ -1,8 +1,8 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import readXlsxFile from "read-excel-file/node";
 import { afterAll, describe, expect, it } from "vitest";
 
-import { auditLog, payment, receipt, reservation, unit } from "@/db/schema";
+import { auditLog, lead, payment, receipt, reservation, unit } from "@/db/schema";
 import { withTenant } from "@/db/tenant";
 import { stopEnqueue } from "@/jobs/enqueue";
 import { addDays, todayInAlgiers } from "@/lib/dates";
@@ -337,5 +337,81 @@ describe("data import", () => {
     const again = await runImport(manager, "residents", fixed, { residenceId, commit: false });
     expect(again.counts.residents).toBe(0);
     expect(again.warnings).toHaveLength(3);
+  });
+
+  it("imports leads from a CSV export, assigned by a manager, known phones left aside", async () => {
+    const { team, projectId } = await scenario();
+    await runImport(
+      team.manager,
+      "leads",
+      Buffer.from(
+        "\ufeffNom complet;Téléphone;Source;Code projet;Typologies;Budget (DA)\nDéjà Là;0550 99 88 77;Facebook;;;\n",
+        "utf8",
+      ),
+      { commit: true },
+    );
+    const csv = (rows: string[]) =>
+      Buffer.from(
+        [
+          "\ufeffNom complet;Téléphone;Source;Code projet;Typologies;Budget (DA);Commercial (e-mail);Remarques",
+          ...rows,
+        ].join("\r\n"),
+        "utf8",
+      );
+    const agentEmail = (
+      await withTenant(team.owner, (tx) =>
+        tx.execute<{ email: string }>(
+          sql`select u.email from "user" u where u.id = ${team.agentA.userId}`,
+        ),
+      )
+    ).rows[0]?.email;
+    const bad = await runImport(
+      team.manager,
+      "leads",
+      csv([
+        `Karim Bensalem;0661 50 12 34;Fb;OLIV;F3, F4;14 000 000;${agentEmail};"Rappeler ; le soir"`,
+        "Nadia Haddad;0550 99 88 77;Passage;;;;;",
+        "Omar Cherif;0770 11 22 33;Télévision;;;;;",
+      ]),
+      { commit: true },
+    );
+    expect(bad.committed).toBe(false);
+    expect(bad.issues.map((i) => [i.row, i.messageKey])).toEqual([[4, "imports.errors.choice"]]);
+    expect(bad.warnings.map((w) => w.messageKey)).toEqual(["imports.warnings.leadExists"]);
+
+    const done = await runImport(
+      team.manager,
+      "leads",
+      csv([
+        `Karim Bensalem;0661 50 12 34;Fb;OLIV;F3, F4;14 000 000;${agentEmail};"Rappeler ; le soir"`,
+        "Nadia Haddad;0550 99 88 77;Passage;;;;;",
+      ]),
+      { commit: true },
+    );
+    expect(done).toMatchObject({ committed: true, counts: { leads: 1 } });
+    const [karim] = await withTenant(team.owner, (tx) =>
+      tx.select().from(lead).where(eq(lead.fullName, "Karim Bensalem")),
+    );
+    expect(karim).toMatchObject({
+      phone: "+213661501234",
+      source: "facebook",
+      projectId,
+      typologies: ["F3", "F4"],
+      budget: 1_400_000_000n,
+      assignedTo: team.agentA.userId,
+      notes: "Rappeler ; le soir",
+    });
+    // A commercial's imported leads are theirs, whatever the file says.
+    const own = await runImport(
+      team.agentB,
+      "leads",
+      csv([`Lina Saadi;0661 77 66 55;Instagram;;;;${agentEmail};`]),
+      { commit: true },
+    );
+    expect(own.committed).toBe(true);
+    const [lina] = await withTenant(team.owner, (tx) =>
+      tx.select().from(lead).where(eq(lead.fullName, "Lina Saadi")),
+    );
+    expect(lina?.assignedTo).toBe(team.agentB.userId);
   });
 });

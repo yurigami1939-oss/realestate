@@ -42,13 +42,86 @@ export const normalize = (text: string) =>
 
 export type Workbook = { sheet: string; data: CellValue[][] }[];
 
-/** Reads an .xlsx file; null when it is not one. */
+/**
+ * Reads an .xlsx file, else a CSV export (UTF-8 or UTF-16, separated by `;`, `,` or tabs, e.g.
+ * Facebook Lead Ads) as a single sheet; null when it is neither.
+ */
 export async function readWorkbook(bytes: Buffer): Promise<Workbook | null> {
-  try {
-    return (await readXlsxFile(bytes)) as Workbook;
-  } catch {
-    return null;
+  // An .xlsx file is a zip archive ("PK").
+  if (bytes[0] === 0x50 && bytes[1] === 0x4b) {
+    try {
+      return (await readXlsxFile(bytes)) as Workbook;
+    } catch {
+      return null;
+    }
   }
+  const rows = parseCsv(decodeText(bytes));
+  return rows ? [{ sheet: "CSV", data: rows }] : null;
+}
+
+/** Text of a CSV file: UTF-16 with its byte order mark, else UTF-8 (BOM dropped). */
+function decodeText(bytes: Buffer): string {
+  if (bytes[0] === 0xff && bytes[1] === 0xfe) return bytes.subarray(2).toString("utf16le");
+  if (bytes[0] === 0xfe && bytes[1] === 0xff) {
+    const swapped = Buffer.from(bytes.subarray(2));
+    swapped.swap16();
+    return swapped.toString("utf16le");
+  }
+  const text = bytes.toString("utf8");
+  return text.charCodeAt(0) === 0xfeff ? text.slice(1) : text;
+}
+
+const occurrences = (line: string, char: string) => line.split(char).length - 1;
+
+/**
+ * Parses CSV text: the separator is the most frequent of `;`, tab and `,` on the header line;
+ * quoted fields may hold separators, line breaks and doubled quotes. Null for binary content or
+ * an empty file.
+ */
+export function parseCsv(text: string): CellValue[][] | null {
+  if (text.trim() === "" || text.includes("\u0000")) return null;
+  const header = text.split(/\r?\n/, 1)[0] ?? "";
+  const delimiter =
+    [";", "\t", ","].sort((a, b) => occurrences(header, b) - occurrences(header, a))[0] ?? ";";
+  const rows: CellValue[][] = [];
+  let row: CellValue[] = [];
+  let field = "";
+  let quoted = false;
+  const endField = () => {
+    const value = field.trim();
+    row.push(value === "" ? null : value);
+    field = "";
+  };
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i];
+    if (quoted) {
+      if (char === '"' && text[i + 1] === '"') {
+        field += '"';
+        i++;
+      } else if (char === '"') {
+        quoted = false;
+      } else {
+        field += char;
+      }
+    } else if (char === '"' && field.trim() === "") {
+      quoted = true;
+      field = "";
+    } else if (char === delimiter) {
+      endField();
+    } else if (char === "\n" || char === "\r") {
+      if (char === "\r" && text[i + 1] === "\n") i++;
+      endField();
+      rows.push(row);
+      row = [];
+    } else {
+      field += char;
+    }
+  }
+  if (field !== "" || row.length > 0) {
+    endField();
+    rows.push(row);
+  }
+  return rows.length > 0 ? rows : null;
 }
 
 /**

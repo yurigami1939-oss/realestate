@@ -16,6 +16,10 @@ export const projectDocumentKinds = [
   "insurance",
   "fgcmpi",
   "conformity_certificate",
+  "co_ownership_rules",
+  "division_statement",
+  "ten_year_insurance",
+  "catnat_insurance",
   "other",
 ] as const;
 export type ProjectDocumentKind = (typeof projectDocumentKinds)[number];

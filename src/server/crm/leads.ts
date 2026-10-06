@@ -41,24 +41,33 @@ export async function countDuplicates(tx: Tx, phones: (string | null)[], exceptI
   return row?.n ?? 0;
 }
 
-export async function createLead(ctx: TenantCtx, input: In<typeof createLeadSchema>) {
+export async function createLead(
+  ctx: TenantCtx,
+  input: In<typeof createLeadSchema>,
+  /** An open tenant transaction to join (a data import's). */
+  outer?: Tx,
+) {
   assertCan(ctx, "lead:create");
-  return withTenant(ctx, async (tx) => {
-    const { assignedTo: requested, ...fields } = input;
-    // A commercial's lead is always theirs; a manager may assign it or leave it unassigned.
-    const assignedTo = seesAllLeads(ctx) ? requested : ctx.userId;
-    if (assignedTo) await assertLeadOwner(tx, ctx.orgId, assignedTo, "assignedTo");
-    if (fields.projectId) await assertLiveProject(tx, fields.projectId);
+  return withTenant(
+    ctx,
+    async (tx) => {
+      const { assignedTo: requested, ...fields } = input;
+      // A commercial's lead is always theirs; a manager may assign it or leave it unassigned.
+      const assignedTo = seesAllLeads(ctx) ? requested : ctx.userId;
+      if (assignedTo) await assertLeadOwner(tx, ctx.orgId, assignedTo, "assignedTo");
+      if (fields.projectId) await assertLiveProject(tx, fields.projectId);
 
-    const [row] = await tx
-      .insert(lead)
-      .values({ ...fields, organizationId: ctx.orgId, assignedTo, createdBy: ctx.userId })
-      .returning({ id: lead.id });
-    if (!row) throw new Error("createLead: no row returned");
-    await recordLeadActivity(tx, ctx, row.id, "created", { source: fields.source });
-    const duplicates = await countDuplicates(tx, [fields.phone, fields.phone2], row.id);
-    return { id: row.id, duplicates };
-  });
+      const [row] = await tx
+        .insert(lead)
+        .values({ ...fields, organizationId: ctx.orgId, assignedTo, createdBy: ctx.userId })
+        .returning({ id: lead.id });
+      if (!row) throw new Error("createLead: no row returned");
+      await recordLeadActivity(tx, ctx, row.id, "created", { source: fields.source });
+      const duplicates = await countDuplicates(tx, [fields.phone, fields.phone2], row.id);
+      return { id: row.id, duplicates };
+    },
+    outer,
+  );
 }
 
 export async function updateLead(ctx: TenantCtx, input: In<typeof updateLeadSchema>) {

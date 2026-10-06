@@ -176,7 +176,7 @@ export function ImportPanel({
           <Input
             id={`import-${kind}-file`}
             type="file"
-            accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            accept=".xlsx,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv"
             onChange={(event) => {
               setFile(event.target.files?.[0] ?? null);
               setReport(null);

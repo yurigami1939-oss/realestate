@@ -51,6 +51,10 @@ export default async function ImportsPage({ params }: PageProps<"/[locale]/impor
       key: "sales",
       control: <ImportPanel kind="sales" />,
     },
+    allowed("lead:create") && {
+      key: "leads",
+      control: <ImportPanel kind="leads" />,
+    },
     allowed("residence:update") && {
       key: "residents",
       control: (

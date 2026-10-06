@@ -190,6 +190,7 @@ describe("promoter's obligations", () => {
         deliveryDueOn: addDays(today, 10),
         guaranteeNumber: "FGCMPI/GAR/0017",
         guaranteeIssuedOn: addDays(today, -5),
+        guaranteePremium: "45 000",
         ...overrides,
       });
     await expect(updateReservationContract(team.agentA, contract({}))).rejects.toMatchObject({
@@ -206,6 +207,7 @@ describe("promoter's obligations", () => {
       guaranteeNumber: "FGCMPI/GAR/0017",
       guaranteeIssuedOn: addDays(today, -5),
       guaranteeFileName: "piece.pdf",
+      guaranteePremium: 4_500_000n,
       obligations: { daysLate: 0, penalty: 0n, warranties: null },
     });
     const [audit] = await withTenant(team.owner, (tx) =>

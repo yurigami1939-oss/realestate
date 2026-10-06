@@ -1107,7 +1107,8 @@
       "notes": "Remarques",
       "deliveryDueOn": "Livraison contractuelle",
       "guaranteeNumber": "N° de l'attestation de garantie FGCMPI",
-      "guaranteeIssuedOn": "Attestation délivrée le"
+      "guaranteeIssuedOn": "Attestation délivrée le",
+      "guaranteePremium": "Prime FGCMPI (DA)"
     },
     "newBuyer": "Nouvel acquéreur",
     "noBuyer": "Aucun acquéreur : créez d'abord la fiche acquéreur.",
@@ -1325,7 +1326,8 @@
       "guaranteeMissing": "Attestation de garantie non enregistrée",
       "completion": "Garantie de parfait achèvement",
       "tenYear": "Garantie décennale",
-      "until": "jusqu'au {date}"
+      "until": "jusqu'au {date}",
+      "premium": "Prime FGCMPI"
     }
   },
   "payments": {
@@ -3724,7 +3726,7 @@
       "description": "Importez vos données existantes depuis Excel : téléchargez le modèle, remplissez-le, vérifiez-le, puis importez. Rien n'est écrit tant qu'une ligne pose problème.",
       "none": "Votre rôle ne permet aucun import.",
       "template": "Télécharger le modèle",
-      "file": "Fichier Excel (.xlsx)",
+      "file": "Fichier Excel (.xlsx) ou CSV",
       "check": "Vérifier",
       "import": "Importer",
       "project": "Projet",
@@ -3760,6 +3762,10 @@
       "residents": {
         "title": "Copropriétaires et tantièmes",
         "description": "Les copropriétaires et occupants d'une résidence, avec les tantièmes de chaque lot."
+      },
+      "leads": {
+        "title": "Prospects",
+        "description": "Vos fichiers de prospects ou un export CSV (Facebook Lead Ads, formulaires du site) : un numéro déjà connu est laissé de côté."
       }
     },
     "counts": {
@@ -3769,11 +3775,12 @@
       "installments": "{count, plural, one {# échéance} other {# échéances}}",
       "payments": "{count, plural, one {# paiement} other {# paiements}}",
       "shares": "{count, plural, one {# quote-part} other {# quotes-parts}}",
-      "residents": "{count, plural, one {# résident} other {# résidents}}"
+      "residents": "{count, plural, one {# résident} other {# résidents}}",
+      "leads": "{count, plural, one {# prospect} other {# prospects}}"
     },
     "errors": {
       "noFile": "Choisissez un fichier.",
-      "notExcel": "Ce fichier n'est pas un classeur Excel (.xlsx).",
+      "notExcel": "Ce fichier n'est ni un classeur Excel (.xlsx) ni un fichier CSV.",
       "projectRequired": "Choisissez le projet.",
       "residenceRequired": "Choisissez la résidence.",
       "sheetMissing": "Feuille introuvable dans le fichier (gardez les noms du modèle).",
@@ -3807,7 +3814,8 @@
     "warnings": {
       "unitExists": "Le lot « {code} » existe déjà.",
       "buyerExists": "{name} a déjà un dossier.",
-      "residentExists": "{name} est déjà enregistré sur ce lot."
+      "residentExists": "{name} est déjà enregistré sur ce lot.",
+      "leadExists": "{name} est déjà un prospect (même téléphone)."
     }
   },
   "certificates": {
@@ -3887,7 +3895,11 @@
         "insurance": "Assurance responsabilité civile professionnelle",
         "fgcmpi": "Affiliation au FGCMPI",
         "conformity_certificate": "Certificat de conformité",
-        "other": "Autre document"
+        "other": "Autre document",
+        "co_ownership_rules": "Règlement de copropriété",
+        "division_statement": "État descriptif de division",
+        "ten_year_insurance": "Assurance décennale",
+        "catnat_insurance": "Assurance catastrophes naturelles (CAT-NAT)"
       }
     }
   },

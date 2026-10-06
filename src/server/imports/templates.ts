@@ -4,6 +4,7 @@ import type { Locale } from "@/i18n/locales";
 import { type ExportSheet, buildWorkbook } from "@/server/exports/xlsx";
 
 import { buyersSheet } from "./buyers";
+import { leadsSheet } from "./leads";
 import type { TemplateSheet } from "./plan";
 import { residentsSheet } from "./residents";
 import { salesSheets } from "./sales";
@@ -15,6 +16,7 @@ export const templateSheets: Record<ImportKind, TemplateSheet[]> = {
   buyers: [buyersSheet],
   sales: [salesSheets.sales, salesSheets.installments, salesSheets.payments],
   residents: [residentsSheet],
+  leads: [leadsSheet],
 };
 
 const fileNames: Record<ImportKind, string> = {
@@ -22,6 +24,7 @@ const fileNames: Record<ImportKind, string> = {
   buyers: "modele-acquereurs.xlsx",
   sales: "modele-ventes.xlsx",
   residents: "modele-coproprietaires.xlsx",
+  leads: "modele-prospects.xlsx",
 };
 
 /**

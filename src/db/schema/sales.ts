@@ -398,6 +398,8 @@ export const reservation = pgTable(
     /** FGCMPI guarantee certificate annexed to the VSP: number, date, scan. */
     guaranteeNumber: text(),
     guaranteeIssuedOn: date({ mode: "string" }),
+    /** The FGCMPI premium paid for that guarantee. */
+    guaranteePremium: money(),
     guaranteeScanFileId: uuid(),
     /** Internal reservation sheet (PDF rendered by the worker). */
     sheetFileId: uuid(),

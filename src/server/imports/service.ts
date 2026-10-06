@@ -6,6 +6,7 @@ import { recordAudit } from "@/server/audit/record-audit";
 import type { TenantCtx } from "@/server/auth/session";
 
 import { prepareBuyers } from "./buyers";
+import { prepareLeads } from "./leads";
 import type { ImportPlan } from "./plan";
 import { prepareResidents } from "./residents";
 import { prepareSales } from "./sales";
@@ -38,6 +39,9 @@ export async function runImport(
       break;
     case "sales":
       plan = await prepareSales(ctx, workbook);
+      break;
+    case "leads":
+      plan = await prepareLeads(ctx, workbook);
       break;
     case "residents":
       if (!options.residenceId) {

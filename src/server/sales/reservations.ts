@@ -283,6 +283,7 @@ export async function updateReservationContract(
       deliveryDueOn: input.deliveryDueOn,
       guaranteeNumber: input.guaranteeNumber,
       guaranteeIssuedOn: input.guaranteeIssuedOn,
+      guaranteePremium: input.guaranteePremium,
     };
     await tx
       .update(reservation)
@@ -292,6 +293,7 @@ export async function updateReservationContract(
         deliveryDueOn: after.deliveryDueOn,
         guaranteeNumber: after.guaranteeNumber,
         guaranteeIssuedOn: after.guaranteeIssuedOn,
+        guaranteePremium: after.guaranteePremium,
       })
       .where(eq(reservation.id, input.reservationId));
     await recordAudit(tx, ctx, {
@@ -305,6 +307,7 @@ export async function updateReservationContract(
         deliveryDueOn: current.deliveryDueOn,
         guaranteeNumber: current.guaranteeNumber,
         guaranteeIssuedOn: current.guaranteeIssuedOn,
+        guaranteePremium: current.guaranteePremium,
       },
       after,
     });
