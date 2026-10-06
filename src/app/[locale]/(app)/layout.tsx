@@ -32,6 +32,7 @@ export default async function AppLayout({ children, params }: LayoutProps<"/[loc
         activeOrgId={activeOrgId}
         user={{ name: session.user.name, email: session.user.email }}
         roles={ctx.roles}
+        group={organizations.filter((o) => o.roles.includes("owner")).length > 1}
       />
       {/* min-w-0: wide tables scroll inside their own container, not the page. */}
       <SidebarInset className="min-w-0">

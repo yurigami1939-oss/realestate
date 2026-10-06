@@ -13,6 +13,7 @@ import {
   FileSpreadsheet,
   FileUp,
   Handshake,
+  Network,
   HardHat,
   Inbox,
   Hotel,
@@ -89,7 +90,8 @@ type NavKey =
   | "exports"
   | "imports"
   | "treasury"
-  | "reports";
+  | "reports"
+  | "group";
 /**
  * `permission`: shown only to roles that have it, or one of them (display only; services
  * enforce).
@@ -191,7 +193,11 @@ const settingsNav: NavItem[] = [
   { href: "/settings/audit", key: "audit", icon: ScrollText, permission: "audit:read" },
 ];
 
+/** The gérant of several companies sees them side by side (shown only to them). */
+const groupItem: NavItem = { href: "/group", key: "group", icon: Network };
+
 const allItems = [
+  groupItem,
   ...mainNav,
   ...salesNav,
   ...contractsNav,
@@ -215,9 +221,12 @@ export function AppSidebar({
   activeOrgId,
   user,
   roles,
+  group = false,
 }: {
   side: "left" | "right";
   roles: Role[];
+  /** The member runs several companies: the consolidated view is offered. */
+  group?: boolean;
   organizations: OrgOption[];
   activeOrgId: string;
   user: { name: string; email: string };
@@ -262,7 +271,14 @@ export function AppSidebar({
         <OrgSwitcher organizations={organizations} activeId={activeOrgId} />
       </SidebarHeader>
       <SidebarContent>
-        {renderGroup(t("nav.main"), mainNav)}
+        {renderGroup(
+          t("nav.main"),
+          group
+            ? [mainNav[0], groupItem, ...mainNav.slice(1)].filter(
+                (i): i is NavItem => i !== undefined,
+              )
+            : mainNav,
+        )}
         {renderGroup(t("nav.sales"), salesNav)}
         {renderGroup(t("nav.contracts"), contractsNav)}
         {renderGroup(t("nav.constructionGroup"), constructionNav)}

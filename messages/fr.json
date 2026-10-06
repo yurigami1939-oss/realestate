@@ -280,7 +280,8 @@
     "discounts": "Remises",
     "requests": "Demandes clients",
     "leadCapture": "Capture de prospects",
-    "partners": "Agences et apporteurs"
+    "partners": "Agences et apporteurs",
+    "group": "Vue groupe"
   },
   "shell": {
     "organizations": "Sociétés",
@@ -4851,5 +4852,26 @@
     "pay": "Payer",
     "payTitle": "Paiement de la commission",
     "paid": "Commission payée."
+  },
+  "group": {
+    "title": "Vue groupe",
+    "description": "Les sociétés que vous gérez côte à côte : ventes et encaissements de {year}, créances, stock et trésorerie.",
+    "columns": {
+      "company": "Société",
+      "reserved": "Réservations",
+      "sales": "VSP signées",
+      "collected": "Encaissé",
+      "overdue": "Impayés échus",
+      "expected": "Attendu (6 mois)",
+      "stock": "Stock à vendre",
+      "cash": "Trésorerie",
+      "actions": "Actions"
+    },
+    "count": "{count, plural, =0 {Aucune} one {#} other {#}}",
+    "units": "{count, plural, one {# lot} other {# lots}}",
+    "active": "Active",
+    "total": "Total du groupe",
+    "open": "Ouvrir",
+    "hint": "Chaque société garde ses données séparées : « Ouvrir » en fait la société active, comme le sélecteur en haut du menu."
   }
 }

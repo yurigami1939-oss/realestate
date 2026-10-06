@@ -37,4 +37,23 @@ test.describe("reports", () => {
     await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("التقارير");
   });
+
+  test("the gérant of two companies sees them side by side", async ({ page }) => {
+    await page.goto("/fr/dashboard");
+    await page.getByRole("link", { name: "Vue groupe", exact: true }).click();
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Vue groupe");
+    const companies = page.getByTestId("group-companies");
+    await expect(companies.locator('[data-company="El Bahdja Immobilier"]')).toContainText(
+      "Active",
+    );
+    await expect(
+      companies
+        .locator(`[data-company="Les Jardins d'Oran"]`)
+        .getByRole("button", { name: "Ouvrir" }),
+    ).toBeVisible();
+    await expect(companies).toContainText("Total du groupe");
+
+    await page.goto("/ar/group");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("نظرة المجموعة");
+  });
 });
