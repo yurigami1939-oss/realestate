@@ -1036,7 +1036,8 @@
         "missing": "Manquante",
         "received": "Reçue",
         "verified": "Vérifiée"
-      }
+      },
+      "fromPortal": "Envoyée depuis l'espace client · à vérifier"
     },
     "errors": {
       "ninTaken": "Ce NIN est déjà utilisé par un autre acquéreur."
@@ -2253,6 +2254,9 @@
       "cheque_deposit": {
         "create": "Bordereau de remise de chèques",
         "clear": "Chèques d'un bordereau encaissés"
+      },
+      "buyer_document": {
+        "portal_upload": "Pièce envoyée depuis l'espace client"
       }
     }
   },
@@ -2279,7 +2283,8 @@
       "documentsExpiring": "{count, plural, one {# document administratif expiré ou à renouveler} other {# documents administratifs expirés ou à renouveler}}",
       "documentsIncomplete": "{count, plural, one {# projet au dossier administratif incomplet} other {# projets au dossier administratif incomplet}}",
       "discounts": "{count, plural, one {# demande de remise à décider} other {# demandes de remise à décider}}",
-      "termination": "Résiliation à valider : {number} · {buyer}"
+      "termination": "Résiliation à valider : {number} · {buyer}",
+      "portalDocuments": "{count, plural, one {# pièce envoyée depuis l'espace client à vérifier} other {# pièces envoyées depuis l'espace client à vérifier}}"
     },
     "sales": {
       "title": "Ventes",
@@ -3310,7 +3315,8 @@
         "announcements": "Annonces",
         "tickets": "Réclamations",
         "assemblies": "Assemblées",
-        "payments": "Paiements"
+        "payments": "Paiements",
+        "documents": "Mon dossier"
       }
     },
     "home": {
@@ -3476,6 +3482,19 @@
         "failure": "Si le paiement n'aboutit pas, aucun montant n'est débité. En cas d'erreur ou de débit sans reçu, contactez {company}{contact} : un paiement en trop est remboursé sur la carte utilisée.",
         "card": "Pour tout problème lié à votre carte, contactez votre banque ou le numéro vert de la SATIM : {number}.",
         "data": "Vos données sont traitées par {company} pour la gestion de votre dossier, conformément à la loi 18-07 relative à la protection des personnes physiques dans le traitement des données à caractère personnel."
+      }
+    },
+    "documents": {
+      "title": "Mon dossier",
+      "description": "Les pièces demandées pour votre achat. Envoyez un scan ou une photo lisible (PDF, JPEG, PNG) : le promoteur la vérifie.",
+      "none": "Aucun dossier d'acquéreur n'est lié à votre compte.",
+      "file": "Dossier de {name}",
+      "send": "Envoyer",
+      "replace": "Remplacer",
+      "sent": "Pièce envoyée ; le promoteur va la vérifier.",
+      "toVerify": "Envoyée · en vérification",
+      "errors": {
+        "verified": "Cette pièce est déjà vérifiée par le promoteur."
       }
     }
   },

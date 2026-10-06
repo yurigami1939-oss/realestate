@@ -5,6 +5,7 @@ import { and, asc, eq, gte, inArray, isNull, lt, lte, ne, sql } from "drizzle-or
 import type { Tx } from "@/db/client";
 import {
   buyer,
+  buyerDocument,
   commission,
   constructionMilestone,
   followUp,
@@ -25,6 +26,7 @@ import { addDays, addMonths, type CalendarDate, todayInAlgiers } from "@/lib/dat
 import { can } from "@/lib/permissions";
 import { computeStatement } from "@/lib/statement";
 import type { TenantCtx } from "@/server/auth/session";
+import { visibleBuyers } from "@/server/buyers/access";
 import { seesAllLeads, visibleLeads } from "@/server/crm/access";
 import { countPendingDiscountRequests } from "@/server/discounts/queries";
 import { countOnlinePaymentIssues } from "@/server/online-payments/queries";
@@ -333,6 +335,21 @@ async function todo(tx: Tx, ctx: TenantCtx, today: CalendarDate) {
   const onlineIssues = can(ctx.roles, "payment:cancel")
     ? await countOnlinePaymentIssues(tx, ctx)
     : null;
+  // Pieces buyers sent from the portal, to verify (who follows buyer files).
+  const [portalDocuments] = can(ctx.roles, "buyer:update")
+    ? await tx
+        .select({ n: sql<number>`count(*)::int` })
+        .from(buyerDocument)
+        .innerJoin(buyer, eq(buyer.id, buyerDocument.buyerId))
+        .where(
+          and(
+            eq(buyerDocument.submittedFromPortal, true),
+            eq(buyerDocument.status, "received"),
+            isNull(buyer.deletedAt),
+            visibleBuyers(ctx),
+          ),
+        )
+    : [null];
   // Discounts the commercials asked for, to decide (managers).
   const discounts = can(ctx.roles, "discount:decide")
     ? await countPendingDiscountRequests(tx)
@@ -356,6 +373,7 @@ async function todo(tx: Tx, ctx: TenantCtx, today: CalendarDate) {
     lateDeliveries,
     documents,
     discounts,
+    portalDocuments: portalDocuments?.n ?? null,
   };
 }
 

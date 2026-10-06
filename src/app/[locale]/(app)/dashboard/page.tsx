@@ -95,6 +95,7 @@ export default async function DashboardPage({ params }: PageProps<"/[locale]/das
   const hasTodo =
     (todo.withdrawals?.length ?? 0) > 0 ||
     (todo.discounts ?? 0) > 0 ||
+    (todo.portalDocuments ?? 0) > 0 ||
     (todo.cheques?.count ?? 0) > 0 ||
     (todo.commissions?.count ?? 0) > 0 ||
     (todo.options?.length ?? 0) > 0 ||
@@ -135,6 +136,13 @@ export default async function DashboardPage({ params }: PageProps<"/[locale]/das
                 </span>
               </li>
             ))}
+            {todo.portalDocuments ? (
+              <li className="py-2">
+                <Link href="/buyers" className="font-medium hover:underline">
+                  {t("dashboard.todo.portalDocuments", { count: todo.portalDocuments })}
+                </Link>
+              </li>
+            ) : null}
             {todo.discounts ? (
               <li className="py-2">
                 <Link href="/sales/discounts" className="font-medium hover:underline">

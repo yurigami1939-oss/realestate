@@ -39,6 +39,7 @@ export default async function PortalLayout({ children, params }: LayoutProps<"/[
       : []),
     ...(has.coOwner ? ([{ key: "assemblies", href: "/portal/assemblies" }] as const) : []),
     ...(has.payments ? ([{ key: "payments", href: "/portal/payments" }] as const) : []),
+    ...(has.buyer ? ([{ key: "documents", href: "/portal/documents" }] as const) : []),
   ];
 
   return (

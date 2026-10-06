@@ -43,6 +43,21 @@ test.describe("acquéreur et copropriétaire", () => {
     );
   });
 
+  test("sends a piece of their buyer file from the portal", async ({ page }) => {
+    await page.goto("/fr/portal");
+    await page.getByRole("link", { name: "Mon dossier" }).click();
+    const file = page.getByTestId("portal-buyer-file");
+    const payslips = file.locator('[data-kind="payslips"]');
+    await expect(payslips).toContainText("Manquante");
+    await page.getByTestId("upload-portal.buyer_document-payslips").setInputFiles({
+      name: "fiches-de-paie.pdf",
+      mimeType: "application/pdf",
+      buffer: Buffer.from("%PDF-1.7 scan %%EOF"),
+    });
+    await expect(page.getByText("Pièce envoyée ; le promoteur va la vérifier.")).toBeVisible();
+    await expect(payslips).toContainText("Envoyée · en vérification");
+  });
+
   test("follows their charges, announcements, tickets and assemblies", async ({
     page,
     browser,

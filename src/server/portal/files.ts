@@ -5,6 +5,7 @@ import { eq } from "drizzle-orm";
 import type { Tx } from "@/db/client";
 import { handover } from "@/db/schema";
 
+import { portalScope } from "./context";
 import { portalCanReadResidenceFile } from "./residences";
 import { isPortalReport, isPortalSale } from "./sales";
 
@@ -28,6 +29,11 @@ export async function portalCanRead(
       return portalCanReadResidenceFile(tx, userId, stored.id);
     case "construction_report":
       return isPortalReport(tx, userId, stored.entityId);
+    case "buyer": {
+      // The documents of the account's own buyer files (sent by staff or from the portal).
+      const { buyerIds } = await portalScope(tx, { userId });
+      return buyerIds.includes(stored.entityId);
+    }
     case "handover": {
       const [row] = await tx
         .select({ reservationId: handover.reservationId })

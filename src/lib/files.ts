@@ -55,6 +55,11 @@ export const uploadPurposes = {
     accept: ["application/pdf", "image/png", "image/jpeg", "image/webp"],
     maxBytes: MAX_UPLOAD_BYTES,
   },
+  /** The same scans, sent by the buyer from the portal (variant = document kind). */
+  "portal.buyer_document": {
+    accept: ["application/pdf", "image/png", "image/jpeg", "image/webp"],
+    maxBytes: MAX_UPLOAD_BYTES,
+  },
   /** Company logo printed on documents: raster only (no SVG and its scripts), small. */
   "organization.logo": {
     accept: ["image/png", "image/jpeg"],

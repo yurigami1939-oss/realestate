@@ -59,6 +59,9 @@ export function DocumentsChecklist({
                   {d.fileName}
                 </span>
               ) : null}
+              {d.submittedFromPortal ? (
+                <span className="block text-xs font-medium text-amber-800">{t("fromPortal")}</span>
+              ) : null}
             </TableCell>
             <TableCell>
               {editable ? (

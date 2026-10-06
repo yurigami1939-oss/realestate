@@ -83,6 +83,7 @@ export async function getPortalSections(ctx: PortalCtx) {
       .where(eq(onlinePayment.userId, ctx.userId))
       .limit(1);
     return {
+      buyer: buyerIds.length > 0,
       residences: residents.length > 0,
       coOwner,
       payments:

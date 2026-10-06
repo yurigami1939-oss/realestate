@@ -316,6 +316,13 @@
       "when": 1791300469672,
       "tag": "0044_cheque_deposits",
       "breakpoints": true
+    },
+    {
+      "idx": 45,
+      "version": "7",
+      "when": 1791301513147,
+      "tag": "0045_portal_documents",
+      "breakpoints": true
     }
   ]
 }

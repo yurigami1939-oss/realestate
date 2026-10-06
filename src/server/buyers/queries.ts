@@ -94,6 +94,7 @@ export async function getBuyer(ctx: TenantCtx, buyerId: string) {
         fileId: buyerDocument.fileId,
         fileName: file.fileName,
         updatedAt: buyerDocument.updatedAt,
+        submittedFromPortal: buyerDocument.submittedFromPortal,
       })
       .from(buyerDocument)
       .leftJoin(file, and(eq(file.id, buyerDocument.fileId), isNull(file.deletedAt)))
@@ -108,6 +109,7 @@ export async function getBuyer(ctx: TenantCtx, buyerId: string) {
         fileId: found?.fileName ? found.fileId : null,
         fileName: found?.fileName ?? null,
         updatedAt: found?.updatedAt ?? null,
+        submittedFromPortal: found?.submittedFromPortal ?? false,
       };
     });
     return {

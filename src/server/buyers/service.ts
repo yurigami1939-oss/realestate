@@ -83,7 +83,8 @@ async function upsertDocument(
     .values({ organizationId: ctx.orgId, buyerId, kind, updatedBy: ctx.userId, ...values })
     .onConflictDoUpdate({
       target: [buyerDocument.buyerId, buyerDocument.kind],
-      set: { ...values, updatedBy: ctx.userId, updatedAt: new Date() },
+      // Staff handled it: no longer waiting as a scan sent from the portal.
+      set: { ...values, submittedFromPortal: false, updatedBy: ctx.userId, updatedAt: new Date() },
     });
 }
 

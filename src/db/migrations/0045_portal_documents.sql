@@ -1,0 +1,1 @@
+ALTER TABLE "buyer_document" ADD COLUMN "submitted_from_portal" boolean DEFAULT false NOT NULL;

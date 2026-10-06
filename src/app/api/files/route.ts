@@ -13,6 +13,8 @@ import { setCompanyLogo } from "@/server/organizations/settings";
 import { setProjectDocumentScan } from "@/server/obligations/service";
 import { setLeaseContractScan } from "@/server/rentals/service";
 import { setReservationScan } from "@/server/sales/reservations";
+import { getPortalCtx } from "@/server/portal/context";
+import { uploadPortalBuyerDocument } from "@/server/portal/documents";
 import { setInvoiceScan } from "@/server/suppliers/invoices";
 import { setContractScan } from "@/server/suppliers/service";
 import { assertSameOrigin, jsonResult, readFormData } from "@/server/route-handler";
@@ -34,7 +36,6 @@ const FORM_OVERHEAD_BYTES = 64 * 1024;
 export async function POST(request: Request) {
   return jsonResult(async () => {
     assertSameOrigin(request);
-    const ctx = await getTenantCtx();
     const form = await readFormData(request, MAX_UPLOAD_BYTES + FORM_OVERHEAD_BYTES);
     const fields = uploadFields.safeParse({
       purpose: form.get("purpose"),
@@ -50,6 +51,21 @@ export async function POST(request: Request) {
     }
     const upload = { fileName: blob.name, bytes: new Uint8Array(await blob.arrayBuffer()) };
 
+    // A buyer's own documents, sent from the portal (portal account, never a staff context).
+    if (fields.data.purpose === "portal.buyer_document") {
+      const kind = z.enum(buyerDocumentKinds).safeParse(fields.data.variant);
+      if (!kind.success) throw new AppError("VALIDATION");
+      const result = await uploadPortalBuyerDocument(await getPortalCtx(), {
+        buyerId: fields.data.entityId,
+        kind: kind.data,
+        upload,
+      });
+      revalidatePath("/[locale]/portal", "layout");
+      revalidatePath("/[locale]/buyers", "layout");
+      return result;
+    }
+
+    const ctx = await getTenantCtx();
     switch (fields.data.purpose) {
       case "unit.floor_plan": {
         const result = await setUnitFloorPlan(ctx, { unitId: fields.data.entityId, upload });

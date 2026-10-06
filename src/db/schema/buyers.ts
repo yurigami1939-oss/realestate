@@ -90,6 +90,8 @@ export const buyerDocument = pgTable(
     status: documentStatus().notNull().default("missing"),
     fileId: uuid(),
     note: text(),
+    /** Last scan sent by the buyer from the portal (staff then verify it). */
+    submittedFromPortal: boolean().notNull().default(false),
     updatedAt: updatedAt(),
     updatedBy: userRef(),
   },
