@@ -18,6 +18,7 @@ import { renderAndStorePaymentCall } from "@/server/payment-calls/documents";
 import { renderAndStoreReceipt } from "@/server/payments/documents";
 import { renderAndStoreQuotationPdf } from "@/server/quotations/pdf";
 import { renderAndStoreInspection, renderAndStoreRentReceipt } from "@/server/rentals/documents";
+import { renderAndStoreScheduleAmendment } from "@/server/sales/amendment-documents";
 import { renderAndStoreReservationSheet } from "@/server/sales/documents";
 
 type Renderer = (orgId: string, id: string) => Promise<"stored" | "skipped">;
@@ -41,6 +42,7 @@ const renderers: Record<PdfDocumentKind, Renderer> = {
   rent_receipt: renderAndStoreRentReceipt,
   lease_inspection: renderAndStoreInspection,
   certificate: renderAndStoreCertificate,
+  schedule_amendment: renderAndStoreScheduleAmendment,
 };
 
 /** Job `pdf.document`: dispatches to the document's renderer (idempotent). */

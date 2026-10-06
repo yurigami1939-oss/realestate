@@ -9,6 +9,7 @@ import { DeliveryStateBadge } from "@/components/handovers/badges";
 import { InstallmentStateBadge, SaleStatusBadge } from "@/components/sales/badges";
 import { IssueCertificateDialog } from "@/components/certificates/issue-certificate-dialog";
 import { DocumentPdf, PendingDocumentsRefresher } from "@/components/sales/document-pdf";
+import { RescheduleDialog } from "@/components/sales/reschedule-dialog";
 import { VspWarnings } from "@/components/sales/vsp-warnings";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -41,6 +42,8 @@ import { listSaleCertificates } from "@/server/certificates/queries";
 import { listSalePayments } from "@/server/payments/queries";
 import { listAccountChoices } from "@/server/treasury/queries";
 import { getSalesSettings } from "@/server/organizations/settings";
+import { getProjectPaymentSetup } from "@/server/payment-plans/queries";
+import { listSaleAmendments } from "@/server/sales/amendments";
 import { listSaleBankLoans } from "@/server/sales/bank-loans";
 import { listReservableUnits } from "@/server/sales/queries";
 import { getSale } from "@/server/sales/sale-queries";
@@ -82,6 +85,7 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
   const payments = await listSalePayments(ctx, saleId);
   const calls = await listSalePaymentCalls(ctx, saleId);
   const reminders = await listSaleReminders(ctx, saleId);
+  const amendments = await listSaleAmendments(ctx, saleId);
   const withdrawals = await listSaleWithdrawals(ctx, saleId);
   const { loans, disbursed } = await listSaleBankLoans(ctx, saleId);
   const certificates = await listSaleCertificates(ctx, saleId);
@@ -135,8 +139,16 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
     (live && sale.sheetFileId === null) ||
     payments.some((p) => p.receiptId !== null && p.receiptPdfFileId === null) ||
     calls.some((c) => c.pdfFileId === null) ||
-    reminders.some((r) => r.pdfFileId === null);
+    reminders.some((r) => r.pdfFileId === null) ||
+    amendments.some((a) => a.pdfFileId === null);
   const mainBuyer = sale.buyers[0];
+  // Avenant: the milestones not reached yet can still carry installments.
+  const canReschedule = canUpdate && st.remaining > 0n;
+  const openMilestones = canReschedule
+    ? (await getProjectPaymentSetup(ctx, sale.projectId)).milestones.flatMap((m) =>
+        m.validatedOn ? [] : [{ id: m.id, name: m.name }],
+      )
+    : [];
 
   const summary: { label: string; value: React.ReactNode }[] = [
     {
@@ -234,8 +246,28 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
       <div className="grid gap-6 xl:grid-cols-3">
         <div className="min-w-0 space-y-6 xl:col-span-2">
           <Card>
-            <CardHeader>
+            <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
               <CardTitle className="text-base">{t("sales.sections.statement")}</CardTitle>
+              {canReschedule ? (
+                <RescheduleDialog
+                  reservationId={sale.id}
+                  today={today}
+                  minDate={sale.reservedOn}
+                  replaced={st.lines.flatMap((l) =>
+                    l.remaining > 0n
+                      ? [
+                          {
+                            label: l.label,
+                            amount: l.amount,
+                            dueOn: l.dueOn,
+                            milestoneId: l.milestoneId,
+                          },
+                        ]
+                      : [],
+                  )}
+                  milestones={openMilestones}
+                />
+              ) : null}
             </CardHeader>
             <CardContent className="space-y-4">
               {live ? null : (
@@ -652,6 +684,29 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
                   fileName={sale.deedFileName}
                   editable={canUpdate}
                 />
+              ) : null}
+              {amendments.length > 0 ? (
+                <>
+                  <Separator />
+                  <div className="space-y-1" data-testid="sale-amendments">
+                    <div className="text-sm font-medium">{t("sales.reschedule.amendments")}</div>
+                    {amendments.map((a) => (
+                      <div key={a.id} className="text-sm">
+                        <DocumentPdf
+                          fileId={a.pdfFileId}
+                          kind="schedule_amendment"
+                          id={a.id}
+                          label={t("sales.reschedule.amendmentLine", {
+                            number: a.sequence,
+                            date: formatDate(a.signedOn),
+                            name: a.createdByName,
+                          })}
+                        />
+                        <span className="block text-xs text-muted-foreground">{a.reason}</span>
+                      </div>
+                    ))}
+                  </div>
+                </>
               ) : null}
               {reminders.length > 0 ? (
                 <>

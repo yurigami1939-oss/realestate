@@ -11,6 +11,7 @@ import {
   receipt,
   reminderLetter,
   reservation,
+  scheduleAmendment,
 } from "@/db/schema";
 import { withTenant } from "@/db/tenant";
 import { enqueueInTx } from "@/jobs/enqueue";
@@ -65,6 +66,16 @@ async function documentOwner(
         .select({ reservationId: certificate.reservationId, pdfFileId: certificate.pdfFileId })
         .from(certificate)
         .where(eq(certificate.id, id));
+      return row ?? null;
+    }
+    case "schedule_amendment": {
+      const [row] = await tx
+        .select({
+          reservationId: scheduleAmendment.reservationId,
+          pdfFileId: scheduleAmendment.pdfFileId,
+        })
+        .from(scheduleAmendment)
+        .where(eq(scheduleAmendment.id, id));
       return row ?? null;
     }
   }

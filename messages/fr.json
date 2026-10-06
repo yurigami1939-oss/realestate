@@ -1069,7 +1069,16 @@
       "notReserved": "Seule une réservation en cours peut être signée en VSP.",
       "beforeReservation": "La VSP ne peut précéder la réservation.",
       "closed": "Cette réservation est close (désistement).",
-      "notSold": "L'acte de vente ne peut être joint qu'après la signature de la VSP."
+      "notSold": "L'acte de vente ne peut être joint qu'après la signature de la VSP.",
+      "amountPositive": "Indiquez un montant supérieur à zéro.",
+      "dateOrMilestone": "Choisissez une date ou une étape des travaux.",
+      "noLines": "Ajoutez au moins une échéance.",
+      "nothingToReschedule": "Toutes les échéances sont réglées : rien à rééchelonner.",
+      "amendmentTotal": "Les nouvelles échéances doivent totaliser le montant des échéances remplacées.",
+      "amendmentBeforeReservation": "L'avenant ne peut précéder la réservation.",
+      "beforeAmendment": "Une échéance datée ne peut précéder l'avenant.",
+      "milestone": "Étape des travaux inconnue pour ce projet.",
+      "milestoneReached": "Cette étape est déjà validée : indiquez une date."
     },
     "title": "Réservations et ventes",
     "description": "Réservations signées, ventes sur plans et suivi des encaissements.",
@@ -1333,6 +1342,33 @@
       "tenYear": "Garantie décennale",
       "until": "jusqu'au {date}",
       "premium": "Prime FGCMPI"
+    },
+    "reschedule": {
+      "open": "Rééchelonner (avenant)",
+      "title": "Avenant : nouvel échéancier",
+      "hint": "Les échéances non soldées ({amount} au total) sont remplacées par les lignes ci-dessous, qui doivent totaliser ce montant. Les versements déjà faits restent acquis et s'imputent sur les premières échéances.",
+      "signedOn": "Signé le",
+      "reason": "Motif de l'avenant",
+      "spreadCount": "Mensualités",
+      "spreadFirst": "Première le",
+      "spread": "Étaler le reste",
+      "monthly": "Mensualité {number}/{count}",
+      "lines": "Nouvelles échéances",
+      "line": {
+        "label": "Libellé",
+        "amount": "Montant (DA)",
+        "due": "Exigible",
+        "dueOn": "Date",
+        "atDate": "À date fixe",
+        "default": "Échéance {number}"
+      },
+      "addLine": "Ajouter une échéance",
+      "removeLine": "Retirer l'échéance",
+      "total": "Total : {total} / {expected}",
+      "submit": "Enregistrer l'avenant",
+      "done": "Avenant n° {number} enregistré ; son PDF est en préparation.",
+      "amendments": "Avenants (échéancier)",
+      "amendmentLine": "Avenant n° {number} du {date} · {name}"
     }
   },
   "payments": {
@@ -2043,7 +2079,8 @@
         "update_contract": "Contrat de réservation modifié",
         "transfer": "Cession de réservation",
         "swap_unit": "Changement de lot",
-        "import": "Vente reprise (import)"
+        "import": "Vente reprise (import)",
+        "reschedule": "Échéancier modifié par avenant"
       },
       "sale": {
         "sign": "VSP signée"
@@ -3299,7 +3336,8 @@
       "statementReady": "Votre relevé est prêt : son PDF arrive dans quelques secondes.",
       "noCertificates": "Aucune attestation pour l'instant : demandez-la à votre promoteur.",
       "deliveryDueOn": "Livraison prévue au contrat : {date}",
-      "warranties": "Garantie de parfait achèvement jusqu'au {completion} · garantie décennale jusqu'au {tenYear}"
+      "warranties": "Garantie de parfait achèvement jusqu'au {completion} · garantie décennale jusqu'au {tenYear}",
+      "amendment": "Avenant n° {number} du {date} (nouvel échéancier)"
     },
     "pendingDocument": "en préparation",
     "unit": {

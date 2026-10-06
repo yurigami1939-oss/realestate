@@ -96,6 +96,40 @@ export const recordWithdrawalRefundSchema = z.object({
   reference: optionalText(60),
 });
 
+/** A line of an amended schedule: due on a date, or at a construction milestone not reached. */
+export const amendmentLineFields = z
+  .object({
+    label: requiredText(120),
+    amount: moneyText(),
+    dueOn: optionalDateText(),
+    milestoneId: z.union([z.uuid(), z.literal("")]),
+  })
+  .superRefine((line, ctx) => {
+    if (line.amount <= 0n) {
+      ctx.addIssue({ code: "custom", path: ["amount"], message: "sales.errors.amountPositive" });
+    }
+    if ((line.dueOn === null) === (line.milestoneId === "")) {
+      ctx.addIssue({ code: "custom", path: ["dueOn"], message: "sales.errors.dateOrMilestone" });
+    }
+  })
+  .transform((line) => ({
+    label: line.label,
+    amount: line.amount,
+    dueOn: line.milestoneId === "" ? line.dueOn : null,
+    milestoneId: line.milestoneId === "" ? null : line.milestoneId,
+  }));
+
+/**
+ * Avenant: the unpaid part of the schedule replaced by new lines whose total is what remains of
+ * the price on those lines (CLAUDE.md §7).
+ */
+export const rescheduleSaleSchema = z.object({
+  reservationId: z.uuid(),
+  signedOn: dateText(),
+  reason: reasonText(),
+  lines: z.array(amendmentLineFields).min(1, "sales.errors.noLines").max(36),
+});
+
 /** Cession: new buyers take the reservation over. */
 export const transferReservationSchema = z.object({
   reservationId: z.uuid(),
@@ -133,6 +167,7 @@ export const saleDocumentKinds = [
   "payment_call",
   "reminder_letter",
   "certificate",
+  "schedule_amendment",
 ] as const;
 export const requestSaleDocumentSchema = z.object({
   kind: z.enum(saleDocumentKinds),

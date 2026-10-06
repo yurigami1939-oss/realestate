@@ -243,7 +243,7 @@ export default async function PortalSalePage({
           <CardTitle className="text-base">{t("documents")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2" data-testid="portal-documents">
-          {!hasDocuments && sale.reminders.length === 0 ? (
+          {!hasDocuments && sale.reminders.length === 0 && sale.amendments.length === 0 ? (
             <p className="text-sm text-muted-foreground">{t("noDocuments")}</p>
           ) : null}
           {sale.sheetFileId ? (
@@ -261,6 +261,14 @@ export default async function PortalSalePage({
               <PortalDocument fileId={sale.deedFileId} label={t("deed")} />
             </div>
           ) : null}
+          {sale.amendments.map((a) => (
+            <div key={a.id}>
+              <PortalDocument
+                fileId={a.pdfFileId}
+                label={t("amendment", { number: a.sequence, date: formatDate(a.signedOn) })}
+              />
+            </div>
+          ))}
           {sale.calls.map((c) => (
             <div key={c.id} className="flex flex-wrap items-center gap-2">
               <PortalDocument

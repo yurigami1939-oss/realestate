@@ -18,6 +18,7 @@ import {
   punchItem,
   receipt,
   reminderLetter,
+  scheduleAmendment,
   reservation,
   reservationBuyer,
   unit,
@@ -198,6 +199,16 @@ export async function getPortalSale(ctx: PortalCtx, saleId: string) {
       .from(reminderLetter)
       .where(eq(reminderLetter.reservationId, row.id))
       .orderBy(desc(reminderLetter.issuedAt));
+    const amendments = await tx
+      .select({
+        id: scheduleAmendment.id,
+        sequence: scheduleAmendment.sequence,
+        signedOn: scheduleAmendment.signedOn,
+        pdfFileId: scheduleAmendment.pdfFileId,
+      })
+      .from(scheduleAmendment)
+      .where(eq(scheduleAmendment.reservationId, row.id))
+      .orderBy(desc(scheduleAmendment.sequence));
     const loans = await tx
       .select({
         id: bankLoan.id,
@@ -256,6 +267,7 @@ export async function getPortalSale(ctx: PortalCtx, saleId: string) {
       payments,
       calls,
       reminders,
+      amendments,
       certificates,
       milestones: await loadMilestones(tx, row.projectId),
       progress:

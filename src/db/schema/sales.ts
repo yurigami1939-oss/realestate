@@ -584,6 +584,52 @@ export const installment = pgTable(
   ],
 );
 
+/** One line of a schedule as an amendment printed it (amounts as decimal strings of centimes). */
+export type AmendmentLine = {
+  label: string;
+  amount: string;
+  dueOn: string | null;
+  milestoneName: string | null;
+};
+
+/**
+ * Avenant: the unpaid part of a sale's schedule replaced by new lines (CLAUDE.md §7). Keeps
+ * the lines replaced and the new ones as printed; immutable except its PDF link.
+ */
+export const scheduleAmendment = pgTable(
+  "schedule_amendment",
+  {
+    id: id(),
+    organizationId: organizationId(),
+    reservationId: uuid().notNull(),
+    /** Avenant n° 1, 2… per sale. */
+    sequence: integer().notNull(),
+    signedOn: date({ mode: "string" }).notNull(),
+    reason: text().notNull(),
+    /** Valid payments of the sale on the day of the amendment. */
+    paid: money().notNull(),
+    replaced: jsonb().$type<AmendmentLine[]>().notNull(),
+    lines: jsonb().$type<AmendmentLine[]>().notNull(),
+    createdBy: userRef().notNull(),
+    createdAt: createdAt(),
+    pdfFileId: uuid(),
+  },
+  (t) => [
+    unique().on(t.organizationId, t.id),
+    unique("schedule_amendment_sequence_key").on(t.organizationId, t.reservationId, t.sequence),
+    foreignKey({
+      name: "schedule_amendment_reservation_fk",
+      columns: [t.organizationId, t.reservationId],
+      foreignColumns: [reservation.organizationId, reservation.id],
+    }),
+    foreignKey({
+      name: "schedule_amendment_pdf_fk",
+      columns: [t.organizationId, t.pdfFileId],
+      foreignColumns: [file.organizationId, file.id],
+    }),
+  ],
+);
+
 /** Commission rate of a commercial (overrides the company default). */
 export const commissionRate = pgTable(
   "commission_rate",
