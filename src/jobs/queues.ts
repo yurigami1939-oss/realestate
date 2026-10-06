@@ -67,6 +67,7 @@ export const pdfDocumentKinds = [
   "lease_inspection",
   "certificate",
   "schedule_amendment",
+  "cheque_deposit",
 ] as const;
 export type PdfDocumentKind = (typeof pdfDocumentKinds)[number];
 

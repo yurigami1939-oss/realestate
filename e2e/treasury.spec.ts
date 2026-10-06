@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-import { authFile } from "./helpers";
+import { authFile, expectPdf } from "./helpers";
 
 /**
  * Cash desks and bank accounts (src/db/seed/treasury.ts): « Caisse siège », « BNA compte
@@ -71,6 +71,22 @@ test.describe("treasury", () => {
     await page.goto("/ar/treasury");
     await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("الخزينة");
+    await context.close();
+  });
+  test("the cashier hands the cheques to the bank on a slip", async ({ browser }) => {
+    const context = await browser.newContext({ storageState: authFile("cashier") });
+    const page = await context.newPage();
+    await page.goto("/fr/treasury");
+    await page
+      .getByTestId("treasury-accounts")
+      .getByRole("link", { name: "BNA compte courant" })
+      .click();
+    // The Benchikh cheque awaits clearance (src/db/seed/reservations.ts).
+    const pending = page.getByTestId("pending-cheques");
+    await expect(pending).toContainText("Djamel Benchikh");
+    await pending.getByRole("button", { name: /^Établir le bordereau/ }).click();
+    await expect(page.getByText(/^Bordereau BRC-\d{4}-\d{6} établi/)).toBeVisible();
+    await expectPdf(page, page.getByTestId("deposit-slips").getByRole("link", { name: /^BRC-/ }));
     await context.close();
   });
 });

@@ -309,6 +309,13 @@
       "when": 1791299730644,
       "tag": "0043_outflow_accounts",
       "breakpoints": true
+    },
+    {
+      "idx": 44,
+      "version": "7",
+      "when": 1791300469672,
+      "tag": "0044_cheque_deposits",
+      "breakpoints": true
     }
   ]
 }

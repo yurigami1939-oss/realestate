@@ -1,7 +1,7 @@
 /** Isomorphic: cash desks and bank accounts (CLAUDE.md §7 Treasury). */
 import { z } from "zod";
 
-import { manualMovementKinds, treasuryAccountKinds } from "@/lib/treasury";
+import { chequeSources, manualMovementKinds, treasuryAccountKinds } from "@/lib/treasury";
 import { dateText, moneyText, optionalText, requiredText } from "@/lib/zod";
 
 const accountFields = {
@@ -70,3 +70,19 @@ const day = z
   .catch(undefined);
 export const ledgerParams = z.object({ from: day, to: day });
 export type LedgerParams = z.output<typeof ledgerParams>;
+
+/** Bordereau de remise: some pending cheques of a bank or CCP account, handed to the bank. */
+export const createChequeDepositSchema = z.object({
+  accountId: z.uuid(),
+  depositedOn: dateText(),
+  cheques: z
+    .array(z.object({ source: z.enum(chequeSources), paymentId: z.uuid() }))
+    .min(1, "treasury.errors.noCheque")
+    .max(200),
+});
+
+/** The bank credited a slip: its cheques are cleared on that day. */
+export const clearChequeDepositSchema = z.object({
+  depositId: z.uuid(),
+  clearedOn: dateText(),
+});

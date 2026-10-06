@@ -73,3 +73,7 @@ export function runningBalance<T extends LedgerEntry>(
   }
   return { before, lines, balance };
 }
+
+/** Where a cheque on a deposit slip was received: a sale, a residence's charges or a lease. */
+export const chequeSources = ["sale", "charges", "rent"] as const;
+export type ChequeSource = (typeof chequeSources)[number];

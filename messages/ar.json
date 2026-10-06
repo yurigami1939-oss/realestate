@@ -2070,7 +2070,8 @@
       "handover": "التسليم (تسليم المفاتيح)",
       "lease": "عقد الإيجار",
       "online_payment": "دفع إلكتروني",
-      "discount_request": "طلب تخفيض"
+      "discount_request": "طلب تخفيض",
+      "treasury_account": "صندوق / حساب"
     },
     "actions": {
       "organization": {
@@ -2248,6 +2249,10 @@
         "approve": "منح تخفيض",
         "reject": "رفض تخفيض",
         "cancel": "سحب طلب تخفيض"
+      },
+      "cheque_deposit": {
+        "create": "جدول إيداع صكوك",
+        "clear": "تحصيل صكوك جدول"
       }
     }
   },
@@ -4121,7 +4126,35 @@
       "cancelled": "هذه الحركة ملغاة مسبقاً.",
       "adjustment": "لا يُلغى فارق الصندوق: أعد إقفال الصندوق.",
       "notCash": "الصندوق وحده يُقفل.",
-      "differenceNote": "برّر الفارق."
+      "differenceNote": "برّر الفارق.",
+      "depositOnCash": "تُودع الصكوك في حساب بنكي أو بريدي.",
+      "chequeNotPending": "أحد الصكوك لم يعد للإيداع (أودع أو حُصّل أو أُلغي).",
+      "depositBeforeCheque": "لا يمكن أن يسبق الإيداع تاريخ استلام أحد الصكوك.",
+      "noCheque": "اختر صكاً واحداً على الأقل.",
+      "depositCleared": "تم تحصيل هذا الجدول من قبل.",
+      "clearedBeforeDeposit": "لا يمكن أن يسبق التحصيل تاريخ الإيداع."
+    },
+    "deposits": {
+      "title": "إيداع الصكوك",
+      "nonePending": "لا توجد صكوك للإيداع.",
+      "pick": "إيداع صك {payer}",
+      "source": {
+        "sale": "بيع",
+        "charges": "أعباء",
+        "rent": "إيجار"
+      },
+      "depositedOn": "تاريخ الإيداع",
+      "create": "{count, plural, =0 {تحرير جدول الإيداع} one {تحرير جدول الإيداع (صك واحد · {total})} two {تحرير جدول الإيداع (صكان · {total})} few {تحرير جدول الإيداع (# صكوك · {total})} other {تحرير جدول الإيداع (# صكاً · {total})}}",
+      "created": "تم تحرير الجدول {number}؛ ملف PDF قيد الإعداد.",
+      "line": "أودع في {date} · {count, plural, one {صك واحد} two {صكان} few {# صكوك} other {# صكاً}} · {name}",
+      "clear": "تم التحصيل",
+      "clearTitle": "تحصيل صكوك الجدول {number}",
+      "clearHint": "تُسجَّل صكوك الجدول التي لا تزال صالحة كمحصَّلة في هذا التاريخ. أما الصك غير المدفوع فيُلغيه المحاسب أولاً.",
+      "clearedOn": "تاريخ القيد",
+      "cleared": "تم تسجيل تحصيل الصكوك.",
+      "clearedOnBadge": "حُصّلت في {date}",
+      "awaiting": "في انتظار البنك",
+      "pdfPending": "ملف PDF قيد الإعداد…"
     }
   },
   "costs": {

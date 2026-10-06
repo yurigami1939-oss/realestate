@@ -4,6 +4,11 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { PageHeader } from "@/components/app-shell/page-header";
 import { ExportButton } from "@/components/exports/export-button";
+import {
+  ClearDepositDialog,
+  DepositPdf,
+  PendingCheques,
+} from "@/components/treasury/cheque-deposits";
 import { LedgerFilters } from "@/components/treasury/ledger-filters";
 import {
   CancelMovementDialog,
@@ -29,6 +34,7 @@ import { formatDate, formatDateTime, todayInAlgiers } from "@/lib/dates";
 import { formatDZD } from "@/lib/money";
 import { can } from "@/lib/permissions";
 import { requirePermission } from "@/server/auth/page-guard";
+import { listChequeDeposits, listPendingCheques } from "@/server/treasury/deposits";
 import { getAccountLedger, listAccounts } from "@/server/treasury/queries";
 import { ledgerParams } from "@/server/treasury/schemas";
 
@@ -63,6 +69,10 @@ export default async function AccountPage({
   const open = account.closedOn === null;
   const canUpdate = open && can(ctx.roles, "treasury:update");
   const accounts = canUpdate ? (await listAccounts(ctx)).filter((a) => a.closedOn === null) : [];
+  // Cheques of a bank or CCP account are handed to the bank on deposit slips.
+  const banked = account.kind !== "cash";
+  const pendingCheques = banked ? await listPendingCheques(ctx, account.id) : [];
+  const deposits = banked ? await listChequeDeposits(ctx, account.id) : [];
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
@@ -226,6 +236,60 @@ export default async function AccountPage({
           </TableFooter>
         </Table>
       </div>
+
+      {banked && (pendingCheques.length > 0 || deposits.length > 0) ? (
+        <Card data-testid="cheque-deposits">
+          <CardHeader>
+            <CardTitle className="text-base">{t("deposits.title")}</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <PendingCheques
+              key={pendingCheques.map((c) => `${c.source}:${c.paymentId}`).join()}
+              accountId={account.id}
+              cheques={pendingCheques}
+              today={today}
+              canDeposit={open && can(ctx.roles, "treasury:count")}
+            />
+            {deposits.length > 0 ? (
+              <ul className="divide-y text-sm" data-testid="deposit-slips">
+                {deposits.map((d) => (
+                  <li key={d.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
+                    <span className="space-y-0.5">
+                      <DepositPdf fileId={d.pdfFileId} number={d.number} />
+                      <span className="block text-xs text-muted-foreground">
+                        {t("deposits.line", {
+                          date: formatDate(d.depositedOn),
+                          count: d.count,
+                          name: d.createdByName,
+                        })}
+                      </span>
+                    </span>
+                    <span className="flex flex-wrap items-center gap-2">
+                      <span className="tabular-nums" dir="ltr">
+                        {money(d.total)}
+                      </span>
+                      {d.clearedOn ? (
+                        <Badge variant="secondary">
+                          {t("deposits.clearedOnBadge", { date: formatDate(d.clearedOn) })}
+                        </Badge>
+                      ) : can(ctx.roles, "payment:create") ? (
+                        <ClearDepositDialog
+                          depositId={d.id}
+                          number={d.number}
+                          depositedOn={d.depositedOn}
+                          today={today}
+                        />
+                      ) : (
+                        <Badge variant="outline">{t("deposits.awaiting")}</Badge>
+                      )}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+          </CardContent>
+        </Card>
+      ) : null}
 
       {ledger.counts.length > 0 ? (
         <Card>

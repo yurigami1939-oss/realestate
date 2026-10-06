@@ -16,12 +16,21 @@ import { createReservationSchema } from "@/server/sales/schemas";
 import { addMember, createSalesTeam } from "../../../tests/factories";
 import { createSaleSetup } from "../../../tests/sales-fixtures";
 
+import {
+  clearChequeDeposit,
+  createChequeDeposit,
+  listChequeDeposits,
+  listPendingCheques,
+} from "./deposits";
+import { renderAndStoreChequeDeposit } from "./documents";
 import { getAccountLedger, listAccountChoices, listAccounts } from "./queries";
 import {
   cancelMovementSchema,
   cashCountSchema,
+  clearChequeDepositSchema,
   closeAccountSchema,
   createAccountSchema,
+  createChequeDepositSchema,
   recordMovementSchema,
 } from "./schemas";
 import {
@@ -297,5 +306,62 @@ describe("treasury", () => {
         tx.delete(treasuryMovement).where(eq(treasuryMovement.accountId, cashId)),
       ),
     ).rejects.toThrow();
+  });
+  it("hands cheques to the bank on a numbered slip, then clears them together", async () => {
+    const { team, cashier, accountant, cashId, bankId, pay } = await scenario();
+    const first = await pay(cashier, "300 000", "cheque", bankId);
+    const second = await pay(cashier, "200 000", "cheque", bankId);
+    await pay(cashier, "50 000", "cash");
+    const pending = await listPendingCheques(cashier, bankId);
+    expect(pending.map((c) => [c.paymentId, c.amount])).toEqual([
+      [first.paymentId, 30_000_000n],
+      [second.paymentId, 20_000_000n],
+    ]);
+    const slip = (accountId: string, ids: string[]) =>
+      createChequeDepositSchema.parse({
+        accountId,
+        depositedOn: today,
+        cheques: ids.map((paymentId) => ({ source: "sale", paymentId })),
+      });
+    await expect(
+      createChequeDeposit(team.agentA, slip(bankId, [first.paymentId])),
+    ).rejects.toMatchObject({ code: "FORBIDDEN" });
+    await expect(
+      createChequeDeposit(cashier, slip(cashId, [first.paymentId])),
+    ).rejects.toMatchObject({ messageKey: "treasury.errors.depositOnCash" });
+    const { id, number, total } = await createChequeDeposit(
+      cashier,
+      slip(bankId, [first.paymentId, second.paymentId]),
+    );
+    expect(number).toMatch(/^BRC-\d{4}-000001$/);
+    expect(total).toBe(50_000_000n);
+    expect(await listPendingCheques(cashier, bankId)).toEqual([]);
+    expect(await renderAndStoreChequeDeposit(team.orgId, id)).toBe("stored");
+    expect(await renderAndStoreChequeDeposit(team.orgId, id)).toBe("skipped");
+    // A cheque goes on one slip only.
+    await expect(
+      createChequeDeposit(cashier, slip(bankId, [first.paymentId])),
+    ).rejects.toMatchObject({ messageKey: "treasury.errors.chequeNotPending" });
+
+    // The second cheque bounced: cancelled first, the slip's other cheque is cleared.
+    await cancelPayment(
+      accountant,
+      cancelPaymentSchema.parse({ paymentId: second.paymentId, reason: "Chèque impayé" }),
+    );
+    await expect(
+      clearChequeDeposit(
+        cashier,
+        clearChequeDepositSchema.parse({ depositId: id, clearedOn: addDays(today, -1) }),
+      ),
+    ).rejects.toMatchObject({ messageKey: "treasury.errors.clearedBeforeDeposit" });
+    await clearChequeDeposit(
+      cashier,
+      clearChequeDepositSchema.parse({ depositId: id, clearedOn: today }),
+    );
+    const [deposit] = await listChequeDeposits(accountant, bankId);
+    expect(deposit).toMatchObject({ number, count: 2, clearedOn: today });
+    const bank = (await listAccounts(cashier)).find((a) => a.id === bankId);
+    expect(bank?.pendingCheques).toBe(0n);
+    expect(bank?.balance).toBe(30_000_000n);
   });
 });

@@ -2070,7 +2070,8 @@
       "handover": "Livraison (remise des clés)",
       "lease": "Bail",
       "online_payment": "Paiement en ligne",
-      "discount_request": "Demande de remise"
+      "discount_request": "Demande de remise",
+      "treasury_account": "Caisse / compte"
     },
     "actions": {
       "organization": {
@@ -2248,6 +2249,10 @@
         "approve": "Remise accordée",
         "reject": "Remise refusée",
         "cancel": "Demande de remise retirée"
+      },
+      "cheque_deposit": {
+        "create": "Bordereau de remise de chèques",
+        "clear": "Chèques d'un bordereau encaissés"
       }
     }
   },
@@ -4121,7 +4126,35 @@
       "cancelled": "Ce mouvement est déjà annulé.",
       "adjustment": "Un écart de caisse ne s'annule pas : arrêtez la caisse à nouveau.",
       "notCash": "Seule une caisse s'arrête.",
-      "differenceNote": "Expliquez l'écart."
+      "differenceNote": "Expliquez l'écart.",
+      "depositOnCash": "Les chèques se remettent sur un compte bancaire ou CCP.",
+      "chequeNotPending": "Un des chèques n'est plus à remettre (déjà remis, encaissé ou annulé).",
+      "depositBeforeCheque": "La remise ne peut précéder la réception d'un des chèques.",
+      "noCheque": "Choisissez au moins un chèque.",
+      "depositCleared": "Ce bordereau est déjà encaissé.",
+      "clearedBeforeDeposit": "L'encaissement ne peut précéder la remise."
+    },
+    "deposits": {
+      "title": "Remise de chèques",
+      "nonePending": "Aucun chèque à remettre.",
+      "pick": "Remettre le chèque de {payer}",
+      "source": {
+        "sale": "Vente",
+        "charges": "Charges",
+        "rent": "Loyer"
+      },
+      "depositedOn": "Remis le",
+      "create": "{count, plural, =0 {Établir le bordereau} one {Établir le bordereau (# chèque · {total})} other {Établir le bordereau (# chèques · {total})}}",
+      "created": "Bordereau {number} établi ; son PDF est en préparation.",
+      "line": "Remis le {date} · {count, plural, one {# chèque} other {# chèques}} · {name}",
+      "clear": "Encaissés",
+      "clearTitle": "Chèques du bordereau {number} encaissés",
+      "clearHint": "Les chèques du bordereau encore valides sont marqués encaissés à cette date. Un chèque impayé doit d'abord être annulé par le comptable.",
+      "clearedOn": "Crédités le",
+      "cleared": "Chèques encaissés.",
+      "clearedOnBadge": "Encaissés le {date}",
+      "awaiting": "En attente de la banque",
+      "pdfPending": "PDF en préparation…"
     }
   },
   "costs": {
