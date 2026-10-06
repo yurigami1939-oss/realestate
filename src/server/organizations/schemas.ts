@@ -42,6 +42,10 @@ export const companySettingsSchema = z.object({
   /** Indemnity for late delivery owed to buyers (shown, never booked); 0 = off. */
   deliveryPenaltyMonthlyRate: percentText(0, 10),
   deliveryPenaltyCap: percentText(0, 100),
+  /** Termination for non-payment: a notice's delay, notices first, retention proposed. */
+  formalNoticeDays: intText(1, 90),
+  formalNoticesRequired: intText(1, 5),
+  terminationRetention: percentText(0, 100),
   fgcmpiNumber: optionalText(40),
   /** Cumulative VSP limits per stage (CLAUDE.md §12); empty = no check. */
   vspLimitSigning: optionalPercentText(0, 100),

@@ -24,8 +24,10 @@ import {
   constructionStages,
   optionStatuses,
   paymentMethods,
+  reminderKinds,
   reservationStatuses,
   type VspLimits,
+  withdrawalKinds,
   withdrawalStatuses,
 } from "../../lib/sales";
 
@@ -85,6 +87,11 @@ export const organizationSetting = pgTable(
      */
     deliveryPenaltyMonthlyRateBp: integer().notNull().default(0),
     deliveryPenaltyCapBp: integer().notNull().default(1000),
+    /** Termination for non-payment (contracts, Loi 11-04): the delay a formal notice gives,
+     * the notices left unanswered before terminating, the retention proposed. */
+    formalNoticeDays: integer().notNull().default(15),
+    formalNoticesRequired: integer().notNull().default(2),
+    terminationRetentionBp: integer().notNull().default(1000),
     /** The promoter's FGCMPI membership number (n° d'adhésion). */
     fgcmpiNumber: text(),
     /** Company logo (PNG/JPEG), printed on the documents issued afterwards. */
@@ -113,6 +120,12 @@ export const organizationSetting = pgTable(
       "organization_setting_delivery_penalty",
       sql`${t.deliveryPenaltyMonthlyRateBp} between 0 and 1000
         and ${t.deliveryPenaltyCapBp} between 0 and 10000`,
+    ),
+    check(
+      "organization_setting_termination",
+      sql`${t.formalNoticeDays} between 1 and 90
+        and ${t.formalNoticesRequired} between 1 and 5
+        and ${t.terminationRetentionBp} between 0 and 10000`,
     ),
   ],
 );
@@ -835,12 +848,16 @@ export const paymentCall = pgTable(
  * Lettre de relance: issued on demand for a sale with overdue installments. Keeps the
  * overdue lines it printed (amounts as decimal strings of centimes); its PDF is rendered once.
  */
+export const reminderKind = pgEnum("reminder_kind", reminderKinds);
+
 export const reminderLetter = pgTable(
   "reminder_letter",
   {
     id: id(),
     organizationId: organizationId(),
     reservationId: uuid().notNull(),
+    /** A reminder, or a formal notice (mise en demeure) on the way to a termination. */
+    kind: reminderKind().notNull().default("reminder"),
     issuedAt: instant().notNull().defaultNow(),
     issuedBy: userRef().notNull(),
     overdue: money().notNull(),
@@ -887,12 +904,16 @@ export const withdrawalStatus = pgEnum("withdrawal_status", withdrawalStatuses);
  * amount paid, approved (or rejected) by the gérant; the refund is recorded when paid out.
  * Amounts are computed at the proposal and final at the approval.
  */
+export const withdrawalKind = pgEnum("withdrawal_kind", withdrawalKinds);
+
 export const withdrawal = pgTable(
   "withdrawal",
   {
     id: id(),
     organizationId: organizationId(),
     reservationId: uuid().notNull(),
+    /** The buyer's désistement, or the promoter's termination for non-payment. */
+    kind: withdrawalKind().notNull().default("withdrawal"),
     status: withdrawalStatus().notNull().default("proposed"),
     reason: text().notNull(),
     retentionBp: integer().notNull(),

@@ -284,7 +284,9 @@ export default async function PortalSalePage({
             <div key={r.id} className="flex flex-wrap items-center gap-2">
               <PortalDocument
                 fileId={r.pdfFileId}
-                label={t("reminder", { date: formatDate(r.issuedAt) })}
+                label={t(r.kind === "formal_notice" ? "formalNotice" : "reminder", {
+                  date: formatDate(r.issuedAt),
+                })}
               />
               <span className="text-sm text-muted-foreground">
                 {t("payBy", { date: formatDate(r.payBy) })}

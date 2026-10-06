@@ -1,6 +1,6 @@
 import "server-only";
 
-import { asc, eq } from "drizzle-orm";
+import { and, asc, eq, lte, sql } from "drizzle-orm";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
@@ -47,10 +47,26 @@ export async function loadReminderLetterData(
     .orderBy(asc(reservationBuyer.position));
 
   const l = row.letter;
+  // A formal notice prints its rank among the sale's formal notices (1st, 2nd…).
+  const [rank] =
+    l.kind === "formal_notice"
+      ? await tx
+          .select({ n: sql<number>`count(*)::int` })
+          .from(reminderLetter)
+          .where(
+            and(
+              eq(reminderLetter.reservationId, l.reservationId),
+              eq(reminderLetter.kind, "formal_notice"),
+              lte(reminderLetter.issuedAt, l.issuedAt),
+            ),
+          )
+      : [];
   return {
     pdfFileId: l.pdfFileId,
     reservationId: l.reservationId,
     data: {
+      kind: l.kind,
+      noticeNumber: rank?.n ?? null,
       issuedAt: l.issuedAt,
       saleNumber: row.saleNumber,
       saleDeedNumber: row.saleDeedNumber,
@@ -112,7 +128,7 @@ export async function renderAndStoreReminderLetter(
         entityType: "reservation",
         entityId: loaded.letter.reservationId,
         upload: {
-          fileName: `Relance-${loaded.letter.data.saleNumber}-${loaded.letter.data.payBy}.pdf`,
+          fileName: `${loaded.letter.data.kind === "formal_notice" ? "Mise-en-demeure" : "Relance"}-${loaded.letter.data.saleNumber}-${loaded.letter.data.payBy}.pdf`,
           bytes,
         },
         contentType: "application/pdf",

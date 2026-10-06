@@ -38,13 +38,13 @@ export type UnitStatus = (typeof unitStatuses)[number];
  * from a handover PV (sold → delivered) or, for a unit sold before the app in a delivered
  * project, from `recordPastDeliveries` (available / blocked → delivered). A unit the company
  * kept (blocked) can be leased directly (blocked → rented); the end of its lease makes it
- * available.
+ * available. A sold unit is available again only when its sale is terminated for non-payment.
  */
 export const unitTransitions: Record<UnitStatus, readonly UnitStatus[]> = {
   available: ["optioned", "reserved", "blocked", "rented", "delivered"],
   optioned: ["available", "reserved"],
   reserved: ["available", "sold"],
-  sold: ["delivered"],
+  sold: ["delivered", "available"],
   delivered: [],
   rented: ["available"],
   blocked: ["available", "delivered", "rented"],

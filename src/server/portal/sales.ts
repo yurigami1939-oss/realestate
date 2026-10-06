@@ -191,6 +191,7 @@ export async function getPortalSale(ctx: PortalCtx, saleId: string) {
     const reminders = await tx
       .select({
         id: reminderLetter.id,
+        kind: reminderLetter.kind,
         issuedAt: reminderLetter.issuedAt,
         payBy: reminderLetter.payBy,
         overdue: reminderLetter.overdue,

@@ -72,6 +72,9 @@ export const companySettingsInput = (overrides: Record<string, string> = {}) => 
   defaultCommissionRate: "0",
   deliveryPenaltyMonthlyRate: "0",
   deliveryPenaltyCap: "10",
+  formalNoticeDays: "15",
+  formalNoticesRequired: "2",
+  terminationRetention: "10",
   fgcmpiNumber: "",
   ...overrides,
 });

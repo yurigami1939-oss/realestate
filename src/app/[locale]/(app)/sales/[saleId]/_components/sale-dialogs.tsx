@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Ban, Banknote, CircleCheck, FileSignature, Mail, Pencil } from "lucide-react";
+import { Ban, Banknote, CircleCheck, FileSignature, Gavel, Mail, Pencil } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
@@ -388,19 +388,23 @@ export function ReminderDialog({
   overdue,
   payBy,
   today,
+  formalNotice,
 }: {
   reservationId: string;
   overdue: bigint;
   payBy: string;
+  /** Earliest pay-by date offered. */
   today: string;
+  /** A formal notice (mise en demeure) giving at least this many days. */
+  formalNotice?: { days: number };
 }) {
-  const t = useTranslations("collections.reminder");
+  const t = useTranslations(formalNotice ? "collections.formalNotice" : "collections.reminder");
   const locale = useLocale() === "ar" ? "ar" : "fr";
   const [open, setOpen] = useState(false);
   const issue = useAction(issueReminderAction);
   const form = useForm<ReminderValues, unknown, z.output<typeof issueReminderSchema>>({
     resolver: zodResolver(issueReminderSchema),
-    defaultValues: { reservationId, payBy },
+    defaultValues: { reservationId, payBy, kind: formalNotice ? "formal_notice" : "reminder" },
   });
   return (
     <FormDialog
@@ -408,12 +412,15 @@ export function ReminderDialog({
       onOpenChange={setOpen}
       trigger={
         <Button variant="outline">
-          <Mail data-icon="inline-start" />
+          {formalNotice ? <Gavel data-icon="inline-start" /> : <Mail data-icon="inline-start" />}
           {t("open")}
         </Button>
       }
       title={t("title")}
-      description={t("description", { amount: formatDZD(overdue, locale) })}
+      description={t("description", {
+        amount: formatDZD(overdue, locale),
+        days: formalNotice?.days ?? 0,
+      })}
       submitLabel={t("submit")}
       pending={issue.pending}
       onSubmit={form.handleSubmit(() =>

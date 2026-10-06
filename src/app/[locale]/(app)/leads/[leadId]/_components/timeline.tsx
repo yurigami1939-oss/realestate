@@ -141,6 +141,8 @@ function ActivityLine({ activity }: { activity: Activity }) {
       return <p>{t("leads.activity.sale_signed", { unit: text("unitCode") ?? "—" })}</p>;
     case "withdrawn":
       return <p>{t("leads.activity.withdrawn", { number: text("number") ?? "" })}</p>;
+    case "terminated":
+      return <p>{t("leads.activity.terminated", { number: text("number") ?? "" })}</p>;
     case "discount_requested":
       return (
         <p>

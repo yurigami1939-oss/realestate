@@ -8,10 +8,11 @@ import { installment, member, organization, reminderLetter, user } from "@/db/sc
 import { withTenant } from "@/db/tenant";
 import { env } from "@/env";
 import { enqueue, enqueueInTx } from "@/jobs/enqueue";
-import { todayInAlgiers } from "@/lib/dates";
+import { addDays, todayInAlgiers } from "@/lib/dates";
 import { parseRoles } from "@/lib/permissions";
 import { AppError } from "@/lib/result";
 import { computeStatement } from "@/lib/statement";
+import { recordAudit } from "@/server/audit/record-audit";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
 import { overdueDigestEmail } from "@/server/email/templates";
 import { loadCompanyProfile, loadSalesSettings } from "@/server/organizations/settings";
@@ -27,10 +28,12 @@ type In<S extends z.ZodType> = z.output<S>;
 /**
  * Issues a reminder letter for the overdue installments of a sale (CLAUDE.md §12): the lines,
  * the overdue total and the computed penalties (shown, never charged) are kept as printed;
- * the bilingual PDF is rendered by the worker.
+ * the bilingual PDF is rendered by the worker. A formal notice (mise en demeure, `sale:withdraw`)
+ * gives at least the company's notice delay and is audited: unanswered, it opens the way to a
+ * termination for non-payment.
  */
 export async function issueReminderLetter(ctx: TenantCtx, input: In<typeof issueReminderSchema>) {
-  assertCan(ctx, "sale:remind");
+  assertCan(ctx, input.kind === "formal_notice" ? "sale:withdraw" : "sale:remind");
   const today = todayInAlgiers();
   if (input.payBy < today) {
     throw new AppError("VALIDATION", "collections.errors.payByPast", {
@@ -40,6 +43,12 @@ export async function issueReminderLetter(ctx: TenantCtx, input: In<typeof issue
   return withTenant(ctx, async (tx) => {
     const sale = await loadVisibleReservation(tx, ctx, input.reservationId, { forUpdate: true });
     if (sale.status === "withdrawn") throw new AppError("CONFLICT", "sales.errors.closed");
+    const settings = await loadSalesSettings(tx, ctx.orgId);
+    if (input.kind === "formal_notice" && input.payBy < addDays(today, settings.formalNoticeDays)) {
+      throw new AppError("VALIDATION", "collections.errors.noticeTooShort", {
+        fieldErrors: { payBy: ["collections.errors.noticeTooShort"] },
+      });
+    }
     const installments = await tx
       .select({
         position: installment.position,
@@ -51,7 +60,6 @@ export async function issueReminderLetter(ctx: TenantCtx, input: In<typeof issue
       .where(eq(installment.reservationId, sale.id))
       .orderBy(asc(installment.position));
     const paid = (await paidTotals(tx, [sale.id])).get(sale.id) ?? 0n;
-    const settings = await loadSalesSettings(tx, ctx.orgId);
     const statement = computeStatement(installments, paid, today, {
       monthlyRateBp: settings.penaltyMonthlyRateBp,
       graceDays: settings.penaltyGraceDays,
@@ -79,6 +87,7 @@ export async function issueReminderLetter(ctx: TenantCtx, input: In<typeof issue
       .values({
         organizationId: ctx.orgId,
         reservationId: sale.id,
+        kind: input.kind,
         issuedBy: ctx.userId,
         overdue: statement.overdue,
         penalties: statement.penalties,
@@ -87,6 +96,15 @@ export async function issueReminderLetter(ctx: TenantCtx, input: In<typeof issue
       })
       .returning({ id: reminderLetter.id });
     if (!row) throw new Error("issueReminderLetter: no row returned");
+    if (input.kind === "formal_notice") {
+      await recordAudit(tx, ctx, {
+        actorUserId: ctx.userId,
+        action: "reservation.formal_notice",
+        entityType: "reservation",
+        entityId: sale.id,
+        after: { overdue: statement.overdue, payBy: input.payBy },
+      });
+    }
     await enqueueInTx(
       tx,
       "pdf.document",

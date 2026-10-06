@@ -669,7 +669,8 @@
         "withdrawn": "Désistement (réservation {number})",
         "discount_requested": "Remise de {amount} demandée sur le lot {unit}",
         "discount_approved": "Remise de {amount} accordée sur le lot {unit}",
-        "discount_rejected": "Remise refusée sur le lot {unit}"
+        "discount_rejected": "Remise refusée sur le lot {unit}",
+        "terminated": "Résiliation pour non-paiement (réservation {number})"
       }
     },
     "pipeline": {
@@ -769,7 +770,10 @@
       "vspLimitCompletion": "Fin des travaux (%)",
       "deliveryPenaltyMonthlyRate": "Indemnité de retard de livraison (% du prix par mois)",
       "deliveryPenaltyCap": "Plafond de l'indemnité (% du prix)",
-      "fgcmpiNumber": "N° d'adhésion au FGCMPI"
+      "fgcmpiNumber": "N° d'adhésion au FGCMPI",
+      "formalNoticeDays": "Délai d'une mise en demeure (jours)",
+      "formalNoticesRequired": "Mises en demeure avant résiliation",
+      "terminationRetention": "Retenue en cas de résiliation (%)"
     },
     "collections": "Encaissements et commissions",
     "penaltyHint": "Pénalités de retard : calculées et affichées sur les relevés et lettres de relance, jamais facturées automatiquement. 0 % = désactivées.",
@@ -789,7 +793,9 @@
       "hint": "PNG ou JPEG, 2 Mo au plus. Imprimé en tête des devis, fiches de réservation, reçus, appels de fonds et lettres de relance émis ensuite."
     },
     "obligations": "Obligations du promoteur (loi 11-04)",
-    "obligationsHint": "Indemnité de retard de livraison due aux acquéreurs : calculée et affichée sur les ventes et les livraisons, jamais versée automatiquement. Reprenez le taux de vos contrats ; 0 % = désactivée."
+    "obligationsHint": "Indemnité de retard de livraison due aux acquéreurs : calculée et affichée sur les ventes et les livraisons, jamais versée automatiquement. Reprenez le taux de vos contrats ; 0 % = désactivée.",
+    "termination": "Résiliation pour non-paiement",
+    "terminationHint": "Nombre de mises en demeure restées sans effet avant de pouvoir résilier, délai laissé par chacune et retenue proposée sur les sommes versées : selon vos contrats (loi 11-04), à confirmer avec votre notaire."
   },
   "paymentPlans": {
     "title": "Échéanciers",
@@ -1078,7 +1084,10 @@
       "amendmentBeforeReservation": "L'avenant ne peut précéder la réservation.",
       "beforeAmendment": "Une échéance datée ne peut précéder l'avenant.",
       "milestone": "Étape des travaux inconnue pour ce projet.",
-      "milestoneReached": "Cette étape est déjà validée : indiquez une date."
+      "milestoneReached": "Cette étape est déjà validée : indiquez une date.",
+      "noticesMissing": "La résiliation demande des mises en demeure échues et restées sans effet (voir les réglages de la société).",
+      "notOverdue": "Rien n'est en retard sur cette vente.",
+      "handoverStarted": "La remise des clés est engagée : la vente ne peut plus être résiliée."
     },
     "title": "Réservations et ventes",
     "description": "Réservations signées, ventes sur plans et suivi des encaissements.",
@@ -1269,6 +1278,10 @@
         "alreadyOpen": "Un désistement est déjà en cours pour cette réservation.",
         "notProposed": "Ce désistement a déjà été traité.",
         "noRefundDue": "Aucun remboursement n'est dû pour ce désistement."
+      },
+      "kind": {
+        "withdrawal": "Désistement",
+        "termination": "Résiliation pour non-paiement"
       }
     },
     "transfer": {
@@ -1369,6 +1382,17 @@
       "done": "Avenant n° {number} enregistré ; son PDF est en préparation.",
       "amendments": "Avenants (échéancier)",
       "amendmentLine": "Avenant n° {number} du {date} · {name}"
+    },
+    "termination": {
+      "propose": "Résilier (non-paiement)",
+      "proposeTitle": "Proposer la résiliation pour non-paiement",
+      "proposeDescription": "Les mises en demeure sont restées sans effet : le gérant décide de la résiliation. Le lot est alors remis en vente ; les sommes versées, retenue déduite, sont à rembourser.",
+      "notices": "{count, plural, =0 {Aucune mise en demeure échue} one {# mise en demeure échue} other {# mises en demeure échues}} sur {required} requises avant une résiliation.",
+      "proposed": "Résiliation proposée au gérant.",
+      "approve": "Valider la résiliation",
+      "approveTitle": "Valider la résiliation ?",
+      "approveDescription": "Le contrat est résilié et le lot redevient disponible. Remboursement prévu : {refund}, recalculé sur les encaissements à ce jour.",
+      "approved": "Résiliation validée."
     }
   },
   "payments": {
@@ -1463,11 +1487,21 @@
     },
     "reminders": {
       "title": "Relances",
-      "line": "{date} · {amount} · {name}"
+      "line": "{date} · {amount} · {name}",
+      "formalLine": "Mise en demeure du {date} · {amount} · {name}"
     },
     "errors": {
       "payByPast": "La date limite ne peut pas être passée.",
-      "nothingOverdue": "Aucune échéance n'est en retard sur cette vente."
+      "nothingOverdue": "Aucune échéance n'est en retard sur cette vente.",
+      "noticeTooShort": "Le délai laissé est plus court que celui des réglages de la société."
+    },
+    "formalNotice": {
+      "open": "Mise en demeure",
+      "title": "Mise en demeure",
+      "description": "Les échéances en retard ({amount}) sont reprises dans une mise en demeure bilingue, à remettre par huissier ou lettre recommandée. Le délai laissé est d'au moins {days} jours (réglages de la société).",
+      "payBy": "À régler au plus tard le",
+      "submit": "Établir la mise en demeure",
+      "issued": "Mise en demeure établie ; son PDF est en préparation."
     }
   },
   "commissions": {
@@ -2239,7 +2273,8 @@
       "lateDeliveries": "{count, plural, one {# livraison en retard sur la date contractuelle} other {# livraisons en retard sur la date contractuelle}}",
       "documentsExpiring": "{count, plural, one {# document administratif expiré ou à renouveler} other {# documents administratifs expirés ou à renouveler}}",
       "documentsIncomplete": "{count, plural, one {# projet au dossier administratif incomplet} other {# projets au dossier administratif incomplet}}",
-      "discounts": "{count, plural, one {# demande de remise à décider} other {# demandes de remise à décider}}"
+      "discounts": "{count, plural, one {# demande de remise à décider} other {# demandes de remise à décider}}",
+      "termination": "Résiliation à valider : {number} · {buyer}"
     },
     "sales": {
       "title": "Ventes",
@@ -3337,7 +3372,8 @@
       "noCertificates": "Aucune attestation pour l'instant : demandez-la à votre promoteur.",
       "deliveryDueOn": "Livraison prévue au contrat : {date}",
       "warranties": "Garantie de parfait achèvement jusqu'au {completion} · garantie décennale jusqu'au {tenYear}",
-      "amendment": "Avenant n° {number} du {date} (nouvel échéancier)"
+      "amendment": "Avenant n° {number} du {date} (nouvel échéancier)",
+      "formalNotice": "Mise en demeure du {date}"
     },
     "pendingDocument": "en préparation",
     "unit": {

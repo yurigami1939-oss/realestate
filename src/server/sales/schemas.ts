@@ -1,7 +1,12 @@
 /** Isomorphic: shared by the sales forms (options, reservations, VSP…) and their actions. */
 import { z } from "zod";
 
-import { bankLoanStatuses, counterPaymentMethods, MAX_BUYERS_PER_SALE } from "@/lib/sales";
+import {
+  bankLoanStatuses,
+  counterPaymentMethods,
+  MAX_BUYERS_PER_SALE,
+  withdrawalKinds,
+} from "@/lib/sales";
 import {
   dateText,
   moneyText,
@@ -79,6 +84,11 @@ export const proposeWithdrawalSchema = z.object({
   reservationId: z.uuid(),
   retention: percentText(0, 100),
   reason: reasonText(),
+  /** The buyer's désistement (default) or a termination for non-payment. */
+  kind: z
+    .enum(withdrawalKinds)
+    .optional()
+    .transform((v) => v ?? "withdrawal"),
 });
 
 /** The gérant approves or rejects a proposed withdrawal. */

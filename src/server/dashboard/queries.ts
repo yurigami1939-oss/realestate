@@ -218,6 +218,7 @@ async function todo(tx: Tx, ctx: TenantCtx, today: CalendarDate) {
     ? await tx
         .select({
           reservationId: withdrawal.reservationId,
+          kind: withdrawal.kind,
           number: reservation.number,
           refund: withdrawal.refund,
         })

@@ -58,18 +58,27 @@ export function ProposeWithdrawalDialog({
   reservationId,
   paid,
   defaultRetention,
+  termination = false,
 }: {
   reservationId: string;
   paid: bigint;
   defaultRetention: string;
+  /** A termination for non-payment rather than the buyer's désistement. */
+  termination?: boolean;
 }) {
   const t = useTranslations("sales.withdrawal");
+  const tt = useTranslations("sales.termination");
   const money = useMoney();
   const [open, setOpen] = useState(false);
   const propose = useAction(proposeWithdrawalAction);
   const form = useForm<ProposeValues, unknown, z.output<typeof proposeWithdrawalSchema>>({
     resolver: zodResolver(proposeWithdrawalSchema),
-    defaultValues: { reservationId, retention: defaultRetention, reason: "" },
+    defaultValues: {
+      reservationId,
+      retention: defaultRetention,
+      reason: "",
+      kind: termination ? "termination" : "withdrawal",
+    },
   });
   const retention = useWatch({ control: form.control, name: "retention" });
   const bp = parsePercentToBasisPoints(retention.trim());
@@ -79,19 +88,19 @@ export function ProposeWithdrawalDialog({
       open={open}
       onOpenChange={setOpen}
       trigger={
-        <Button variant="outline" size="sm">
+        <Button variant={termination ? "destructive" : "outline"} size="sm">
           <Undo2 data-icon="inline-start" />
-          {t("propose")}
+          {termination ? tt("propose") : t("propose")}
         </Button>
       }
-      title={t("proposeTitle")}
-      description={t("proposeDescription")}
-      submitLabel={t("propose")}
+      title={termination ? tt("proposeTitle") : t("proposeTitle")}
+      description={termination ? tt("proposeDescription") : t("proposeDescription")}
+      submitLabel={termination ? tt("propose") : t("propose")}
       pending={propose.pending}
       onSubmit={form.handleSubmit(() =>
         propose.run(form.getValues(), {
           onSuccess: () => {
-            toast.success(t("proposed"));
+            toast.success(termination ? tt("proposed") : t("proposed"));
             setOpen(false);
           },
           onError: (error) => applyFieldErrors(form, error),
@@ -126,12 +135,15 @@ export function DecideWithdrawalDialog({
   withdrawalId,
   approve,
   refund,
+  termination = false,
 }: {
   withdrawalId: string;
   approve: boolean;
   refund: bigint;
+  termination?: boolean;
 }) {
   const t = useTranslations("sales.withdrawal");
+  const tt = useTranslations("sales.termination");
   const money = useMoney();
   const [open, setOpen] = useState(false);
   const decide = useAction(decideWithdrawalAction);
@@ -146,20 +158,22 @@ export function DecideWithdrawalDialog({
       trigger={
         <Button variant={approve ? "default" : "outline"} size="sm">
           {approve ? <Check data-icon="inline-start" /> : <X data-icon="inline-start" />}
-          {approve ? t("approve") : t("reject")}
+          {approve ? (termination ? tt("approve") : t("approve")) : t("reject")}
         </Button>
       }
-      title={approve ? t("approveTitle") : t("rejectTitle")}
+      title={approve ? (termination ? tt("approveTitle") : t("approveTitle")) : t("rejectTitle")}
       description={
-        approve ? t("approveDescription", { refund: money(refund) }) : t("rejectDescription")
+        approve
+          ? (termination ? tt : t)("approveDescription", { refund: money(refund) })
+          : t("rejectDescription")
       }
-      submitLabel={approve ? t("approve") : t("reject")}
+      submitLabel={approve ? (termination ? tt("approve") : t("approve")) : t("reject")}
       destructive={approve}
       pending={decide.pending}
       onSubmit={form.handleSubmit(() =>
         decide.run(form.getValues(), {
           onSuccess: () => {
-            toast.success(approve ? t("approved") : t("rejected"));
+            toast.success(approve ? (termination ? tt("approved") : t("approved")) : t("rejected"));
             setOpen(false);
           },
           onError: (error) => applyFieldErrors(form, error),

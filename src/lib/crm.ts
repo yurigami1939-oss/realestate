@@ -73,6 +73,7 @@ export const leadActivityTypes = [
   "withdrawn",
   "discount_requested",
   "discount_decided",
+  "terminated",
 ] as const;
 export type LeadActivityType = (typeof leadActivityTypes)[number];
 

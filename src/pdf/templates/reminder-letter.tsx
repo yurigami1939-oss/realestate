@@ -1,6 +1,7 @@
 import "server-only";
 
 import { formatDate } from "@/lib/dates";
+import type { ReminderKind } from "@/lib/sales";
 import { amountInWordsAr, amountInWordsFr, type Centimes, formatDZD } from "@/lib/money";
 import type { CompanyIdentity } from "@/server/organizations/settings";
 
@@ -10,6 +11,9 @@ import { Letterhead } from "./letterhead";
 
 /** Everything printed on a reminder letter, already resolved (no lookups in templates). */
 export type ReminderLetterData = {
+  /** A reminder, or a formal notice (mise en demeure) with its rank on the sale. */
+  kind: ReminderKind;
+  noticeNumber: number | null;
   issuedAt: Date;
   saleNumber: string;
   saleDeedNumber: string | null;
@@ -60,15 +64,17 @@ export function ReminderLetterTemplate({
     ? `VSP ${data.saleDeedNumber} (réservation ${data.saleNumber})`
     : `réservation ${data.saleNumber}`;
   const showPenalties = data.penalties > 0n;
+  const notice = data.kind === "formal_notice";
+  const rank = data.noticeNumber ? ` N° ${data.noticeNumber}` : "";
   return (
-    <PdfDocument title={`Relance ${data.saleNumber}`} css={CSS}>
+    <PdfDocument title={`${notice ? "Mise en demeure" : "Relance"} ${data.saleNumber}`} css={CSS}>
       <Letterhead company={company} />
 
       <div className="title">
-        <h1>LETTRE DE RELANCE</h1>
+        <h1>{notice ? `MISE EN DEMEURE${rank}` : "LETTRE DE RELANCE"}</h1>
         <div className="muted">Le {formatDate(data.issuedAt)}</div>
         <h1 dir="rtl" lang="ar">
-          رسالة تذكير
+          {notice ? `إعذار${data.noticeNumber ? ` رقم ${data.noticeNumber}` : ""}` : "رسالة تذكير"}
         </h1>
       </div>
 
@@ -91,26 +97,51 @@ export function ReminderLetterTemplate({
 
       <div className="box">
         <p>
-          <b>Objet :</b> échéances impayées · {data.projectName} · lot{" "}
-          <b dir="ltr">{data.unitCode}</b> · {contract}
+          <b>Objet :</b> {notice ? "mise en demeure de payer" : "échéances impayées"} ·{" "}
+          {data.projectName} · lot <b dir="ltr">{data.unitCode}</b> · {contract}
         </p>
         <p dir="rtl" lang="ar">
-          <b>الموضوع:</b> دفعات غير مسددة · <bdi>{data.projectName}</bdi> · الوحدة{" "}
-          <bdi>{data.unitCode}</bdi> · الحجز <bdi>{data.saleNumber}</bdi>
+          <b>الموضوع:</b> {notice ? "إعذار بالدفع" : "دفعات غير مسددة"} ·{" "}
+          <bdi>{data.projectName}</bdi> · الوحدة <bdi>{data.unitCode}</bdi> · الحجز{" "}
+          <bdi>{data.saleNumber}</bdi>
         </p>
       </div>
 
-      <p>
-        Sauf erreur de notre part, les échéances ci-dessous de votre échéancier restent impayées à
-        ce jour. Nous vous prions de bien vouloir régulariser votre situation au plus tard le{" "}
-        <b>{formatDate(data.payBy)}</b>. Si votre règlement a été effectué entre-temps, veuillez ne
-        pas tenir compte de la présente.
-      </p>
-      <p dir="rtl" lang="ar">
-        ما لم يكن هناك خطأ من جهتنا، تبقى الدفعات المبينة أدناه من جدول دفعاتكم غير مسددة إلى يومنا
-        هذا. نرجو منكم تسوية وضعيتكم في أجل أقصاه <b>{formatDate(data.payBy)}</b>. وإذا تمّ التسديد
-        في الأثناء، فالرجاء عدم اعتبار هذه الرسالة.
-      </p>
+      {notice ? (
+        <>
+          <p>
+            Malgré nos précédents rappels, les échéances ci-dessous de votre échéancier demeurent
+            impayées. Par la présente, nous vous <b>mettons en demeure</b> de régler la somme de{" "}
+            <b dir="ltr">{money(data.overdue)}</b> au plus tard le <b>{formatDate(data.payBy)}</b>.
+            À défaut de règlement dans ce délai, nous nous réservons le droit de procéder à la
+            résiliation du contrat conformément à ses clauses et à la législation en vigueur, avec
+            application des retenues prévues.
+          </p>
+          <p dir="rtl" lang="ar">
+            رغم تذكيراتنا السابقة، تبقى الدفعات المبينة أدناه من جدول دفعاتكم غير مسددة. وبموجب هذه
+            الرسالة، <b>نعذركم</b> بتسديد مبلغ{" "}
+            <b>
+              <bdi dir="ltr">{money(data.overdue)}</bdi>
+            </b>{" "}
+            في أجل أقصاه <b>{formatDate(data.payBy)}</b>. وفي حال عدم التسديد خلال هذا الأجل، نحتفظ
+            بحقنا في فسخ العقد وفقاً لبنوده وللتشريع المعمول به، مع تطبيق الاقتطاعات المنصوص عليها.
+          </p>
+        </>
+      ) : (
+        <>
+          <p>
+            Sauf erreur de notre part, les échéances ci-dessous de votre échéancier restent impayées
+            à ce jour. Nous vous prions de bien vouloir régulariser votre situation au plus tard le{" "}
+            <b>{formatDate(data.payBy)}</b>. Si votre règlement a été effectué entre-temps, veuillez
+            ne pas tenir compte de la présente.
+          </p>
+          <p dir="rtl" lang="ar">
+            ما لم يكن هناك خطأ من جهتنا، تبقى الدفعات المبينة أدناه من جدول دفعاتكم غير مسددة إلى
+            يومنا هذا. نرجو منكم تسوية وضعيتكم في أجل أقصاه <b>{formatDate(data.payBy)}</b>. وإذا
+            تمّ التسديد في الأثناء، فالرجاء عدم اعتبار هذه الرسالة.
+          </p>
+        </>
+      )}
 
       <table>
         <thead>

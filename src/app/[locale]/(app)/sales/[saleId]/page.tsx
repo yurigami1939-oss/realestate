@@ -105,7 +105,8 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
           (u.option === null || u.option.leadId === sale.leadId),
       )
     : [];
-  const { withdrawalRetentionBp } = await getSalesSettings(ctx);
+  const { withdrawalRetentionBp, formalNoticeDays, formalNoticesRequired, terminationRetentionBp } =
+    await getSalesSettings(ctx);
   const delivery =
     sale.status === "sold" && can(ctx.roles, "handover:read")
       ? await getDelivery(ctx, saleId)
@@ -113,7 +114,17 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
   const openWithdrawal = withdrawals.find((w) => w.status !== "rejected");
   const canProposeWithdrawal =
     sale.status === "reserved" && !openWithdrawal && can(ctx.roles, "sale:withdraw");
-  const showWithdrawals = withdrawals.length > 0 || canProposeWithdrawal;
+  // Termination for non-payment: formal notices whose delay is over, something still overdue.
+  const expiredNotices = reminders.filter(
+    (r) => r.kind === "formal_notice" && r.payBy < todayInAlgiers(),
+  ).length;
+  const canTerminate =
+    sale.status !== "withdrawn" &&
+    sale.statement.overdue > 0n &&
+    !openWithdrawal &&
+    !delivery?.handover &&
+    can(ctx.roles, "sale:withdraw");
+  const showWithdrawals = withdrawals.length > 0 || canProposeWithdrawal || canTerminate;
   const followedLoan = loans.find((l) => l.status !== "refused" && l.status !== "cancelled");
   /** Money as typed in amount inputs ("8000000,00"). */
   const moneyInput = (v: bigint) => toDecimalString(v).replace(".", ",");
@@ -219,6 +230,15 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
                 overdue={st.overdue}
                 payBy={addDays(today, REMINDER_PAY_WITHIN_DAYS)}
                 today={today}
+              />
+            ) : null}
+            {live && st.overdue > 0n && can(ctx.roles, "sale:withdraw") ? (
+              <ReminderDialog
+                reservationId={sale.id}
+                overdue={st.overdue}
+                payBy={addDays(today, formalNoticeDays)}
+                today={addDays(today, formalNoticeDays)}
+                formalNotice={{ days: formalNoticeDays }}
               />
             ) : null}
           </>
@@ -719,11 +739,16 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
                           fileId={r.pdfFileId}
                           kind="reminder_letter"
                           id={r.id}
-                          label={t("collections.reminders.line", {
-                            date: formatDate(r.issuedAt),
-                            amount: money(r.overdue),
-                            name: r.issuedByName,
-                          })}
+                          label={t(
+                            r.kind === "formal_notice"
+                              ? "collections.reminders.formalLine"
+                              : "collections.reminders.line",
+                            {
+                              date: formatDate(r.issuedAt),
+                              amount: money(r.overdue),
+                              name: r.issuedByName,
+                            },
+                          )}
                         />
                       </div>
                     ))}
@@ -841,7 +866,14 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
                     <div className="font-medium">{t("sales.withdrawal.title")}</div>
                     {withdrawals.map((w) => (
                       <div key={w.id} className="space-y-1 rounded-md border p-2">
-                        <Badge variant="outline">{t(`sales.withdrawal.status.${w.status}`)}</Badge>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="font-medium">
+                            {t(`sales.withdrawal.kind.${w.kind}`)}
+                          </span>
+                          <Badge variant="outline">
+                            {t(`sales.withdrawal.status.${w.status}`)}
+                          </Badge>
+                        </div>
                         <div className="text-muted-foreground">
                           {t("sales.withdrawal.summary", {
                             paid: money(w.paid),
@@ -876,11 +908,17 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
                         ) : null}
                         {w.status === "proposed" && can(ctx.roles, "sale:approve") ? (
                           <div className="flex flex-wrap gap-2">
-                            <DecideWithdrawalDialog withdrawalId={w.id} approve refund={w.refund} />
+                            <DecideWithdrawalDialog
+                              withdrawalId={w.id}
+                              approve
+                              refund={w.refund}
+                              termination={w.kind === "termination"}
+                            />
                             <DecideWithdrawalDialog
                               withdrawalId={w.id}
                               approve={false}
                               refund={w.refund}
+                              termination={w.kind === "termination"}
                             />
                           </div>
                         ) : null}
@@ -892,6 +930,24 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
                         paid={st.paid}
                         defaultRetention={formatShare(withdrawalRetentionBp).slice(0, -2)}
                       />
+                    ) : null}
+                    {canTerminate ? (
+                      <div className="space-y-1" data-testid="termination">
+                        <p className="text-muted-foreground">
+                          {t("sales.termination.notices", {
+                            count: expiredNotices,
+                            required: formalNoticesRequired,
+                          })}
+                        </p>
+                        {expiredNotices >= formalNoticesRequired ? (
+                          <ProposeWithdrawalDialog
+                            reservationId={sale.id}
+                            paid={st.paid}
+                            defaultRetention={formatShare(terminationRetentionBp).slice(0, -2)}
+                            termination
+                          />
+                        ) : null}
+                      </div>
                     ) : null}
                   </div>
                 ) : null}

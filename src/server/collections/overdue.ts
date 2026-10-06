@@ -137,6 +137,7 @@ export async function loadSaleReminders(tx: Tx, reservationId: string) {
   return tx
     .select({
       id: reminderLetter.id,
+      kind: reminderLetter.kind,
       issuedAt: reminderLetter.issuedAt,
       overdue: reminderLetter.overdue,
       payBy: reminderLetter.payBy,

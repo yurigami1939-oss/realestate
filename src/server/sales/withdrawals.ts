@@ -1,20 +1,30 @@
 import "server-only";
 
-import { and, desc, eq, ne } from "drizzle-orm";
+import { and, asc, desc, eq, lt, ne, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import type { z } from "zod";
 
 import type { Tx } from "@/db/client";
-import { commission, reservation, user, withdrawal } from "@/db/schema";
+import {
+  commission,
+  handover,
+  installment,
+  reminderLetter,
+  reservation,
+  user,
+  withdrawal,
+} from "@/db/schema";
 import { withTenant } from "@/db/tenant";
 import { todayInAlgiers } from "@/lib/dates";
 import { isUuid } from "@/lib/ids";
 import { applyRate } from "@/lib/money";
 import { AppError } from "@/lib/result";
+import { computeStatement } from "@/lib/statement";
 import { recordAudit } from "@/server/audit/record-audit";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
 import { recordLeadActivity } from "@/server/crm/activity";
 import { transitionUnit } from "@/server/inventory/transition-unit";
+import { loadSalesSettings } from "@/server/organizations/settings";
 
 import { loadVisibleReservation } from "./access";
 import { paidTotals } from "./sale-queries";
@@ -43,27 +53,77 @@ async function loadWithdrawal(tx: Tx, ctx: TenantCtx, withdrawalId: string) {
   return { row, sale };
 }
 
+const NO_PENALTIES = { monthlyRateBp: 0, graceDays: 0, capBp: 0 };
+
+/**
+ * A termination for non-payment needs (CLAUDE.md §7): something overdue today, no handover
+ * started, and the company's number of formal notices whose delay is over.
+ */
+async function assertTerminable(tx: Tx, ctx: TenantCtx, saleId: string) {
+  const today = todayInAlgiers();
+  const lines = await tx
+    .select({
+      position: installment.position,
+      label: installment.label,
+      amount: installment.amount,
+      dueOn: installment.dueOn,
+    })
+    .from(installment)
+    .where(eq(installment.reservationId, saleId))
+    .orderBy(asc(installment.position));
+  const paid = (await paidTotals(tx, [saleId])).get(saleId) ?? 0n;
+  if (computeStatement(lines, paid, today, NO_PENALTIES).overdue === 0n) {
+    throw new AppError("CONFLICT", "sales.errors.notOverdue");
+  }
+  const [started] = await tx
+    .select({ id: handover.id })
+    .from(handover)
+    .where(eq(handover.reservationId, saleId));
+  if (started) throw new AppError("CONFLICT", "sales.errors.handoverStarted");
+  const { formalNoticesRequired } = await loadSalesSettings(tx, ctx.orgId);
+  const [notices] = await tx
+    .select({ n: sql<number>`count(*)::int` })
+    .from(reminderLetter)
+    .where(
+      and(
+        eq(reminderLetter.reservationId, saleId),
+        eq(reminderLetter.kind, "formal_notice"),
+        lt(reminderLetter.payBy, today),
+      ),
+    );
+  if ((notices?.n ?? 0) < formalNoticesRequired) {
+    throw new AppError("CONFLICT", "sales.errors.noticesMissing");
+  }
+}
+
 /**
  * Proposes a withdrawal (désistement) of a reservation (CLAUDE.md §12): retention on the amount
  * paid, prefilled with the company default and editable, with a reason. The gérant decides.
- * Only reservations before the VSP; one open proposal at a time.
+ * Only reservations before the VSP; one open proposal at a time. A termination for non-payment
+ * (kind `termination`) also applies to a sold sale, once formal notices went unanswered.
  */
 export async function proposeWithdrawal(ctx: TenantCtx, input: In<typeof proposeWithdrawalSchema>) {
   assertCan(ctx, "sale:withdraw");
   return withTenant(ctx, async (tx) => {
     const sale = await loadVisibleReservation(tx, ctx, input.reservationId, { forUpdate: true });
-    if (sale.status !== "reserved") throw new AppError("CONFLICT", "sales.errors.notReserved");
+    if (input.kind === "termination") {
+      if (sale.status === "withdrawn") throw new AppError("CONFLICT", "sales.errors.closed");
+    } else if (sale.status !== "reserved") {
+      throw new AppError("CONFLICT", "sales.errors.notReserved");
+    }
     const [open] = await tx
       .select({ id: withdrawal.id })
       .from(withdrawal)
       .where(and(eq(withdrawal.reservationId, sale.id), ne(withdrawal.status, "rejected")));
     if (open) throw new AppError("CONFLICT", "sales.withdrawal.errors.alreadyOpen");
+    if (input.kind === "termination") await assertTerminable(tx, ctx, sale.id);
     const amounts = split((await paidTotals(tx, [sale.id])).get(sale.id) ?? 0n, input.retention);
     const [row] = await tx
       .insert(withdrawal)
       .values({
         organizationId: ctx.orgId,
         reservationId: sale.id,
+        kind: input.kind,
         reason: input.reason,
         retentionBp: input.retention,
         ...amounts,
@@ -76,7 +136,7 @@ export async function proposeWithdrawal(ctx: TenantCtx, input: In<typeof propose
       action: "withdrawal.propose",
       entityType: "reservation",
       entityId: sale.id,
-      after: { number: sale.number, retentionBp: input.retention, ...amounts },
+      after: { number: sale.number, kind: input.kind, retentionBp: input.retention, ...amounts },
       reason: input.reason,
     });
     return { id: row.id, ...amounts };
@@ -120,7 +180,16 @@ export async function decideWithdrawal(ctx: TenantCtx, input: In<typeof decideWi
       });
       return;
     }
-    if (sale.status !== "reserved") throw new AppError("CONFLICT", "sales.errors.notReserved");
+    if (row.kind === "termination") {
+      if (sale.status === "withdrawn") throw new AppError("CONFLICT", "sales.errors.closed");
+      const [started] = await tx
+        .select({ id: handover.id })
+        .from(handover)
+        .where(eq(handover.reservationId, sale.id));
+      if (started) throw new AppError("CONFLICT", "sales.errors.handoverStarted");
+    } else if (sale.status !== "reserved") {
+      throw new AppError("CONFLICT", "sales.errors.notReserved");
+    }
 
     const amounts = split((await paidTotals(tx, [sale.id])).get(sale.id) ?? 0n, row.retentionBp);
     await tx
@@ -152,7 +221,13 @@ export async function decideWithdrawal(ctx: TenantCtx, input: In<typeof decideWi
       refId: sale.id,
     });
     if (sale.leadId) {
-      await recordLeadActivity(tx, ctx, sale.leadId, "withdrawn", { number: sale.number });
+      await recordLeadActivity(
+        tx,
+        ctx,
+        sale.leadId,
+        row.kind === "termination" ? "terminated" : "withdrawn",
+        { number: sale.number },
+      );
     }
     await recordAudit(tx, ctx, {
       actorUserId: ctx.userId,
@@ -160,7 +235,7 @@ export async function decideWithdrawal(ctx: TenantCtx, input: In<typeof decideWi
       entityType: "reservation",
       entityId: sale.id,
       before: { status: sale.status },
-      after: { status: "withdrawn", retentionBp: row.retentionBp, ...amounts },
+      after: { status: "withdrawn", kind: row.kind, retentionBp: row.retentionBp, ...amounts },
       reason: row.reason,
     });
   });
@@ -218,6 +293,7 @@ export async function listSaleWithdrawals(ctx: TenantCtx, reservationId: string)
     return tx
       .select({
         id: withdrawal.id,
+        kind: withdrawal.kind,
         status: withdrawal.status,
         reason: withdrawal.reason,
         retentionBp: withdrawal.retentionBp,

@@ -123,7 +123,12 @@ export default async function DashboardPage({ params }: PageProps<"/[locale]/das
             {todo.withdrawals?.map((w) => (
               <li key={w.reservationId} className="py-2">
                 <Link href={`/sales/${w.reservationId}`} className="font-medium hover:underline">
-                  {t("dashboard.todo.withdrawal", { number: w.number, buyer: w.buyer })}
+                  {t(
+                    w.kind === "termination"
+                      ? "dashboard.todo.termination"
+                      : "dashboard.todo.withdrawal",
+                    { number: w.number, buyer: w.buyer },
+                  )}
                 </Link>
                 <span className="block text-xs text-muted-foreground">
                   {t("dashboard.todo.withdrawalRefund", { amount: money(w.refund) })}

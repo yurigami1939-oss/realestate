@@ -92,6 +92,14 @@ export function CompanyForm({ defaultValues }: { defaultValues: CompanyFormValue
             </div>
             <FieldDescription>{t("obligationsHint")}</FieldDescription>
 
+            <FieldSeparator>{t("termination")}</FieldSeparator>
+            <div className="grid gap-4 sm:grid-cols-3">
+              {number("formalNoticesRequired")}
+              {number("formalNoticeDays")}
+              {number("terminationRetention")}
+            </div>
+            <FieldDescription>{t("terminationHint")}</FieldDescription>
+
             <FieldSeparator>{t("vspLimits")}</FieldSeparator>
             <FieldDescription>{t("vspLimitsHint")}</FieldDescription>
             <div className="grid gap-4 sm:grid-cols-4">

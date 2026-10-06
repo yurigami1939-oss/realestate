@@ -79,6 +79,10 @@ export const salesSettingDefaults = {
   defaultCommissionRateBp: 0,
   deliveryPenaltyMonthlyRateBp: 0,
   deliveryPenaltyCapBp: 1_000,
+  /** Termination for non-payment: delay of a formal notice, notices left unanswered first. */
+  formalNoticeDays: 15,
+  formalNoticesRequired: 2,
+  terminationRetentionBp: 1_000,
 } as const;
 
 export type SalesSettings = { [K in keyof typeof salesSettingDefaults]: number } & {
@@ -90,6 +94,12 @@ export type ReservationStatus = (typeof reservationStatuses)[number];
 
 /** Désistement: proposed by the directeur commercial, decided by the gérant (CLAUDE.md §12). */
 export const withdrawalStatuses = ["proposed", "approved", "rejected"] as const;
+/** A désistement (the buyer's) or a termination for non-payment (the promoter's). */
+export const withdrawalKinds = ["withdrawal", "termination"] as const;
+export type WithdrawalKind = (typeof withdrawalKinds)[number];
+/** Reminder letter, or formal notice (mise en demeure) before a termination. */
+export const reminderKinds = ["reminder", "formal_notice"] as const;
+export type ReminderKind = (typeof reminderKinds)[number];
 export type WithdrawalStatus = (typeof withdrawalStatuses)[number];
 
 export const bankLoanStatuses = [

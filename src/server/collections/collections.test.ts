@@ -115,7 +115,11 @@ describe("reminder letters", () => {
       code: "FORBIDDEN",
     });
     await expect(
-      issueReminderLetter(cashier, { reservationId: fresh.id, payBy: addDays(today, 8) }),
+      issueReminderLetter(cashier, {
+        reservationId: fresh.id,
+        payBy: addDays(today, 8),
+        kind: "reminder",
+      }),
     ).rejects.toMatchObject({ messageKey: "collections.errors.nothingOverdue" });
     await expect(
       issueReminderLetter(cashier, { ...input, payBy: addDays(today, -1) }),
@@ -161,6 +165,8 @@ describe("reminder letters", () => {
 
     const html = reminderLetterHtml(
       {
+        kind: "reminder",
+        noticeNumber: null,
         issuedAt: new Date("2026-10-01T09:00:00Z"),
         saleNumber: "RES-2026-000001",
         saleDeedNumber: null,
