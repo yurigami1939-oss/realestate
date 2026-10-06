@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import {
+  boolean,
   check,
   date,
   foreignKey,
@@ -19,11 +20,13 @@ import {
   punchStatuses,
   punchTrades,
 } from "../../lib/handovers";
+import { warrantyClaimStatuses, warrantyKinds } from "../../lib/obligations";
 
 import { id, instant, money, organizationId, timestamps, userRef } from "./_columns";
 import { file } from "./files";
 import { unit } from "./inventory";
 import { reservation } from "./sales";
+import { supplier } from "./suppliers";
 
 export const handoverStatus = pgEnum("handover_status", handoverStatuses);
 export const punchTrade = pgEnum("punch_trade", punchTrades);
@@ -146,5 +149,59 @@ export const punchItem = pgTable(
       "punch_item_cancelled",
       sql`(${t.status} = 'cancelled') = (${t.cancelReason} is not null)`,
     ),
+  ],
+);
+
+export const warrantyKind = pgEnum("warranty_kind", warrantyKinds);
+export const warrantyClaimStatus = pgEnum("warranty_claim_status", warrantyClaimStatuses);
+
+/**
+ * Réclamation en garantie after the handover (CLAUDE.md §7 Deliveries): a defect reported by
+ * the buyer (portal) or staff, qualified under a warranty, passed to the contractor with a
+ * deadline, then fixed — or rejected with a reason. Numbered within the handover.
+ */
+export const warrantyClaim = pgTable(
+  "warranty_claim",
+  {
+    id: id(),
+    organizationId: organizationId(),
+    handoverId: uuid().notNull(),
+    position: integer().notNull(),
+    location: text().notNull(),
+    description: text().notNull(),
+    reportedOn: date({ mode: "string" }).notNull(),
+    reportedBy: userRef().notNull(),
+    /** Sent by the buyer from the portal. */
+    fromPortal: boolean().notNull().default(false),
+    status: warrantyClaimStatus().notNull().default("open"),
+    warrantyKind: warrantyKind(),
+    /** The contractor (a supplier) asked to fix it, and by when. */
+    supplierId: uuid(),
+    assignedOn: date({ mode: "string" }),
+    dueOn: date({ mode: "string" }),
+    fixedOn: date({ mode: "string" }),
+    /** Staff note at assignment or fix; the reason of a rejection. */
+    note: text(),
+    ...timestamps(),
+  },
+  (t) => [
+    unique().on(t.organizationId, t.id),
+    unique("warranty_claim_position_key").on(t.organizationId, t.handoverId, t.position),
+    foreignKey({
+      name: "warranty_claim_handover_fk",
+      columns: [t.organizationId, t.handoverId],
+      foreignColumns: [handover.organizationId, handover.id],
+    }),
+    foreignKey({
+      name: "warranty_claim_supplier_fk",
+      columns: [t.organizationId, t.supplierId],
+      foreignColumns: [supplier.organizationId, supplier.id],
+    }),
+    index().on(t.organizationId, t.status),
+    check(
+      "warranty_claim_assignment",
+      sql`(${t.status} in ('assigned', 'fixed')) = (${t.supplierId} is not null and ${t.dueOn} is not null)`,
+    ),
+    check("warranty_claim_fixed", sql`(${t.status} = 'fixed') = (${t.fixedOn} is not null)`),
   ],
 );

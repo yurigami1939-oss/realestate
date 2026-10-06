@@ -1356,7 +1356,8 @@
       "completion": "Garantie de parfait achèvement",
       "tenYear": "Garantie décennale",
       "until": "jusqu'au {date}",
-      "premium": "Prime FGCMPI"
+      "premium": "Prime FGCMPI",
+      "functioning": "Garantie de bon fonctionnement"
     },
     "reschedule": {
       "open": "Rééchelonner (avenant)",
@@ -2262,6 +2263,12 @@
       "portal_request": {
         "create": "Demande depuis l'espace client",
         "close": "Demande client traitée"
+      },
+      "warranty_claim": {
+        "report": "Réclamation en garantie",
+        "assign": "Réclamation confiée à une entreprise",
+        "fix": "Reprise en garantie faite",
+        "reject": "Réclamation en garantie rejetée"
       }
     }
   },
@@ -2290,7 +2297,9 @@
       "discounts": "{count, plural, one {# demande de remise à décider} other {# demandes de remise à décider}}",
       "termination": "Résiliation à valider : {number} · {buyer}",
       "portalDocuments": "{count, plural, one {# pièce envoyée depuis l'espace client à vérifier} other {# pièces envoyées depuis l'espace client à vérifier}}",
-      "requests": "{count, plural, one {# demande client en attente} other {# demandes clients en attente}}"
+      "requests": "{count, plural, one {# demande client en attente} other {# demandes clients en attente}}",
+      "warrantyOpen": "Réclamation en garantie à qualifier : {unit} ({project})",
+      "warrantyLate": "Reprise en garantie en retard : {unit} ({project})"
     },
     "sales": {
       "title": "Ventes",
@@ -3388,7 +3397,7 @@
       "statementReady": "Votre relevé est prêt : son PDF arrive dans quelques secondes.",
       "noCertificates": "Aucune attestation pour l'instant : demandez-la à votre promoteur.",
       "deliveryDueOn": "Livraison prévue au contrat : {date}",
-      "warranties": "Garantie de parfait achèvement jusqu'au {completion} · garantie décennale jusqu'au {tenYear}",
+      "warranties": "Garantie de parfait achèvement jusqu'au {completion} · bon fonctionnement jusqu'au {functioning} · décennale jusqu'au {tenYear}",
       "amendment": "Avenant n° {number} du {date} (nouvel échéancier)",
       "formalNotice": "Mise en demeure du {date}"
     },
@@ -4541,6 +4550,68 @@
       "tooMany": "Plusieurs demandes sont déjà en attente pour cet achat.",
       "answerRequired": "Expliquez le refus au client.",
       "closed": "Cette demande a déjà été traitée."
+    }
+  },
+  "warranty": {
+    "title": "Garanties et réclamations",
+    "portalTitle": "Mes réclamations en garantie",
+    "ends": "Parfait achèvement jusqu'au {completion} · bon fonctionnement jusqu'au {functioning} · décennale jusqu'au {tenYear}",
+    "none": "Aucune réclamation.",
+    "report": "Enregistrer une réclamation",
+    "reportTitle": "Réclamation en garantie",
+    "reported": "Réclamation enregistrée.",
+    "portalReport": "Signaler un désordre",
+    "portalReportTitle": "Signaler un désordre dans votre logement",
+    "portalReportHint": "Décrivez le problème et où il se trouve : le promoteur le qualifie au titre des garanties et le fait reprendre par l'entreprise concernée.",
+    "send": "Envoyer",
+    "sent": "Réclamation envoyée au promoteur.",
+    "reportedBy": "Signalée le {date} · {name}",
+    "reportedPortal": "Signalée le {date} depuis l'espace client",
+    "assignedTo": "{contractor} · {kind} · à reprendre avant le {date}",
+    "portalDue": "reprise prévue avant le {date}",
+    "fixedOn": "Reprise le {date}",
+    "assign": "Confier",
+    "assignTitle": "Confier la reprise à une entreprise",
+    "assigned": "Réclamation confiée à l'entreprise.",
+    "fix": "Reprise faite",
+    "fixTitle": "Reprise faite par l'entreprise",
+    "fixed": "Réclamation close : reprise faite.",
+    "reject": "Rejeter",
+    "rejectTitle": "Rejeter la réclamation",
+    "rejected": "Réclamation rejetée.",
+    "fields": {
+      "location": "Emplacement (pièce, élément)",
+      "description": "Description du désordre",
+      "reportedOn": "Signalée le",
+      "warrantyKind": "Garantie",
+      "contractor": "Entreprise",
+      "dueOn": "À reprendre avant le",
+      "fixedOn": "Reprise faite le",
+      "note": "Note",
+      "reason": "Motif du rejet (lu par l'acquéreur)"
+    },
+    "kind": {
+      "completion": "Parfait achèvement",
+      "functioning": "Bon fonctionnement",
+      "ten_year": "Décennale"
+    },
+    "status": {
+      "open": "À qualifier",
+      "assigned": "Chez l'entreprise",
+      "fixed": "Reprise faite",
+      "rejected": "Rejetée",
+      "late": "En retard"
+    },
+    "errors": {
+      "notDelivered": "Le logement n'est pas encore livré (PV de remise non signé).",
+      "beforeHandover": "La réclamation ne peut précéder la remise des clés.",
+      "outOfWarranty": "Toutes les garanties sont expirées.",
+      "notCovered": "Cette garantie avait expiré quand le désordre a été signalé.",
+      "duePast": "La date limite ne peut pas être passée.",
+      "contractor": "Entreprise inconnue.",
+      "closed": "Cette réclamation est close.",
+      "notAssigned": "La réclamation doit d'abord être confiée à une entreprise.",
+      "beforeAssignment": "La reprise ne peut précéder la date où elle a été confiée."
     }
   }
 }

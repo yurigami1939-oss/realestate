@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { deliveryDelayDays, deliveryPenalty, documentValidity, warrantyEnds } from "./obligations";
+import {
+  deliveryDelayDays,
+  deliveryPenalty,
+  documentValidity,
+  runningWarranties,
+  warrantyEnds,
+} from "./obligations";
 
 describe("promoter's obligations", () => {
   it("flags documents expired or expiring within 60 days", () => {
@@ -36,7 +42,10 @@ describe("promoter's obligations", () => {
   it("runs the warranties from the handover PV", () => {
     expect(warrantyEnds("2026-02-28")).toEqual({
       completion: "2027-02-28",
+      functioning: "2028-02-28",
       tenYear: "2036-02-28",
     });
+    expect(runningWarranties("2026-02-28", "2027-03-01")).toEqual(["functioning", "ten_year"]);
+    expect(runningWarranties("2026-02-28", "2036-03-01")).toEqual([]);
   });
 });

@@ -8,6 +8,7 @@ import { PayOnlineDialog } from "@/components/online-payments/pay-online-dialog"
 import { ReportCard } from "@/components/construction/report-card";
 import { PortalStatementButton } from "@/components/certificates/portal-statement-button";
 import { PortalRequestDialog } from "@/components/portal/request-dialog";
+import { PortalClaimDialog, WarrantyClaimBadge } from "@/components/handovers/warranty-dialogs";
 import { PortalDocument } from "@/components/portal/portal-document";
 import { PendingDocumentsRefresher } from "@/components/sales/document-pdf";
 import { InstallmentStateBadge, SaleStatusBadge } from "@/components/sales/badges";
@@ -25,13 +26,14 @@ import { Link } from "@/i18n/navigation";
 import { toLocale } from "@/i18n/locales";
 import { formatDate, formatDateTime, todayInAlgiers } from "@/lib/dates";
 import { formatAmountInput, formatDZD } from "@/lib/money";
-import { warrantyEnds } from "@/lib/obligations";
+import { runningWarranties, warrantyEnds } from "@/lib/obligations";
 import { onlinePaymentOffer } from "@/lib/online-payments";
 import { cn } from "@/lib/utils";
 import { getPortalPaymentOptions } from "@/server/online-payments/queries";
 import { requirePortalCtx } from "@/server/portal/page-guard";
 import { getPortalSale } from "@/server/portal/sales";
 import { listSalePortalRequests } from "@/server/requests/service";
+import { listPortalWarrantyClaims } from "@/server/handovers/warranty";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("portal.sale");
@@ -56,6 +58,8 @@ export default async function PortalSalePage({
   const tc = await getTranslations("certificates");
   const tr = await getTranslations("requests");
   const requests = await listSalePortalRequests(ctx, sale.id);
+  const claims = await listPortalWarrantyClaims(ctx, sale.id);
+  const tw = await getTranslations("warranty");
   const options = await getPortalPaymentOptions(ctx);
   const offer = options?.sale ? onlinePaymentOffer(sale.statement) : null;
   const money = (v: bigint) => formatDZD(v, locale);
@@ -426,9 +430,50 @@ export default async function PortalSalePage({
                 <p className="text-muted-foreground">
                   {t("warranties", {
                     completion: formatDate(warrantyEnds(sale.handover.signedOn).completion),
+                    functioning: formatDate(warrantyEnds(sale.handover.signedOn).functioning),
                     tenYear: formatDate(warrantyEnds(sale.handover.signedOn).tenYear),
                   })}
                 </p>
+                <div className="space-y-2" data-testid="portal-claims">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <span className="font-medium">{tw("portalTitle")}</span>
+                    {runningWarranties(sale.handover.signedOn, todayInAlgiers()).length > 0 ? (
+                      <PortalClaimDialog reservationId={sale.id} />
+                    ) : null}
+                  </div>
+                  {claims.length === 0 ? (
+                    <p className="text-muted-foreground">{tw("none")}</p>
+                  ) : (
+                    <ul className="divide-y">
+                      {claims.map((c) => (
+                        <li
+                          key={c.id}
+                          className="flex flex-wrap items-start justify-between gap-2 py-2"
+                        >
+                          <span className="min-w-0 space-y-0.5">
+                            <span className="font-medium">
+                              {c.position}. {c.location}
+                            </span>
+                            <span className="block whitespace-pre-line text-muted-foreground">
+                              {c.description}
+                            </span>
+                            <span className="block text-xs text-muted-foreground">
+                              {formatDate(c.reportedOn)}
+                              {c.dueOn && c.status === "assigned"
+                                ? ` · ${tw("portalDue", { date: formatDate(c.dueOn) })}`
+                                : ""}
+                              {c.fixedOn
+                                ? ` · ${tw("fixedOn", { date: formatDate(c.fixedOn) })}`
+                                : ""}
+                            </span>
+                            {c.note ? <span className="block text-xs">{c.note}</span> : null}
+                          </span>
+                          <WarrantyClaimBadge status={c.status} />
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
               </>
             ) : sale.handover.scheduledAt ? (
               <p className="font-medium">

@@ -72,6 +72,31 @@ test.describe("responsable technique", () => {
     );
   });
 
+  test("records a defect after the handover and passes it to a contractor", async ({ page }) => {
+    await page.goto("/fr/deliveries?state=delivered");
+    await page
+      .getByTestId("deliveries")
+      .locator('[data-unit="D-01-02"]')
+      .getByRole("link", { name: "D-01-02" })
+      .click();
+    const claims = page.getByTestId("warranty-claims");
+    await expect(claims).toContainText("bon fonctionnement jusqu'au");
+    await claims.getByRole("button", { name: "Enregistrer une réclamation" }).click();
+    let dialog = page.getByRole("dialog");
+    await dialog.getByLabel("Emplacement (pièce, élément)").fill("Chambre 2");
+    await dialog.getByLabel("Description du désordre").fill("Porte-fenêtre qui ferme mal");
+    await dialog.getByRole("button", { name: "Enregistrer une réclamation" }).click();
+    await expect(page.getByText("Réclamation enregistrée.")).toBeVisible();
+    const claim = claims.locator('[data-claim="1"]');
+    await expect(claim).toContainText("À qualifier");
+
+    await claim.getByRole("button", { name: "Confier" }).click();
+    dialog = page.getByRole("dialog");
+    await dialog.getByRole("button", { name: "Confier" }).click();
+    await expect(page.getByText("Réclamation confiée à l'entreprise.")).toBeVisible();
+    await expect(claim).toContainText("Chez l'entreprise");
+  });
+
   test("reads the deliveries in Arabic, right to left", async ({ page }) => {
     await page.goto("/ar/deliveries");
     await expect(page.locator("html")).toHaveAttribute("dir", "rtl");

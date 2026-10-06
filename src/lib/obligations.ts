@@ -85,12 +85,40 @@ export function deliveryPenalty(
 }
 
 /**
- * Warranties running from the handover PV: parfait achèvement (one year) and décennale (ten
- * years), shown to staff and buyers; their legal scope is the contract's.
+ * Warranties running from the handover PV: parfait achèvement (one year), bon fonctionnement
+ * of the equipment (two years) and décennale (ten years), shown to staff and buyers; their
+ * legal scope is the contract's.
  */
 export function warrantyEnds(deliveredOn: CalendarDate): {
   completion: CalendarDate;
+  functioning: CalendarDate;
   tenYear: CalendarDate;
 } {
-  return { completion: addMonths(deliveredOn, 12), tenYear: addMonths(deliveredOn, 120) };
+  return {
+    completion: addMonths(deliveredOn, 12),
+    functioning: addMonths(deliveredOn, 24),
+    tenYear: addMonths(deliveredOn, 120),
+  };
+}
+
+/** Warranty a defect reported after the handover is claimed under (CLAUDE.md §7). */
+export const warrantyKinds = ["completion", "functioning", "ten_year"] as const;
+export type WarrantyKind = (typeof warrantyKinds)[number];
+
+/** Claim states: open (to qualify), with the contractor, fixed, or rejected (closed). */
+export const warrantyClaimStatuses = ["open", "assigned", "fixed", "rejected"] as const;
+export type WarrantyClaimStatus = (typeof warrantyClaimStatuses)[number];
+
+/** Warranties still running on a day (a claim reported after all of them is out of warranty). */
+export function runningWarranties(deliveredOn: CalendarDate, on: CalendarDate): WarrantyKind[] {
+  const ends = warrantyEnds(deliveredOn);
+  return warrantyKinds.filter(
+    (kind) =>
+      on <=
+      (kind === "completion"
+        ? ends.completion
+        : kind === "functioning"
+          ? ends.functioning
+          : ends.tenYear),
+  );
 }

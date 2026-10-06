@@ -833,6 +833,16 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
                         </dd>
                       </div>
                       <div className="flex justify-between gap-3">
+                        <dt className="text-muted-foreground">
+                          {t("sales.obligations.functioning")}
+                        </dt>
+                        <dd className="text-end">
+                          {t("sales.obligations.until", {
+                            date: formatDate(sale.obligations.warranties.functioning),
+                          })}
+                        </dd>
+                      </div>
+                      <div className="flex justify-between gap-3">
                         <dt className="text-muted-foreground">{t("sales.obligations.tenYear")}</dt>
                         <dd className="text-end">
                           {t("sales.obligations.until", {

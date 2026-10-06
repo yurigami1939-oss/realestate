@@ -97,6 +97,7 @@ export default async function DashboardPage({ params }: PageProps<"/[locale]/das
     (todo.discounts ?? 0) > 0 ||
     (todo.portalDocuments ?? 0) > 0 ||
     (todo.requests ?? 0) > 0 ||
+    (todo.warrantyClaims?.length ?? 0) > 0 ||
     (todo.cheques?.count ?? 0) > 0 ||
     (todo.commissions?.count ?? 0) > 0 ||
     (todo.options?.length ?? 0) > 0 ||
@@ -135,6 +136,21 @@ export default async function DashboardPage({ params }: PageProps<"/[locale]/das
                 <span className="block text-xs text-muted-foreground">
                   {t("dashboard.todo.withdrawalRefund", { amount: money(w.refund) })}
                 </span>
+              </li>
+            ))}
+            {todo.warrantyClaims?.map((c) => (
+              <li key={c.id} className="py-2">
+                <Link
+                  href={`/deliveries/${c.reservationId}`}
+                  className="font-medium hover:underline"
+                >
+                  {t(
+                    c.status === "open"
+                      ? "dashboard.todo.warrantyOpen"
+                      : "dashboard.todo.warrantyLate",
+                    { unit: c.unitCode, project: c.projectName },
+                  )}
+                </Link>
               </li>
             ))}
             {todo.requests ? (

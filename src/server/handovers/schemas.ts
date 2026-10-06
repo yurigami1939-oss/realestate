@@ -2,6 +2,7 @@
 import { z } from "zod";
 
 import { punchTrades } from "@/lib/handovers";
+import { warrantyKinds } from "@/lib/obligations";
 import {
   dateText,
   dateTimeText,
@@ -65,4 +66,39 @@ export const pastDeliveriesSchema = z.object({
 export const requestHandoverDocumentSchema = z.object({
   kind: z.enum(["handover_pv", "handover_release"]),
   handoverId: z.uuid(),
+});
+
+// ── Warranty claims (after the handover) ────────────────────────────────────
+
+/** A defect reported after the handover: staff from the delivery page, a buyer from the portal. */
+export const reportWarrantyClaimSchema = z.object({
+  handoverId: z.uuid(),
+  location: requiredText(120),
+  description: requiredText(1000),
+  reportedOn: dateText(),
+});
+export const portalWarrantyClaimSchema = z.object({
+  reservationId: z.uuid(),
+  location: requiredText(120),
+  description: requiredText(1000),
+});
+
+/** Passed to a contractor under a warranty, to fix by a day. */
+export const assignWarrantyClaimSchema = z.object({
+  claimId: z.uuid(),
+  warrantyKind: z.enum(warrantyKinds),
+  supplierId: z.uuid(),
+  dueOn: dateText(),
+  note: optionalText(500),
+});
+
+export const fixWarrantyClaimSchema = z.object({
+  claimId: z.uuid(),
+  fixedOn: dateText(),
+  note: optionalText(500),
+});
+
+export const rejectWarrantyClaimSchema = z.object({
+  claimId: z.uuid(),
+  note: requiredText(500),
 });

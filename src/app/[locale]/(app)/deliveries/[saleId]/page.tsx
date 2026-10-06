@@ -16,6 +16,13 @@ import {
   SignHandoverDialog,
 } from "@/components/handovers/handover-dialogs";
 import { HandoverDocumentPdf } from "@/components/handovers/handover-document";
+import {
+  AssignClaimDialog,
+  FixClaimDialog,
+  RejectClaimDialog,
+  ReportClaimDialog,
+  WarrantyClaimBadge,
+} from "@/components/handovers/warranty-dialogs";
 import { PendingDocumentsRefresher } from "@/components/sales/document-pdf";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -38,10 +45,12 @@ import {
   todayInAlgiers,
 } from "@/lib/dates";
 import { formatDZD } from "@/lib/money";
+import { runningWarranties, warrantyEnds } from "@/lib/obligations";
 import { can } from "@/lib/permissions";
 import { requirePermission } from "@/server/auth/page-guard";
 import { deletePunchItemAction } from "@/server/handovers/actions";
 import { getDelivery } from "@/server/handovers/queries";
+import { listWarrantyClaims, listWarrantyContractors } from "@/server/handovers/warranty";
 
 export async function generateMetadata({
   params,
@@ -75,6 +84,11 @@ export default async function DeliveryPage({ params }: PageProps<"/[locale]/deli
   const mainBuyer = delivery.buyers[0];
   const pending =
     (signed && h?.pdfFileId === null) || (closed && h?.releaseFileId === null) || false;
+  // After the PV: the warranties and the defects claimed under them.
+  const deliveredOn = signed ? (h?.signedOn ?? null) : null;
+  const claims = deliveredOn ? await listWarrantyClaims(ctx, delivery.id) : [];
+  const contractors = deliveredOn && editable ? await listWarrantyContractors(ctx) : [];
+  const tw = await getTranslations("warranty");
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
@@ -247,6 +261,92 @@ export default async function DeliveryPage({ params }: PageProps<"/[locale]/deli
               )}
             </CardContent>
           </Card>
+
+          {deliveredOn && h ? (
+            <Card data-testid="warranty-claims">
+              <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
+                <CardTitle className="text-base">{tw("title")}</CardTitle>
+                {editable && runningWarranties(deliveredOn, today).length > 0 ? (
+                  <ReportClaimDialog handoverId={h.id} today={today} />
+                ) : null}
+              </CardHeader>
+              <CardContent className="space-y-3 text-sm">
+                <p className="text-muted-foreground">
+                  {tw("ends", {
+                    completion: formatDate(warrantyEnds(deliveredOn).completion),
+                    functioning: formatDate(warrantyEnds(deliveredOn).functioning),
+                    tenYear: formatDate(warrantyEnds(deliveredOn).tenYear),
+                  })}
+                </p>
+                {claims.length === 0 ? (
+                  <p className="text-muted-foreground">{tw("none")}</p>
+                ) : (
+                  <ul className="divide-y">
+                    {claims.map((c) => {
+                      const late = c.status === "assigned" && c.dueOn !== null && c.dueOn < today;
+                      return (
+                        <li
+                          key={c.id}
+                          className="flex flex-wrap items-start justify-between gap-2 py-2"
+                          data-claim={c.position}
+                        >
+                          <span className="min-w-0 space-y-0.5">
+                            <span className="font-medium">
+                              {c.position}. {c.location}
+                            </span>
+                            <span className="block whitespace-pre-line">{c.description}</span>
+                            <span className="block text-xs text-muted-foreground">
+                              {tw(c.fromPortal ? "reportedPortal" : "reportedBy", {
+                                date: formatDate(c.reportedOn),
+                                name: c.reporterName,
+                              })}
+                            </span>
+                            {c.supplierName && c.dueOn ? (
+                              <span className="block text-xs">
+                                {tw("assignedTo", {
+                                  contractor: c.supplierName,
+                                  kind: c.warrantyKind ? tw(`kind.${c.warrantyKind}`) : "—",
+                                  date: formatDate(c.dueOn),
+                                })}
+                              </span>
+                            ) : null}
+                            {c.fixedOn ? (
+                              <span className="block text-xs text-emerald-700">
+                                {tw("fixedOn", { date: formatDate(c.fixedOn) })}
+                              </span>
+                            ) : null}
+                            {c.note ? (
+                              <span className="block text-xs text-muted-foreground">{c.note}</span>
+                            ) : null}
+                          </span>
+                          <span className="flex flex-wrap items-center gap-2">
+                            <WarrantyClaimBadge status={c.status} late={late} />
+                            {editable && (c.status === "open" || c.status === "assigned") ? (
+                              <>
+                                {contractors.length > 0 ? (
+                                  <AssignClaimDialog
+                                    claimId={c.id}
+                                    kinds={runningWarranties(deliveredOn, c.reportedOn)}
+                                    contractors={contractors}
+                                    dueOn={addDays(today, 15)}
+                                    today={today}
+                                  />
+                                ) : null}
+                                {c.status === "assigned" ? (
+                                  <FixClaimDialog claimId={c.id} today={today} />
+                                ) : null}
+                                <RejectClaimDialog claimId={c.id} />
+                              </>
+                            ) : null}
+                          </span>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </CardContent>
+            </Card>
+          ) : null}
 
           <Card>
             <CardHeader>
