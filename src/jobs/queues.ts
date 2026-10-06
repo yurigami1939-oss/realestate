@@ -79,6 +79,8 @@ export type EmailMessage = {
   subject: string;
   html: string;
   text: string;
+  /** Stored files attached by the worker (read from storage when sending, not carried here). */
+  attachments?: { fileName: string; storageKey: string; contentType: string }[];
 };
 
 /** Payload of each queue. */

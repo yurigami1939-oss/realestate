@@ -92,6 +92,8 @@ export const organizationSetting = pgTable(
     formalNoticeDays: integer().notNull().default(15),
     formalNoticesRequired: integer().notNull().default(2),
     terminationRetentionBp: integer().notNull().default(1000),
+    /** Receipts and calls are e-mailed to the clients who gave an address (PDF attached). */
+    emailDocuments: boolean().notNull().default(false),
     /** The promoter's FGCMPI membership number (n° d'adhésion). */
     fgcmpiNumber: text(),
     /** Company logo (PNG/JPEG), printed on the documents issued afterwards. */

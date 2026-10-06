@@ -47,6 +47,8 @@ export const companySettingsSchema = z.object({
   formalNoticesRequired: intText(1, 5),
   terminationRetention: percentText(0, 100),
   fgcmpiNumber: optionalText(40),
+  /** Receipts and calls e-mailed to the clients who gave an address. */
+  emailDocuments: z.boolean().default(false),
   /** Cumulative VSP limits per stage (CLAUDE.md §12); empty = no check. */
   vspLimitSigning: optionalPercentText(0, 100),
   vspLimitFoundations: optionalPercentText(0, 100),

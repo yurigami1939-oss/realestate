@@ -212,6 +212,30 @@
       "body": "{inviter} vous invite à votre espace client {organization} sur PRODUCT_NAME : vos acquisitions, paiements, documents et la vie de votre résidence.",
       "notice": "Ce lien est valable 7 jours. Créez votre compte avec cette adresse e-mail.",
       "cta": "Accéder à mon espace"
+    },
+    "clientDocument": {
+      "subject": "{title} {number} — {organization}",
+      "greeting": "Bonjour {name},",
+      "body": "Veuillez trouver ci-joint {document} n° {number} d'un montant de {amount}, pour {object}.",
+      "due": "À régler au plus tard le {date}.",
+      "notice": "Ce message vous est envoyé automatiquement par {organization}. Pour toute question, contactez-nous directement.",
+      "object": "le lot {unit} ({place})",
+      "title": {
+        "receipt": "Reçu de paiement",
+        "payment_call": "Appel de fonds",
+        "charge_call": "Appel de charges",
+        "charge_receipt": "Reçu de charges",
+        "rent_receipt": "Quittance de loyer",
+        "deposit_receipt": "Reçu de dépôt de garantie"
+      },
+      "document": {
+        "receipt": "votre reçu de paiement",
+        "payment_call": "l'appel de fonds",
+        "charge_call": "l'appel de charges",
+        "charge_receipt": "votre reçu de charges",
+        "rent_receipt": "votre quittance de loyer",
+        "deposit_receipt": "votre reçu de dépôt de garantie"
+      }
     }
   },
   "nav": {
@@ -787,7 +811,8 @@
       "fgcmpiNumber": "N° d'adhésion au FGCMPI",
       "formalNoticeDays": "Délai d'une mise en demeure (jours)",
       "formalNoticesRequired": "Mises en demeure avant résiliation",
-      "terminationRetention": "Retenue en cas de résiliation (%)"
+      "terminationRetention": "Retenue en cas de résiliation (%)",
+      "emailDocuments": "Envoyer par e-mail les reçus et appels aux clients"
     },
     "collections": "Encaissements et commissions",
     "penaltyHint": "Pénalités de retard : calculées et affichées sur les relevés et lettres de relance, jamais facturées automatiquement. 0 % = désactivées.",
@@ -809,7 +834,9 @@
     "obligations": "Obligations du promoteur (loi 11-04)",
     "obligationsHint": "Indemnité de retard de livraison due aux acquéreurs : calculée et affichée sur les ventes et les livraisons, jamais versée automatiquement. Reprenez le taux de vos contrats ; 0 % = désactivée.",
     "termination": "Résiliation pour non-paiement",
-    "terminationHint": "Nombre de mises en demeure restées sans effet avant de pouvoir résilier, délai laissé par chacune et retenue proposée sur les sommes versées : selon vos contrats (loi 11-04), à confirmer avec votre notaire."
+    "terminationHint": "Nombre de mises en demeure restées sans effet avant de pouvoir résilier, délai laissé par chacune et retenue proposée sur les sommes versées : selon vos contrats (loi 11-04), à confirmer avec votre notaire.",
+    "clients": "Envoi aux clients",
+    "clientsHint": "Reçus de paiement, appels de fonds, appels et reçus de charges, quittances : envoyés en PDF, à leur émission, aux acquéreurs, copropriétaires et locataires dont l'adresse e-mail est renseignée."
   },
   "paymentPlans": {
     "title": "Échéanciers",

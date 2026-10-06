@@ -51,6 +51,7 @@ export default async function CompanyPage({ params }: PageProps<"/[locale]/setti
           formalNoticesRequired: String(settings.formalNoticesRequired),
           terminationRetention: formatPercentInput(settings.terminationRetentionBp),
           fgcmpiNumber: settings.fgcmpiNumber ?? "",
+          emailDocuments: settings.emailDocuments,
           vspLimitSigning: limit(settings.vspLimits.signing),
           vspLimitFoundations: limit(settings.vspLimits.foundations),
           vspLimitStructure: limit(settings.vspLimits.structure),

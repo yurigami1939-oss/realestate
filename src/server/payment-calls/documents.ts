@@ -19,6 +19,7 @@ import { withTenant } from "@/db/tenant";
 import { renderPdf } from "@/pdf/render";
 import { type PaymentCallData, PaymentCallTemplate } from "@/pdf/templates/payment-call";
 import { storeFile } from "@/server/files/service";
+import { emailPaymentCall } from "@/server/email/client-documents";
 import { type CompanyIdentity, loadCompanyLetterhead } from "@/server/organizations/settings";
 
 /** Everything printed on a payment call (null if unknown). */
@@ -127,6 +128,10 @@ export async function renderAndStorePaymentCall(
       },
     );
     await tx.update(paymentCall).set({ pdfFileId: stored.id }).where(eq(paymentCall.id, callId));
+    await emailPaymentCall(tx, organizationId, callId, {
+      storageKey: stored.storageKey,
+      fileName: `${loaded.call.data.number}.pdf`,
+    });
     return "stored";
   });
 }

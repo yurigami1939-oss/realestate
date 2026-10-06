@@ -123,7 +123,7 @@ export async function storeFile(
     upload: Upload;
     contentType: FileContentType;
   },
-): Promise<{ id: string }> {
+): Promise<{ id: string; storageKey: string }> {
   const { rows } = await tx.execute<{ id: string }>(sql`select uuidv7() as id`);
   const fileId = rows[0]?.id;
   if (!fileId) throw new Error("storeFile: uuidv7() returned nothing");
@@ -141,7 +141,7 @@ export async function storeFile(
     uploadedBy: actor.userId,
   });
   await putObject(key, input.upload.bytes, input.contentType);
-  return { id: fileId };
+  return { id: fileId, storageKey: key };
 }
 
 /** Hides a file from the app. The object stays in the bucket (history, legal retention). */

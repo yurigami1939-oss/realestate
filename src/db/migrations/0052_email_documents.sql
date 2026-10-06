@@ -1,0 +1,1 @@
+ALTER TABLE "organization_setting" ADD COLUMN "email_documents" boolean DEFAULT false NOT NULL;

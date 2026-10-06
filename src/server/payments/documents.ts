@@ -19,6 +19,7 @@ import { paymentMethodLabels } from "@/pdf/payment-methods";
 import { type ReceiptData, receiptHtml } from "@/pdf/receipt";
 import { renderPdf } from "@/pdf/render";
 import { storeFile } from "@/server/files/service";
+import { emailSaleReceipt } from "@/server/email/client-documents";
 import { loadCompanyLetterhead } from "@/server/organizations/settings";
 
 /** Everything printed on a receipt, resolved from the database (null if unknown). */
@@ -131,6 +132,10 @@ export async function renderAndStoreReceipt(
       },
     );
     await tx.update(receipt).set({ pdfFileId: stored.id }).where(eq(receipt.id, receiptId));
+    await emailSaleReceipt(tx, organizationId, receiptId, {
+      storageKey: stored.storageKey,
+      fileName: `${loaded.data.number}.pdf`,
+    });
     return "stored";
   });
 }

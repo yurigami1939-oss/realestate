@@ -348,3 +348,72 @@ export function rentsDigestEmail(input: {
     text: `${frPart.text}\n\n---\n\n${arPart.text}`,
   };
 }
+
+/** Documents e-mailed to clients when the organization sends them (CLAUDE.md §5 Email). */
+export const clientDocumentKinds = [
+  "receipt",
+  "payment_call",
+  "charge_call",
+  "charge_receipt",
+  "rent_receipt",
+  "deposit_receipt",
+] as const;
+export type ClientDocumentKind = (typeof clientDocumentKinds)[number];
+
+/**
+ * An issued document sent to its client, French then Arabic (the client's language is not
+ * recorded), its PDF attached: what it is, its number and amount, the unit and, for a call,
+ * the day to pay by.
+ */
+export function clientDocumentEmail(input: {
+  to: string;
+  kind: ClientDocumentKind;
+  name: string;
+  organization: string;
+  number: string;
+  amount: bigint;
+  dueOn: string | null;
+  unitCode: string;
+  place: string;
+  attachment: NonNullable<EmailMessage["attachments"]>[number];
+}): EmailMessage {
+  const part = (locale: "fr" | "ar") => {
+    const t = createTranslator({
+      locale,
+      messages: catalogs[locale],
+      namespace: "emails.clientDocument",
+    });
+    const dir = locale === "ar" ? "rtl" : "ltr";
+    const values = {
+      name: input.name,
+      organization: input.organization,
+      title: t(`title.${input.kind}`),
+      document: t(`document.${input.kind}`),
+      number: input.number,
+      amount: formatDZD(input.amount, locale),
+      object: t("object", { unit: input.unitCode, place: input.place }),
+      date: input.dueOn ? formatDate(input.dueOn) : "",
+    };
+    const lines = [
+      t("greeting", values),
+      t("body", values),
+      ...(input.dueOn ? [t("due", values)] : []),
+      t("notice", values),
+    ];
+    const html = `
+    <div dir="${dir}" lang="${locale}" style="text-align:${dir === "rtl" ? "right" : "left"};margin:0 0 32px">
+      ${lines.map((line) => `<p style="margin:0 0 12px">${escapeHtml(line)}</p>`).join("")}
+    </div>`;
+    return { subject: t("subject", values), title: values.title, html, text: lines.join("\n") };
+  };
+  const frPart = part("fr");
+  const arPart = part("ar");
+  return {
+    to: input.to,
+    // The number and the company once: the French subject, then the Arabic title.
+    subject: `${frPart.subject} · ${arPart.title}`,
+    html: `<!doctype html><html><body style="font-family:Arial,Helvetica,sans-serif;font-size:15px;color:#171717;max-width:560px;margin:0 auto;padding:24px">${frPart.html}<hr style="border:none;border-top:1px solid #e5e5e5;margin:0 0 32px">${arPart.html}</body></html>`,
+    text: `${frPart.text}\n\n---\n\n${arPart.text}`,
+    attachments: [input.attachment],
+  };
+}

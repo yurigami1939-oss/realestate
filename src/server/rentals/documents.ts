@@ -16,6 +16,7 @@ import {
   InspectionReportTemplate,
 } from "@/pdf/templates/inspection-report";
 import { storeFile } from "@/server/files/service";
+import { emailRentReceipt } from "@/server/email/client-documents";
 import { type CompanyIdentity, loadCompanyLetterhead } from "@/server/organizations/settings";
 
 import { LEASE_ENTITY } from "./service";
@@ -132,6 +133,10 @@ export async function renderAndStoreRentReceipt(
       },
     );
     await tx.update(rentPayment).set({ pdfFileId: stored.id }).where(eq(rentPayment.id, paymentId));
+    await emailRentReceipt(tx, organizationId, paymentId, {
+      storageKey: stored.storageKey,
+      fileName: `${loaded.data.number}.pdf`,
+    });
     return "stored";
   });
 }

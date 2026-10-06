@@ -26,6 +26,7 @@ import { renderPdf } from "@/pdf/render";
 import { type ChargeCallData, ChargeCallTemplate } from "@/pdf/templates/charge-call";
 import { type ChargeReminderData, ChargeReminderTemplate } from "@/pdf/templates/charge-reminder";
 import { storeFile } from "@/server/files/service";
+import { emailChargeCall, emailChargeReceipt } from "@/server/email/client-documents";
 import { type CompanyIdentity, loadCompanyLetterhead } from "@/server/organizations/settings";
 
 /** Everything printed on a charge call (null if unknown). */
@@ -126,6 +127,10 @@ export async function renderAndStoreChargeCall(
       },
     );
     await tx.update(chargeCall).set({ pdfFileId: stored.id }).where(eq(chargeCall.id, callId));
+    await emailChargeCall(tx, organizationId, callId, {
+      storageKey: stored.storageKey,
+      fileName: `${loaded.call.data.number}.pdf`,
+    });
     return "stored";
   });
 }
@@ -231,6 +236,10 @@ export async function renderAndStoreChargeReceipt(
       .update(chargePayment)
       .set({ pdfFileId: stored.id })
       .where(eq(chargePayment.id, paymentId));
+    await emailChargeReceipt(tx, organizationId, paymentId, {
+      storageKey: stored.storageKey,
+      fileName: `${loaded.data.number}.pdf`,
+    });
     return "stored";
   });
 }

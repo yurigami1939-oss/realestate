@@ -87,6 +87,8 @@ async function seedSettings(owner: TenantCtx) {
       formalNoticesRequired: "2",
       terminationRetention: "10",
       fgcmpiNumber: "FGCMPI-16-0482",
+      // Receipts and calls go to the clients with an address (Mailpit in development).
+      emailDocuments: true,
       vspLimitSigning: "",
       vspLimitFoundations: "",
       vspLimitStructure: "",

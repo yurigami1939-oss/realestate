@@ -73,6 +73,7 @@ export async function loadCompanyProfile(tx: Tx, orgId: string) {
     .select({
       logoFileId: organizationSetting.logoFileId,
       fgcmpiNumber: organizationSetting.fgcmpiNumber,
+      emailDocuments: organizationSetting.emailDocuments,
     })
     .from(organizationSetting)
     .where(eq(organizationSetting.organizationId, orgId));
@@ -81,6 +82,7 @@ export async function loadCompanyProfile(tx: Tx, orgId: string) {
     ...(await loadSalesSettings(tx, orgId)),
     logoFileId: setting?.logoFileId ?? null,
     fgcmpiNumber: setting?.fgcmpiNumber ?? null,
+    emailDocuments: setting?.emailDocuments ?? false,
   };
 }
 
@@ -205,6 +207,7 @@ export async function updateCompanySettings(
       formalNoticesRequired,
       terminationRetention,
       fgcmpiNumber,
+      emailDocuments,
       vspLimitSigning,
       vspLimitFoundations,
       vspLimitStructure,
@@ -234,6 +237,7 @@ export async function updateCompanySettings(
       formalNoticesRequired,
       terminationRetentionBp: terminationRetention,
       fgcmpiNumber,
+      emailDocuments,
       vspLimits,
       updatedBy: ctx.userId,
     };

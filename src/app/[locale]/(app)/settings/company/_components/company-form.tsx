@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import type { z } from "zod";
 
 import { applyFieldErrors } from "@/components/forms/apply-field-errors";
+import { CheckboxField } from "@/components/forms/fields";
 import { TextField } from "@/components/forms/text-field";
 import { useAction } from "@/components/forms/use-action";
 import { Button } from "@/components/ui/button";
@@ -99,6 +100,14 @@ export function CompanyForm({ defaultValues }: { defaultValues: CompanyFormValue
               {number("terminationRetention")}
             </div>
             <FieldDescription>{t("terminationHint")}</FieldDescription>
+
+            <FieldSeparator>{t("clients")}</FieldSeparator>
+            <CheckboxField
+              control={form.control}
+              name="emailDocuments"
+              label={f("emailDocuments")}
+            />
+            <FieldDescription>{t("clientsHint")}</FieldDescription>
 
             <FieldSeparator>{t("vspLimits")}</FieldSeparator>
             <FieldDescription>{t("vspLimitsHint")}</FieldDescription>
