@@ -19,6 +19,8 @@ import {
 } from "@/server/crm/schemas";
 import { saveTargets } from "@/server/crm/targets";
 import { scheduleVisit, updateVisit } from "@/server/crm/visits";
+import { saveMarketingSpend } from "@/server/reports/marketing";
+import { saveMarketingSpendSchema } from "@/server/reports/schemas";
 
 type Owner = "agentA" | "agentB" | "manager" | "none";
 
@@ -471,4 +473,21 @@ export async function seedCrm(
     }),
   );
   return leadIds;
+}
+
+/** Marketing spend of the last three months (reports: cost and return per lead source). */
+export async function seedMarketingSpend(manager: TenantCtx) {
+  const thisMonth = todayInAlgiers().slice(0, 7);
+  for (const back of [0, 1, 2]) {
+    const month = addMonths(`${thisMonth}-01`, -back).slice(0, 7);
+    for (const [source, amount, notes] of [
+      ["facebook", "120 000", "Campagne Facebook / Instagram"],
+      ["ouedkniss", "25 000", "Annonces Ouedkniss"],
+    ] as const) {
+      await saveMarketingSpend(
+        manager,
+        saveMarketingSpendSchema.parse({ month, source, amount, notes }),
+      );
+    }
+  }
 }

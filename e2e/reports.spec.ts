@@ -16,6 +16,10 @@ test.describe("reports", () => {
     await expect(page.getByTestId("report-by-typology").getByRole("row").nth(1)).toBeVisible();
     await expect(page.getByTestId("report-commercials")).toContainText("Lina Saadi");
     await expect(page.getByTestId("report-stock")).toContainText("Résidence Les Oliviers");
+    // Cost per lead source: the seeded Facebook campaigns against the Facebook leads.
+    await expect(
+      page.getByTestId("report-sources").locator('[data-source="facebook"]'),
+    ).toBeVisible();
     await expect(
       page.getByTestId("report-ageing").locator('[data-bucket="undated"]'),
     ).toBeVisible();
@@ -27,6 +31,7 @@ test.describe("reports", () => {
     expect(download.suggestedFilename()).toMatch(/^rapports-2024-01-01_\d{4}-\d{2}-\d{2}\.xlsx$/);
     const sheets = await readXlsxFile((await download.path()) ?? "");
     expect(sheets.map((s) => s.sheet)).toContain("Stock par projet et typologie");
+    expect(sheets.map((s) => s.sheet)).toContain("Sources de prospects");
 
     await page.goto("/ar/reports");
     await expect(page.locator("html")).toHaveAttribute("dir", "rtl");

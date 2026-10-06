@@ -1040,6 +1040,27 @@ async function report(
       ],
     },
     {
+      name: t("reports.sources.sheet"),
+      columns: [
+        { header: t("reports.sources.source"), width: 18 },
+        { header: t("reports.columns.leads"), kind: "integer" },
+        { header: t("reports.columns.reservations"), kind: "integer" },
+        { header: t("reports.columns.reserved"), kind: "money" },
+        { header: t("reports.sources.spend"), kind: "money" },
+        { header: t("reports.sources.costPerLead"), kind: "money" },
+        { header: t("reports.sources.costPerSale"), kind: "money" },
+      ],
+      rows: r.sources.map((s) => [
+        t(`crm.source.${s.source}`),
+        s.leads,
+        s.reservations,
+        s.revenue,
+        s.spend,
+        s.costPerLead,
+        s.costPerSale,
+      ]),
+    },
+    {
       name: t("reports.stock.title"),
       columns: [
         { header: t("reports.columns.project"), width: 26 },

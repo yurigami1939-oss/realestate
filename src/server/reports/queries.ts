@@ -2,8 +2,19 @@ import "server-only";
 
 import { and, eq, gte, inArray, isNull, lte, ne, sql } from "drizzle-orm";
 
-import { installment, lead, payment, project, reservation, unit, user } from "@/db/schema";
+import type { Tx } from "@/db/client";
+import {
+  installment,
+  lead,
+  marketingSpend,
+  payment,
+  project,
+  reservation,
+  unit,
+  user,
+} from "@/db/schema";
 import { withTenant } from "@/db/tenant";
+import { leadSources } from "@/lib/crm";
 import { todayInAlgiers } from "@/lib/dates";
 import { isUuid } from "@/lib/ids";
 import type { Centimes } from "@/lib/money";
@@ -286,8 +297,80 @@ export async function getReports(ctx: TenantCtx, params: ReportParams) {
       forecast: forecastMonths.map((month) => ({ month, expected: forecast.get(month) ?? 0n })),
       forecastLater,
       stock: stock.map((s) => ({ ...s, value: big(s.value) })),
+      sources: await leadSourceReport(tx, { from, to, projectId }),
     };
   });
+}
+
+/**
+ * Cost and return per lead source over the period: leads received, reservations signed (not
+ * withdrawn) by those leads and their amount, against the marketing spend of the period's
+ * months (organization-wide), with the cost per lead and per sale.
+ */
+async function leadSourceReport(
+  tx: Tx,
+  { from, to, projectId }: { from: string; to: string; projectId: string | null },
+) {
+  const leads = await tx
+    .select({ source: lead.source, n: sql<number>`count(*)::int` })
+    .from(lead)
+    .where(
+      and(
+        isNull(lead.deletedAt),
+        projectId ? eq(lead.projectId, projectId) : undefined,
+        gte(sql`(${lead.createdAt} at time zone 'Africa/Algiers')::date`, from),
+        lte(sql`(${lead.createdAt} at time zone 'Africa/Algiers')::date`, to),
+      ),
+    )
+    .groupBy(lead.source);
+  const won = await tx
+    .select({
+      source: lead.source,
+      n: sql<number>`count(*)::int`,
+      value: sql<string>`sum(${reservation.price})::text`,
+    })
+    .from(reservation)
+    .innerJoin(lead, eq(lead.id, reservation.leadId))
+    .where(
+      and(
+        projectId ? eq(reservation.projectId, projectId) : undefined,
+        ne(reservation.status, "withdrawn"),
+        gte(reservation.reservedOn, from),
+        lte(reservation.reservedOn, to),
+      ),
+    )
+    .groupBy(lead.source);
+  const spend = await tx
+    .select({
+      source: marketingSpend.source,
+      total: sql<string>`sum(${marketingSpend.amount})::text`,
+    })
+    .from(marketingSpend)
+    .where(
+      and(
+        gte(marketingSpend.month, `${from.slice(0, 7)}-01`),
+        lte(marketingSpend.month, `${to.slice(0, 7)}-01`),
+      ),
+    )
+    .groupBy(marketingSpend.source);
+  return leadSources
+    .map((source) => {
+      const leadCount = leads.find((l) => l.source === source)?.n ?? 0;
+      const sales = won.find((w) => w.source === source);
+      const cost = big(spend.find((x) => x.source === source)?.total);
+      const reservations = sales?.n ?? 0;
+      return {
+        source,
+        leads: leadCount,
+        reservations,
+        revenue: big(sales?.value),
+        spend: cost,
+        /** Centimes per lead / per reservation (null without any). */
+        costPerLead: leadCount > 0 && cost > 0n ? cost / BigInt(leadCount) : null,
+        costPerSale: reservations > 0 && cost > 0n ? cost / BigInt(reservations) : null,
+      };
+    })
+    .filter((r) => r.leads > 0 || r.reservations > 0 || r.spend > 0n);
 }
 
 export type Reports = Awaited<ReturnType<typeof getReports>>;

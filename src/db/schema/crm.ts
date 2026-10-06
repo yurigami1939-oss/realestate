@@ -216,3 +216,26 @@ export const salesTarget = pgTable(
     check("sales_target_month", sql`extract(day from ${t.month}) = 1`),
   ],
 );
+
+/**
+ * Marketing spend of a month on a lead source (ads, Ouedkniss listings, a stand…), entered by
+ * the commercial management: the reports compare it with the leads and sales of the source.
+ */
+export const marketingSpend = pgTable(
+  "marketing_spend",
+  {
+    organizationId: organizationId(),
+    /** First day of the month (Algiers calendar). */
+    month: date({ mode: "string" }).notNull(),
+    source: leadSource().notNull(),
+    amount: money().notNull(),
+    notes: text(),
+    updatedAt: updatedAt(),
+    updatedBy: userRef(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.organizationId, t.month, t.source] }),
+    check("marketing_spend_amount", sql`${t.amount} > 0`),
+    check("marketing_spend_month", sql`extract(day from ${t.month}) = 1`),
+  ],
+);

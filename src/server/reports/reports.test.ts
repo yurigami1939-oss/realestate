@@ -6,6 +6,8 @@ import { addDays, todayInAlgiers } from "@/lib/dates";
 import { ageingBucket, monthsOfPeriod } from "@/lib/reports";
 import { createBuyerSchema } from "@/server/buyers/schemas";
 import { createBuyer } from "@/server/buyers/service";
+import { createLead } from "@/server/crm/leads";
+import { createLeadSchema } from "@/server/crm/schemas";
 import { buildExport } from "@/server/exports/service";
 import { recordPaymentSchema } from "@/server/payments/schemas";
 import { recordPayment } from "@/server/payments/service";
@@ -15,7 +17,9 @@ import { createReservationSchema } from "@/server/sales/schemas";
 import { addMember, createSalesTeam } from "../../../tests/factories";
 import { createSaleSetup } from "../../../tests/sales-fixtures";
 
+import { saveMarketingSpend } from "./marketing";
 import { getReports } from "./queries";
+import { saveMarketingSpendSchema } from "./schemas";
 
 afterAll(async () => {
   await stopEnqueue();
@@ -108,6 +112,38 @@ describe("reports", () => {
       }),
     ]);
 
+    // Cost and return per lead source: a Facebook lead against this month's Facebook spend.
+    await createLead(
+      team.agentA,
+      createLeadSchema.parse({
+        fullName: "Nadia Ferhat",
+        phone: "0661 77 88 99",
+        source: "facebook",
+        typologies: [],
+      }),
+    );
+    const spend = saveMarketingSpendSchema.parse({
+      month: today.slice(0, 7),
+      source: "facebook",
+      amount: "60 000",
+      notes: "",
+    });
+    await expect(saveMarketingSpend(team.agentA, spend)).rejects.toMatchObject({
+      code: "FORBIDDEN",
+    });
+    await saveMarketingSpend(team.manager, spend);
+    const withSources = await getReports(accountant, { from: addDays(today, -60), to: today });
+    expect(withSources.sources).toEqual([
+      expect.objectContaining({
+        source: "facebook",
+        leads: 1,
+        reservations: 0,
+        spend: 6_000_000n,
+        costPerLead: 6_000_000n,
+        costPerSale: null,
+      }),
+    ]);
+
     const { bytes } = await buildExport(
       accountant,
       "report",
@@ -122,6 +158,7 @@ describe("reports", () => {
       "reports.commercials.title",
       "reports.ageing.title",
       "reports.forecast.title",
+      "reports.sources.sheet",
       "reports.stock.title",
     ]);
   });

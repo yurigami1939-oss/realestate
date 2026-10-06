@@ -337,6 +337,13 @@
       "when": 1791303150325,
       "tag": "0047_warranty_claims",
       "breakpoints": true
+    },
+    {
+      "idx": 48,
+      "version": "7",
+      "when": 1791304067861,
+      "tag": "0048_marketing_spend",
+      "breakpoints": true
     }
   ]
 }

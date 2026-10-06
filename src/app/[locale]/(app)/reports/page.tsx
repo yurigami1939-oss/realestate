@@ -3,6 +3,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { PageHeader } from "@/components/app-shell/page-header";
 import { ExportButton } from "@/components/exports/export-button";
+import { MarketingSpendDialog } from "@/components/reports/marketing-spend-dialog";
 import { ReportFilters } from "@/components/reports/report-filters";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -16,6 +17,7 @@ import {
 } from "@/components/ui/table";
 import { toLocale } from "@/i18n/locales";
 import { formatDZD } from "@/lib/money";
+import { can } from "@/lib/permissions";
 import { formatShare } from "@/lib/payment-plans";
 import { ageingBuckets } from "@/lib/reports";
 import { requirePermission } from "@/server/auth/page-guard";
@@ -51,6 +53,7 @@ export default async function ReportsPage({
   const r = await getReports(ctx, filters);
   const t = await getTranslations("reports");
   const ti = await getTranslations("inventory");
+  const tsrc = await getTranslations("crm.source");
   const money = (v: bigint) => formatDZD(v, locale);
   const monthLabel = (month: string) =>
     new Intl.DateTimeFormat(locale === "ar" ? "ar-DZ-u-nu-latn" : "fr-DZ", {
@@ -266,6 +269,54 @@ export default async function ReportsPage({
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
+          <div className="space-y-1">
+            <CardTitle className="text-base">{t("sources.title")}</CardTitle>
+            <p className="text-sm text-muted-foreground">{t("sources.description")}</p>
+          </div>
+          {can(ctx.roles, "target:update") ? (
+            <MarketingSpendDialog month={r.to.slice(0, 7)} />
+          ) : null}
+        </CardHeader>
+        <CardContent className="overflow-x-auto">
+          {r.sources.length === 0 ? (
+            <p className="text-sm text-muted-foreground">{t("empty")}</p>
+          ) : (
+            <Table data-testid="report-sources">
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{t("sources.source")}</TableHead>
+                  <TableHead className="text-end">{t("columns.leads")}</TableHead>
+                  <TableHead className="text-end">{t("columns.reservations")}</TableHead>
+                  <TableHead className="text-end">{t("columns.reserved")}</TableHead>
+                  <TableHead className="text-end">{t("sources.spend")}</TableHead>
+                  <TableHead className="text-end">{t("sources.costPerLead")}</TableHead>
+                  <TableHead className="text-end">{t("sources.costPerSale")}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {r.sources.map((s) => (
+                  <TableRow key={s.source} data-source={s.source}>
+                    <TableCell>{tsrc(s.source)}</TableCell>
+                    <TableCell className="text-end tabular-nums">{s.leads}</TableCell>
+                    <TableCell className="text-end tabular-nums">{s.reservations}</TableCell>
+                    <Amount value={s.revenue} locale={locale} />
+                    <Amount value={s.spend} locale={locale} />
+                    <TableCell className="text-end tabular-nums" dir="ltr">
+                      {s.costPerLead === null ? "—" : money(s.costPerLead)}
+                    </TableCell>
+                    <TableCell className="text-end tabular-nums" dir="ltr">
+                      {s.costPerSale === null ? "—" : money(s.costPerSale)}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>

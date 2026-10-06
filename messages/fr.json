@@ -2084,7 +2084,8 @@
         "online_payment": "Paiement en ligne (SATIM) configuré",
         "whatsapp": "WhatsApp configuré",
         "export": "Export Excel",
-        "import": "Reprise de données (import Excel)"
+        "import": "Reprise de données (import Excel)",
+        "marketing_spend": "Dépense de communication saisie"
       },
       "member": {
         "join": "Arrivée d'un membre",
@@ -4431,6 +4432,23 @@
       "reserved": "Réservés",
       "sold": "Vendus",
       "value": "Valeur du stock"
+    },
+    "sources": {
+      "title": "Coût et rendement des sources de prospects",
+      "description": "Prospects reçus et réservations signées par source sur la période, face aux dépenses de communication des mois de la période (toutes promotions).",
+      "source": "Source",
+      "spend": "Dépenses",
+      "costPerLead": "Coût par prospect",
+      "costPerSale": "Coût par réservation",
+      "spendOpen": "Saisir une dépense",
+      "spendTitle": "Dépense de communication du mois",
+      "spendHint": "Publicités Facebook / Instagram, annonces Ouedkniss, salon… Le montant remplace celui déjà saisi pour ce mois et cette source ; 0 le supprime.",
+      "spendSave": "Enregistrer",
+      "spendSaved": "Dépense enregistrée.",
+      "month": "Mois",
+      "amount": "Montant (DA)",
+      "notes": "Note",
+      "sheet": "Sources de prospects"
     }
   },
   "discounts": {
