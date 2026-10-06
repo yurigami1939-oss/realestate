@@ -251,7 +251,8 @@
     "whatsappSettings": "WhatsApp",
     "exports": "Exports Excel",
     "imports": "Reprise de données",
-    "treasury": "Trésorerie"
+    "treasury": "Trésorerie",
+    "reports": "Rapports"
   },
   "shell": {
     "organizations": "Sociétés",
@@ -4204,6 +4205,75 @@
       "aboveContract": "Le total des situations dépasserait le montant du marché.",
       "invoicePaid": "Cette situation est payée : elle ne change plus.",
       "notLastInvoice": "Seule la dernière situation peut être supprimée."
+    }
+  },
+  "reports": {
+    "title": "Rapports",
+    "description": "Ventes et encaissements par mois, par projet et typologie, performance des commerciaux, créances par ancienneté, encaissements attendus et stock.",
+    "empty": "Rien sur la période.",
+    "filters": {
+      "from": "Du",
+      "to": "Au",
+      "project": "Projet",
+      "allProjects": "Tous les projets"
+    },
+    "totals": {
+      "reserved": "Réservations",
+      "sold": "VSP signées",
+      "collected": "Encaissé",
+      "withdrawn": "{count, plural, one {# réservation de la période désistée} other {# réservations de la période désistées}} (non comptées)"
+    },
+    "columns": {
+      "month": "Mois",
+      "reservations": "Réservations",
+      "reserved": "Montant réservé",
+      "sales": "VSP",
+      "sold": "Montant VSP",
+      "collected": "Encaissé",
+      "project": "Projet",
+      "typology": "Typologie",
+      "count": "Ventes",
+      "value": "Montant",
+      "perSquareMeter": "Prix moyen au m²",
+      "commercial": "Commercial",
+      "leads": "Prospects reçus",
+      "conversion": "Transformation",
+      "total": "Total",
+      "age": "Ancienneté"
+    },
+    "byMonth": {
+      "title": "Ventes et encaissements par mois"
+    },
+    "byTypology": {
+      "title": "Ventes par projet et typologie"
+    },
+    "commercials": {
+      "title": "Performance des commerciaux",
+      "vsp": "{count, plural, one {# VSP} other {# VSP}}"
+    },
+    "ageing": {
+      "title": "Créances par ancienneté",
+      "description": "Ce qui reste dû sur les ventes en cours, à ce jour.",
+      "not_due": "Pas encore échu",
+      "d0_30": "En retard de 1 à 30 jours",
+      "d31_60": "En retard de 31 à 60 jours",
+      "d61_90": "En retard de 61 à 90 jours",
+      "d91_180": "En retard de 91 à 180 jours",
+      "over_180": "En retard de plus de 180 jours",
+      "undated": "Selon l'avancement des travaux"
+    },
+    "forecast": {
+      "title": "Encaissements attendus",
+      "description": "Les échéances restantes par mois (les retards comptés ce mois-ci).",
+      "later": "Au-delà"
+    },
+    "stock": {
+      "title": "Stock par projet et typologie",
+      "available": "Disponibles",
+      "optioned": "En option",
+      "reserved": "Réservés",
+      "sold": "Vendus",
+      "value": "Valeur du stock"
     }
   }
 }

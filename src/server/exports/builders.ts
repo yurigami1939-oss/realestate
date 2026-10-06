@@ -26,6 +26,7 @@ import { todayInAlgiers } from "@/lib/dates";
 import { sumCentimes } from "@/lib/money";
 import { can } from "@/lib/permissions";
 import { AppError } from "@/lib/result";
+import { ageingBuckets } from "@/lib/reports";
 import { computeStatement } from "@/lib/statement";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
 import { visibleBuyers } from "@/server/buyers/access";
@@ -36,6 +37,7 @@ import { listLeases } from "@/server/rentals/queries";
 import { visibleSales } from "@/server/sales/access";
 import { buyerNames, paidTotals, searchCondition as saleSearch } from "@/server/sales/sale-queries";
 import { listInvoices } from "@/server/suppliers/queries";
+import { getReports } from "@/server/reports/queries";
 import { getAccountLedger } from "@/server/treasury/queries";
 
 import type { ExportKind, ExportParams } from "./schemas";
@@ -953,6 +955,119 @@ async function ledger(
   };
 }
 
+/** The management reports, one sheet per table. */
+async function report(
+  ctx: TenantCtx,
+  params: ExportParams<"report">,
+  t: Translate,
+): Promise<ExportResult> {
+  const r = await getReports(ctx, params);
+  const typology = (value: string) =>
+    /^F\d$/.test(value) ? value : t(`inventory.unitType.${value}`);
+  const sheets: ExportSheet[] = [
+    {
+      name: t("reports.byMonth.title"),
+      columns: [
+        { header: t("reports.columns.month"), width: 12 },
+        { header: t("reports.columns.reservations"), kind: "integer" },
+        { header: t("reports.columns.reserved"), kind: "money" },
+        { header: t("reports.columns.sales"), kind: "integer" },
+        { header: t("reports.columns.sold"), kind: "money" },
+        { header: t("reports.columns.collected"), kind: "money" },
+      ],
+      rows: r.byMonth.map((m) => [
+        m.month,
+        m.reservations,
+        m.reserved,
+        m.sales,
+        m.sold,
+        m.collected,
+      ]),
+    },
+    {
+      name: t("reports.byTypology.title"),
+      columns: [
+        { header: t("reports.columns.project"), width: 26 },
+        { header: t("reports.columns.typology"), width: 14 },
+        { header: t("reports.columns.count"), kind: "integer" },
+        { header: t("reports.columns.value"), kind: "money" },
+        { header: t("reports.columns.perSquareMeter"), kind: "money" },
+      ],
+      rows: r.byTypology.map((g) => [
+        g.projectName,
+        typology(g.typology),
+        g.count,
+        g.value,
+        g.perSquareMeter,
+      ]),
+    },
+    {
+      name: t("reports.commercials.title"),
+      columns: [
+        { header: t("reports.columns.commercial"), width: 24 },
+        { header: t("reports.columns.leads"), kind: "integer" },
+        { header: t("reports.columns.reservations"), kind: "integer" },
+        { header: t("reports.columns.sales"), kind: "integer" },
+        { header: t("reports.columns.reserved"), kind: "money" },
+        { header: t("reports.columns.collected"), kind: "money" },
+      ],
+      rows: r.commercials.map((c) => [
+        c.name,
+        c.leads,
+        c.reservations,
+        c.sales,
+        c.reserved,
+        c.collected,
+      ]),
+    },
+    {
+      name: t("reports.ageing.title"),
+      columns: [
+        { header: t("reports.columns.age"), width: 30 },
+        { header: t("reports.columns.value"), kind: "money" },
+      ],
+      rows: ageingBuckets.map((b) => [t(`reports.ageing.${b}`), r.ageing[b]]),
+    },
+    {
+      name: t("reports.forecast.title"),
+      columns: [
+        { header: t("reports.columns.month"), width: 12 },
+        { header: t("reports.columns.value"), kind: "money" },
+      ],
+      rows: [
+        ...r.forecast.map((m) => [m.month, m.expected]),
+        [t("reports.forecast.later"), r.forecastLater],
+      ],
+    },
+    {
+      name: t("reports.stock.title"),
+      columns: [
+        { header: t("reports.columns.project"), width: 26 },
+        { header: t("reports.columns.typology"), width: 14 },
+        { header: t("reports.stock.available"), kind: "integer" },
+        { header: t("reports.stock.optioned"), kind: "integer" },
+        { header: t("reports.stock.reserved"), kind: "integer" },
+        { header: t("reports.stock.sold"), kind: "integer" },
+        { header: t("reports.stock.value"), kind: "money" },
+      ],
+      rows: r.stock.map((s) => [
+        s.projectName,
+        typology(s.typology),
+        s.available,
+        s.optioned,
+        s.reserved,
+        s.sold,
+        s.value,
+      ]),
+    },
+  ];
+  return {
+    file: exportFileName("rapports", `${r.from}_${r.to}`),
+    rows: sheets.reduce((n, s) => n + s.rows.length, 0),
+    sheets,
+  };
+}
+
 type Builder<K extends ExportKind> = (
   ctx: TenantCtx,
   params: ExportParams<K>,
@@ -970,4 +1085,5 @@ export const builders: { [K in ExportKind]: Builder<K> } = {
   leases,
   invoices,
   ledger,
+  report,
 };

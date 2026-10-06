@@ -90,6 +90,8 @@ export const statement = {
    * retentions.
    */
   cost: ["read", "update", "pay"],
+  /** Management reports: sales by period, project and typology, commercials, receivables, stock. */
+  report: ["read"],
 } as const;
 
 export const ac = createAccessControl(statement);
@@ -135,6 +137,7 @@ export const roles = {
     notification: ["read"],
     treasury: ["read", "update", "count"],
     cost: ["read", "update", "pay"],
+    report: ["read"],
   }),
   sales_manager: ac.newRole({
     inventory: ["read"],
@@ -164,6 +167,7 @@ export const roles = {
     handover: ["read", "update"],
     lease: ["read", "update"],
     notification: ["read"],
+    report: ["read"],
   }),
   sales_agent: ac.newRole({
     inventory: ["read"],
@@ -190,6 +194,7 @@ export const roles = {
     notification: ["read"],
     treasury: ["read", "update", "count"],
     cost: ["read", "pay"],
+    report: ["read"],
   }),
   cashier: ac.newRole({
     inventory: ["read"],

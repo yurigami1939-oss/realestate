@@ -4,6 +4,7 @@ import {
   AlarmClock,
   Building,
   Building2,
+  ChartColumn,
   CalendarDays,
   Contact,
   CreditCard,
@@ -79,7 +80,8 @@ type NavKey =
   | "whatsappSettings"
   | "exports"
   | "imports"
-  | "treasury";
+  | "treasury"
+  | "reports";
 /**
  * `permission`: shown only to roles that have it, or one of them (display only; services
  * enforce).
@@ -96,6 +98,7 @@ const mainNav: NavItem[] = [
   { href: "/dashboard", key: "dashboard", icon: LayoutDashboard },
   { href: "/projects", key: "projects", icon: Building2, permission: "inventory:read" },
   { href: "/treasury", key: "treasury", icon: Wallet, permission: "treasury:read" },
+  { href: "/reports", key: "reports", icon: ChartColumn, permission: "report:read" },
   {
     href: "/online-payments",
     key: "onlinePayments",
