@@ -501,6 +501,7 @@ export default async function LeasePage({ params }: PageProps<"/[locale]/rentals
                     leaseId={lease.id}
                     held={asInput(lease.depositHeld)}
                     today={today}
+                    accounts={await listAccountChoices(ctx)}
                   />
                 ) : null}
               </div>

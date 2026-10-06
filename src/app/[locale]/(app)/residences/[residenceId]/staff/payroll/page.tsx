@@ -15,6 +15,7 @@ import { can } from "@/lib/permissions";
 import { requirePermission } from "@/server/auth/page-guard";
 import { getResidence } from "@/server/residences/queries";
 import { getPayrollMonth } from "@/server/staff/pay";
+import { listAccountChoices } from "@/server/treasury/queries";
 
 import { ResidenceNav } from "../../_components/residence-nav";
 
@@ -85,6 +86,7 @@ export default async function PayrollPage({
             month={month}
             editable={can(ctx.roles, "staff:update")}
             today={todayInAlgiers()}
+            accounts={can(ctx.roles, "staff:update") ? await listAccountChoices(ctx) : []}
           />
           {recorded.length > 0 ? (
             <p className="text-sm">

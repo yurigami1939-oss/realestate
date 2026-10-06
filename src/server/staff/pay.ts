@@ -11,6 +11,7 @@ import { isUuid } from "@/lib/ids";
 import { AppError } from "@/lib/result";
 import { recordAudit } from "@/server/audit/record-audit";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
+import { resolvePaymentAccount } from "@/server/treasury/service";
 
 import { monthEnd } from "./attendance";
 import type { payStaffSchema, savePaySchema } from "./schemas";
@@ -110,9 +111,10 @@ export async function payStaff(ctx: TenantCtx, input: In<typeof payStaffSchema>)
     const current = await loadPay(tx, input.payId);
     if (current.paidOn) throw new AppError("CONFLICT", "staff.errors.payPaid");
     if (input.paidOn < current.month) throw invalid("paidOn", "staff.errors.paidBeforeMonth");
+    const accountId = await resolvePaymentAccount(tx, input.method, input.accountId);
     await tx
       .update(staffPay)
-      .set({ paidOn: input.paidOn, paymentMethod: input.method })
+      .set({ paidOn: input.paidOn, paymentMethod: input.method, accountId })
       .where(eq(staffPay.id, input.payId));
     await recordAudit(tx, ctx, {
       actorUserId: ctx.userId,
@@ -124,6 +126,7 @@ export async function payStaff(ctx: TenantCtx, input: In<typeof payStaffSchema>)
         netAmount: current.netAmount,
         paidOn: input.paidOn,
         method: input.method,
+        accountId,
       },
     });
   });

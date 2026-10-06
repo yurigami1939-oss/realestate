@@ -12,12 +12,16 @@ import {
   reservation,
   residence,
   rentPayment,
+  salaryAdvance,
+  staffMember,
+  staffPay,
   supplier,
   supplierInvoice,
   treasuryAccount,
   treasuryMovement,
   unit,
   user,
+  withdrawal,
   worksContract,
   worksInvoice,
 } from "@/db/schema";
@@ -69,9 +73,16 @@ export type AccountRow = Awaited<ReturnType<typeof listAccounts>>[number];
  */
 export async function listAccountChoices(ctx: TenantCtx) {
   if (
-    !(["payment:create", "supplier:update", "cost:pay", "treasury:read"] as const).some((p) =>
-      can(ctx.roles, p),
-    )
+    !(
+      [
+        "payment:create",
+        "supplier:update",
+        "cost:pay",
+        "treasury:read",
+        "staff:update",
+        "lease:update",
+      ] as const
+    ).some((p) => can(ctx.roles, p))
   ) {
     throw new AppError("FORBIDDEN");
   }
@@ -100,7 +111,18 @@ export type LedgerLine = {
   key: string;
   on: CalendarDate;
   at: Date;
-  source: "sale" | "charges" | "rent" | "works" | "retention" | "supplier" | MovementKind;
+  source:
+    | "sale"
+    | "charges"
+    | "rent"
+    | "works"
+    | "retention"
+    | "supplier"
+    | "staff_pay"
+    | "advance"
+    | "refund"
+    | "deposit_refund"
+    | MovementKind;
   label: string;
   /** Receipt number, movement reference… */
   reference: string | null;
@@ -308,7 +330,145 @@ export async function getAccountLedger(ctx: TenantCtx, accountId: string, params
         ),
       );
 
+    // Staff pay and advances, refunds of withdrawals and of lease deposits.
+    const pays = await tx
+      .select({
+        id: staffPay.id,
+        on: staffPay.paidOn,
+        at: staffPay.updatedAt,
+        amount: staffPay.netAmount,
+        method: staffPay.paymentMethod,
+        month: staffPay.month,
+        name: sql<string>`${staffMember.lastName} || ' ' || ${staffMember.firstName}`,
+        residenceId: staffMember.residenceId,
+      })
+      .from(staffPay)
+      .innerJoin(staffMember, eq(staffMember.id, staffPay.staffId))
+      .where(
+        and(
+          eq(staffPay.accountId, account.id),
+          gte(staffPay.paidOn, start),
+          lte(staffPay.paidOn, to),
+        ),
+      );
+    const advances = await tx
+      .select({
+        id: salaryAdvance.id,
+        on: salaryAdvance.paidOn,
+        at: salaryAdvance.createdAt,
+        amount: salaryAdvance.amount,
+        method: salaryAdvance.paymentMethod,
+        name: sql<string>`${staffMember.lastName} || ' ' || ${staffMember.firstName}`,
+        residenceId: staffMember.residenceId,
+      })
+      .from(salaryAdvance)
+      .innerJoin(staffMember, eq(staffMember.id, salaryAdvance.staffId))
+      .where(
+        and(
+          eq(salaryAdvance.accountId, account.id),
+          isNull(salaryAdvance.deletedAt),
+          gte(salaryAdvance.paidOn, start),
+          lte(salaryAdvance.paidOn, to),
+        ),
+      );
+    const refunds = await tx
+      .select({
+        id: withdrawal.id,
+        on: withdrawal.refundedOn,
+        at: withdrawal.proposedAt,
+        amount: withdrawal.refund,
+        method: withdrawal.refundMethod,
+        reference: withdrawal.refundReference,
+        saleId: reservation.id,
+        saleNumber: reservation.number,
+        unitCode: unit.code,
+      })
+      .from(withdrawal)
+      .innerJoin(reservation, eq(reservation.id, withdrawal.reservationId))
+      .innerJoin(unit, eq(unit.id, reservation.unitId))
+      .where(
+        and(
+          eq(withdrawal.refundAccountId, account.id),
+          gte(withdrawal.refundedOn, start),
+          lte(withdrawal.refundedOn, to),
+        ),
+      );
+    const depositRefunds = await tx
+      .select({
+        id: lease.id,
+        on: lease.depositSettledOn,
+        at: lease.updatedAt,
+        amount: lease.depositRefunded,
+        method: lease.depositRefundMethod,
+        number: lease.number,
+        tenant: lease.tenantName,
+      })
+      .from(lease)
+      .where(
+        and(
+          eq(lease.depositRefundAccountId, account.id),
+          gte(lease.depositSettledOn, start),
+          lte(lease.depositSettledOn, to),
+        ),
+      );
+
     const lines: LedgerLine[] = [
+      ...pays.map((p) => ({
+        key: `staff_pay:${p.id}`,
+        on: p.on ?? start,
+        at: p.at,
+        source: "staff_pay" as const,
+        label: `${p.name} · ${p.month.slice(5, 7)}/${p.month.slice(0, 4)}`,
+        reference: null,
+        method: p.method,
+        amountIn: 0n,
+        amountOut: p.amount,
+        movementId: null,
+        href: `/residences/${p.residenceId}/staff`,
+        pendingCheque: false,
+      })),
+      ...advances.map((a) => ({
+        key: `advance:${a.id}`,
+        on: a.on,
+        at: a.at,
+        source: "advance" as const,
+        label: a.name,
+        reference: null,
+        method: a.method,
+        amountIn: 0n,
+        amountOut: a.amount,
+        movementId: null,
+        href: `/residences/${a.residenceId}/staff`,
+        pendingCheque: false,
+      })),
+      ...refunds.map((r) => ({
+        key: `refund:${r.id}`,
+        on: r.on ?? start,
+        at: r.at,
+        source: "refund" as const,
+        label: `${r.saleNumber} · ${r.unitCode}`,
+        reference: r.reference,
+        method: r.method,
+        amountIn: 0n,
+        amountOut: r.amount,
+        movementId: null,
+        href: `/sales/${r.saleId}`,
+        pendingCheque: false,
+      })),
+      ...depositRefunds.map((d) => ({
+        key: `deposit_refund:${d.id}`,
+        on: d.on ?? start,
+        at: d.at,
+        source: "deposit_refund" as const,
+        label: `${d.number} · ${d.tenant}`,
+        reference: null,
+        method: d.method,
+        amountIn: 0n,
+        amountOut: d.amount ?? 0n,
+        movementId: null,
+        href: `/rentals/${d.id}`,
+        pendingCheque: false,
+      })),
       ...sales.map((p) => ({
         key: `sale:${p.id}`,
         on: p.on,

@@ -9,6 +9,9 @@ import { getBudgetReport } from "@/server/charges/report";
 import { createChargeCategorySchema } from "@/server/charges/schemas";
 import { createResidenceSchema } from "@/server/residences/schemas";
 import { createResidence } from "@/server/residences/service";
+import { getAccountLedger } from "@/server/treasury/queries";
+import { createAccountSchema } from "@/server/treasury/schemas";
+import { createAccount } from "@/server/treasury/service";
 
 import { addMember, createSalesTeam } from "../../../tests/factories";
 import { createSaleSetup } from "../../../tests/sales-fixtures";
@@ -305,5 +308,68 @@ describe("monthly pay", () => {
     expect(report?.lines).toMatchObject([
       { name: "Gardiennage", spent: 48_500_00n, paid: 48_500_00n },
     ]);
+  });
+  it("pays advances and pay from the organization's cash desk or bank (ledgers)", async () => {
+    const { team, manager, residenceId, categoryId } = await scenario();
+    const opened = addDays(today, -40);
+    const account = (kind: "cash" | "bank", name: string) =>
+      createAccount(
+        team.owner,
+        createAccountSchema.parse({
+          kind,
+          name,
+          bankName: kind === "cash" ? "" : "BNA",
+          accountNumber: kind === "cash" ? "" : "00100123012345678901",
+          isDefault: true,
+          notes: "",
+          openingBalance: "500 000",
+          openingOn: opened,
+        }),
+      );
+    const { id: cashId } = await account("cash", "Caisse résidence");
+    const { id: bankId } = await account("bank", "BNA compte courant");
+    const { id: guard } = await createStaff(
+      manager,
+      staffInput(residenceId, categoryId, { hiredOn: opened }),
+    );
+    const month = today.slice(0, 7);
+    // The advance in cash leaves the default cash desk; the pay by transfer the bank.
+    await recordAdvance(
+      manager,
+      recordAdvanceSchema.parse({
+        staffId: guard,
+        paidOn: today,
+        month,
+        amount: "10 000",
+        method: "cash",
+        accountId: "",
+      }),
+    );
+    const { payId } = await savePay(
+      manager,
+      savePaySchema.parse({
+        staffId: guard,
+        month,
+        baseAmount: "45 000",
+        bonus: "",
+        deduction: "",
+      }),
+    );
+    await expect(
+      payStaff(
+        manager,
+        payStaffSchema.parse({ payId, paidOn: today, method: "bank_transfer", accountId: cashId }),
+      ),
+    ).rejects.toMatchObject({ messageKey: "treasury.errors.accountKind" });
+    await payStaff(
+      manager,
+      payStaffSchema.parse({ payId, paidOn: today, method: "bank_transfer", accountId: bankId }),
+    );
+
+    const cash = await getAccountLedger(team.owner, cashId, { from: today, to: today });
+    expect(cash?.lines.map((l) => [l.source, l.amountOut])).toEqual([["advance", 10_000_00n]]);
+    expect(cash?.closing).toBe(490_000_00n);
+    const bank = await getAccountLedger(team.owner, bankId, { from: today, to: today });
+    expect(bank?.lines.map((l) => [l.source, l.amountOut])).toEqual([["staff_pay", 35_000_00n]]);
   });
 });

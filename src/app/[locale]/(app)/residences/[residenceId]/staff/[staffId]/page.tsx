@@ -26,6 +26,7 @@ import { getResidence } from "@/server/residences/queries";
 import { deleteAdvanceAction } from "@/server/staff/actions";
 import { listStaffPays } from "@/server/staff/pay";
 import { getStaffMember } from "@/server/staff/queries";
+import { listAccountChoices } from "@/server/treasury/queries";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("staff");
@@ -109,7 +110,13 @@ export default async function StaffMemberPage({
       <Card>
         <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
           <CardTitle className="text-base">{t("advances.title")}</CardTitle>
-          {editable && agent.employed ? <AdvanceDialog staffId={agent.id} today={today} /> : null}
+          {editable && agent.employed ? (
+            <AdvanceDialog
+              staffId={agent.id}
+              today={today}
+              accounts={await listAccountChoices(ctx)}
+            />
+          ) : null}
         </CardHeader>
         <CardContent>
           {agent.advances.length === 0 ? (

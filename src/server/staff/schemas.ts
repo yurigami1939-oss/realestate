@@ -50,6 +50,12 @@ export const recordAdvanceSchema = z.object({
   paidOn: dateText(),
   month: monthText(),
   amount: moneyText().refine((v) => v > 0n, "validation.amount"),
+  method: z
+    .enum(chargePaymentMethods)
+    .optional()
+    .transform((v) => v ?? "cash"),
+  /** Paid from (« Payé depuis »); "" = the method's default account. */
+  accountId: z.uuid().or(z.literal("")).optional(),
   notes: optionalText(500),
 });
 export const advanceIdSchema = z.object({ advanceId: z.uuid() });
@@ -78,5 +84,7 @@ export const payStaffSchema = z.object({
   payId: z.uuid(),
   paidOn: dateText(),
   method: z.enum(chargePaymentMethods),
+  /** Paid from (« Payé depuis »); "" = the method's default account. */
+  accountId: z.uuid().or(z.literal("")).optional(),
 });
 export const payIdSchema = z.object({ payId: z.uuid() });

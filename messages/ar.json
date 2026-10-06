@@ -4064,7 +4064,11 @@
       "adjustment": "فارق الصندوق",
       "works": "وضعية أشغال",
       "retention": "اقتطاع مُسترجَع",
-      "supplier": "فاتورة مورد"
+      "supplier": "فاتورة مورد",
+      "staff_pay": "أجر",
+      "advance": "تسبيق على الأجر",
+      "refund": "استرداد (تنازل، فسخ)",
+      "deposit_refund": "رد مبلغ الضمان"
     },
     "movements": {
       "record": "تسجيل حركة",

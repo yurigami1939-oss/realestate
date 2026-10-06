@@ -104,6 +104,8 @@ export const recordWithdrawalRefundSchema = z.object({
   refundedOn: dateText(),
   method: z.enum(counterPaymentMethods),
   reference: optionalText(60),
+  /** Paid from (« Payé depuis »); "" = the method's default account. */
+  accountId: z.uuid().or(z.literal("")).optional(),
 });
 
 /** A line of an amended schedule: due on a date, or at a construction milestone not reached. */

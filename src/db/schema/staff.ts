@@ -26,6 +26,7 @@ import {
 } from "./_columns";
 import { chargeCategory } from "./charges";
 import { residence } from "./residences";
+import { treasuryAccount } from "./treasury";
 import { paymentMethod } from "./sales";
 
 export const staffRole = pgEnum("staff_role", staffRoles);
@@ -95,6 +96,9 @@ export const salaryAdvance = pgTable(
     paidOn: date({ mode: "string" }).notNull(),
     month: date({ mode: "string" }).notNull(),
     amount: money().notNull(),
+    paymentMethod: paymentMethod().notNull().default("cash"),
+    /** The cash desk or account the advance left from (CLAUDE.md §7 Treasury). */
+    accountId: uuid(),
     notes: text(),
     recordedBy: userRef().notNull(),
     createdAt: createdAt(),
@@ -102,6 +106,11 @@ export const salaryAdvance = pgTable(
   },
   (t) => [
     unique().on(t.organizationId, t.id),
+    foreignKey({
+      name: "salary_advance_account_fk",
+      columns: [t.organizationId, t.accountId],
+      foreignColumns: [treasuryAccount.organizationId, treasuryAccount.id],
+    }),
     foreignKey({
       name: "salary_advance_staff_fk",
       columns: [t.organizationId, t.staffId],
@@ -163,6 +172,8 @@ export const staffPay = pgTable(
     netAmount: money().notNull(),
     paidOn: date({ mode: "string" }),
     paymentMethod: paymentMethod(),
+    /** The cash desk or account the pay left from (CLAUDE.md §7 Treasury). */
+    accountId: uuid(),
     notes: text(),
     recordedBy: userRef().notNull(),
     createdAt: createdAt(),
@@ -171,6 +182,11 @@ export const staffPay = pgTable(
   (t) => [
     unique().on(t.organizationId, t.id),
     unique("staff_pay_month_key").on(t.organizationId, t.staffId, t.month),
+    foreignKey({
+      name: "staff_pay_account_fk",
+      columns: [t.organizationId, t.accountId],
+      foreignColumns: [treasuryAccount.organizationId, treasuryAccount.id],
+    }),
     foreignKey({
       name: "staff_pay_staff_fk",
       columns: [t.organizationId, t.staffId],

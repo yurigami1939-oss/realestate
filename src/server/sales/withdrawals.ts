@@ -25,6 +25,7 @@ import { assertCan, type TenantCtx } from "@/server/auth/session";
 import { recordLeadActivity } from "@/server/crm/activity";
 import { transitionUnit } from "@/server/inventory/transition-unit";
 import { loadSalesSettings } from "@/server/organizations/settings";
+import { resolvePaymentAccount } from "@/server/treasury/service";
 
 import { loadVisibleReservation } from "./access";
 import { paidTotals } from "./sale-queries";
@@ -257,6 +258,7 @@ export async function recordWithdrawalRefund(
     if (row.status !== "approved" || row.refundedOn !== null || row.refund === 0n) {
       throw new AppError("CONFLICT", "sales.withdrawal.errors.noRefundDue");
     }
+    const accountId = await resolvePaymentAccount(tx, input.method, input.accountId);
     await tx
       .update(withdrawal)
       .set({
@@ -264,6 +266,7 @@ export async function recordWithdrawalRefund(
         refundMethod: input.method,
         refundReference: input.reference,
         refundRecordedBy: ctx.userId,
+        refundAccountId: accountId,
       })
       .where(eq(withdrawal.id, row.id));
     await recordAudit(tx, ctx, {
@@ -276,6 +279,7 @@ export async function recordWithdrawalRefund(
         refundedOn: input.refundedOn,
         method: input.method,
         reference: input.reference,
+        accountId,
       },
     });
   });

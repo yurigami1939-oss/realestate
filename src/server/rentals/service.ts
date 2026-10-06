@@ -482,6 +482,9 @@ export async function settleDeposit(ctx: TenantCtx, input: In<typeof settleDepos
     if (input.settledOn < current.endedOn) {
       throw invalid("settledOn", "rentals.errors.beforeEnd");
     }
+    // The refund leaves a cash desk or an account (CLAUDE.md §7 Treasury).
+    const accountId =
+      refunded > 0n ? await resolvePaymentAccount(tx, input.method, input.accountId) : null;
     await tx
       .update(lease)
       .set({
@@ -489,6 +492,8 @@ export async function settleDeposit(ctx: TenantCtx, input: In<typeof settleDepos
         depositRefunded: refunded,
         depositRetained: retained,
         depositRetentionReason: retained > 0n ? input.reason : null,
+        depositRefundMethod: refunded > 0n ? input.method : null,
+        depositRefundAccountId: accountId,
       })
       .where(eq(lease.id, current.id));
     await recordAudit(tx, ctx, {
@@ -496,7 +501,7 @@ export async function settleDeposit(ctx: TenantCtx, input: In<typeof settleDepos
       action: "lease.settle_deposit",
       entityType: "lease",
       entityId: current.id,
-      after: { held, refunded, retained, settledOn: input.settledOn },
+      after: { held, refunded, retained, settledOn: input.settledOn, accountId },
       reason: retained > 0n ? (input.reason ?? undefined) : undefined,
     });
   });

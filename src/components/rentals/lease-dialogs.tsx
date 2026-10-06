@@ -398,19 +398,31 @@ export function SettleDepositDialog({
   leaseId,
   held,
   today,
+  accounts = [],
 }: {
   leaseId: string;
   /** Deposit held, typed form value (« 90000,00 »). */
   held: string;
   today: string;
+  /** Where the refund can be paid from (« Payé depuis »). */
+  accounts?: AccountOption[];
 }) {
   const t = useTranslations("rentals.deposit");
+  const tp = useTranslations("payments");
   const [open, setOpen] = useState(false);
   const settle = useAction(settleDepositAction);
   const form = useForm<SettleValues, unknown, z.output<typeof settleDepositSchema>>({
     resolver: zodResolver(settleDepositSchema),
-    defaultValues: { leaseId, settledOn: today, refunded: held, reason: "" },
+    defaultValues: {
+      leaseId,
+      settledOn: today,
+      refunded: held,
+      reason: "",
+      method: "cash",
+      accountId: "",
+    },
   });
+  const method = useWatch({ control: form.control, name: "method" }) ?? "cash";
   return (
     <FormDialog
       open={open}
@@ -450,6 +462,21 @@ export function SettleDepositDialog({
           label={t("refunded")}
           inputMode="decimal"
           dir="ltr"
+        />
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <SelectField
+          control={form.control}
+          name="method"
+          label={tp("fields.method")}
+          options={rentPaymentMethods.map((m) => ({ value: m, label: tp(`method.${m}`) }))}
+        />
+        <AccountField
+          control={form.control}
+          name="accountId"
+          method={method}
+          accounts={accounts}
+          outgoing
         />
       </div>
       <TextareaField control={form.control} name="reason" label={t("reason")} rows={2} />

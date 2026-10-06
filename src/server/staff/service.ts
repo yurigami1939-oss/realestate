@@ -12,6 +12,7 @@ import { recordAudit } from "@/server/audit/record-audit";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
 import { loadResidence } from "@/server/residences/service";
 import { checkCategory } from "@/server/suppliers/service";
+import { resolvePaymentAccount } from "@/server/treasury/service";
 
 import type {
   createStaffSchema,
@@ -124,9 +125,17 @@ export async function recordAdvance(ctx: TenantCtx, input: In<typeof recordAdvan
       throw invalid("paidOn", "staff.errors.notEmployed");
     }
     await assertNoPay(tx, agent.id, input.month);
+    const { method, accountId: chosen, ...fields } = input;
+    const accountId = await resolvePaymentAccount(tx, method, chosen);
     const [row] = await tx
       .insert(salaryAdvance)
-      .values({ ...input, organizationId: ctx.orgId, recordedBy: ctx.userId })
+      .values({
+        ...fields,
+        paymentMethod: method,
+        accountId,
+        organizationId: ctx.orgId,
+        recordedBy: ctx.userId,
+      })
       .returning({ id: salaryAdvance.id });
     if (!row) throw new Error("recordAdvance: no row returned");
     await recordAudit(tx, ctx, {
@@ -134,7 +143,7 @@ export async function recordAdvance(ctx: TenantCtx, input: In<typeof recordAdvan
       action: "salary_advance.create",
       entityType: "staff_member",
       entityId: agent.id,
-      after: { amount: input.amount, paidOn: input.paidOn, month: input.month },
+      after: { amount: input.amount, paidOn: input.paidOn, month: input.month, method, accountId },
     });
     return { id: row.id };
   });

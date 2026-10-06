@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Banknote, Trash2 } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import type { z } from "zod";
 
@@ -14,6 +14,7 @@ import { SelectField } from "@/components/forms/fields";
 import { FormDialog } from "@/components/forms/form-dialog";
 import { TextField, useTranslateKey } from "@/components/forms/text-field";
 import { useAction } from "@/components/forms/use-action";
+import { AccountField, type AccountOption } from "@/components/treasury/account-field";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,15 +27,26 @@ import { payStaffSchema } from "@/server/staff/schemas";
 
 type PayValues = z.input<typeof payStaffSchema>;
 
-function PayDialog({ payId, month, today }: { payId: string; month: string; today: string }) {
+function PayDialog({
+  payId,
+  month,
+  today,
+  accounts,
+}: {
+  payId: string;
+  month: string;
+  today: string;
+  accounts: AccountOption[];
+}) {
   const t = useTranslations("staff.payroll");
   const tp = useTranslations("payments");
   const [open, setOpen] = useState(false);
   const pay = useAction(payStaffAction);
   const form = useForm<PayValues, unknown, z.output<typeof payStaffSchema>>({
     resolver: zodResolver(payStaffSchema),
-    defaultValues: { payId, paidOn: today, method: "cash" },
+    defaultValues: { payId, paidOn: today, method: "cash", accountId: "" },
   });
+  const method = useWatch({ control: form.control, name: "method" });
   return (
     <FormDialog
       open={open}
@@ -75,6 +87,13 @@ function PayDialog({ payId, month, today }: { payId: string; month: string; toda
           options={chargePaymentMethods.map((m) => ({ value: m, label: tp(`method.${m}`) }))}
         />
       </div>
+      <AccountField
+        control={form.control}
+        name="accountId"
+        method={method}
+        accounts={accounts}
+        outgoing
+      />
     </FormDialog>
   );
 }
@@ -85,11 +104,13 @@ function PayrollRowForm({
   month,
   editable,
   today,
+  accounts,
 }: {
   row: PayrollRow;
   month: string;
   editable: boolean;
   today: string;
+  accounts: AccountOption[];
 }) {
   const t = useTranslations("staff.payroll");
   const tr = useTranslations("staff.role");
@@ -188,7 +209,7 @@ function PayrollRowForm({
               </Button>
               {pay ? (
                 <>
-                  <PayDialog payId={pay.id} month={month} today={today} />
+                  <PayDialog payId={pay.id} month={month} today={today} accounts={accounts} />
                   <ConfirmAction
                     action={deletePayAction}
                     input={{ payId: pay.id }}
@@ -217,11 +238,14 @@ export function PayrollTable({
   month,
   editable,
   today,
+  accounts = [],
 }: {
   rows: PayrollRow[];
   month: string;
   editable: boolean;
   today: string;
+  /** Where pay can be paid from (« Payé depuis »). */
+  accounts?: AccountOption[];
 }) {
   const t = useTranslations("staff.payroll");
   if (rows.length === 0) {
@@ -255,6 +279,7 @@ export function PayrollTable({
               month={month}
               editable={editable}
               today={today}
+              accounts={accounts}
             />
           ))}
         </tbody>

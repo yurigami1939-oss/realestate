@@ -4064,7 +4064,11 @@
       "adjustment": "Écart de caisse",
       "works": "Situation de travaux",
       "retention": "Retenue restituée",
-      "supplier": "Facture fournisseur"
+      "supplier": "Facture fournisseur",
+      "staff_pay": "Paie",
+      "advance": "Avance sur salaire",
+      "refund": "Remboursement (désistement, résiliation)",
+      "deposit_refund": "Restitution de dépôt de garantie"
     },
     "movements": {
       "record": "Saisir un mouvement",

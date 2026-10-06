@@ -9,7 +9,7 @@ import type { Centimes } from "@/lib/money";
 /**
  * Every flow of the accounts as signed amounts by day: valid collections (sales, charges,
  * rents and deposits), live movements, and what left them (contractors' progress invoices and
- * retentions, supplier invoices). Flows dated before an account's opening are in its
+ * retentions, supplier invoices, staff pay and advances, withdrawal and deposit refunds). Flows dated before an account's opening are in its
  * opening balance, so they are left out.
  */
 const flows = sql`
@@ -34,6 +34,18 @@ const flows = sql`
     union all
     select account_id, -amount, paid_on from supplier_invoice
       where paid_on is not null and account_id is not null and deleted_at is null
+    union all
+    select account_id, -net_amount, paid_on from staff_pay
+      where paid_on is not null and account_id is not null
+    union all
+    select account_id, -amount, paid_on from salary_advance
+      where account_id is not null and deleted_at is null
+    union all
+    select refund_account_id, -refund, refunded_on from withdrawal
+      where refunded_on is not null and refund_account_id is not null
+    union all
+    select deposit_refund_account_id, -deposit_refunded, deposit_settled_on from lease
+      where deposit_settled_on is not null and deposit_refund_account_id is not null
   )`;
 
 export type AccountTotals = {

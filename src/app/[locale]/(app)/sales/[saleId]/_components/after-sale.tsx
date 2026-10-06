@@ -13,6 +13,7 @@ import { FormDialog } from "@/components/forms/form-dialog";
 import { SelectField, TextareaField } from "@/components/forms/fields";
 import { TextField, useTranslateKey } from "@/components/forms/text-field";
 import { useAction } from "@/components/forms/use-action";
+import { AccountField, type AccountOption } from "@/components/treasury/account-field";
 import { Button } from "@/components/ui/button";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import {
@@ -192,10 +193,13 @@ export function WithdrawalRefundDialog({
   withdrawalId,
   refund,
   today,
+  accounts = [],
 }: {
   withdrawalId: string;
   refund: bigint;
   today: string;
+  /** Where the refund can be paid from (« Payé depuis »). */
+  accounts?: AccountOption[];
 }) {
   const t = useTranslations("sales.withdrawal");
   const tp = useTranslations("payments");
@@ -204,8 +208,15 @@ export function WithdrawalRefundDialog({
   const record = useAction(recordWithdrawalRefundAction);
   const form = useForm<RefundValues, unknown, z.output<typeof recordWithdrawalRefundSchema>>({
     resolver: zodResolver(recordWithdrawalRefundSchema),
-    defaultValues: { withdrawalId, refundedOn: today, method: "cheque", reference: "" },
+    defaultValues: {
+      withdrawalId,
+      refundedOn: today,
+      method: "cheque",
+      reference: "",
+      accountId: "",
+    },
   });
+  const method = useWatch({ control: form.control, name: "method" });
   return (
     <FormDialog
       open={open}
@@ -242,6 +253,13 @@ export function WithdrawalRefundDialog({
         name="method"
         label={tp("fields.method")}
         options={counterPaymentMethods.map((m) => ({ value: m, label: tp(`method.${m}`) }))}
+      />
+      <AccountField
+        control={form.control}
+        name="accountId"
+        method={method}
+        accounts={accounts}
+        outgoing
       />
       <TextField control={form.control} name="reference" label={tp("fields.reference")} dir="ltr" />
     </FormDialog>

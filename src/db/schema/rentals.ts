@@ -91,6 +91,9 @@ export const lease = pgTable(
     depositRefunded: money(),
     depositRetained: money(),
     depositRetentionReason: text(),
+    /** How and from which cash desk or account the deposit was refunded. */
+    depositRefundMethod: paymentMethod(),
+    depositRefundAccountId: uuid(),
     contractScanFileId: uuid(),
     /** The tenant as occupant of the unit when it belongs to a residence (portal, tickets). */
     occupantId: uuid(),
@@ -100,6 +103,11 @@ export const lease = pgTable(
   (t) => [
     unique().on(t.organizationId, t.id),
     unique().on(t.organizationId, t.number),
+    foreignKey({
+      name: "lease_deposit_account_fk",
+      columns: [t.organizationId, t.depositRefundAccountId],
+      foreignColumns: [treasuryAccount.organizationId, treasuryAccount.id],
+    }),
     foreignKey({
       name: "lease_unit_fk",
       columns: [t.organizationId, t.unitId],

@@ -901,6 +901,7 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
                                   withdrawalId={w.id}
                                   refund={w.refund}
                                   today={today}
+                                  accounts={accounts}
                                 />
                               ) : null}
                             </div>

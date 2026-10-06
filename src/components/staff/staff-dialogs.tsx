@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Banknote, LogOut, Pencil, Plus } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import type { z } from "zod";
 
@@ -13,9 +13,10 @@ import { SelectField, TextareaField } from "@/components/forms/fields";
 import { FormDialog } from "@/components/forms/form-dialog";
 import { TextField } from "@/components/forms/text-field";
 import { useAction } from "@/components/forms/use-action";
+import { AccountField, type AccountOption } from "@/components/treasury/account-field";
 import { Button } from "@/components/ui/button";
 import { formatAmountInput } from "@/lib/money";
-import { staffRoles } from "@/lib/residences";
+import { chargePaymentMethods, staffRoles } from "@/lib/residences";
 import type { AppErrorShape } from "@/lib/result";
 import {
   createStaffAction,
@@ -222,14 +223,33 @@ export function EndStaffDialog({ staffId, today }: { staffId: string; today: str
 type AdvanceValues = z.input<typeof recordAdvanceSchema>;
 
 /** Salary advance paid to an agent, deducted from a month's pay (this month by default). */
-export function AdvanceDialog({ staffId, today }: { staffId: string; today: string }) {
+export function AdvanceDialog({
+  staffId,
+  today,
+  accounts = [],
+}: {
+  staffId: string;
+  today: string;
+  /** Where the advance can be paid from (« Payé depuis »). */
+  accounts?: AccountOption[];
+}) {
   const t = useTranslations("staff.advances");
+  const tp = useTranslations("payments");
   const [open, setOpen] = useState(false);
   const record = useAction(recordAdvanceAction);
   const form = useForm<AdvanceValues, unknown, z.output<typeof recordAdvanceSchema>>({
     resolver: zodResolver(recordAdvanceSchema),
-    defaultValues: { staffId, paidOn: today, month: today.slice(0, 7), amount: "", notes: "" },
+    defaultValues: {
+      staffId,
+      paidOn: today,
+      month: today.slice(0, 7),
+      amount: "",
+      method: "cash",
+      accountId: "",
+      notes: "",
+    },
   });
+  const method = useWatch({ control: form.control, name: "method" }) ?? "cash";
   return (
     <FormDialog
       open={open}
@@ -278,6 +298,19 @@ export function AdvanceDialog({ staffId, today }: { staffId: string; today: stri
           dir="ltr"
         />
       </div>
+      <SelectField
+        control={form.control}
+        name="method"
+        label={tp("fields.method")}
+        options={chargePaymentMethods.map((m) => ({ value: m, label: tp(`method.${m}`) }))}
+      />
+      <AccountField
+        control={form.control}
+        name="accountId"
+        method={method}
+        accounts={accounts}
+        outgoing
+      />
       <TextareaField control={form.control} name="notes" label={t("fields.notes")} rows={2} />
     </FormDialog>
   );

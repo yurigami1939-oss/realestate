@@ -929,9 +929,16 @@ export const withdrawal = pgTable(
     refundMethod: paymentMethod(),
     refundReference: text(),
     refundRecordedBy: userRef(),
+    /** The cash desk or account the refund left from (CLAUDE.md §7 Treasury). */
+    refundAccountId: uuid(),
   },
   (t) => [
     unique().on(t.organizationId, t.id),
+    foreignKey({
+      name: "withdrawal_refund_account_fk",
+      columns: [t.organizationId, t.refundAccountId],
+      foreignColumns: [treasuryAccount.organizationId, treasuryAccount.id],
+    }),
     uniqueIndex("withdrawal_open_key")
       .on(t.organizationId, t.reservationId)
       .where(sql`${t.status} <> 'rejected'`),

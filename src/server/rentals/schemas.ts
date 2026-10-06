@@ -113,6 +113,12 @@ export const settleDepositSchema = z.object({
   settledOn: dateText(),
   refunded: optionalMoneyText(),
   reason: optionalText(500),
+  /** How and from where the refund is paid (« Payé depuis »; "" = the method's default). */
+  method: z
+    .enum(rentPaymentMethods)
+    .optional()
+    .transform((v) => v ?? "cash"),
+  accountId: z.uuid().or(z.literal("")).optional(),
 });
 
 export const leaseIdSchema = z.object({ leaseId: z.uuid() });
