@@ -1,3 +1,4 @@
+import { Landmark } from "lucide-react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
@@ -18,6 +19,7 @@ import {
   MovementDialog,
 } from "@/components/treasury/treasury-dialogs";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -96,6 +98,14 @@ export default async function AccountPage({
               kind="ledger"
               params={{ account: account.id, from: ledger.from, to: ledger.to }}
             />
+            {banked ? (
+              <Button asChild variant="outline">
+                <Link href={`/treasury/${account.id}/reconciliation`}>
+                  <Landmark data-icon="inline-start" />
+                  {t("reconciliation.link")}
+                </Link>
+              </Button>
+            ) : null}
             {canUpdate ? (
               <MovementDialog
                 accounts={accounts.map((a) => ({ id: a.id, name: a.name, kind: a.kind }))}

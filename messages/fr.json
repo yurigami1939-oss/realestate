@@ -3941,6 +3941,10 @@
       "leads": {
         "title": "Prospects",
         "description": "Vos fichiers de prospects ou un export CSV (Facebook Lead Ads, formulaires du site) : un numéro déjà connu est laissé de côté."
+      },
+      "bank_statement": {
+        "title": "Relevé bancaire",
+        "description": "Les opérations d'un relevé de banque ou CCP (date, libellé, référence, débit ou crédit), à rapprocher du journal du compte."
       }
     },
     "counts": {
@@ -3951,7 +3955,8 @@
       "payments": "{count, plural, one {# paiement} other {# paiements}}",
       "shares": "{count, plural, one {# quote-part} other {# quotes-parts}}",
       "residents": "{count, plural, one {# résident} other {# résidents}}",
-      "leads": "{count, plural, one {# prospect} other {# prospects}}"
+      "leads": "{count, plural, one {# prospect} other {# prospects}}",
+      "statementLines": "{count, plural, one {# opération} other {# opérations}}"
     },
     "errors": {
       "noFile": "Choisissez un fichier.",
@@ -3984,13 +3989,18 @@
       "paidAbovePrice": "Les paiements de la vente « {value} » dépassent son prix.",
       "unitNotInResidence": "Lot « {code} » absent de la résidence.",
       "share": "Tantièmes invalides (nombre entier).",
-      "shareTwice": "Deux tantièmes différents pour le lot « {code} »."
+      "shareTwice": "Deux tantièmes différents pour le lot « {code} ».",
+      "accountRequired": "Choisissez le compte.",
+      "amount": "Montant invalide (en dinars).",
+      "debitOrCredit": "Donnez soit le débit, soit le crédit, soit le montant (non nul)."
     },
     "warnings": {
       "unitExists": "Le lot « {code} » existe déjà.",
       "buyerExists": "{name} a déjà un dossier.",
       "residentExists": "{name} est déjà enregistré sur ce lot.",
-      "leadExists": "{name} est déjà un prospect (même téléphone)."
+      "leadExists": "{name} est déjà un prospect (même téléphone).",
+      "beforeOpening": "Opération antérieure à l'ouverture du compte dans l'application.",
+      "lineImported": "Opération déjà importée."
     }
   },
   "certificates": {
@@ -4216,7 +4226,17 @@
       "depositBeforeCheque": "La remise ne peut précéder la réception d'un des chèques.",
       "noCheque": "Choisissez au moins un chèque.",
       "depositCleared": "Ce bordereau est déjà encaissé.",
-      "clearedBeforeDeposit": "L'encaissement ne peut précéder la remise."
+      "clearedBeforeDeposit": "L'encaissement ne peut précéder la remise.",
+      "statementCash": "Les relevés se rapprochent sur un compte bancaire ou CCP.",
+      "lineClosed": "Cette opération est déjà rapprochée ou écartée.",
+      "entryUnknown": "Une des écritures n'existe plus dans le journal du compte.",
+      "entryMatched": "Une des écritures est déjà rapprochée.",
+      "matchTotal": "Le total des écritures choisies doit égaler le montant de l'opération.",
+      "lineNotMatched": "Cette opération n'est pas rapprochée.",
+      "bookDirection": "Un crédit se comptabilise en recette, un débit en dépense ou en frais.",
+      "lineNotDismissed": "Cette opération n'est pas écartée.",
+      "statementUsed": "Des opérations de ce relevé sont rapprochées ou écartées : défaites-les d'abord.",
+      "noEntry": "Choisissez au moins une écriture."
     },
     "deposits": {
       "title": "Remise de chèques",
@@ -4239,6 +4259,71 @@
       "clearedOnBadge": "Encaissés le {date}",
       "awaiting": "En attente de la banque",
       "pdfPending": "PDF en préparation…"
+    },
+    "reconciliation": {
+      "link": "Rapprochement",
+      "title": "Rapprochement bancaire",
+      "description": "Les opérations du relevé de la banque, pointées une à une avec les écritures du journal du compte.",
+      "import": "Importer un relevé",
+      "importHint": "Exportez le relevé depuis l'espace en ligne de votre banque (Excel ou CSV) ou recopiez-le dans le modèle ; les opérations déjà importées sont laissées de côté.",
+      "applySuggestions": "{count, plural, one {Accepter la suggestion} other {Accepter les # suggestions}}",
+      "applyTitle": "Accepter les suggestions ?",
+      "applyDescription": "{count, plural, one {Une opération sera rapprochée de l'écriture suggérée.} other {# opérations seront rapprochées des écritures suggérées.}}",
+      "apply": "Accepter",
+      "applied": "{count, plural, one {# opération rapprochée.} other {# opérations rapprochées.}}",
+      "accept": "Accepter",
+      "match": "Pointer",
+      "matchTitle": "Pointer l'opération",
+      "matchDescription": "Cochez les écritures du journal qui correspondent à l'opération de {amount} du {date} : leur total doit lui être égal.",
+      "noCandidate": "Aucune écriture non rapprochée dans le même sens autour de cette date.",
+      "selected": "Sélection : {total} sur {amount}",
+      "totalMismatch": "Le total des écritures cochées ne correspond pas au montant.",
+      "matched": "Opération rapprochée.",
+      "unmatch": "Défaire le rapprochement",
+      "unmatchTitle": "Défaire le rapprochement ?",
+      "unmatchDescription": "L'opération et ses écritures redeviennent à rapprocher.",
+      "unmatched": "Rapprochement défait.",
+      "book": "Comptabiliser",
+      "bookTitle": "Comptabiliser l'opération",
+      "bookDescription": "Une opération que seule la banque connaît (frais, agios, prélèvement, intérêts) devient un mouvement du compte à sa date, rapproché aussitôt.",
+      "booked": "Mouvement enregistré et rapproché.",
+      "dismiss": "Écarter",
+      "dismissTitle": "Écarter l'opération ?",
+      "dismissDescription": "Pour une opération sans écriture à rapprocher (par exemple un chèque rejeté et son annulation). Le motif est conservé.",
+      "dismissed": "Opération écartée.",
+      "restore": "Remettre à rapprocher",
+      "restoreTitle": "Remettre l'opération à rapprocher ?",
+      "restoreDescription": "Elle ne sera plus écartée.",
+      "restored": "Opération remise à rapprocher.",
+      "deleteStatement": "Retirer le relevé",
+      "deleteStatementTitle": "Retirer ce relevé ?",
+      "deleteStatementDescription": "Ses opérations sont supprimées ; il peut être importé à nouveau.",
+      "statementDeleted": "Relevé retiré.",
+      "state": {
+        "matched": "Rapprochée",
+        "dismissed": "Écartée",
+        "open": "À rapprocher"
+      },
+      "totals": {
+        "lines": "Opérations du relevé",
+        "linesValue": "{matched} / {lines} rapprochées",
+        "open": "{count, plural, one {# à rapprocher} other {# à rapprocher}}",
+        "statement": "Relevé (entrées / sorties)",
+        "unmatched": "Écritures non pointées",
+        "ledgerBalance": "Solde du journal au {date}"
+      },
+      "columns": {
+        "line": "Opération",
+        "match": "Rapprochement"
+      },
+      "empty": "Aucune opération de relevé sur la période.",
+      "suggested": "Suggestion :",
+      "suggestedSlip": "Bordereau {number} :",
+      "unmatchedTitle": "Écritures du journal non pointées",
+      "allMatched": "Toutes les écritures de la période sont rapprochées.",
+      "statements": "Relevés importés",
+      "statementLine": "Du {from} au {to} · {count, plural, one {# opération} other {# opérations}}",
+      "importedBy": "Importé par {name} le {date}"
     }
   },
   "costs": {

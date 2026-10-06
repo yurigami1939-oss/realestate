@@ -13,6 +13,7 @@ import { AppError } from "@/lib/result";
 import type { PaymentMethod } from "@/lib/sales";
 import { computeStatement } from "@/lib/statement";
 import { recordAudit } from "@/server/audit/record-audit";
+import { unmatchEntry } from "@/server/treasury/reconciliation-entries";
 import { resolvePaymentAccount } from "@/server/treasury/service";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
 import { nextDocumentNumber } from "@/server/numbering/next-document-number";
@@ -190,6 +191,7 @@ export async function cancelPayment(
           cancellationReason: input.reason,
         })
         .where(eq(payment.id, input.paymentId));
+      await unmatchEntry(tx, `sale:${input.paymentId}`);
       await tx
         .update(receipt)
         .set({ status: "cancelled", cancelledAt: now })

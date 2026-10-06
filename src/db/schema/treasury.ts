@@ -219,3 +219,99 @@ export const chequeDepositItem = pgTable(
     check("cheque_deposit_item_amount", sql`${t.amount} > 0`),
   ],
 );
+
+/**
+ * A bank or CCP statement imported on an account (CLAUDE.md §7 Treasury): its lines are matched
+ * with the ledger's entries (rapprochement bancaire).
+ */
+export const bankStatement = pgTable(
+  "bank_statement",
+  {
+    id: id(),
+    organizationId: organizationId(),
+    accountId: uuid().notNull(),
+    fromOn: date({ mode: "string" }).notNull(),
+    toOn: date({ mode: "string" }).notNull(),
+    lineCount: integer().notNull(),
+    importedBy: userRef().notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    unique().on(t.organizationId, t.id),
+    unique("bank_statement_account_key").on(t.organizationId, t.accountId, t.id),
+    foreignKey({
+      name: "bank_statement_account_fk",
+      columns: [t.organizationId, t.accountId],
+      foreignColumns: [treasuryAccount.organizationId, treasuryAccount.id],
+    }),
+  ],
+);
+
+/**
+ * One line of a statement: its day, label, reference and signed amount (credit > 0). The
+ * fingerprint (day, amount, label, reference, rank among identical lines of its file) leaves
+ * aside a line imported twice from overlapping statements.
+ */
+export const bankStatementLine = pgTable(
+  "bank_statement_line",
+  {
+    id: id(),
+    organizationId: organizationId(),
+    accountId: uuid().notNull(),
+    statementId: uuid().notNull(),
+    bookedOn: date({ mode: "string" }).notNull(),
+    label: text().notNull(),
+    reference: text(),
+    amount: money().notNull(),
+    fingerprint: text().notNull(),
+    /** Set aside with a reason (e.g. a rejected cheque and its reversal): nothing to match. */
+    dismissedAt: instant(),
+    dismissedBy: userRef(),
+    dismissalReason: text(),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    unique().on(t.organizationId, t.id),
+    unique("bank_statement_line_account_key").on(t.organizationId, t.accountId, t.id),
+    unique("bank_statement_line_fingerprint_key").on(t.organizationId, t.accountId, t.fingerprint),
+    foreignKey({
+      name: "bank_statement_line_statement_fk",
+      columns: [t.organizationId, t.accountId, t.statementId],
+      foreignColumns: [bankStatement.organizationId, bankStatement.accountId, bankStatement.id],
+    }),
+    index().on(t.organizationId, t.accountId, t.bookedOn),
+    check("bank_statement_line_amount", sql`${t.amount} <> 0`),
+  ],
+);
+
+/**
+ * A statement line matched with ledger entries (`entry_key`: `sale:<id>`, `movement:<id>`…,
+ * signed like the line); their amounts sum to the line's. An entry is matched once per account.
+ */
+export const bankMatch = pgTable(
+  "bank_match",
+  {
+    id: id(),
+    organizationId: organizationId(),
+    accountId: uuid().notNull(),
+    lineId: uuid().notNull(),
+    entryKey: text().notNull(),
+    amount: money().notNull(),
+    matchedBy: userRef().notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    unique().on(t.organizationId, t.id),
+    unique("bank_match_entry_key").on(t.organizationId, t.accountId, t.entryKey),
+    foreignKey({
+      name: "bank_match_line_fk",
+      columns: [t.organizationId, t.accountId, t.lineId],
+      foreignColumns: [
+        bankStatementLine.organizationId,
+        bankStatementLine.accountId,
+        bankStatementLine.id,
+      ],
+    }),
+    index().on(t.organizationId, t.lineId),
+  ],
+);

@@ -7,8 +7,8 @@ import { assertSameOrigin, jsonResult, readFormData } from "@/server/route-handl
 import { AppError } from "@/lib/result";
 
 /**
- * Data import (CLAUDE.md §7 Imports): multipart `file` (.xlsx) with `project` / `residence` and
- * `commit` = 1 to write; answers the report (counts, blocking issues, rows left aside).
+ * Data import (CLAUDE.md §7 Imports): multipart `file` (.xlsx) with `project` / `residence` /
+ * `account` and `commit` = 1 to write; answers the report (counts, blocking issues, rows left aside).
  */
 export async function POST(request: Request, { params }: RouteContext<"/api/imports/[kind]">) {
   const { kind } = await params;
@@ -24,16 +24,22 @@ export async function POST(request: Request, { params }: RouteContext<"/api/impo
     const options = importOptionsSchema.parse({
       project: form.get("project") ?? undefined,
       residence: form.get("residence") ?? undefined,
+      account: form.get("account") ?? undefined,
       commit: form.get("commit") ?? undefined,
     });
     const report = await runImport(
       ctx,
       kind as (typeof importKinds)[number],
       Buffer.from(await file.arrayBuffer()),
-      { projectId: options.project, residenceId: options.residence, commit: options.commit },
+      {
+        projectId: options.project,
+        residenceId: options.residence,
+        accountId: options.account,
+        commit: options.commit,
+      },
     );
     if (report.committed) {
-      for (const path of ["projects", "buyers", "sales", "residences"]) {
+      for (const path of ["projects", "buyers", "sales", "residences", "treasury"]) {
         revalidatePath(`/[locale]/${path}`, "layout");
       }
     }

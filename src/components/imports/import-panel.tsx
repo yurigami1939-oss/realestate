@@ -89,8 +89,11 @@ function IssueTable({ issues, tone }: { issues: ImportIssueView[]; tone: "error"
 export function ImportPanel({
   kind,
   target,
+  fixed,
 }: {
   kind: ImportKind;
+  /** A target already known (a statement's account, from its page): sent, never asked. */
+  fixed?: { param: "account"; id: string };
   /** The project (units) or residence (co-owners) the rows go to. */
   target?: {
     param: "project" | "residence";
@@ -124,6 +127,7 @@ export function ImportPanel({
       body.set("file", file);
       body.set("commit", commit ? "1" : "0");
       if (target) body.set(target.param, choice);
+      if (fixed) body.set(fixed.param, fixed.id);
       const response = await fetch(`/api/imports/${kind}`, { method: "POST", body });
       const result = (await response.json()) as Result<ImportReport>;
       if (!result.ok) return fail(result.error.messageKey);

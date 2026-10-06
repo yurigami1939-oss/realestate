@@ -11,6 +11,7 @@ import { addDays, todayInAlgiers } from "@/lib/dates";
 import { leaseEndOn } from "@/lib/rentals";
 import { AppError } from "@/lib/result";
 import { recordAudit } from "@/server/audit/record-audit";
+import { unmatchEntry } from "@/server/treasury/reconciliation-entries";
 import { resolvePaymentAccount } from "@/server/treasury/service";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
 import { checkUpload, discardFile, storeFile, type Upload } from "@/server/files/service";
@@ -405,6 +406,7 @@ export async function cancelRentPayment(ctx: TenantCtx, input: In<typeof cancelR
         cancellationReason: input.reason,
       })
       .where(eq(rentPayment.id, input.paymentId));
+    await unmatchEntry(tx, `rent:${input.paymentId}`);
     await recordAudit(tx, ctx, {
       actorUserId: ctx.userId,
       action: "rent_payment.cancel",

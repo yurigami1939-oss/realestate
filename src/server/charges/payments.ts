@@ -12,6 +12,7 @@ import type { Centimes } from "@/lib/money";
 import { AppError } from "@/lib/result";
 import type { PaymentMethod } from "@/lib/sales";
 import { recordAudit } from "@/server/audit/record-audit";
+import { unmatchEntry } from "@/server/treasury/reconciliation-entries";
 import { resolvePaymentAccount } from "@/server/treasury/service";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
 import { nextDocumentNumber } from "@/server/numbering/next-document-number";
@@ -179,6 +180,7 @@ export async function cancelChargePayment(
           cancellationReason: input.reason,
         })
         .where(eq(chargePayment.id, input.paymentId));
+      await unmatchEntry(tx, `charges:${input.paymentId}`);
       await recordAudit(tx, ctx, {
         actorUserId: ctx.userId,
         action: "charge_payment.cancel",

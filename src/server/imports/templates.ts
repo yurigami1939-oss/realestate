@@ -3,6 +3,7 @@ import "server-only";
 import type { Locale } from "@/i18n/locales";
 import { type ExportSheet, buildWorkbook } from "@/server/exports/xlsx";
 
+import { bankStatementSheet } from "./bank-statement";
 import { buyersSheet } from "./buyers";
 import { leadsSheet } from "./leads";
 import type { TemplateSheet } from "./plan";
@@ -17,6 +18,7 @@ export const templateSheets: Record<ImportKind, TemplateSheet[]> = {
   sales: [salesSheets.sales, salesSheets.installments, salesSheets.payments],
   residents: [residentsSheet],
   leads: [leadsSheet],
+  bank_statement: [bankStatementSheet],
 };
 
 const fileNames: Record<ImportKind, string> = {
@@ -25,6 +27,7 @@ const fileNames: Record<ImportKind, string> = {
   sales: "modele-ventes.xlsx",
   residents: "modele-coproprietaires.xlsx",
   leads: "modele-prospects.xlsx",
+  bank_statement: "modele-releve-bancaire.xlsx",
 };
 
 /**

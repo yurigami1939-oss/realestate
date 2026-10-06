@@ -372,6 +372,13 @@
       "when": 1791317740182,
       "tag": "0052_email_documents",
       "breakpoints": true
+    },
+    {
+      "idx": 53,
+      "version": "7",
+      "when": 1791318579570,
+      "tag": "0053_bank_reconciliation",
+      "breakpoints": true
     }
   ]
 }

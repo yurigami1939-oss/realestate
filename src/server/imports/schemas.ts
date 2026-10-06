@@ -2,13 +2,22 @@
 import { z } from "zod";
 
 /** In the order a promoter brings its data in: units, buyers, then their sales; residences. */
-export const importKinds = ["units", "buyers", "sales", "residents", "leads"] as const;
+export const importKinds = [
+  "units",
+  "buyers",
+  "sales",
+  "residents",
+  "leads",
+  "bank_statement",
+] as const;
 export type ImportKind = (typeof importKinds)[number];
 
-/** Sent with the file: the project (units) or residence (residents), and whether to write. */
+/** Sent with the file: the project (units), residence (residents) or account (statement), and whether to write. */
 export const importOptionsSchema = z.object({
   project: z.uuid().optional().catch(undefined),
   residence: z.uuid().optional().catch(undefined),
+  /** A bank statement's account. */
+  account: z.uuid().optional().catch(undefined),
   commit: z
     .enum(["0", "1"])
     .optional()

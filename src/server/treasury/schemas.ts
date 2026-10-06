@@ -86,3 +86,34 @@ export const clearChequeDepositSchema = z.object({
   depositId: z.uuid(),
   clearedOn: dateText(),
 });
+
+/** A statement line matched with ledger entries (`sale:<id>`, `movement:<id>`…). */
+export const matchStatementLineSchema = z.object({
+  lineId: z.uuid(),
+  entryKeys: z.array(z.string().min(1).max(100)).min(1, "treasury.errors.noEntry").max(200),
+});
+
+export const statementLineSchema = z.object({ lineId: z.uuid() });
+
+/** A line only the bank knows (fees, interest…) recorded as a movement and matched with it. */
+export const bookStatementLineSchema = z.object({
+  lineId: z.uuid(),
+  kind: z.enum(["income", "expense", "bank_fee"]),
+  label: requiredText(160),
+  category: optionalText(80),
+});
+
+/** A line set aside with a reason (e.g. a rejected cheque and its reversal). */
+export const dismissStatementLineSchema = z.object({
+  lineId: z.uuid(),
+  reason: requiredText(300),
+});
+
+/** Every suggestion of a period accepted at once. */
+export const applySuggestionsSchema = z.object({
+  accountId: z.uuid(),
+  from: dateText(),
+  to: dateText(),
+});
+
+export const deleteStatementSchema = z.object({ statementId: z.uuid() });

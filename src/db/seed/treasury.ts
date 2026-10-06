@@ -1,6 +1,7 @@
 import { addDays, todayInAlgiers } from "@/lib/dates";
 import { toDecimalString } from "@/lib/money";
 import type { TenantCtx } from "@/server/auth/session";
+import { runImport } from "@/server/imports/service";
 import { listAccounts } from "@/server/treasury/queries";
 import {
   cashCountSchema,
@@ -97,4 +98,31 @@ export async function seedTreasuryMovements(owner: TenantCtx, cashier: TenantCtx
       note: "Monnaie rendue en trop à un client",
     }),
   );
+}
+
+/**
+ * This week's BNA statement, imported and not reconciled yet: the cash paid in and the fee find
+ * their movements (two suggestions), the agios are only on the bank's side (to book).
+ */
+export async function seedBankStatement(owner: TenantCtx) {
+  const today = todayInAlgiers();
+  const bank = (await listAccounts(owner)).find((a) => a.kind === "bank");
+  if (!bank) throw new Error("seed: bank account missing");
+  const day = (offset: number) => {
+    const d = addDays(today, offset);
+    return `${d.slice(8, 10)}/${d.slice(5, 7)}/${d.slice(0, 4)}`;
+  };
+  const rows = [
+    ["Date", "Libellé", "Référence", "Débit", "Crédit"],
+    [day(-2), "VERSEMENT ESPECES", "Bordereau 0047", "", "150 000,00"],
+    [day(-1), "FRAIS TENUE DE COMPTE", "", "1 800,00", ""],
+    [day(-1), "AGIOS DEBITEURS", "", "350,00", ""],
+  ];
+  const report = await runImport(
+    owner,
+    "bank_statement",
+    Buffer.from(rows.map((r) => r.join(";")).join("\r\n")),
+    { accountId: bank.id, commit: true },
+  );
+  if (!report.committed) throw new Error("seed: bank statement not imported");
 }

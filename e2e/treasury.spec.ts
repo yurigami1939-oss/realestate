@@ -5,7 +5,7 @@ import { authFile, expectPdf } from "./helpers";
 /**
  * Cash desks and bank accounts (src/db/seed/treasury.ts): « Caisse siège », « BNA compte
  * courant » and « CCP société », the seeded collections on their default accounts, this week's
- * movements and today's cash count short of 200 DA.
+ * movements and today's cash count short of 200 DA, this week's BNA statement to reconcile.
  */
 test.describe("treasury", () => {
   test("the cashier follows the cash desk and counts the cash", async ({ browser }) => {
@@ -71,6 +71,40 @@ test.describe("treasury", () => {
     await page.goto("/ar/treasury");
     await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("الخزينة");
+    await context.close();
+  });
+  test("the gérant reconciles the bank statement", async ({ browser }) => {
+    const context = await browser.newContext({ storageState: authFile("owner") });
+    const page = await context.newPage();
+    await page.goto("/fr/treasury");
+    await page
+      .getByTestId("treasury-accounts")
+      .getByRole("link", { name: "BNA compte courant" })
+      .click();
+    await page.getByRole("link", { name: "Rapprochement" }).click();
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Rapprochement bancaire");
+    // This week's statement (src/db/seed/treasury.ts), whatever the day of the month.
+    const week = new Date(Date.now() - 7 * 86_400_000).toISOString().slice(0, 10);
+    await page.goto(`${page.url().split("?")[0]}?from=${week}`);
+    const lines = page.getByTestId("statement-lines");
+    await expect(lines.locator('[data-state="open"]')).toHaveCount(3);
+    await expect(lines.getByTestId("suggestion")).toHaveCount(2);
+
+    await page.getByRole("button", { name: "Accepter les 2 suggestions" }).click();
+    await page.getByRole("alertdialog").getByRole("button", { name: "Accepter" }).click();
+    await expect(page.getByText("2 opérations rapprochées.")).toBeVisible();
+    await expect(lines.locator('[data-state="matched"]')).toHaveCount(2);
+
+    // The agios are only on the bank's side: booked as a fee, matched at once.
+    const agios = lines.locator("tr", { hasText: "AGIOS DEBITEURS" });
+    await agios.getByRole("button", { name: "Comptabiliser" }).click();
+    await page.getByRole("dialog").getByRole("button", { name: "Comptabiliser" }).click();
+    await expect(page.getByText("Mouvement enregistré et rapproché.")).toBeVisible();
+    await expect(lines.locator('[data-state="open"]')).toHaveCount(0);
+    await expect(page.getByTestId("reconciliation-totals")).toContainText("3 / 3 rapprochées");
+
+    await page.goto(page.url().replace("/fr/", "/ar/"));
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("المقاربة البنكية");
     await context.close();
   });
   test("the cashier hands the cheques to the bank on a slip", async ({ browser }) => {

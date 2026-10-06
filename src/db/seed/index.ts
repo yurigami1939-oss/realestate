@@ -18,7 +18,7 @@ import { seedWhatsapp } from "./whatsapp";
 import { seedPortal } from "./portal";
 import { seedRentals } from "./rentals";
 import { seedSales } from "./reservations";
-import { seedTreasuryAccounts, seedTreasuryMovements } from "./treasury";
+import { seedBankStatement, seedTreasuryAccounts, seedTreasuryMovements } from "./treasury";
 import { seedResidences } from "./residences";
 import { seedPaymentPlans, seedQuotations } from "./sales";
 
@@ -141,6 +141,7 @@ export async function seedDemo(): Promise<void> {
     });
     await seedOnlinePayments(ctx("owner", ["owner"]));
     await seedTreasuryMovements(ctx("owner", ["owner"]), ctx("cashier", ["cashier"]));
+    await seedBankStatement(ctx("owner", ["owner"]));
     await seedCosts(ctx("owner", ["owner"]), projectIds);
     // Last: the business data above was recorded before WhatsApp, without messages.
     await seedWhatsapp(ctx("owner", ["owner"]));

@@ -14,6 +14,7 @@ import { recordAudit } from "@/server/audit/record-audit";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
 
 import { balanceOn } from "./balances";
+import { unmatchEntry } from "./reconciliation-entries";
 import type {
   cancelMovementSchema,
   cashCountSchema,
@@ -187,69 +188,83 @@ async function usableAccount(tx: Tx, accountId: string, on: string, field: strin
  * account, or a transfer (two rows sharing a `transferId`: out of one account, into the other —
  * e.g. the cash desk's takings paid into the bank). Never in the future; audited.
  */
-export async function recordMovement(ctx: TenantCtx, input: In<typeof recordMovementSchema>) {
+export async function recordMovement(
+  ctx: TenantCtx,
+  input: In<typeof recordMovementSchema>,
+  /** Joins the caller's transaction (a statement line booked as a movement). */
+  outer?: Tx,
+) {
   assertCan(ctx, "treasury:update");
   if (input.movedOn > todayInAlgiers()) throw invalid("movedOn", "sales.errors.futureDate");
-  return withTenant(ctx, async (tx) => {
-    const account = await usableAccount(tx, input.accountId, input.movedOn, "accountId");
-    const common = {
-      organizationId: ctx.orgId,
-      amount: input.amount,
-      movedOn: input.movedOn,
-      label: input.label,
-      category: input.category,
-      reference: input.reference,
-      createdBy: ctx.userId,
-    };
-    let ids: string[];
-    if (input.kind === "transfer") {
-      const target = await usableAccount(tx, input.toAccountId ?? "", input.movedOn, "toAccountId");
-      const transferId = crypto.randomUUID();
-      const rows = await tx
-        .insert(treasuryMovement)
-        .values([
-          {
+  return withTenant(
+    ctx,
+    async (tx) => {
+      const account = await usableAccount(tx, input.accountId, input.movedOn, "accountId");
+      const common = {
+        organizationId: ctx.orgId,
+        amount: input.amount,
+        movedOn: input.movedOn,
+        label: input.label,
+        category: input.category,
+        reference: input.reference,
+        createdBy: ctx.userId,
+      };
+      let ids: string[];
+      if (input.kind === "transfer") {
+        const target = await usableAccount(
+          tx,
+          input.toAccountId ?? "",
+          input.movedOn,
+          "toAccountId",
+        );
+        const transferId = crypto.randomUUID();
+        const rows = await tx
+          .insert(treasuryMovement)
+          .values([
+            {
+              ...common,
+              accountId: account.id,
+              kind: "transfer",
+              direction: "out",
+              transferId,
+              counterAccountId: target.id,
+            },
+            {
+              ...common,
+              accountId: target.id,
+              kind: "transfer",
+              direction: "in",
+              transferId,
+              counterAccountId: account.id,
+            },
+          ])
+          .returning({ id: treasuryMovement.id });
+        ids = rows.map((r) => r.id);
+      } else {
+        const [row] = await tx
+          .insert(treasuryMovement)
+          .values({
             ...common,
             accountId: account.id,
-            kind: "transfer",
-            direction: "out",
-            transferId,
-            counterAccountId: target.id,
-          },
-          {
-            ...common,
-            accountId: target.id,
-            kind: "transfer",
-            direction: "in",
-            transferId,
-            counterAccountId: account.id,
-          },
-        ])
-        .returning({ id: treasuryMovement.id });
-      ids = rows.map((r) => r.id);
-    } else {
-      const [row] = await tx
-        .insert(treasuryMovement)
-        .values({
-          ...common,
-          accountId: account.id,
-          kind: input.kind,
-          direction: input.kind === "income" ? "in" : "out",
-        })
-        .returning({ id: treasuryMovement.id });
-      ids = row ? [row.id] : [];
-    }
-    const [first] = ids;
-    if (!first) throw new Error("recordMovement: no row returned");
-    await recordAudit(tx, ctx, {
-      actorUserId: ctx.userId,
-      action: "treasury_movement.create",
-      entityType: "treasury_account",
-      entityId: account.id,
-      after: { ids, ...input },
-    });
-    return { id: first };
-  });
+            kind: input.kind,
+            direction: input.kind === "income" ? "in" : "out",
+          })
+          .returning({ id: treasuryMovement.id });
+        ids = row ? [row.id] : [];
+      }
+      const [first] = ids;
+      if (!first) throw new Error("recordMovement: no row returned");
+      await recordAudit(tx, ctx, {
+        actorUserId: ctx.userId,
+        action: "treasury_movement.create",
+        entityType: "treasury_account",
+        entityId: account.id,
+        after: { ids, ...input },
+      });
+      return { id: first };
+    },
+    outer,
+  );
 }
 
 /**
@@ -281,7 +296,11 @@ export async function cancelMovement(ctx: TenantCtx, input: In<typeof cancelMove
         current.transferId
           ? eq(treasuryMovement.transferId, current.transferId)
           : eq(treasuryMovement.id, current.id),
-      );
+      )
+      .returning({ id: treasuryMovement.id })
+      .then(async (rows) => {
+        for (const row of rows) await unmatchEntry(tx, `movement:${row.id}`);
+      });
     await recordAudit(tx, ctx, {
       actorUserId: ctx.userId,
       action: "treasury_movement.cancel",

@@ -5,6 +5,7 @@ import { AppError } from "@/lib/result";
 import { recordAudit } from "@/server/audit/record-audit";
 import type { TenantCtx } from "@/server/auth/session";
 
+import { prepareBankStatement } from "./bank-statement";
 import { prepareBuyers } from "./buyers";
 import { prepareLeads } from "./leads";
 import type { ImportPlan } from "./plan";
@@ -24,7 +25,7 @@ export async function runImport(
   ctx: TenantCtx,
   kind: ImportKind,
   bytes: Buffer,
-  options: { projectId?: string; residenceId?: string; commit: boolean },
+  options: { projectId?: string; residenceId?: string; accountId?: string; commit: boolean },
 ): Promise<ImportReport> {
   const workbook = await readWorkbook(bytes);
   if (!workbook) throw new AppError("VALIDATION", "imports.errors.notExcel");
@@ -48,6 +49,10 @@ export async function runImport(
         throw new AppError("VALIDATION", "imports.errors.residenceRequired");
       }
       plan = await prepareResidents(ctx, workbook, { residenceId: options.residenceId });
+      break;
+    case "bank_statement":
+      if (!options.accountId) throw new AppError("VALIDATION", "imports.errors.accountRequired");
+      plan = await prepareBankStatement(ctx, workbook, { accountId: options.accountId });
       break;
   }
   const nothing = Object.values(plan.counts).every((n) => n === 0);

@@ -79,6 +79,13 @@ REVOKE UPDATE, DELETE, TRUNCATE ON public.cheque_deposit_item FROM realestate_ap
 -- Unit sheets are kept as handed out; only their PDF link is set by the job.
 REVOKE UPDATE, DELETE, TRUNCATE ON public.unit_sheet FROM realestate_app;
 GRANT UPDATE (pdf_file_id) ON public.unit_sheet TO realestate_app;
+-- Bank statements and their lines are kept as imported (a statement nothing was matched on may
+-- be withdrawn: its rows are deleted), a line only set aside; matches are undone by deleting them.
+REVOKE UPDATE, TRUNCATE ON public.bank_statement FROM realestate_app;
+REVOKE UPDATE, TRUNCATE ON public.bank_statement_line FROM realestate_app;
+GRANT UPDATE (dismissed_at, dismissed_by, dismissal_reason)
+  ON public.bank_statement_line TO realestate_app;
+REVOKE UPDATE, TRUNCATE ON public.bank_match FROM realestate_app;
 -- Partner commissions are paid or cancelled, never deleted.
 REVOKE DELETE, TRUNCATE ON public.partner_commission FROM realestate_app;
 -- Lead capture keys are revoked, never deleted.
