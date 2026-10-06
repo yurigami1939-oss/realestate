@@ -76,6 +76,9 @@ GRANT UPDATE (pdf_file_id) ON public.schedule_amendment TO realestate_app;
 REVOKE UPDATE, DELETE, TRUNCATE ON public.cheque_deposit FROM realestate_app;
 GRANT UPDATE (cleared_on, pdf_file_id) ON public.cheque_deposit TO realestate_app;
 REVOKE UPDATE, DELETE, TRUNCATE ON public.cheque_deposit_item FROM realestate_app;
+-- Unit sheets are kept as handed out; only their PDF link is set by the job.
+REVOKE UPDATE, DELETE, TRUNCATE ON public.unit_sheet FROM realestate_app;
+GRANT UPDATE (pdf_file_id) ON public.unit_sheet TO realestate_app;
 -- Lead capture keys are revoked, never deleted.
 REVOKE DELETE, TRUNCATE ON public.lead_capture_key FROM realestate_app;
 -- Warranty claims are fixed or rejected, never deleted.

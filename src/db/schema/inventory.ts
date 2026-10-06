@@ -6,6 +6,7 @@ import {
   foreignKey,
   index,
   integer,
+  jsonb,
   numeric,
   pgEnum,
   pgTable,
@@ -257,5 +258,50 @@ export const unitPriceHistory = pgTable(
       foreignColumns: [priceList.organizationId, priceList.id],
     }),
     index().on(t.organizationId, t.unitId, t.createdAt),
+  ],
+);
+
+/** A schedule line as a unit sheet printed it (amounts as decimal strings of centimes). */
+export type UnitSheetLine = {
+  label: string;
+  shareBp: number;
+  amount: string;
+  trigger: string;
+  months: number | null;
+  milestoneName: string | null;
+};
+
+/**
+ * Fiche du lot handed to a prospect (CLAUDE.md §7 Inventory): the unit, its asking price and
+ * the project's default payment plan as on the day; reused the same day while nothing changed.
+ */
+export const unitSheet = pgTable(
+  "unit_sheet",
+  {
+    id: id(),
+    organizationId: organizationId(),
+    unitId: uuid().notNull(),
+    issuedOn: date({ mode: "string" }).notNull(),
+    status: unitStatus().notNull(),
+    listPrice: money(),
+    planName: text(),
+    lines: jsonb().$type<UnitSheetLine[]>().notNull(),
+    createdBy: userRef().notNull(),
+    createdAt: createdAt(),
+    pdfFileId: uuid(),
+  },
+  (t) => [
+    unique().on(t.organizationId, t.id),
+    foreignKey({
+      name: "unit_sheet_unit_fk",
+      columns: [t.organizationId, t.unitId],
+      foreignColumns: [unit.organizationId, unit.id],
+    }),
+    foreignKey({
+      name: "unit_sheet_pdf_fk",
+      columns: [t.organizationId, t.pdfFileId],
+      foreignColumns: [file.organizationId, file.id],
+    }),
+    index().on(t.organizationId, t.unitId),
   ],
 );

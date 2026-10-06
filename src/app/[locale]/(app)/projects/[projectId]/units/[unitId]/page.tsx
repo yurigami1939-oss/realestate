@@ -17,6 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { UnitSheetsCard } from "@/components/inventory/unit-sheets";
 import { Link } from "@/i18n/navigation";
 import { toLocale } from "@/i18n/locales";
 import { formatDate, formatDateTime } from "@/lib/dates";
@@ -31,6 +32,7 @@ import { getUnitOption } from "@/server/sales/queries";
 import { getUnitSale } from "@/server/sales/sale-queries";
 import { deleteUnitAction } from "@/server/inventory/actions";
 import { getUnit, type UnitDetail } from "@/server/inventory/queries";
+import { listUnitSheets } from "@/server/inventory/unit-sheets";
 
 import { FloorPlanCard } from "./_components/floor-plan-card";
 import { UnitSaleCard } from "./_components/unit-sale-card";
@@ -174,6 +176,7 @@ export default async function UnitPage({
             plan={unit.floorPlan}
             editable={can(ctx.roles, "unit:update")}
           />
+          <UnitSheetsCard unitId={unit.id} sheets={await listUnitSheets(ctx, unit.id)} />
         </div>
       </div>
 

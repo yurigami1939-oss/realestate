@@ -524,6 +524,15 @@
       "unitsOutsideFloors": "Des lots existent en dehors de ces niveaux.",
       "priceListNotDraft": "Cette grille n'est plus modifiable.",
       "unitNotInProject": "Un lot n'appartient pas à ce projet."
+    },
+    "sheet": {
+      "title": "Fiche du lot",
+      "hint": "PDF bilingue à remettre au prospect : surfaces, plan, prix du jour et échéancier type du projet.",
+      "issue": "Éditer la fiche (PDF)",
+      "issued": "Fiche en préparation.",
+      "reused": "La fiche du jour est à jour.",
+      "line": "Fiche du {date} · {name}",
+      "pending": "Fiche en préparation…"
     }
   },
   "crm": {

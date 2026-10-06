@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-import { authFile, PNG } from "./helpers";
+import { authFile, expectPdf, PNG } from "./helpers";
 
 test.describe("sales manager", () => {
   test.use({ storageState: authFile("salesManager") });
@@ -126,6 +126,17 @@ test.describe("commercial", () => {
     ).toHaveCount(0);
     await expect(page.getByTestId("floor-plan")).toContainText("Aucun plan pour ce lot.");
     await expect(page.getByTestId("upload-unit.floor_plan")).toHaveCount(0);
+
+    // The fiche du lot to hand to a prospect.
+    await page
+      .getByTestId("unit-sheets")
+      .getByRole("button", { name: "Éditer la fiche (PDF)" })
+      .click();
+    await expect(page.getByText("Fiche en préparation.")).toBeVisible();
+    await expectPdf(
+      page,
+      page.getByTestId("unit-sheets").getByRole("link", { name: /^Fiche du / }),
+    );
 
     // Same sheet in Arabic: right-to-left, translated labels, codes and amounts kept LTR
     await page.goto(page.url().replace("/fr/", "/ar/"));
