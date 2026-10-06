@@ -26,6 +26,7 @@ import { can } from "@/lib/permissions";
 import { computeStatement } from "@/lib/statement";
 import type { TenantCtx } from "@/server/auth/session";
 import { seesAllLeads, visibleLeads } from "@/server/crm/access";
+import { countPendingDiscountRequests } from "@/server/discounts/queries";
 import { countOnlinePaymentIssues } from "@/server/online-payments/queries";
 import { countLateDeliveries, loadDocumentAlerts } from "@/server/obligations/queries";
 import { loadEndingLeases, loadOverdueRents } from "@/server/rentals/queries";
@@ -331,6 +332,10 @@ async function todo(tx: Tx, ctx: TenantCtx, today: CalendarDate) {
   const onlineIssues = can(ctx.roles, "payment:cancel")
     ? await countOnlinePaymentIssues(tx, ctx)
     : null;
+  // Discounts the commercials asked for, to decide (managers).
+  const discounts = can(ctx.roles, "discount:decide")
+    ? await countPendingDiscountRequests(tx)
+    : null;
   return {
     withdrawals,
     cheques: cheques ? { count: cheques.n, value: cheques.value } : null,
@@ -349,6 +354,7 @@ async function todo(tx: Tx, ctx: TenantCtx, today: CalendarDate) {
     onlineIssues,
     lateDeliveries,
     documents,
+    discounts,
   };
 }
 

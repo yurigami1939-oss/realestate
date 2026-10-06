@@ -252,7 +252,8 @@
     "exports": "Exports Excel",
     "imports": "Reprise de données",
     "treasury": "Trésorerie",
-    "reports": "Rapports"
+    "reports": "Rapports",
+    "discounts": "Remises"
   },
   "shell": {
     "organizations": "Sociétés",
@@ -665,7 +666,10 @@
         },
         "reserved": "Réservation {number} signée (lot {unit})",
         "sale_signed": "VSP signée (lot {unit})",
-        "withdrawn": "Désistement (réservation {number})"
+        "withdrawn": "Désistement (réservation {number})",
+        "discount_requested": "Remise de {amount} demandée sur le lot {unit}",
+        "discount_approved": "Remise de {amount} accordée sur le lot {unit}",
+        "discount_rejected": "Remise refusée sur le lot {unit}"
       }
     },
     "pipeline": {
@@ -909,7 +913,7 @@
     "none": "Aucun devis.",
     "lead": "Prospect",
     "errors": {
-      "discountForbidden": "Seule la direction commerciale peut accorder une remise.",
+      "discountForbidden": "Seule la direction commerciale peut accorder une remise : demandez-la depuis la fiche du prospect.",
       "discountTooHigh": "La remise dépasse le prix du lot.",
       "unitNotAvailable": "Ce lot n'est plus disponible.",
       "unitNotPriced": "Ce lot n'a pas de prix de vente.",
@@ -1995,7 +1999,8 @@
       "portal_link": "Accès à l'espace client",
       "handover": "Livraison (remise des clés)",
       "lease": "Bail",
-      "online_payment": "Paiement en ligne"
+      "online_payment": "Paiement en ligne",
+      "discount_request": "Demande de remise"
     },
     "actions": {
       "organization": {
@@ -2166,6 +2171,12 @@
         "update": "Situation de travaux modifiée",
         "delete": "Situation de travaux supprimée",
         "pay": "Situation de travaux payée"
+      },
+      "discount_request": {
+        "create": "Remise demandée",
+        "approve": "Remise accordée",
+        "reject": "Remise refusée",
+        "cancel": "Demande de remise retirée"
       }
     }
   },
@@ -2190,7 +2201,8 @@
       "onlinePayments": "{count, plural, one {# paiement en ligne encaissé à traiter} other {# paiements en ligne encaissés à traiter}}",
       "lateDeliveries": "{count, plural, one {# livraison en retard sur la date contractuelle} other {# livraisons en retard sur la date contractuelle}}",
       "documentsExpiring": "{count, plural, one {# document administratif expiré ou à renouveler} other {# documents administratifs expirés ou à renouveler}}",
-      "documentsIncomplete": "{count, plural, one {# projet au dossier administratif incomplet} other {# projets au dossier administratif incomplet}}"
+      "documentsIncomplete": "{count, plural, one {# projet au dossier administratif incomplet} other {# projets au dossier administratif incomplet}}",
+      "discounts": "{count, plural, one {# demande de remise à décider} other {# demandes de remise à décider}}"
     },
     "sales": {
       "title": "Ventes",
@@ -4274,6 +4286,71 @@
       "reserved": "Réservés",
       "sold": "Vendus",
       "value": "Valeur du stock"
+    }
+  },
+  "discounts": {
+    "title": "Demandes de remise",
+    "description": "Les remises demandées par les commerciaux pour leurs prospects. Accordée, éventuellement pour moins, une remise peut figurer sur les devis et la réservation du lot pendant {days} jours.",
+    "salesCrumb": "Ventes",
+    "card": "Remises",
+    "none": "Aucune demande de remise.",
+    "empty": "Aucune demande de remise.",
+    "request": "Demander une remise",
+    "requestTitle": "Demander une remise à la direction",
+    "requestHint": "Le directeur commercial ou le gérant décide. Une remise accordée vaut {days} jours sur ce lot pour ce prospect.",
+    "requested": "Demande envoyée à la direction commerciale.",
+    "listPrice": "Prix catalogue : {amount}",
+    "decide": "Décider",
+    "decideTitle": "Remise demandée sur {unit} · {lead}",
+    "decideHint": "{name} demande {amount} sur un prix catalogue de {price}.",
+    "netPrice": "Prix après remise : {amount}",
+    "approve": "Accorder",
+    "reject": "Refuser",
+    "approved": "Remise accordée.",
+    "rejected": "Remise refusée.",
+    "cancel": "Retirer",
+    "cancelTitle": "Retirer cette demande de remise ?",
+    "cancelDescription": "La demande ne sera plus proposée à la décision.",
+    "cancelled": "Demande retirée.",
+    "askedBy": "Demandée par {name} le {date}",
+    "decidedBy": "Par {name} le {date}",
+    "approvedUpTo": "Accordée : {amount} jusqu'au {date}",
+    "decisionNote": "Note : {note}",
+    "availableDiscount": "Remise accordée sur ce lot : jusqu'à {amount}.",
+    "fields": {
+      "unit": "Lot",
+      "amount": "Remise demandée (DA)",
+      "reason": "Motif (paiement comptant, client fidèle…)",
+      "approvedAmount": "Remise accordée (DA)",
+      "note": "Note (obligatoire pour un refus)"
+    },
+    "columns": {
+      "date": "Demandée le",
+      "lead": "Prospect",
+      "unit": "Lot",
+      "listPrice": "Prix catalogue",
+      "amount": "Remise",
+      "reason": "Motif",
+      "state": "État"
+    },
+    "filters": {
+      "state": "État",
+      "all": "Toutes"
+    },
+    "state": {
+      "pending": "En attente",
+      "approved": "Accordée",
+      "rejected": "Refusée",
+      "cancelled": "Retirée",
+      "expired": "Expirée"
+    },
+    "errors": {
+      "alreadyPending": "Une demande est déjà en attente pour ce lot.",
+      "notPending": "Cette demande a déjà été traitée.",
+      "noteRequired": "Indiquez le motif du refus.",
+      "moreThanAsked": "La remise accordée ne peut dépasser la remise demandée.",
+      "aboveApproved": "La remise dépasse celle accordée par la direction.",
+      "amountPositive": "Indiquez un montant supérieur à zéro."
     }
   }
 }

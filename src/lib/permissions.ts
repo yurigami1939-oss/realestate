@@ -23,6 +23,11 @@ export const statement = {
   lead: ["read", "read_all", "create", "update", "assign", "merge", "delete"],
   /** Quotations (devis). Only managers may discount (CLAUDE.md §12). */
   quotation: ["create", "discount", "cancel"],
+  /**
+   * Discount requests: a commercial (`request`) asks, a manager (`decide`) approves or rejects;
+   * an approved discount may then be granted by the commercial (CLAUDE.md §7).
+   */
+  discount: ["request", "decide"],
   /** Monthly activity targets of the commercials. */
   target: ["update"],
   /** Buyer files and their documents. `read` = buyers I follow, `read_all` = every buyer. */
@@ -106,6 +111,7 @@ export const roles = {
     price: ["update"],
     lead: ["read", "read_all", "create", "update", "assign", "merge", "delete"],
     quotation: ["create", "discount", "cancel"],
+    discount: ["decide"],
     target: ["update"],
     buyer: ["read", "read_all", "create", "update"],
     sale: [
@@ -146,6 +152,7 @@ export const roles = {
     price: ["update"],
     lead: ["read", "read_all", "create", "update", "assign", "merge", "delete"],
     quotation: ["create", "discount", "cancel"],
+    discount: ["decide"],
     target: ["update"],
     buyer: ["read", "read_all", "create", "update"],
     sale: [
@@ -173,6 +180,7 @@ export const roles = {
     inventory: ["read"],
     lead: ["read", "create", "update"],
     quotation: ["create"],
+    discount: ["request"],
     buyer: ["read", "create", "update"],
     sale: ["read", "create"],
     commission: ["read"],

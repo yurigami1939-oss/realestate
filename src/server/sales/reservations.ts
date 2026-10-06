@@ -27,7 +27,6 @@ import {
   netPrice,
   type VspWarning,
 } from "@/lib/payment-plans";
-import { can } from "@/lib/permissions";
 import { AppError } from "@/lib/result";
 import { requiredBuyerDocuments } from "@/lib/sales";
 import { recordAudit } from "@/server/audit/record-audit";
@@ -35,6 +34,7 @@ import { assertCan, type TenantCtx } from "@/server/auth/session";
 import { loadVisibleBuyer } from "@/server/buyers/access";
 import { recordLeadActivity } from "@/server/crm/activity";
 import { advanceLeadStage } from "@/server/crm/leads";
+import { assertDiscountAllowed } from "@/server/discounts/service";
 import { checkUpload, discardFile, storeFile, type Upload } from "@/server/files/service";
 import { transitionUnit } from "@/server/inventory/transition-unit";
 import { nextDocumentNumber } from "@/server/numbering/next-document-number";
@@ -75,17 +75,15 @@ export async function countMissingDocuments(tx: Tx, buyerIds: string[]) {
 /**
  * Signs a reservation (CLAUDE.md §7): buyers (1–3, main first), an available unit — or one
  * optioned for one of these buyers' lead —, a payment plan of the unit's project and a discount
- * (managers only). Snapshots the prices, builds the installments, numbers it RES-…, moves the
- * unit to reserved and the lead to won, and enqueues the reservation sheet PDF.
+ * (managers, or a commercial up to a discount approved for the sale's lead and unit).
+ * Snapshots the prices, builds the installments, numbers it RES-…, moves the unit to reserved
+ * and the lead to won, and enqueues the reservation sheet PDF.
  */
 export async function createReservation(
   ctx: TenantCtx,
   input: In<typeof createReservationSchema>,
 ): Promise<{ id: string; number: string; warnings: VspWarning[]; missingDocuments: number }> {
   assertCan(ctx, "sale:create");
-  if (input.discount > 0n && !can(ctx.roles, "sale:discount")) {
-    throw new AppError("FORBIDDEN", "quotations.errors.discountForbidden");
-  }
   assertNotFuture(input.reservedOn, "reservedOn");
 
   return withTenant(ctx, async (tx) => {
@@ -139,6 +137,15 @@ export async function createReservation(
       ? await tx.select().from(lead).where(eq(lead.id, leadId)).for("update")
       : [];
     const commercialUserId = leadRow?.assignedTo ?? buyers[0]?.ownerUserId ?? ctx.userId;
+    // Managers discount freely; a commercial up to a discount approved for the sale's lead.
+    await assertDiscountAllowed(
+      tx,
+      ctx,
+      "sale:discount",
+      input.discount,
+      leadId ? [leadId] : [],
+      input.unitId,
+    );
 
     const price = netPrice(target.listPrice, input.discount);
     const lines = buildSchedule(price, plan.steps, input.reservedOn, milestones);

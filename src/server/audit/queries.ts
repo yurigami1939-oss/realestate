@@ -11,6 +11,7 @@ import {
   chargePeriod,
   commission,
   constructionMilestone,
+  discountRequest,
   generalAssembly,
   handover,
   member,
@@ -113,6 +114,14 @@ async function recordLinks(
       .from(unit)
       .where(inArray(unit.id, unitIds));
     for (const u of units) links.set(`unit:${u.id}`, `/projects/${u.projectId}/units/${u.id}`);
+  }
+  const discountIds = ids("discount_request");
+  if (discountIds.length > 0) {
+    const requests = await tx
+      .select({ id: discountRequest.id, leadId: discountRequest.leadId })
+      .from(discountRequest)
+      .where(inArray(discountRequest.id, discountIds));
+    for (const r of requests) links.set(`discount_request:${r.id}`, `/leads/${r.leadId}`);
   }
   const listIds = ids("price_list");
   if (listIds.length > 0) {

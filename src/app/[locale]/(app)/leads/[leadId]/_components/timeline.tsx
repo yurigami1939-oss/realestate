@@ -1,7 +1,8 @@
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 
 import { followUpChannels, leadSources, leadStages, lostReasons, visitStatuses } from "@/lib/crm";
 import { formatDateTime } from "@/lib/dates";
+import { formatDZD } from "@/lib/money";
 import type { LeadDetail } from "@/server/crm/queries";
 
 type Activity = LeadDetail["activities"][number];
@@ -11,6 +12,7 @@ const oneOf = <const T extends readonly string[]>(values: T, v: unknown): T[numb
 
 function ActivityLine({ activity }: { activity: Activity }) {
   const t = useTranslations("crm");
+  const locale = useLocale() === "ar" ? "ar" : "fr";
   const d = activity.data ?? {};
   const text = (key: string) => (typeof d[key] === "string" ? (d[key] as string) : null);
   const date = (key: string) => {
@@ -20,6 +22,10 @@ function ActivityLine({ activity }: { activity: Activity }) {
   const stage = (key: string) => {
     const v = oneOf(leadStages, d[key]);
     return v ? t(`stage.${v}`) : "—";
+  };
+  const amount = (key: string) => {
+    const v = text(key);
+    return v && /^\d+$/.test(v) ? formatDZD(BigInt(v), locale) : "—";
   };
   const detail = (value: string | null) =>
     value ? <p className="mt-1 whitespace-pre-line text-muted-foreground">{value}</p> : null;
@@ -135,6 +141,29 @@ function ActivityLine({ activity }: { activity: Activity }) {
       return <p>{t("leads.activity.sale_signed", { unit: text("unitCode") ?? "—" })}</p>;
     case "withdrawn":
       return <p>{t("leads.activity.withdrawn", { number: text("number") ?? "" })}</p>;
+    case "discount_requested":
+      return (
+        <p>
+          {t("leads.activity.discount_requested", {
+            amount: amount("amount"),
+            unit: text("unitCode") ?? "—",
+          })}
+        </p>
+      );
+    case "discount_decided":
+      return (
+        <>
+          <p>
+            {d.approved === true
+              ? t("leads.activity.discount_approved", {
+                  amount: amount("amount"),
+                  unit: text("unitCode") ?? "—",
+                })
+              : t("leads.activity.discount_rejected", { unit: text("unitCode") ?? "—" })}
+          </p>
+          {detail(text("note"))}
+        </>
+      );
   }
 }
 

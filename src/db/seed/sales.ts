@@ -7,6 +7,8 @@ import type { TenantCtx } from "@/server/auth/session";
 import { getProjectPaymentSetup } from "@/server/payment-plans/queries";
 import { createPaymentPlanSchema, saveMilestonesSchema } from "@/server/payment-plans/schemas";
 import { createPaymentPlan, saveMilestones } from "@/server/payment-plans/service";
+import { decideDiscountSchema, requestDiscountSchema } from "@/server/discounts/schemas";
+import { decideDiscount, requestDiscount } from "@/server/discounts/service";
 import { issueQuotationSchema } from "@/server/quotations/schemas";
 import { issueQuotation } from "@/server/quotations/service";
 
@@ -157,7 +159,10 @@ export async function seedPaymentPlans(
   return defaults;
 }
 
-/** Quotations for leads in negotiation; the directeur commercial grants one discount. */
+/**
+ * Quotations for leads in negotiation (the directeur commercial grants one discount) and the
+ * commercials' discount requests.
+ */
 export async function seedQuotations(
   actors: { manager: TenantCtx; agentA: TenantCtx; agentB: TenantCtx },
   ids: { leads: Map<string, string>; units: Map<string, string>; plans: Map<string, string> },
@@ -183,4 +188,32 @@ export async function seedQuotations(
       }),
     );
   }
+
+  // Discount requests (CLAUDE.md §7): one waiting for the directeur commercial, one granted for
+  // less than asked (usable by the commercial on the quotation and the reservation).
+  const ask = async (lead: string, unit: string, amount: string, reason: string) => {
+    const leadId = ids.leads.get(lead);
+    const unitId = ids.units.get(unit);
+    if (!leadId || !unitId) throw new Error(`seed: discount request for ${lead}`);
+    return requestDiscount(
+      actors.agentA,
+      requestDiscountSchema.parse({ leadId, unitId, amount, reason }),
+    );
+  };
+  await ask("Amina Kaci", "A-05-04", "400 000", "Paiement de 50 % à la réservation");
+  const { id: granted } = await ask(
+    "Samir Haddad",
+    "A-04-02",
+    "500 000",
+    "Client prêt à réserver cette semaine, compare avec un projet voisin",
+  );
+  await decideDiscount(
+    actors.manager,
+    decideDiscountSchema.parse({
+      requestId: granted,
+      approve: true,
+      amount: "300 000",
+      note: "Accordé à 300 000 DA, valable 30 jours",
+    }),
+  );
 }

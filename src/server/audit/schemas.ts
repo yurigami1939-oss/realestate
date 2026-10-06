@@ -28,6 +28,7 @@ export const auditEntityTypes = [
   "handover",
   "lease",
   "online_payment",
+  "discount_request",
 ] as const;
 export type AuditEntityType = (typeof auditEntityTypes)[number];
 

@@ -16,6 +16,7 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 
+import { discountRequestStatuses } from "../../lib/discounts";
 import { planStepTriggers } from "../../lib/payment-plans";
 import {
   bankLoanStatuses,
@@ -350,6 +351,61 @@ export const unitOption = pgTable(
       .where(sql`${t.status} = 'active'`),
     index().on(t.organizationId, t.leadId),
     check("unit_option_expiry", sql`${t.expiresAt} > ${t.placedAt}`),
+  ],
+);
+
+export const discountRequestStatus = pgEnum("discount_request_status", discountRequestStatuses);
+
+/**
+ * A commercial asks a manager for a discount on a unit for one of their leads (CLAUDE.md §7).
+ * Approved (possibly for less), it may be granted on that lead's quotations and reservation of
+ * the unit up to `approved_amount` until `valid_until`; one pending request per lead and unit.
+ */
+export const discountRequest = pgTable(
+  "discount_request",
+  {
+    id: id(),
+    organizationId: organizationId(),
+    leadId: uuid().notNull(),
+    unitId: uuid().notNull(),
+    /** Discount asked for, on the unit's list price at the time. */
+    amount: money().notNull(),
+    listPrice: money().notNull(),
+    reason: text().notNull(),
+    status: discountRequestStatus().notNull().default("pending"),
+    requestedBy: userRef().notNull(),
+    requestedAt: instant().notNull().defaultNow(),
+    decidedBy: userRef(),
+    decidedAt: instant(),
+    approvedAmount: money(),
+    validUntil: date({ mode: "string" }),
+    decisionNote: text(),
+  },
+  (t) => [
+    unique().on(t.organizationId, t.id),
+    foreignKey({
+      name: "discount_request_lead_fk",
+      columns: [t.organizationId, t.leadId],
+      foreignColumns: [lead.organizationId, lead.id],
+    }),
+    foreignKey({
+      name: "discount_request_unit_fk",
+      columns: [t.organizationId, t.unitId],
+      foreignColumns: [unit.organizationId, unit.id],
+    }),
+    uniqueIndex("discount_request_one_pending")
+      .on(t.organizationId, t.leadId, t.unitId)
+      .where(sql`${t.status} = 'pending'`),
+    index().on(t.organizationId, t.status),
+    check(
+      "discount_request_amounts",
+      sql`${t.amount} > 0 and ${t.amount} <= ${t.listPrice}
+        and (${t.approvedAmount} is null or (${t.approvedAmount} > 0 and ${t.approvedAmount} <= ${t.amount}))`,
+    ),
+    check(
+      "discount_request_approval",
+      sql`(${t.status} = 'approved') = (${t.approvedAmount} is not null and ${t.validUntil} is not null)`,
+    ),
   ],
 );
 

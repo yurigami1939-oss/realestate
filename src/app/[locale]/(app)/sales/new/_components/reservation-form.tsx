@@ -62,8 +62,8 @@ export type BuyerChoice = {
 };
 
 /**
- * Reservation form: unit, buyers (main + co-buyers), plan, discount for managers and the
- * contract date; the schedule and the VSP limit check are previewed as the form changes.
+ * Reservation form: unit, buyers (main + co-buyers), plan, discount for managers (or up to a
+ * discount approved for the sale's lead and unit) and the contract date; the schedule and the VSP limit check are previewed as the form changes.
  */
 export function ReservationForm({
   units,
@@ -71,6 +71,7 @@ export function ReservationForm({
   setups,
   vspLimits,
   canDiscount,
+  approvedDiscounts,
   delayDays,
   today,
   defaults,
@@ -80,6 +81,8 @@ export function ReservationForm({
   setups: PaymentSetups;
   vspLimits: VspLimits;
   canDiscount: boolean;
+  /** Discounts approved for the member's leads (commercials), per lead and unit. */
+  approvedDiscounts: { leadId: string; unitId: string; amount: bigint }[];
   /** Company delay after a milestone's validation (payment calls). */
   delayDays: number;
   today: string;
@@ -89,6 +92,7 @@ export function ReservationForm({
   const tq = useTranslations("quotations");
   const tp = useTranslations("paymentPlans");
   const tc = useTranslations("common");
+  const td = useTranslations("discounts");
   const translate = useTranslateKey();
   const locale = useLocale() === "ar" ? "ar" : "fr";
   const money = (v: bigint) => formatDZD(v, locale);
@@ -132,6 +136,13 @@ export function ReservationForm({
       ? buildSchedule(price, plan.steps, signingOn, setup?.milestones ?? [])
       : [];
   const warnings = plan ? checkVspLimits(plan.steps, setup?.milestones ?? [], vspLimits) : [];
+  // The sale's lead: the option holder's, else the main buyer's (as the service decides).
+  const saleLeadId =
+    unit?.option?.leadId ?? buyers.find((b) => b.id === buyerIds[0])?.leadId ?? null;
+  const approved = canDiscount
+    ? null
+    : (approvedDiscounts.find((a) => a.unitId === unitId && a.leadId === saleLeadId)?.amount ??
+      null);
   const holderHasBuyer =
     !unit?.option ||
     buyerIds.some((id) => buyers.find((b) => b.id === id)?.leadId === unit.option?.leadId);
@@ -315,11 +326,14 @@ export function ReservationForm({
             }
           />
 
-          {canDiscount ? (
+          {canDiscount || approved !== null ? (
             <TextField
               control={form.control}
               name="discount"
               label={t("fields.discount")}
+              description={
+                approved !== null ? td("availableDiscount", { amount: money(approved) }) : undefined
+              }
               inputMode="decimal"
               dir="ltr"
             />

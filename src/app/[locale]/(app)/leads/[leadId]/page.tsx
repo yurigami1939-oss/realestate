@@ -7,6 +7,12 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { PageHeader } from "@/components/app-shell/page-header";
 import { LeadStageBadge, VisitStatusBadge } from "@/components/crm/badges";
 import { PhoneActions, PhoneText } from "@/components/crm/phone";
+import {
+  DecideDiscountDialog,
+  DiscountStateBadge,
+  type DiscountUnitChoice,
+  RequestDiscountDialog,
+} from "@/components/discounts/discount-dialogs";
 import { ConfirmAction } from "@/components/forms/confirm-action";
 import { type OptionUnitChoice, PlaceOptionDialog } from "@/components/sales/option-dialogs";
 import { Badge } from "@/components/ui/badge";
@@ -24,6 +30,8 @@ import { listBuyersOfLead } from "@/server/buyers/queries";
 import type { TenantCtx } from "@/server/auth/session";
 import { deleteLeadAction, mergeLeadsAction } from "@/server/crm/actions";
 import { getLead, listLeadOwners, type LeadDetail } from "@/server/crm/queries";
+import { cancelDiscountRequestAction } from "@/server/discounts/actions";
+import { type DiscountRequestRow, listLeadDiscountRequests } from "@/server/discounts/queries";
 import { listProjectOptions, listUnitChoices } from "@/server/inventory/queries";
 import { getSalesSettings } from "@/server/organizations/settings";
 import { listLeadQuotations } from "@/server/quotations/queries";
@@ -72,6 +80,19 @@ export default async function LeadPage({ params }: PageProps<"/[locale]/leads/[l
       : [],
   );
   const buyers = can(ctx.roles, "buyer:read") ? await listBuyersOfLead(ctx, lead.id) : [];
+  const discounts = await listLeadDiscountRequests(ctx, lead.id);
+  const discountUnits: DiscountUnitChoice[] = units.flatMap((u) =>
+    (u.status === "available" || u.status === "optioned") && u.listPrice !== null
+      ? [
+          {
+            id: u.id,
+            code: u.code,
+            projectName: projectNames.get(u.projectId) ?? "",
+            listPrice: u.listPrice,
+          },
+        ]
+      : [],
+  );
   const t = await getTranslations("crm");
   const tc = await getTranslations("common");
   const tb = await getTranslations("buyers");
@@ -161,6 +182,7 @@ export default async function LeadPage({ params }: PageProps<"/[locale]/leads/[l
             quotations={quotations}
             canCreate={can(ctx.roles, "quotation:create")}
           />
+          <DiscountsCard leadId={lead.id} requests={discounts} units={discountUnits} ctx={ctx} />
           <FollowUpsCard lead={lead} owners={owners} editable={editable} />
           <VisitsCard
             lead={lead}
@@ -529,6 +551,87 @@ function OptionsCard({
                 <Badge variant={o.state === "active" ? "default" : "secondary"}>
                   {t(`state.${o.state}`)}
                 </Badge>
+              </li>
+            ))}
+          </ul>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function DiscountsCard({
+  leadId,
+  requests,
+  units,
+  ctx,
+}: {
+  leadId: string;
+  requests: DiscountRequestRow[];
+  units: DiscountUnitChoice[];
+  ctx: TenantCtx;
+}) {
+  const t = useTranslations("discounts");
+  const locale = useLocale() === "ar" ? "ar" : "fr";
+  const canRequest = can(ctx.roles, "discount:request");
+  const canDecide = can(ctx.roles, "discount:decide");
+  if (requests.length === 0 && !canRequest) return null;
+  return (
+    <Card data-testid="lead-discounts">
+      <CardHeader className="flex flex-row items-center justify-between gap-2">
+        <CardTitle className="text-base">{t("card")}</CardTitle>
+        {canRequest ? <RequestDiscountDialog leadId={leadId} units={units} /> : null}
+      </CardHeader>
+      <CardContent>
+        {requests.length === 0 ? (
+          <p className="text-sm text-muted-foreground">{t("none")}</p>
+        ) : (
+          <ul className="divide-y">
+            {requests.map((r) => (
+              <li
+                key={r.id}
+                className="flex flex-wrap items-start justify-between gap-3 py-2.5 text-sm"
+              >
+                <div className="min-w-0 space-y-0.5">
+                  <p className="font-medium">
+                    <bdi dir="ltr">{r.unitCode}</bdi> · {r.projectName} ·{" "}
+                    <span dir="ltr">{formatDZD(r.amount, locale)}</span>
+                  </p>
+                  <p className="whitespace-pre-line text-muted-foreground">{r.reason}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {t("askedBy", { name: r.requesterName, date: formatDateTime(r.requestedAt) })}
+                  </p>
+                  {r.approvedAmount !== null && r.validUntil ? (
+                    <p className="text-xs font-medium text-emerald-700">
+                      {t("approvedUpTo", {
+                        amount: formatDZD(r.approvedAmount, locale),
+                        date: formatDate(r.validUntil),
+                      })}
+                    </p>
+                  ) : null}
+                  {r.decisionNote ? (
+                    <p className="text-xs text-muted-foreground">
+                      {t("decisionNote", { note: r.decisionNote })}
+                    </p>
+                  ) : null}
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <DiscountStateBadge state={r.state} />
+                  {r.state === "pending" && canDecide ? <DecideDiscountDialog request={r} /> : null}
+                  {r.state === "pending" && (canDecide || r.requestedBy === ctx.userId) ? (
+                    <ConfirmAction
+                      action={cancelDiscountRequestAction}
+                      input={{ requestId: r.id }}
+                      label={t("cancel")}
+                      title={t("cancelTitle")}
+                      description={t("cancelDescription")}
+                      confirmLabel={t("cancel")}
+                      successMessage={t("cancelled")}
+                      variant="ghost"
+                      size="sm"
+                    />
+                  ) : null}
+                </div>
               </li>
             ))}
           </ul>

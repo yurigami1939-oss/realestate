@@ -45,7 +45,8 @@ export type QuotableUnit = {
 
 /**
  * Simulator and quotation form: pick a unit and a plan, see the schedule on the net price,
- * then issue the numbered quotation. Only managers get the discount field.
+ * then issue the numbered quotation. Managers get the discount field; a commercial gets it on a
+ * unit with a discount approved for this lead, up to that amount.
  */
 export function QuotationForm({
   leadId,
@@ -54,6 +55,7 @@ export function QuotationForm({
   units,
   setups,
   canDiscount,
+  approvedDiscounts,
 }: {
   leadId: string;
   defaultProjectId: string | null;
@@ -61,9 +63,12 @@ export function QuotationForm({
   units: QuotableUnit[];
   setups: PaymentSetups;
   canDiscount: boolean;
+  /** Discounts approved for this lead, per unit (commercials). */
+  approvedDiscounts: { unitId: string; amount: bigint }[];
 }) {
   const t = useTranslations("quotations");
   const tp = useTranslations("paymentPlans");
+  const td = useTranslations("discounts");
   const translate = useTranslateKey();
   const locale = useLocale() === "ar" ? "ar" : "fr";
   const router = useRouter();
@@ -84,12 +89,17 @@ export function QuotationForm({
   const unit = projectUnits.find((u) => u.id === unitId);
   const plan = setup?.plans.find((p) => p.id === planId);
   const parsedDiscount = discount.trim() === "" ? 0n : parseDZD(discount);
+  const approved = canDiscount
+    ? null
+    : (approvedDiscounts.find((a) => a.unitId === unitId)?.amount ?? null);
   const discountError =
     parsedDiscount === null
       ? "validation.amount"
       : unit && parsedDiscount > unit.listPrice
         ? "quotations.errors.discountTooHigh"
-        : null;
+        : approved !== null && parsedDiscount > approved
+          ? "discounts.errors.aboveApproved"
+          : null;
   const price = unit ? netPrice(unit.listPrice, parsedDiscount ?? 0n) : null;
   const lines =
     unit && plan && price !== null
@@ -179,7 +189,7 @@ export function QuotationForm({
               })),
             )
           )}
-          {canDiscount ? (
+          {canDiscount || approved !== null ? (
             <div className="space-y-1.5">
               <Label htmlFor="quotation-discount">{t("discount")}</Label>
               <Input
@@ -192,6 +202,10 @@ export function QuotationForm({
               />
               {discountError ? (
                 <p className="text-sm text-destructive">{translate(discountError)}</p>
+              ) : approved !== null ? (
+                <p className="text-sm text-muted-foreground">
+                  {td("availableDiscount", { amount: money(approved) })}
+                </p>
               ) : (
                 <p className="text-sm text-muted-foreground">{t("discountHint")}</p>
               )}

@@ -8,13 +8,13 @@ import { withTenant } from "@/db/tenant";
 import { enqueueInTx } from "@/jobs/enqueue";
 import { addDays, todayInAlgiers } from "@/lib/dates";
 import { buildSchedule, netPrice } from "@/lib/payment-plans";
-import { can } from "@/lib/permissions";
 import { AppError } from "@/lib/result";
 import { recordAudit } from "@/server/audit/record-audit";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
 import { loadVisibleLead } from "@/server/crm/access";
 import { recordLeadActivity } from "@/server/crm/activity";
 import { advanceLeadStage } from "@/server/crm/leads";
+import { assertDiscountAllowed } from "@/server/discounts/service";
 import { nextDocumentNumber } from "@/server/numbering/next-document-number";
 import { loadCompanyProfile } from "@/server/organizations/settings";
 import { loadMilestones, loadPaymentPlans } from "@/server/payment-plans/queries";
@@ -29,13 +29,11 @@ const QUOTABLE = new Set(["available", "optioned"]);
 /**
  * Issues a numbered quotation (DEV-YYYY-NNNNNN) for a lead and a unit, with the schedule of a
  * project payment plan applied to the net price. Snapshots prices and lines; the PDF job is
- * enqueued in the same transaction. The lead moves to "négociation".
+ * enqueued in the same transaction. The lead moves to "négociation". Only managers discount,
+ * or a commercial up to a discount approved for the lead and unit.
  */
 export async function issueQuotation(ctx: TenantCtx, input: In<typeof issueQuotationSchema>) {
   assertCan(ctx, "quotation:create");
-  if (input.discount > 0n && !can(ctx.roles, "quotation:discount")) {
-    throw new AppError("FORBIDDEN", "quotations.errors.discountForbidden");
-  }
   return withTenant(ctx, async (tx) => {
     const lead = await loadVisibleLead(tx, ctx, input.leadId, { forUpdate: true });
     const [target] = await tx
@@ -59,6 +57,15 @@ export async function issueQuotation(ctx: TenantCtx, input: In<typeof issueQuota
         fieldErrors: { discount: ["quotations.errors.discountTooHigh"] },
       });
     }
+    // Managers discount freely; a commercial up to a discount approved for this lead and unit.
+    await assertDiscountAllowed(
+      tx,
+      ctx,
+      "quotation:discount",
+      input.discount,
+      [lead.id],
+      input.unitId,
+    );
 
     const [plan] = await loadPaymentPlans(tx, target.projectId, [input.paymentPlanId]);
     if (!plan) {

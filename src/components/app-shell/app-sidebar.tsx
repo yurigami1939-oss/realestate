@@ -2,6 +2,7 @@
 
 import {
   AlarmClock,
+  BadgePercent,
   Building,
   Building2,
   ChartColumn,
@@ -64,6 +65,7 @@ type NavKey =
   | "buyers"
   | "saleList"
   | "overdue"
+  | "discounts"
   | "commissions"
   | "audit"
   | "residences"
@@ -122,6 +124,12 @@ const salesNav: NavItem[] = [
 const contractsNav: NavItem[] = [
   { href: "/sales", key: "saleList", icon: FileSignature, permission: "sale:read" },
   { href: "/sales/overdue", key: "overdue", icon: AlarmClock, permission: "sale:read" },
+  {
+    href: "/sales/discounts",
+    key: "discounts",
+    icon: BadgePercent,
+    permission: "discount:decide",
+  },
   { href: "/buyers", key: "buyers", icon: IdCard, permission: "buyer:read" },
   { href: "/commissions", key: "commissions", icon: Percent, permission: "commission:read" },
 ];

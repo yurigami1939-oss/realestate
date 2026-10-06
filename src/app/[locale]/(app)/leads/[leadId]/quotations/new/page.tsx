@@ -7,6 +7,7 @@ import { toLocale } from "@/i18n/locales";
 import { can } from "@/lib/permissions";
 import { requirePermission } from "@/server/auth/page-guard";
 import { getLead } from "@/server/crm/queries";
+import { listApprovedDiscounts } from "@/server/discounts/queries";
 import { listProjectOptions, listUnitChoices } from "@/server/inventory/queries";
 import { listPaymentSetups } from "@/server/payment-plans/queries";
 
@@ -40,6 +41,8 @@ export default async function NewQuotationPage({
       : [],
   );
   const setups = await listPaymentSetups(ctx);
+  const canDiscount = can(ctx.roles, "quotation:discount");
+  const approvedDiscounts = canDiscount ? [] : await listApprovedDiscounts(ctx, [lead.id]);
   const t = await getTranslations();
 
   return (
@@ -57,7 +60,8 @@ export default async function NewQuotationPage({
         projects={projects}
         units={units}
         setups={setups}
-        canDiscount={can(ctx.roles, "quotation:discount")}
+        canDiscount={canDiscount}
+        approvedDiscounts={approvedDiscounts}
       />
     </div>
   );

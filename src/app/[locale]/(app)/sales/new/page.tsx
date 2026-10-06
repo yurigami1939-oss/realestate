@@ -7,6 +7,7 @@ import { todayInAlgiers } from "@/lib/dates";
 import { can } from "@/lib/permissions";
 import { requirePermission } from "@/server/auth/page-guard";
 import { listBuyerOptions } from "@/server/buyers/queries";
+import { listApprovedDiscounts } from "@/server/discounts/queries";
 import { getSalesSettings } from "@/server/organizations/settings";
 import { listPaymentSetups } from "@/server/payment-plans/queries";
 import { listReservableUnits } from "@/server/sales/queries";
@@ -29,6 +30,8 @@ export default async function NewReservationPage({
   const buyers = await listBuyerOptions(ctx);
   const setups = await listPaymentSetups(ctx);
   const { vspLimits, paymentCallDelayDays } = await getSalesSettings(ctx);
+  const canDiscount = can(ctx.roles, "sale:discount");
+  const approvedDiscounts = canDiscount ? [] : await listApprovedDiscounts(ctx);
   const t = await getTranslations();
 
   const unitId = typeof raw.unitId === "string" ? raw.unitId : "";
@@ -50,7 +53,8 @@ export default async function NewReservationPage({
           buyers={buyers}
           setups={setups}
           vspLimits={vspLimits}
-          canDiscount={can(ctx.roles, "sale:discount")}
+          canDiscount={canDiscount}
+          approvedDiscounts={approvedDiscounts}
           delayDays={paymentCallDelayDays}
           today={todayInAlgiers()}
           defaults={{
