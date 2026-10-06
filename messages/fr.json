@@ -253,7 +253,8 @@
     "imports": "Reprise de données",
     "treasury": "Trésorerie",
     "reports": "Rapports",
-    "discounts": "Remises"
+    "discounts": "Remises",
+    "requests": "Demandes clients"
   },
   "shell": {
     "organizations": "Sociétés",
@@ -2257,6 +2258,10 @@
       },
       "buyer_document": {
         "portal_upload": "Pièce envoyée depuis l'espace client"
+      },
+      "portal_request": {
+        "create": "Demande depuis l'espace client",
+        "close": "Demande client traitée"
       }
     }
   },
@@ -2284,7 +2289,8 @@
       "documentsIncomplete": "{count, plural, one {# projet au dossier administratif incomplet} other {# projets au dossier administratif incomplet}}",
       "discounts": "{count, plural, one {# demande de remise à décider} other {# demandes de remise à décider}}",
       "termination": "Résiliation à valider : {number} · {buyer}",
-      "portalDocuments": "{count, plural, one {# pièce envoyée depuis l'espace client à vérifier} other {# pièces envoyées depuis l'espace client à vérifier}}"
+      "portalDocuments": "{count, plural, one {# pièce envoyée depuis l'espace client à vérifier} other {# pièces envoyées depuis l'espace client à vérifier}}",
+      "requests": "{count, plural, one {# demande client en attente} other {# demandes clients en attente}}"
     },
     "sales": {
       "title": "Ventes",
@@ -4481,6 +4487,60 @@
       "moreThanAsked": "La remise accordée ne peut dépasser la remise demandée.",
       "aboveApproved": "La remise dépasse celle accordée par la direction.",
       "amountPositive": "Indiquez un montant supérieur à zéro."
+    }
+  },
+  "requests": {
+    "title": "Demandes des clients",
+    "description": "Ce que les acquéreurs demandent depuis leur espace client : une attestation, un rendez-vous ou autre chose. Répondez-leur ici ; ils lisent la réponse sur leur espace.",
+    "salesCrumb": "Ventes",
+    "empty": "Aucune demande.",
+    "mine": "Mes demandes",
+    "noneMine": "Aucune demande pour cet achat.",
+    "new": "Faire une demande",
+    "newTitle": "Faire une demande au promoteur",
+    "newHint": "Une attestation pour votre banque, un rendez-vous, une question : le promoteur vous répond ici.",
+    "send": "Envoyer",
+    "sent": "Demande envoyée au promoteur.",
+    "kind": {
+      "certificate": "Attestation",
+      "appointment": "Rendez-vous",
+      "other": "Autre demande"
+    },
+    "status": {
+      "open": "En attente",
+      "done": "Traitée",
+      "declined": "Refusée"
+    },
+    "fields": {
+      "kind": "Objet",
+      "certificateKind": "Attestation souhaitée",
+      "preferredOn": "Date souhaitée",
+      "message": "Message",
+      "answer": "Réponse au client"
+    },
+    "preferredOn": "Souhaité le {date}",
+    "answered": "Réponse : {answer}",
+    "columns": {
+      "date": "Reçue le",
+      "sale": "Vente",
+      "request": "Demande",
+      "status": "État"
+    },
+    "filters": {
+      "status": "État",
+      "all": "Toutes"
+    },
+    "answer": "Répondre",
+    "answerTitle": "Répondre à la demande",
+    "answerHint": "Établissez l'attestation ou fixez le rendez-vous depuis la vente, puis marquez la demande traitée. Un refus demande une réponse.",
+    "done": "Traitée",
+    "decline": "Refuser",
+    "markedDone": "Demande traitée.",
+    "markedDeclined": "Demande refusée.",
+    "errors": {
+      "tooMany": "Plusieurs demandes sont déjà en attente pour cet achat.",
+      "answerRequired": "Expliquez le refus au client.",
+      "closed": "Cette demande a déjà été traitée."
     }
   }
 }

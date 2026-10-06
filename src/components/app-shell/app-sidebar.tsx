@@ -13,6 +13,7 @@ import {
   FileSpreadsheet,
   FileUp,
   HardHat,
+  Inbox,
   Hotel,
   House,
   IdCard,
@@ -66,6 +67,7 @@ type NavKey =
   | "saleList"
   | "overdue"
   | "discounts"
+  | "requests"
   | "commissions"
   | "audit"
   | "residences"
@@ -124,6 +126,7 @@ const salesNav: NavItem[] = [
 const contractsNav: NavItem[] = [
   { href: "/sales", key: "saleList", icon: FileSignature, permission: "sale:read" },
   { href: "/sales/overdue", key: "overdue", icon: AlarmClock, permission: "sale:read" },
+  { href: "/sales/requests", key: "requests", icon: Inbox, permission: "sale:read" },
   {
     href: "/sales/discounts",
     key: "discounts",

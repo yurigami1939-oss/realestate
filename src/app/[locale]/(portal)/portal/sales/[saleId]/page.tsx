@@ -7,6 +7,7 @@ import { BuildingProgressBar } from "@/components/construction/building-progress
 import { PayOnlineDialog } from "@/components/online-payments/pay-online-dialog";
 import { ReportCard } from "@/components/construction/report-card";
 import { PortalStatementButton } from "@/components/certificates/portal-statement-button";
+import { PortalRequestDialog } from "@/components/portal/request-dialog";
 import { PortalDocument } from "@/components/portal/portal-document";
 import { PendingDocumentsRefresher } from "@/components/sales/document-pdf";
 import { InstallmentStateBadge, SaleStatusBadge } from "@/components/sales/badges";
@@ -22,7 +23,7 @@ import {
 } from "@/components/ui/table";
 import { Link } from "@/i18n/navigation";
 import { toLocale } from "@/i18n/locales";
-import { formatDate, formatDateTime } from "@/lib/dates";
+import { formatDate, formatDateTime, todayInAlgiers } from "@/lib/dates";
 import { formatAmountInput, formatDZD } from "@/lib/money";
 import { warrantyEnds } from "@/lib/obligations";
 import { onlinePaymentOffer } from "@/lib/online-payments";
@@ -30,6 +31,7 @@ import { cn } from "@/lib/utils";
 import { getPortalPaymentOptions } from "@/server/online-payments/queries";
 import { requirePortalCtx } from "@/server/portal/page-guard";
 import { getPortalSale } from "@/server/portal/sales";
+import { listSalePortalRequests } from "@/server/requests/service";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("portal.sale");
@@ -52,6 +54,8 @@ export default async function PortalSalePage({
   const tl = await getTranslations("sales.loan");
   const tp = await getTranslations("portal.pay");
   const tc = await getTranslations("certificates");
+  const tr = await getTranslations("requests");
+  const requests = await listSalePortalRequests(ctx, sale.id);
   const options = await getPortalPaymentOptions(ctx);
   const offer = options?.sale ? onlinePaymentOffer(sale.statement) : null;
   const money = (v: bigint) => formatDZD(v, locale);
@@ -320,6 +324,51 @@ export default async function PortalSalePage({
         </CardContent>
       </Card>
       <PendingDocumentsRefresher pending={sale.certificates.some((c) => c.pdfFileId === null)} />
+
+      <Card>
+        <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
+          <CardTitle className="text-base">{tr("mine")}</CardTitle>
+          {sale.status === "withdrawn" ? null : (
+            <PortalRequestDialog reservationId={sale.id} today={todayInAlgiers()} />
+          )}
+        </CardHeader>
+        <CardContent data-testid="portal-requests">
+          {requests.length === 0 ? (
+            <p className="text-sm text-muted-foreground">{tr("noneMine")}</p>
+          ) : (
+            <ul className="divide-y text-sm">
+              {requests.map((r) => (
+                <li key={r.id} className="flex flex-wrap items-start justify-between gap-2 py-2">
+                  <span className="min-w-0 space-y-0.5">
+                    <span className="font-medium">
+                      {r.kind === "certificate" && r.certificateKind
+                        ? tc(`kind.${r.certificateKind}`)
+                        : tr(`kind.${r.kind}`)}
+                    </span>
+                    <span className="block text-xs text-muted-foreground">
+                      {formatDate(r.createdAt)}
+                      {r.preferredOn
+                        ? ` · ${tr("preferredOn", { date: formatDate(r.preferredOn) })}`
+                        : ""}
+                    </span>
+                    {r.message ? (
+                      <span className="block whitespace-pre-line text-muted-foreground">
+                        {r.message}
+                      </span>
+                    ) : null}
+                    {r.answer ? (
+                      <span className="block">{tr("answered", { answer: r.answer })}</span>
+                    ) : null}
+                  </span>
+                  <Badge variant={r.status === "open" ? "outline" : "secondary"}>
+                    {tr(`status.${r.status}`)}
+                  </Badge>
+                </li>
+              ))}
+            </ul>
+          )}
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>

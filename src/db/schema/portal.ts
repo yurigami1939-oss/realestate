@@ -1,8 +1,10 @@
 import { sql } from "drizzle-orm";
 import {
   check,
+  date,
   foreignKey,
   index,
+  pgEnum,
   pgTable,
   text,
   unique,
@@ -10,10 +12,17 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 
+import {
+  portalRequestKinds,
+  portalRequestStatuses,
+  requestableCertificates,
+} from "../../lib/requests";
+
 import { invitation } from "./auth";
-import { id, instant, organizationId, timestamps, userRef } from "./_columns";
+import { createdAt, id, instant, organizationId, timestamps, userRef } from "./_columns";
 import { buyer } from "./buyers";
 import { resident } from "./residences";
+import { reservation } from "./sales";
 
 /**
  * Portal access (module 7, CLAUDE.md §12): a buyer file or a co-owner / occupant record shown
@@ -60,5 +69,49 @@ export const portalLink = pgTable(
       .where(sql`${t.revokedAt} is null and ${t.residentId} is not null`),
     index().on(t.organizationId, t.userId),
     index().on(t.organizationId, t.email),
+  ],
+);
+
+export const portalRequestKind = pgEnum("portal_request_kind", portalRequestKinds);
+export const portalRequestStatus = pgEnum("portal_request_status", portalRequestStatuses);
+export const requestableCertificate = pgEnum("requestable_certificate", requestableCertificates);
+
+/**
+ * A request a buyer sends from the portal about one of their sales (CLAUDE.md §7 Portal): an
+ * attestation, an appointment or anything else; staff close it, done or declined, with an
+ * answer the buyer reads.
+ */
+export const portalRequest = pgTable(
+  "portal_request",
+  {
+    id: id(),
+    organizationId: organizationId(),
+    reservationId: uuid().notNull(),
+    /** The portal account that sent it. */
+    userId: userRef().notNull(),
+    kind: portalRequestKind().notNull(),
+    certificateKind: requestableCertificate(),
+    /** Day the buyer would like to come (appointments). */
+    preferredOn: date({ mode: "string" }),
+    message: text(),
+    status: portalRequestStatus().notNull().default("open"),
+    answer: text(),
+    handledBy: userRef(),
+    handledAt: instant(),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    unique().on(t.organizationId, t.id),
+    foreignKey({
+      name: "portal_request_reservation_fk",
+      columns: [t.organizationId, t.reservationId],
+      foreignColumns: [reservation.organizationId, reservation.id],
+    }),
+    index().on(t.organizationId, t.status),
+    index().on(t.organizationId, t.reservationId),
+    check(
+      "portal_request_certificate",
+      sql`(${t.kind} = 'certificate') = (${t.certificateKind} is not null)`,
+    ),
   ],
 );

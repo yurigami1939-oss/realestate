@@ -29,6 +29,7 @@ import type { TenantCtx } from "@/server/auth/session";
 import { visibleBuyers } from "@/server/buyers/access";
 import { seesAllLeads, visibleLeads } from "@/server/crm/access";
 import { countPendingDiscountRequests } from "@/server/discounts/queries";
+import { countOpenPortalRequests } from "@/server/requests/service";
 import { countOnlinePaymentIssues } from "@/server/online-payments/queries";
 import { countLateDeliveries, loadDocumentAlerts } from "@/server/obligations/queries";
 import { loadEndingLeases, loadOverdueRents } from "@/server/rentals/queries";
@@ -350,6 +351,8 @@ async function todo(tx: Tx, ctx: TenantCtx, today: CalendarDate) {
           ),
         )
     : [null];
+  // Requests buyers sent from the portal about the sales the member sees.
+  const requests = can(ctx.roles, "sale:read") ? await countOpenPortalRequests(tx, ctx) : null;
   // Discounts the commercials asked for, to decide (managers).
   const discounts = can(ctx.roles, "discount:decide")
     ? await countPendingDiscountRequests(tx)
@@ -374,6 +377,7 @@ async function todo(tx: Tx, ctx: TenantCtx, today: CalendarDate) {
     documents,
     discounts,
     portalDocuments: portalDocuments?.n ?? null,
+    requests,
   };
 }
 

@@ -58,6 +58,40 @@ test.describe("acquéreur et copropriétaire", () => {
     await expect(payslips).toContainText("Envoyée · en vérification");
   });
 
+  test("asks the promoter for an attestation, which the cashier answers", async ({
+    page,
+    browser,
+  }) => {
+    await page.goto("/fr/portal");
+    await page
+      .getByTestId("portal-sales")
+      .getByRole("link", { name: "Résidence Les Oliviers · B-02-02" })
+      .click();
+    await page.getByRole("button", { name: "Faire une demande" }).click();
+    const dialog = page.getByRole("dialog");
+    await dialog.getByLabel("Message").fill("Pour mon dossier de prêt à la CNEP");
+    await dialog.getByRole("button", { name: "Envoyer" }).click();
+    await expect(page.getByText("Demande envoyée au promoteur.")).toBeVisible();
+    await expect(page.getByTestId("portal-requests")).toContainText("En attente");
+
+    const desk = await browser.newContext({ storageState: authFile("cashier") });
+    const cashier = await desk.newPage();
+    await cashier.goto("/fr/sales/requests");
+    const row = cashier
+      .getByTestId("portal-requests")
+      .getByRole("row")
+      .filter({ hasText: "Cherif" });
+    await expect(row).toContainText("Attestation de versements");
+    await row.getByRole("button", { name: "Répondre" }).click();
+    await cashier.getByRole("dialog").getByLabel("Réponse au client").fill("Prête à l'accueil.");
+    await cashier.getByRole("dialog").getByRole("button", { name: "Traitée" }).click();
+    await expect(cashier.getByText("Demande traitée.")).toBeVisible();
+    await desk.close();
+
+    await page.reload();
+    await expect(page.getByTestId("portal-requests")).toContainText("Réponse : Prête à l'accueil.");
+  });
+
   test("follows their charges, announcements, tickets and assemblies", async ({
     page,
     browser,

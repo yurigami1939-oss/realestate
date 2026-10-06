@@ -76,6 +76,8 @@ GRANT UPDATE (pdf_file_id) ON public.schedule_amendment TO realestate_app;
 REVOKE UPDATE, DELETE, TRUNCATE ON public.cheque_deposit FROM realestate_app;
 GRANT UPDATE (cleared_on, pdf_file_id) ON public.cheque_deposit TO realestate_app;
 REVOKE UPDATE, DELETE, TRUNCATE ON public.cheque_deposit_item FROM realestate_app;
+-- Portal requests are closed, never deleted.
+REVOKE DELETE, TRUNCATE ON public.portal_request FROM realestate_app;
 -- Certificates (attestations): kept as issued; only the PDF link is set by the job.
 REVOKE UPDATE, DELETE, TRUNCATE ON public.certificate FROM realestate_app;
 GRANT UPDATE (pdf_file_id) ON public.certificate TO realestate_app;
