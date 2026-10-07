@@ -19,6 +19,7 @@ export const exportKinds = [
   "report",
   "accounting",
   "person",
+  "assembly_pack",
 ] as const;
 export type ExportKind = (typeof exportKinds)[number];
 
@@ -55,6 +56,11 @@ export const exportParams = {
   accounting: z.object({ from: day, to: day }),
   /** Everything held about one buyer or prospect (Loi 18-07, right of access). */
   person: z.object({ buyer: optionalId, lead: optionalId }),
+  /** The accounts submitted to a residence's general assembly for one year. */
+  assembly_pack: z.object({
+    residence: z.uuid(),
+    year: z.coerce.number().int().min(2000).max(2100).optional().catch(undefined),
+  }),
 } as const satisfies Record<ExportKind, z.ZodType>;
 
 export type ExportParams<K extends ExportKind> = z.output<(typeof exportParams)[K]>;

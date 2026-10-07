@@ -1,4 +1,5 @@
 import { expect, type Page, test } from "@playwright/test";
+import readXlsxFile from "read-excel-file/node";
 
 import { authFile, expectPdf } from "./helpers";
 
@@ -227,6 +228,21 @@ test.describe("gestionnaire", () => {
     });
     await expect(page.getByText("Attestation enregistrée.")).toBeVisible();
     await expectPdf(page, visit.getByRole("link", { name: "Attestation", exact: true }));
+  });
+
+  test("downloads the year's accounts for the general assembly", async ({ page }) => {
+    await openResidence(page);
+    await page.getByRole("link", { name: "Bilan", exact: true }).click();
+    const [download] = await Promise.all([
+      page.waitForEvent("download"),
+      page.getByTestId("export-assembly_pack").click(),
+    ]);
+    expect(download.suggestedFilename()).toMatch(/^ag-comptes-.+-\d{4}\.xlsx$/);
+    const sheets = await readXlsxFile((await download.path()) ?? "");
+    expect(sheets.map((s) => s.sheet).slice(0, 2)).toEqual([
+      "Budget et réalisé",
+      "Fonds de réserve",
+    ]);
   });
 
   test("reads the residence in Arabic, right to left", async ({ page }) => {

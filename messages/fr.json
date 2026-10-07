@@ -2815,6 +2815,17 @@
         "amount": "Montant total (DA)"
       },
       "hint": "Le montant est réparti sur les lots selon la clé de la catégorie choisie (tantièmes, parts égales, bâtiment ou liste de lots) ; il compte dans le budget réalisé de cette catégorie."
+    },
+    "pack": {
+      "download": "Comptes de l'exercice {year} pour l'AG (Excel)",
+      "budget": "Budget et réalisé",
+      "reserve": "Fonds de réserve",
+      "item": "Poste",
+      "amount": "Montant",
+      "reserveCalled": "Appelé depuis la création",
+      "reserveCollected": "Encaissé",
+      "reserveSpent": "Dépensé en travaux",
+      "reserveBalance": "Solde disponible"
     }
   },
   "suppliers": {

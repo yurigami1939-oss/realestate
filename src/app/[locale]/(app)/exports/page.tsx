@@ -34,7 +34,7 @@ export default async function ExportsPage({ params }: PageProps<"/[locale]/expor
   // The ledger is exported from each account's page.
   const sections: (
     | {
-        key: Exclude<ExportKind, "ledger" | "report" | "person">;
+        key: Exclude<ExportKind, "ledger" | "report" | "person" | "assembly_pack">;
         control: React.ReactNode;
       }
     | false

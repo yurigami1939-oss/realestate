@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { getLocale, getTranslations, setRequestLocale } from "next-intl/server";
 
 import { PageHeader } from "@/components/app-shell/page-header";
+import { ExportButton } from "@/components/exports/export-button";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,6 +20,7 @@ import {
 import { Link } from "@/i18n/navigation";
 import { toLocale } from "@/i18n/locales";
 import { yearInAlgiers } from "@/lib/dates";
+import { can } from "@/lib/permissions";
 import { formatDZD } from "@/lib/money";
 import { cn } from "@/lib/utils";
 import { requirePermission } from "@/server/auth/page-guard";
@@ -58,6 +60,7 @@ export default async function ResidenceReportPage({
   const t = await getTranslations("charges.report");
   const tb = await getTranslations("charges.budget");
   const tr = await getTranslations("residences");
+  const tc = await getTranslations("charges");
   const moneyLocale = (await getLocale()) === "ar" ? "ar" : "fr";
   const money = (v: bigint) => formatDZD(v, moneyLocale);
   const yearHref = (y: number) => `/residences/${residenceId}/report?year=${y}`;
@@ -74,6 +77,15 @@ export default async function ResidenceReportPage({
         title={report.residence.name}
         description={report.residence.projectName}
         crumbs={[{ label: tr("title"), href: "/residences" }]}
+        actions={
+          can(ctx.roles, "supplier:read") ? (
+            <ExportButton
+              kind="assembly_pack"
+              params={{ residence: residenceId, year }}
+              label={tc("pack.download", { year })}
+            />
+          ) : null
+        }
       />
       <ResidenceNav residenceId={residenceId} current="report" roles={ctx.roles} />
       <Card>

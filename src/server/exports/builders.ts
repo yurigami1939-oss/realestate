@@ -33,6 +33,7 @@ import { assertCan, type TenantCtx } from "@/server/auth/session";
 import { visibleBuyers } from "@/server/buyers/access";
 import { searchCondition as buyerSearch } from "@/server/buyers/queries";
 import { listUnitAccounts } from "@/server/charges/queries";
+import { getBudgetReport } from "@/server/charges/report";
 import { listConditions as leadConditions } from "@/server/crm/queries";
 import { listLeases } from "@/server/rentals/queries";
 import { visibleSales } from "@/server/sales/access";
@@ -997,6 +998,67 @@ async function accounting(
   };
 }
 
+/**
+ * Dossier d'approbation des comptes of a residence for one year (what the general assembly is
+ * asked to approve): budget against actual per category, the reserve fund, the year's supplier
+ * invoices, and every unit's account.
+ */
+async function assemblyPack(
+  ctx: TenantCtx,
+  params: ExportParams<"assembly_pack">,
+  t: Translate,
+): Promise<ExportResult> {
+  const year = params.year ?? Number(todayInAlgiers().slice(0, 4));
+  const report = await getBudgetReport(ctx, params.residence, year);
+  if (!report) throw new AppError("NOT_FOUND");
+  const spending = await invoices(ctx, { residence: params.residence, year }, t);
+  const accounts = await charges(ctx, { residence: params.residence }, t);
+  const money = { kind: "money" } as const;
+  return {
+    file: exportFileName(`ag-comptes-${report.residence.name}`, String(year)),
+    rows: report.lines.length + spending.rows + accounts.rows,
+    sheets: [
+      {
+        name: t("charges.pack.budget"),
+        columns: [
+          { header: t("charges.report.columns.category"), width: 28 },
+          { header: t("charges.report.columns.budget"), ...money },
+          { header: t("charges.report.columns.called"), ...money },
+          { header: t("charges.report.columns.spent"), ...money },
+          { header: t("charges.report.columns.paid"), ...money },
+          { header: t("charges.report.columns.variance"), ...money },
+        ],
+        rows: [
+          ...report.lines.map((l) => [l.name, l.budget, l.called, l.spent, l.paid, l.variance]),
+          [
+            t("exports.total"),
+            report.totals.budget,
+            report.totals.called,
+            report.totals.spent,
+            report.totals.paid,
+            report.totals.variance,
+          ],
+        ],
+      },
+      {
+        name: t("charges.pack.reserve"),
+        columns: [
+          { header: t("charges.pack.item"), width: 36 },
+          { header: t("charges.pack.amount"), ...money },
+        ],
+        rows: [
+          [t("charges.pack.reserveCalled"), report.reserve.called],
+          [t("charges.pack.reserveCollected"), report.reserve.collected],
+          [t("charges.pack.reserveSpent"), report.reserve.spent],
+          [t("charges.pack.reserveBalance"), report.reserve.balance],
+        ],
+      },
+      ...spending.sheets,
+      ...accounts.sheets,
+    ],
+  };
+}
+
 /** The management reports, one sheet per table. */
 async function report(
   ctx: TenantCtx,
@@ -1151,4 +1213,5 @@ export const builders: { [K in ExportKind]: Builder<K> } = {
   report,
   accounting,
   person: personExport,
+  assembly_pack: assemblyPack,
 };
