@@ -10,6 +10,7 @@ import { env } from "@/env";
 import { enqueueInTx } from "@/jobs/enqueue";
 import { callPeriodLabels } from "@/lib/charges";
 import { type CalendarDate, todayInAlgiers } from "@/lib/dates";
+import type { RecoveryStepKind } from "@/lib/recovery";
 import { parseRoles } from "@/lib/permissions";
 import { AppError } from "@/lib/result";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
@@ -19,6 +20,7 @@ import { loadResidence } from "@/server/residences/service";
 import { notifyChargeReminder } from "@/server/whatsapp/notify";
 
 import { chargeStatement, liveCalls, paidByUnit } from "./accounts";
+import { recoveryStatus } from "./recovery";
 import { mainCoOwners } from "./calls";
 import type { issueChargeReminderSchema } from "./schemas";
 
@@ -36,6 +38,8 @@ export type OverdueCharge = {
   oldestDueOn: CalendarDate;
   daysLate: number;
   lastReminderAt: Date | null;
+  /** The open recovery file: its last step and whether its repayment plan is late. */
+  recovery: { lastStep: RecoveryStepKind | null; planLate: boolean | null } | null;
 };
 
 /**
@@ -55,6 +59,7 @@ export async function loadOverdueCharges(tx: Tx): Promise<OverdueCharge[]> {
     if (!calls.some((c) => c.dueOn < today)) continue;
     const paid = await paidByUnit(tx, home.id);
     const owners = await mainCoOwners(tx, home.id, today);
+    const files = await recoveryStatus(tx, home.id, paid);
     const codes = new Map(
       (
         await tx
@@ -96,6 +101,7 @@ export async function loadOverdueCharges(tx: Tx): Promise<OverdueCharge[]> {
         oldestDueOn: oldest.dueOn,
         daysLate: oldest.daysLate,
         lastReminderAt: reminders.get(unitId) ?? null,
+        recovery: files.get(unitId) ?? null,
       });
     }
   }

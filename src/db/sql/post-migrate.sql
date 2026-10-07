@@ -95,6 +95,12 @@ REVOKE UPDATE, DELETE, TRUNCATE ON public.residence_check_visit FROM realestate_
 GRANT UPDATE (scan_file_id) ON public.residence_check_visit TO realestate_app;
 -- Rent revisions are kept as recorded.
 REVOKE UPDATE, DELETE, TRUNCATE ON public.lease_revision FROM realestate_app;
+-- Recovery files are closed, never deleted; their steps are append-only; a repayment plan is
+-- cancelled, never edited.
+REVOKE DELETE, TRUNCATE ON public.charge_recovery FROM realestate_app;
+REVOKE UPDATE, DELETE, TRUNCATE ON public.charge_recovery_step FROM realestate_app;
+REVOKE UPDATE, DELETE, TRUNCATE ON public.charge_repayment_plan FROM realestate_app;
+GRANT UPDATE (cancelled_at, cancellation_reason) ON public.charge_repayment_plan TO realestate_app;
 -- Partner commissions are paid or cancelled, never deleted.
 REVOKE DELETE, TRUNCATE ON public.partner_commission FROM realestate_app;
 -- Lead capture keys are revoked, never deleted.

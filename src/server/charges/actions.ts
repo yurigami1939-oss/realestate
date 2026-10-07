@@ -10,9 +10,21 @@ import { createChargeCategory, deleteChargeCategory, updateChargeCategory } from
 import { issueChargeReminder } from "./collections";
 import { requestChargeDocument } from "./document-requests";
 import { cancelChargePayment, clearChargeCheque, recordChargePayment } from "./payments";
+import {
+  addRecoveryStep,
+  cancelRepaymentPlan,
+  closeRecovery,
+  createRepaymentPlan,
+  openRecovery,
+} from "./recovery";
 import { issueWorksCall } from "./works";
 import {
+  addRecoveryStepSchema,
   budgetIdSchema,
+  cancelRepaymentPlanSchema,
+  closeRecoverySchema,
+  createRepaymentPlanSchema,
+  openRecoverySchema,
   cancelChargePaymentSchema,
   cancelChargePeriodSchema,
   chargeCategoryIdSchema,
@@ -86,4 +98,26 @@ export const clearChargeChequeAction = defineAction(
 export const issueChargeReminderAction = defineAction(
   { input: issueChargeReminderSchema, permission: "charge:remind" },
   (input, ctx) => mutation(() => issueChargeReminder(ctx, input)),
+);
+
+const remind = { permission: "charge:remind" } as const;
+export const openRecoveryAction = defineAction(
+  { input: openRecoverySchema, ...remind },
+  (input, ctx) => mutation(() => openRecovery(ctx, input)),
+);
+export const addRecoveryStepAction = defineAction(
+  { input: addRecoveryStepSchema, ...remind },
+  (input, ctx) => mutation(() => addRecoveryStep(ctx, input)),
+);
+export const createRepaymentPlanAction = defineAction(
+  { input: createRepaymentPlanSchema, ...remind },
+  (input, ctx) => mutation(() => createRepaymentPlan(ctx, input)),
+);
+export const cancelRepaymentPlanAction = defineAction(
+  { input: cancelRepaymentPlanSchema, ...remind },
+  (input, ctx) => mutation(() => cancelRepaymentPlan(ctx, input)),
+);
+export const closeRecoveryAction = defineAction(
+  { input: closeRecoverySchema, ...remind },
+  (input, ctx) => mutation(() => closeRecovery(ctx, input)),
 );

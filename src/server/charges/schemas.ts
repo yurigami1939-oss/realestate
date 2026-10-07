@@ -1,6 +1,7 @@
 /** Isomorphic: shared by the charge forms and their actions. */
 import { z } from "zod";
 
+import { MAX_PLAN_MONTHS, recoveryStepKinds } from "@/lib/recovery";
 import {
   chargePaymentMethods,
   type DistributionKey,
@@ -145,3 +146,26 @@ export const issueChargeReminderSchema = z.object({
   unitId: z.uuid(),
   payBy: dateText(),
 });
+
+/** A recovery file opened on a unit with overdue charges. */
+export const openRecoverySchema = z.object({ residenceId: z.uuid(), unitId: z.uuid() });
+
+/** A step of a recovery file, dated (not in the future), with a note. */
+export const addRecoveryStepSchema = z.object({
+  recoveryId: z.uuid(),
+  kind: z.enum(recoveryStepKinds),
+  doneOn: dateText(),
+  note: optionalText(500),
+});
+
+/** Échéancier d'apurement: the amount, the number of monthly parts and the first due day. */
+export const createRepaymentPlanSchema = z.object({
+  recoveryId: z.uuid(),
+  total: moneyText().refine((v) => v > 0n, "validation.amount"),
+  months: intText(1, MAX_PLAN_MONTHS),
+  firstDueOn: dateText(),
+});
+
+export const cancelRepaymentPlanSchema = z.object({ planId: z.uuid(), reason: requiredText(300) });
+
+export const closeRecoverySchema = z.object({ recoveryId: z.uuid(), reason: requiredText(300) });

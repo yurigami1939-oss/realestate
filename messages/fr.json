@@ -2826,6 +2826,62 @@
       "reserveCollected": "Encaissé",
       "reserveSpent": "Dépensé en travaux",
       "reserveBalance": "Solde disponible"
+    },
+    "recovery": {
+      "title": "Recouvrement",
+      "openedOn": "dossier ouvert le {date}",
+      "open": "Ouvrir un dossier de recouvrement",
+      "openTitle": "Ouvrir un dossier de recouvrement ?",
+      "openDescription": "Le dossier suit les démarches (relances, mise en demeure, huissier, justice) et un éventuel échéancier d'apurement jusqu'au règlement.",
+      "opened": "Dossier de recouvrement ouvert.",
+      "addStep": "Ajouter une démarche",
+      "stepAdded": "Démarche enregistrée.",
+      "noStep": "Aucune démarche enregistrée.",
+      "plan": "Échéancier d'apurement",
+      "planTitle": "Échéancier d'apurement",
+      "planDescription": "Les impayés étalés en mensualités convenues avec le copropriétaire ; ses paiements à partir d'aujourd'hui le soldent.",
+      "planCreate": "Enregistrer l'échéancier",
+      "planCreated": "Échéancier enregistré.",
+      "planLine": "Échéancier de {total} en {months, plural, one {# mensualité} other {# mensualités}}",
+      "planOnTrack": "À jour",
+      "planLate": "Échéancier en retard",
+      "planLateBy": "En retard de {amount}",
+      "planDone": "Soldé",
+      "planPaid": "Payé depuis l'échéancier : {paid}",
+      "planCancel": "Abandonner l'échéancier",
+      "planCancelTitle": "Abandonner l'échéancier ?",
+      "planCancelDescription": "Échéancier non respecté ou renégocié : il ne sera plus suivi.",
+      "planCancelled": "Échéancier abandonné.",
+      "close": "Clore le dossier",
+      "closeTitle": "Clore le dossier de recouvrement ?",
+      "closeDescription": "Arriéré réglé, ou recouvrement abandonné : le motif est conservé.",
+      "closed": "Dossier clos.",
+      "step": {
+        "reminder": "Lettre de relance",
+        "formal_notice": "Mise en demeure",
+        "bailiff": "Sommation par huissier",
+        "court": "Requête en injonction de payer",
+        "judgment": "Décision de justice",
+        "agreement": "Accord avec le copropriétaire",
+        "note": "Note"
+      },
+      "fields": {
+        "kind": "Démarche",
+        "doneOn": "Date",
+        "note": "Remarque",
+        "total": "Montant à étaler (DA)",
+        "months": "Nombre de mensualités",
+        "firstDueOn": "Première échéance",
+        "reason": "Motif"
+      },
+      "errors": {
+        "closed": "Ce dossier est clos.",
+        "alreadyOpen": "Un dossier de recouvrement est déjà ouvert pour ce lot.",
+        "beforeOpening": "La démarche ne peut précéder l'ouverture du dossier.",
+        "pastStart": "La première échéance ne peut être passée.",
+        "planExists": "Un échéancier est déjà en cours.",
+        "aboveOverdue": "Le montant ne peut dépasser les impayés du lot."
+      }
     }
   },
   "suppliers": {

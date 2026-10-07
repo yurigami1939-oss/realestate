@@ -414,6 +414,13 @@
       "when": 1791339463229,
       "tag": "0058_accounting_codes",
       "breakpoints": true
+    },
+    {
+      "idx": 59,
+      "version": "7",
+      "when": 1791378690108,
+      "tag": "0059_charge_recovery",
+      "breakpoints": true
     }
   ]
 }

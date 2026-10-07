@@ -44,9 +44,11 @@ import { issueChargePeriod } from "@/server/charges/calls";
 import { createChargeCategory } from "@/server/charges/categories";
 import { issueChargeReminder } from "@/server/charges/collections";
 import { recordChargePayment } from "@/server/charges/payments";
+import { addRecoveryStep, openRecovery } from "@/server/charges/recovery";
 import { getWorksCallChoices, issueWorksCall } from "@/server/charges/works";
 import { getChargePeriod } from "@/server/charges/queries";
 import {
+  addRecoveryStepSchema,
   createChargeCategorySchema,
   issueChargePeriodSchema,
   issueChargeReminderSchema,
@@ -1025,6 +1027,20 @@ export async function seedResidences(actors: Actors) {
   );
   const { categories, budgetId } = await seedCharges(manager, residenceId, unitIds);
   await seedCalls(actors, residenceId, budgetId, unitIds);
+  // The co-owner of Y-02-03, reminded today, gets a recovery file (the e2e agrees a plan).
+  const { id: recoveryId } = await openRecovery(manager, {
+    residenceId,
+    unitId: need(unitIds, code(2, 3)),
+  });
+  await addRecoveryStep(
+    manager,
+    addRecoveryStepSchema.parse({
+      recoveryId,
+      kind: "reminder",
+      doneOn: todayInAlgiers(),
+      note: "Lettre de relance remise en main propre",
+    }),
+  );
   const { lifts } = await seedSuppliers(manager, residenceId, categories);
   await seedChecks(manager, residenceId, lifts);
   const { guard } = await seedStaff(manager, residenceId, categories);

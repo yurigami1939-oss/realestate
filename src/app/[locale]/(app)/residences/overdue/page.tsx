@@ -33,6 +33,7 @@ export default async function OverdueChargesPage({
   const ctx = await requirePermission("charge:read");
   const rows = await listOverdueCharges(ctx);
   const t = await getTranslations("charges.overdue");
+  const trec = await getTranslations("charges.recovery");
   const moneyLocale = (await getLocale()) === "ar" ? "ar" : "fr";
   const money = (v: bigint) => formatDZD(v, moneyLocale);
   const canRemind = can(ctx.roles, "charge:remind");
@@ -105,6 +106,21 @@ export default async function OverdueChargesPage({
                     </TableCell>
                     <TableCell>
                       {r.lastReminderAt ? formatDate(r.lastReminderAt) : t("never")}
+                      {r.recovery ? (
+                        <div className="text-xs" data-testid="recovery-status">
+                          {r.recovery.lastStep
+                            ? trec(`step.${r.recovery.lastStep}`)
+                            : trec("opened")}
+                          {r.recovery.planLate === null ? null : (
+                            <span
+                              className={r.recovery.planLate ? "text-red-800" : "text-emerald-800"}
+                            >
+                              {" · "}
+                              {r.recovery.planLate ? trec("planLate") : trec("planOnTrack")}
+                            </span>
+                          )}
+                        </div>
+                      ) : null}
                     </TableCell>
                     {canRemind ? (
                       <TableCell className="text-end">

@@ -5,6 +5,13 @@ import { getLocale, getTranslations, setRequestLocale } from "next-intl/server";
 import { PageHeader } from "@/components/app-shell/page-header";
 import { ChargeDocumentPdf } from "@/components/residences/charge-document-pdf";
 import { ChargeReminderDialog } from "@/components/residences/charge-reminder-dialog";
+import {
+  CancelPlanDialog,
+  CloseRecoveryDialog,
+  OpenRecoveryButton,
+  RecoveryStepDialog,
+  RepaymentPlanDialog,
+} from "@/components/residences/recovery-dialogs";
 import { InstallmentStateBadge } from "@/components/sales/badges";
 import { PendingDocumentsRefresher } from "@/components/sales/document-pdf";
 import { Badge } from "@/components/ui/badge";
@@ -18,12 +25,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { toLocale } from "@/i18n/locales";
-import { formatDate, todayInAlgiers } from "@/lib/dates";
-import { formatDZD } from "@/lib/money";
+import { addMonths, formatDate, todayInAlgiers } from "@/lib/dates";
+import { formatDZD, toDecimalString } from "@/lib/money";
 import { can } from "@/lib/permissions";
 import { cn } from "@/lib/utils";
 import { requirePermission } from "@/server/auth/page-guard";
 import { getUnitAccount, listUnitReminders } from "@/server/charges/queries";
+import { getUnitRecovery } from "@/server/charges/recovery";
 import { listAccountChoices } from "@/server/treasury/queries";
 
 import {
@@ -46,12 +54,15 @@ export default async function UnitAccountPage({
   const account = await getUnitAccount(ctx, residenceId, unitId);
   if (!account) notFound();
   const reminders = await listUnitReminders(ctx, residenceId, unitId);
+  const recovery = await getUnitRecovery(ctx, residenceId, unitId);
+  const canRecover = can(ctx.roles, "charge:remind");
   const accounts = can(ctx.roles, "payment:create") ? await listAccountChoices(ctx) : [];
   const t = await getTranslations("charges.accounts");
   const tp = await getTranslations("charges.period");
   const tpay = await getTranslations("payments");
   const tr = await getTranslations("residences");
   const trem = await getTranslations("charges.reminders");
+  const trec = await getTranslations("charges.recovery");
   const moneyLocale = (await getLocale()) === "ar" ? "ar" : "fr";
   const money = (v: bigint) => formatDZD(v, moneyLocale);
   const today = todayInAlgiers();
@@ -121,6 +132,108 @@ export default async function UnitAccountPage({
           </div>
         ))}
       </dl>
+
+      {recovery || (canRecover && statement.overdue > 0n) ? (
+        <Card data-testid="recovery">
+          <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
+            <CardTitle className="text-base">
+              {trec("title")}
+              {recovery ? (
+                <span className="ms-2 text-xs font-normal text-muted-foreground">
+                  {trec("openedOn", { date: formatDate(recovery.openedOn) })}
+                </span>
+              ) : null}
+            </CardTitle>
+            {canRecover ? (
+              recovery ? (
+                <div className="flex flex-wrap gap-1">
+                  <RecoveryStepDialog recoveryId={recovery.id} today={today} />
+                  {recovery.plan ? null : (
+                    <RepaymentPlanDialog
+                      recoveryId={recovery.id}
+                      overdue={toDecimalString(recovery.overdue).replace(".", ",")}
+                      firstDueOn={addMonths(`${today.slice(0, 7)}-01`, 1)}
+                    />
+                  )}
+                  <CloseRecoveryDialog recoveryId={recovery.id} />
+                </div>
+              ) : (
+                <OpenRecoveryButton residenceId={residenceId} unitId={unitId} />
+              )
+            ) : null}
+          </CardHeader>
+          {recovery ? (
+            <CardContent className="space-y-4 text-sm">
+              {recovery.plan ? (
+                <div className="space-y-2" data-testid="repayment-plan">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <p className="font-medium">
+                      {trec("planLine", {
+                        total: money(recovery.plan.total),
+                        months: recovery.plan.months,
+                      })}{" "}
+                      <Badge
+                        variant="outline"
+                        className={
+                          recovery.plan.progress.done
+                            ? "text-emerald-800"
+                            : recovery.plan.progress.late > 0n
+                              ? "text-red-800"
+                              : "text-emerald-800"
+                        }
+                      >
+                        {recovery.plan.progress.done
+                          ? trec("planDone")
+                          : recovery.plan.progress.late > 0n
+                            ? trec("planLateBy", { amount: money(recovery.plan.progress.late) })
+                            : trec("planOnTrack")}
+                      </Badge>
+                    </p>
+                    {canRecover ? <CancelPlanDialog planId={recovery.plan.id} /> : null}
+                  </div>
+                  <ul className="grid gap-1 sm:grid-cols-3">
+                    {recovery.plan.lines.map((line) => (
+                      <li
+                        key={line.dueOn}
+                        className="flex justify-between gap-2 rounded border px-2 py-1"
+                      >
+                        <span className="tabular-nums" dir="ltr">
+                          {formatDate(line.dueOn)}
+                        </span>
+                        <bdi dir="ltr" className="tabular-nums">
+                          {money(line.amount)}
+                        </bdi>
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="text-xs text-muted-foreground">
+                    {trec("planPaid", { paid: money(recovery.plan.progress.paid) })}
+                  </p>
+                </div>
+              ) : null}
+              {recovery.steps.length === 0 ? (
+                <p className="text-muted-foreground">{trec("noStep")}</p>
+              ) : (
+                <ul className="divide-y" data-testid="recovery-steps">
+                  {recovery.steps.map((step) => (
+                    <li key={step.id} className="py-2">
+                      <span className="tabular-nums" dir="ltr">
+                        {formatDate(step.doneOn)}
+                      </span>
+                      {" · "}
+                      <span className="font-medium">{trec(`step.${step.kind}`)}</span>
+                      <span className="text-muted-foreground"> · {step.byName}</span>
+                      {step.note ? (
+                        <span className="block text-xs text-muted-foreground">{step.note}</span>
+                      ) : null}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </CardContent>
+          ) : null}
+        </Card>
+      ) : null}
 
       <Card>
         <CardHeader>

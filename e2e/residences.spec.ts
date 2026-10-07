@@ -40,6 +40,27 @@ test.describe("gestionnaire", () => {
     }).toPass({ timeout: 120_000 });
   });
 
+  test("agrees a repayment plan in the recovery file of an overdue unit", async ({ page }) => {
+    await page.goto("/fr/residences/overdue");
+    const row = page.getByTestId("overdue-charges").locator('[data-unit="Y-02-03"]');
+    await expect(row.getByTestId("recovery-status")).toContainText("Lettre de relance");
+    await row.getByRole("link", { name: "Y-02-03" }).click();
+    const recovery = page.getByTestId("recovery");
+    await expect(recovery.getByTestId("recovery-steps")).toContainText("remise en main propre");
+
+    await recovery.getByRole("button", { name: "Échéancier d'apurement" }).click();
+    const dialog = page.getByRole("dialog");
+    await dialog.getByLabel("Nombre de mensualités").fill("3");
+    await dialog.getByRole("button", { name: "Enregistrer l'échéancier" }).click();
+    await expect(page.getByText("Échéancier enregistré.")).toBeVisible();
+    await expect(recovery.getByTestId("repayment-plan").getByRole("listitem")).toHaveCount(3);
+
+    await recovery.getByRole("button", { name: "Ajouter une démarche" }).click();
+    await page.getByRole("dialog").getByLabel("Remarque").fill("Accord signé au bureau");
+    await page.getByRole("dialog").getByRole("button", { name: "Ajouter une démarche" }).click();
+    await expect(recovery.getByTestId("recovery-steps")).toContainText("Mise en demeure");
+  });
+
   test("calls the co-owners for works voted by the assembly", async ({ page }) => {
     await openResidence(page);
     await page.getByRole("link", { name: "Appels de charges" }).click();

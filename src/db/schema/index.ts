@@ -15,6 +15,7 @@ export * from "./obligations";
 export * from "./online-payments";
 export * from "./platform";
 export * from "./portal";
+export * from "./recovery";
 export * from "./rentals";
 export * from "./residences";
 export * from "./sales";
