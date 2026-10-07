@@ -115,6 +115,20 @@
       "submit": "Enregistrer",
       "success": "Mot de passe modifié. Vous pouvez vous connecter.",
       "invalidToken": "Ce lien est invalide ou a expiré."
+    },
+    "twoFactor": {
+      "title": "Code de vérification",
+      "description": "Saisissez le code à 6 chiffres affiché par votre application d'authentification.",
+      "backupDescription": "Saisissez l'un de vos codes de secours (chacun ne sert qu'une fois).",
+      "code": "Code à 6 chiffres",
+      "backupCode": "Code de secours",
+      "trustDevice": "Faire confiance à cet appareil pendant 30 jours",
+      "submit": "Vérifier",
+      "useBackup": "Utiliser un code de secours",
+      "useApp": "Utiliser l'application",
+      "back": "Retour à la connexion",
+      "invalid": "Code incorrect. Réessayez.",
+      "expired": "La vérification a expiré : connectez-vous à nouveau."
     }
   },
   "onboarding": {
@@ -281,7 +295,8 @@
     "requests": "Demandes clients",
     "leadCapture": "Capture de prospects",
     "partners": "Agences et apporteurs",
-    "group": "Vue groupe"
+    "group": "Vue groupe",
+    "security": "Sécurité"
   },
   "shell": {
     "organizations": "Sociétés",
@@ -2405,7 +2420,9 @@
       "lateFollowUps": "Relances en retard",
       "won": "Prospects gagnés",
       "lost": "Perdus : {count}"
-    }
+    },
+    "secureAccount": "Votre compte donne accès aux encaissements et aux données des clients : protégez-le par la double authentification.",
+    "secureAccountLink": "L'activer"
   },
   "residences": {
     "title": "Résidences",
@@ -4974,5 +4991,32 @@
       "archived": "Ce contrôle est archivé.",
       "nextBeforeVisit": "La prochaine échéance doit suivre la visite."
     }
+  },
+  "security": {
+    "title": "Sécurité",
+    "description": "La protection de votre compte.",
+    "twoFactor": "Double authentification",
+    "on": "Activée",
+    "off": "Désactivée",
+    "explanation": "À chaque connexion, en plus du mot de passe, un code à 6 chiffres donné par une application d'authentification (Google Authenticator, Microsoft Authenticator…) sur votre téléphone.",
+    "enable": "Activer la double authentification",
+    "enableTitle": "Activer la double authentification",
+    "enableDescription": "Confirmez votre mot de passe pour commencer.",
+    "scan": "Scannez ce code avec votre application d'authentification, notez vos codes de secours, puis saisissez le code affiché.",
+    "qrAlt": "QR code à scanner avec l'application d'authentification",
+    "secret": "Ou saisissez cette clé :",
+    "backupCodes": "Codes de secours",
+    "backupHint": "Gardez-les en lieu sûr : chacun permet une connexion si vous perdez votre téléphone.",
+    "password": "Mot de passe",
+    "code": "Code à 6 chiffres",
+    "continue": "Continuer",
+    "confirm": "Activer",
+    "enabled": "Double authentification activée.",
+    "disable": "Désactiver",
+    "disableTitle": "Désactiver la double authentification ?",
+    "disableDescription": "Confirmez votre mot de passe : le code ne sera plus demandé à la connexion.",
+    "disabled": "Double authentification désactivée.",
+    "wrongPassword": "Mot de passe incorrect.",
+    "invalidCode": "Code incorrect. Réessayez."
   }
 }

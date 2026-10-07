@@ -36,7 +36,7 @@ export function SignInForm({ next }: { next: string }) {
 
   async function onSubmit(values: Values) {
     setError(null);
-    const { error: authError } = await authClient.signIn.email(signInSchema.parse(values));
+    const { data, error: authError } = await authClient.signIn.email(signInSchema.parse(values));
     if (authError) {
       setError(
         authError.code === "INVALID_EMAIL_OR_PASSWORD" || authError.status === 401
@@ -45,6 +45,11 @@ export function SignInForm({ next }: { next: string }) {
             ? tErrors("tooManyRequests")
             : tErrors("UNEXPECTED"),
       );
+      return;
+    }
+    // Two-factor authentication on: the code page completes the sign-in.
+    if (data && "twoFactorRedirect" in data && data.twoFactorRedirect) {
+      router.replace(`/two-factor?next=${encodeURIComponent(next)}`);
       return;
     }
     router.replace(next);

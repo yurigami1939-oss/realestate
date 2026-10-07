@@ -3,7 +3,7 @@ import "server-only";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
-import { organization } from "better-auth/plugins";
+import { organization, twoFactor } from "better-auth/plugins";
 import { asc, eq } from "drizzle-orm";
 
 import { db } from "@/db/client";
@@ -20,6 +20,7 @@ import { linkPortalAccount } from "@/server/portal/link";
 import {
   authIdStrategy,
   organizationAdditionalFields,
+  TWO_FACTOR_ISSUER,
   userAdditionalFields,
 } from "./schema-options";
 
@@ -119,6 +120,8 @@ export const auth = betterAuth({
         );
       },
     }),
+    // Two-factor authentication (TOTP app + backup codes), opted in by each member.
+    twoFactor({ issuer: TWO_FACTOR_ISSUER }),
     nextCookies(), // must stay last
   ],
 });

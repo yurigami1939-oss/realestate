@@ -38,8 +38,8 @@ function startWorker(): Promise<() => void> {
   });
 }
 
-/** The seed queues about a hundred PDFs; the worker renders one every ~2 s. */
-const SEED_JOBS_SECONDS = 300;
+/** The seed queues about two hundred PDFs; the worker renders one every ~2 s. */
+const SEED_JOBS_SECONDS = 600;
 
 /**
  * Waits until the jobs queued by the seed (document PDFs, payment calls) are done, so the specs

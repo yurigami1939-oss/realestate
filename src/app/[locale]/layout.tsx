@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { notFound } from "next/navigation";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
@@ -21,8 +21,13 @@ export async function generateMetadata({ params }: LayoutProps<"/[locale]">): Pr
   return {
     title: { default: t("title"), template: `%s · ${t("title")}` },
     description: t("description"),
+    // Installable app (manifest.ts): home-screen icon and standalone window on iOS too.
+    icons: { apple: "/apple-icon.png" },
+    appleWebApp: { capable: true, title: t("title"), statusBarStyle: "default" },
   };
 }
+
+export const viewport: Viewport = { themeColor: "#171717" };
 
 export default async function LocaleLayout({ children, params }: LayoutProps<"/[locale]">) {
   const { locale } = await params;

@@ -22,3 +22,6 @@ export const organizationAdditionalFields = {
   wilaya: { type: "string", required: false },
   phone: { type: "string", required: false },
 } as const;
+
+/** Name shown in the member's authenticator app (two-factor plugin; adds its table). */
+export const TWO_FACTOR_ISSUER = "PRODUCT_NAME";

@@ -27,6 +27,7 @@ import {
   Percent,
   PhoneCall,
   ScrollText,
+  ShieldCheck,
   Target,
   Truck,
   type LucideIcon,
@@ -91,7 +92,8 @@ type NavKey =
   | "imports"
   | "treasury"
   | "reports"
-  | "group";
+  | "group"
+  | "security";
 /**
  * `permission`: shown only to roles that have it, or one of them (display only; services
  * enforce).
@@ -169,6 +171,7 @@ const residenceNav: NavItem[] = [
 ];
 const settingsNav: NavItem[] = [
   { href: "/settings/members", key: "members", icon: Users },
+  { href: "/settings/security", key: "security", icon: ShieldCheck },
   { href: "/settings/company", key: "company", icon: Building, permission: "organization:update" },
   {
     href: "/settings/online-payment",

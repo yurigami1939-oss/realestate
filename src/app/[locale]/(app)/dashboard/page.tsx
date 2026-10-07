@@ -10,6 +10,7 @@ import { formatDate, formatDateTime } from "@/lib/dates";
 import { formatDZD } from "@/lib/money";
 import { cn } from "@/lib/utils";
 import { requireTenantCtx } from "@/server/auth/page-guard";
+import { getSession } from "@/server/auth/session";
 import { getDashboard } from "@/server/dashboard/queries";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -83,6 +84,11 @@ export default async function DashboardPage({ params }: PageProps<"/[locale]/das
   const locale = toLocale((await params).locale);
   setRequestLocale(locale);
   const ctx = await requireTenantCtx();
+  // The gérant and the comptable are asked to turn on two-factor authentication.
+  const session = await getSession();
+  const secure =
+    session?.user.twoFactorEnabled !== true &&
+    (ctx.roles.includes("owner") || ctx.roles.includes("accountant"));
   const data = await getDashboard(ctx);
   const t = await getTranslations();
   const money = (v: bigint) => formatDZD(v, locale);
@@ -120,6 +126,18 @@ export default async function DashboardPage({ params }: PageProps<"/[locale]/das
           {t("dashboard.asOf", { date: formatDate(data.today), month: monthLabel })}
         </p>
       </div>
+
+      {secure ? (
+        <p
+          className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900"
+          data-testid="secure-account"
+        >
+          {t("dashboard.secureAccount")}{" "}
+          <Link href="/settings/security" className="font-medium underline">
+            {t("dashboard.secureAccountLink")}
+          </Link>
+        </p>
+      ) : null}
 
       {hasTodo ? (
         <Section title={t("dashboard.todo.title")} testId="dashboard-todo">
