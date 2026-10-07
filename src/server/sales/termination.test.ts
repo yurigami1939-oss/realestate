@@ -5,6 +5,7 @@ import { reminderLetter, reservation, unit, withdrawal } from "@/db/schema";
 import { withTenant } from "@/db/tenant";
 import { stopEnqueue } from "@/jobs/enqueue";
 import { addDays, todayInAlgiers } from "@/lib/dates";
+import { getAccountingEntries } from "@/server/accounting/service";
 import { createBuyerSchema } from "@/server/buyers/schemas";
 import { createBuyer } from "@/server/buyers/service";
 import { issueReminderSchema } from "@/server/collections/schemas";
@@ -123,6 +124,18 @@ describe("termination for non-payment", () => {
         .where(eq(reservation.id, saleId)),
     );
     expect(after).toEqual({ status: "withdrawn", unitStatus: "available", kind: "termination" });
+
+    // The accounting export cancels the sale's revenue on the day it ended (booked at the VSP).
+    const entries = await getAccountingEntries(team.owner, { from: today, to: today });
+    expect(
+      entries.lines
+        .filter((l) => l.label.startsWith("Résiliation"))
+        .map((l) => [l.account, l.debit, l.credit]),
+    ).toEqual([
+      ["411000", 0n, 1_301_000_000n],
+      ["702000", 1_301_000_000n, 0n],
+    ]);
+    expect(entries.g50.sales.ttc).toBe(-1_301_000_000n);
   });
 
   it("keeps the withdrawal (désistement) for reservations before the VSP", async () => {

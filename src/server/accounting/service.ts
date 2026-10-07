@@ -11,6 +11,8 @@ import {
   accountingCodes,
   counterpartKey,
   defaultTreasuryCodes,
+  type TaxSettings,
+  taxSettings,
 } from "@/lib/accounting";
 import { todayInAlgiers, type CalendarDate } from "@/lib/dates";
 import type { Centimes } from "@/lib/money";
@@ -18,6 +20,7 @@ import { recordAudit } from "@/server/audit/record-audit";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
 import { ledgerLines } from "@/server/treasury/queries";
 
+import { revenueEntries } from "./revenue";
 import type { accountingCodesSchema } from "./schemas";
 
 type In<S extends z.ZodType> = z.output<S>;
@@ -30,11 +33,20 @@ async function loadCodes(tx: Tx, orgId: string): Promise<AccountingCodes> {
   return accountingCodes(row?.codes ?? null);
 }
 
+async function loadTax(tx: Tx, orgId: string): Promise<TaxSettings> {
+  const [row] = await tx
+    .select({ tax: organizationSetting.taxSettings })
+    .from(organizationSetting)
+    .where(eq(organizationSetting.organizationId, orgId));
+  return taxSettings(row?.tax ?? null);
+}
+
 /** The chart's codes (saved over the defaults) and the treasury accounts' own codes. */
 export async function getAccountingSetup(ctx: TenantCtx) {
   assertCan(ctx, "treasury:update");
   return withTenant(ctx, async (tx) => ({
     codes: await loadCodes(tx, ctx.orgId),
+    tax: await loadTax(tx, ctx.orgId),
     accounts: (
       await tx
         .select({
@@ -55,17 +67,26 @@ export async function getAccountingSetup(ctx: TenantCtx) {
   }));
 }
 
-/** Gérant, comptable: the chart's codes by flow nature and the accounts' own codes. Audited. */
+/**
+ * Gérant, comptable: the chart's codes by flow nature, the accounts' own codes and the tax
+ * settings (absent = unchanged). Audited.
+ */
 export async function saveAccountingCodes(ctx: TenantCtx, input: In<typeof accountingCodesSchema>) {
   assertCan(ctx, "treasury:update");
   await withTenant(ctx, async (tx) => {
-    const before = await loadCodes(tx, ctx.orgId);
+    const before = { codes: await loadCodes(tx, ctx.orgId), tax: await loadTax(tx, ctx.orgId) };
+    const tax = input.tax ? { taxSettings: input.tax } : {};
     await tx
       .insert(organizationSetting)
-      .values({ organizationId: ctx.orgId, accountingCodes: input.codes, updatedBy: ctx.userId })
+      .values({
+        organizationId: ctx.orgId,
+        accountingCodes: input.codes,
+        ...tax,
+        updatedBy: ctx.userId,
+      })
       .onConflictDoUpdate({
         target: organizationSetting.organizationId,
-        set: { accountingCodes: input.codes, updatedBy: ctx.userId, updatedAt: new Date() },
+        set: { accountingCodes: input.codes, ...tax, updatedBy: ctx.userId, updatedAt: new Date() },
       });
     for (const account of input.accounts) {
       await tx
@@ -79,7 +100,11 @@ export async function saveAccountingCodes(ctx: TenantCtx, input: In<typeof accou
       entityType: "organization",
       entityId: ctx.orgId,
       before,
-      after: { codes: accountingCodes(input.codes), accounts: input.accounts },
+      after: {
+        codes: accountingCodes(input.codes),
+        tax: input.tax ?? before.tax,
+        accounts: input.accounts,
+      },
     });
   });
 }
@@ -100,7 +125,8 @@ export type AccountingEntryLine = {
  * Treasury): every flow of every treasury account — collections, outflows, movements — as two
  * balanced lines, the account's own code against the counterpart of its nature (clients,
  * co-owners, tenants, deposits, suppliers, contractors, staff, fees, transfers…). A transfer
- * appears in both accounts' journals through the internal transfers account.
+ * appears in both accounts' journals through the internal transfers account. Then the revenue
+ * entries of sales, rents and charge calls (`revenueEntries`) and the G50 worksheet's figures.
  */
 export async function getAccountingEntries(
   ctx: TenantCtx,
@@ -111,6 +137,7 @@ export async function getAccountingEntries(
   const from = params.from ?? `${to.slice(0, 7)}-01`;
   return withTenant(ctx, async (tx) => {
     const codes = await loadCodes(tx, ctx.orgId);
+    const tax = await loadTax(tx, ctx.orgId);
     const accounts = await tx
       .select()
       .from(treasuryAccount)
@@ -177,6 +204,8 @@ export async function getAccountingEntries(
         );
       }
     }
+    const revenue = await revenueEntries(tx, from, to, codes, tax);
+    lines.push(...revenue.lines);
     lines.sort((a, b) =>
       a.journal === b.journal
         ? a.on < b.on
@@ -194,6 +223,7 @@ export async function getAccountingEntries(
       lines,
       debit: lines.reduce((sum, l) => sum + l.debit, 0n),
       credit: lines.reduce((sum, l) => sum + l.credit, 0n),
+      g50: revenue.figures,
     };
   });
 }

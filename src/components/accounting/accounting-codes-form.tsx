@@ -7,22 +7,35 @@ import { toast } from "sonner";
 import type { z } from "zod";
 
 import { applyFieldErrors } from "@/components/forms/apply-field-errors";
+import { SelectField } from "@/components/forms/fields";
 import { TextField } from "@/components/forms/text-field";
 import { useAction } from "@/components/forms/use-action";
 import { Button } from "@/components/ui/button";
 import { FieldGroup, FieldSeparator } from "@/components/ui/field";
-import { type AccountingCodes, accountingKeys, defaultAccountingCodes } from "@/lib/accounting";
+import {
+  type AccountingCodes,
+  accountingKeys,
+  defaultAccountingCodes,
+  revenueEvents,
+  type TaxSettings,
+} from "@/lib/accounting";
+import { formatPercentInput } from "@/lib/money";
 import { saveAccountingCodesAction } from "@/server/accounting/actions";
 import { accountingCodesSchema } from "@/server/accounting/schemas";
 
 type Values = z.input<typeof accountingCodesSchema>;
 
-/** The chart's codes by flow nature, and each treasury account's own code and journal. */
+/**
+ * The chart's codes by flow nature, the tax settings of the revenue entries, and each treasury
+ * account's own code and journal.
+ */
 export function AccountingCodesForm({
   codes,
+  tax,
   accounts,
 }: {
   codes: AccountingCodes;
+  tax: TaxSettings;
   accounts: {
     id: string;
     name: string;
@@ -35,9 +48,17 @@ export function AccountingCodesForm({
   const t = useTranslations("accounting");
   const tc = useTranslations("common");
   const save = useAction(saveAccountingCodesAction);
+  const percent = (bp: number) => (bp === 0 ? "" : formatPercentInput(bp));
   const form = useForm<Values, unknown, z.output<typeof accountingCodesSchema>>({
     resolver: zodResolver(accountingCodesSchema),
     defaultValues: {
+      tax: {
+        revenueEvent: tax.revenueEvent,
+        vatSales: percent(tax.vatSalesBp),
+        vatRentCommercial: percent(tax.vatRentCommercialBp),
+        vatRentResidential: percent(tax.vatRentResidentialBp),
+        stampDuty: percent(tax.stampDutyBp),
+      },
       codes: Object.fromEntries(
         accountingKeys.map((key) => [
           key,
@@ -74,6 +95,29 @@ export function AccountingCodesForm({
               dir="ltr"
             />
           ))}
+        </div>
+        <FieldSeparator>{t("tax.title")}</FieldSeparator>
+        <p className="text-sm text-muted-foreground">{t("tax.help")}</p>
+        <div className="grid gap-4 sm:grid-cols-3">
+          <SelectField
+            control={form.control}
+            name="tax.revenueEvent"
+            label={t("tax.revenueEvent")}
+            options={revenueEvents.map((e) => ({ value: e, label: t(`tax.event.${e}`) }))}
+          />
+          {(["vatSales", "vatRentCommercial", "vatRentResidential", "stampDuty"] as const).map(
+            (key) => (
+              <TextField
+                key={key}
+                control={form.control}
+                name={`tax.${key}`}
+                label={t(`tax.${key}`)}
+                placeholder="0"
+                inputMode="decimal"
+                dir="ltr"
+              />
+            ),
+          )}
         </div>
         <FieldSeparator>{t("accounts")}</FieldSeparator>
         {accounts.map((a, index) => (

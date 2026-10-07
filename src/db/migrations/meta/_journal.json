@@ -442,6 +442,13 @@
       "when": 1791383650620,
       "tag": "0062_online_rent_payments",
       "breakpoints": true
+    },
+    {
+      "idx": 63,
+      "version": "7",
+      "when": 1791386425408,
+      "tag": "0063_tax_settings",
+      "breakpoints": true
     }
   ]
 }

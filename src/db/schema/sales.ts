@@ -16,6 +16,7 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 
+import type { TaxSettings } from "../../lib/accounting";
 import { discountRequestStatuses } from "../../lib/discounts";
 import { planStepTriggers } from "../../lib/payment-plans";
 import {
@@ -100,6 +101,11 @@ export const organizationSetting = pgTable(
     /** Accounting export: the chart's codes by flow nature, over the SCF defaults. */
     accountingCodes: jsonb()
       .$type<Partial<Record<string, string>>>()
+      .notNull()
+      .default(sql`'{}'::jsonb`),
+    /** Accounting export: when sales are booked, VAT rates, stamp duty (CLAUDE.md §7 Treasury). */
+    taxSettings: jsonb()
+      .$type<Partial<TaxSettings>>()
       .notNull()
       .default(sql`'{}'::jsonb`),
     /** Company logo (PNG/JPEG), printed on the documents issued afterwards. */

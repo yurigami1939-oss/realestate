@@ -42,7 +42,9 @@ test.describe("exports Excel", () => {
 test.describe("accounting export", () => {
   test.use({ storageState: authFile("owner") });
 
-  test("the gérant downloads the period's balanced entries", async ({ page }) => {
+  test("the gérant downloads the period's balanced entries and its G50 figures", async ({
+    page,
+  }) => {
     await page.goto("/fr/treasury");
     await page.getByRole("link", { name: "Export comptable" }).click();
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("Export comptable");
@@ -50,6 +52,10 @@ test.describe("accounting export", () => {
       "placeholder",
       "411000",
     );
+    // VAT on sales, as the accountant set it: the sales' entries and the G50 sheet carry it.
+    await page.getByLabel("TVA sur les ventes (%)").fill("19");
+    await page.getByRole("button", { name: "Enregistrer", exact: true }).click();
+    await expect(page.getByText("Plan comptable enregistré.")).toBeVisible();
     await page.getByLabel("Du", { exact: true }).fill("2024-01-01");
     await expect(page).toHaveURL(/from=2024-01-01/);
     await expect(page.getByTestId("export-accounting")).toHaveAttribute("href", /from=2024-01-01/);
@@ -58,15 +64,21 @@ test.describe("accounting export", () => {
       page.getByTestId("export-accounting").click(),
     ]);
     expect(download.suggestedFilename()).toMatch(/^ecritures-2024-01-01_\d{4}-\d{2}-\d{2}\.xlsx$/);
-    const [sheet] = await readXlsxFile((await download.path()) ?? "");
+    const [sheet, g50] = await readXlsxFile((await download.path()) ?? "");
     expect(sheet?.sheet).toBe("Écritures");
     const rows = sheet?.data ?? [];
     expect(rows[0]).toEqual(["Journal", "Date", "Pièce", "Compte", "Libellé", "Débit", "Crédit"]);
     // Seeded collections on the cash desk and the bank, each balanced; the total too.
     expect(rows.some((r) => r[0] === "CA" && r[3] === "530000")).toBe(true);
     expect(rows.some((r) => r[0] === "BQ" && r[3] === "411000")).toBe(true);
+    // The seeded VSP sales in the sales journal, with their VAT.
+    expect(rows.some((r) => r[0] === "VT" && r[3] === "702000")).toBe(true);
+    expect(rows.some((r) => r[0] === "VT" && r[3] === "445700")).toBe(true);
     const total = rows.at(-1);
     expect(total?.[4]).toBe("Total");
     expect(total?.[5]).toBe(total?.[6]);
+    expect(g50?.sheet).toBe("G50");
+    const vat = g50?.data.find((r) => r[0] === "TVA collectée");
+    expect(typeof vat?.[2] === "number" && vat[2] > 0).toBe(true);
   });
 });

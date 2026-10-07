@@ -958,7 +958,10 @@ async function ledger(
   };
 }
 
-/** Journal entries of the period (two lines per flow), for the chartered accountant. */
+/**
+ * Journal entries of the period (two lines per flow, then the revenue entries) and the G50
+ * worksheet, for the chartered accountant.
+ */
 async function accounting(
   ctx: TenantCtx,
   params: ExportParams<"accounting">,
@@ -992,6 +995,32 @@ async function accounting(
             l.credit > 0n ? l.credit : null,
           ]),
           [null, null, null, null, t("accounting.total"), found.debit, found.credit],
+        ],
+      },
+      {
+        name: t("accounting.g50.sheet"),
+        columns: [
+          { header: t("accounting.g50.columns.item"), width: 44 },
+          { header: t("accounting.g50.columns.ht"), kind: "money" },
+          { header: t("accounting.g50.columns.vat"), kind: "money" },
+          { header: t("accounting.g50.columns.ttc"), kind: "money" },
+        ],
+        rows: [
+          ...(["sales", "rents", "charges"] as const).map((nature) => [
+            t(`accounting.g50.${nature}`),
+            found.g50[nature].ht,
+            found.g50[nature].vat,
+            found.g50[nature].ttc,
+          ]),
+          [t("accounting.g50.vat"), null, found.g50.vat, null],
+          [t("accounting.g50.cash"), null, null, found.g50.cash],
+          [
+            t("accounting.g50.stampDuty", { rate: found.g50.stampDutyBp / 100 }),
+            null,
+            null,
+            found.g50.stampDuty,
+          ],
+          [t("accounting.g50.note"), null, null, null],
         ],
       },
     ],

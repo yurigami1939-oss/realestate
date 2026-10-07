@@ -5202,10 +5202,10 @@
   },
   "accounting": {
     "title": "Export comptable",
-    "description": "Les écritures de la période pour votre expert-comptable : chaque encaissement, paiement et mouvement de vos caisses et comptes, en deux lignes équilibrées.",
+    "description": "Les écritures de la période pour votre expert-comptable : chaque encaissement, paiement et mouvement de vos caisses et comptes, les ventes, loyers et appels de charges, en lignes équilibrées.",
     "export": "Écritures de la période",
     "download": "Télécharger les écritures (Excel)",
-    "hint": "Un journal par caisse ou compte ; les chèques comptent à leur réception, les virements internes passent par le compte de virements internes. Les ventes et appels de charges eux-mêmes restent à comptabiliser par l'expert-comptable.",
+    "hint": "Un journal par caisse ou compte : les chèques comptent à leur réception, les virements internes passent par le compte de virements internes. Puis les écritures de ventes (à la VSP ou à la remise des clés), de loyers et d'appels de charges, avec la TVA aux taux réglés ci-dessous, et le récapitulatif G50.",
     "chart": "Plan comptable",
     "counterparts": "Comptes de contrepartie (laissés vides : plan SCF par défaut)",
     "accounts": "Caisses et comptes",
@@ -5238,7 +5238,45 @@
       "income": "Autres recettes",
       "transfers": "Virements internes",
       "cashShort": "Écarts de caisse (manquants)",
-      "cashOver": "Écarts de caisse (excédents)"
+      "cashOver": "Écarts de caisse (excédents)",
+      "salesRevenue": "Ventes de logements et locaux",
+      "rentRevenue": "Loyers",
+      "chargesCalled": "Charges appelées (copropriété)",
+      "reserveFund": "Fonds de réserve des copropriétaires",
+      "vatCollected": "TVA collectée",
+      "salesJournal": "Journal des ventes et loyers",
+      "chargesJournal": "Journal des appels de charges"
+    },
+    "tax": {
+      "title": "Écritures de ventes et fiscalité",
+      "help": "Taux à fixer avec votre expert-comptable : 0 % (ou vide) = pas de ligne de TVA. Les prix de vente et les loyers sont TTC.",
+      "revenueEvent": "Comptabiliser les ventes",
+      "event": {
+        "vsp": "À la signature de la VSP",
+        "handover": "À la remise des clés (PV)"
+      },
+      "vatSales": "TVA sur les ventes (%)",
+      "vatRentCommercial": "TVA sur les loyers commerciaux (%)",
+      "vatRentResidential": "TVA sur les loyers d'habitation (%)",
+      "stampDuty": "Droit de timbre sur les encaissements en espèces (%)"
+    },
+    "g50": {
+      "title": "Récapitulatif pour la G50",
+      "help": "Chiffres de la période tirés des ventes, loyers, appels de charges et encaissements ; la déclaration reste à établir par l'expert-comptable.",
+      "sheet": "G50",
+      "columns": {
+        "item": "Rubrique",
+        "ht": "HT",
+        "vat": "TVA",
+        "ttc": "TTC"
+      },
+      "sales": "Ventes",
+      "rents": "Loyers et régularisations de charges",
+      "charges": "Appels de charges (copropriété)",
+      "vat": "TVA collectée",
+      "cash": "Encaissements en espèces",
+      "stampDuty": "Droit de timbre ({rate} %)",
+      "note": "TVA déductible, IRG sur salaires et autres impôts : à compléter par l'expert-comptable."
     }
   },
   "privacy": {
