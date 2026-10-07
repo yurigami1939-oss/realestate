@@ -40,6 +40,7 @@ export default async function EditProjectPage({
           code: project.code,
           name: project.name,
           status: project.status,
+          housingProgram: project.housingProgram,
           address: text(project.address),
           wilaya: text(project.wilaya),
           commune: text(project.commune),

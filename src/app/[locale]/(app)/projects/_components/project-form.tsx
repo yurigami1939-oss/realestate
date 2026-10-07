@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { FieldGroup } from "@/components/ui/field";
 import { useRouter } from "@/i18n/navigation";
+import { housingPrograms } from "@/lib/housing-aid";
 import { projectStatuses } from "@/lib/inventory";
 import { createProjectAction, updateProjectAction } from "@/server/inventory/actions";
 import { projectFields } from "@/server/inventory/schemas";
@@ -27,6 +28,7 @@ export const emptyProject: ProjectFormValues = {
   code: "",
   name: "",
   status: "planning",
+  housingProgram: "free",
   address: "",
   wilaya: "",
   commune: "",
@@ -103,12 +105,23 @@ export function ProjectForm({
                 autoCapitalize="characters"
               />
             </div>
-            <SelectField
-              control={form.control}
-              name="status"
-              label={f("status")}
-              options={projectStatuses.map((s) => ({ value: s, label: t(`projectStatus.${s}`) }))}
-            />
+            <div className="grid gap-4 sm:grid-cols-2">
+              <SelectField
+                control={form.control}
+                name="status"
+                label={f("status")}
+                options={projectStatuses.map((s) => ({ value: s, label: t(`projectStatus.${s}`) }))}
+              />
+              <SelectField
+                control={form.control}
+                name="housingProgram"
+                label={f("housingProgram")}
+                options={housingPrograms.map((p) => ({
+                  value: p,
+                  label: t(`housingProgram.${p}`),
+                }))}
+              />
+            </div>
             <TextField control={form.control} name="address" label={f("address")} />
             <div className="grid gap-4 sm:grid-cols-2">
               <TextField control={form.control} name="commune" label={f("commune")} />

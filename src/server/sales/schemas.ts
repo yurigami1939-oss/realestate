@@ -14,6 +14,7 @@ import {
   moneyText,
   optionalDateText,
   optionalMoneyText,
+  optionalPercentText,
   optionalText,
   percentText,
   requiredText,
@@ -172,6 +173,9 @@ const bankLoanFields = {
   decidedOn: optionalDateText(),
   reference: optionalText(80),
   notes: optionalText(1000),
+  /** Prêt à taux bonifié, and the loan's rate (%). */
+  subsidized: z.boolean().default(false),
+  rateBp: optionalPercentText(0, 20),
 };
 export const createBankLoanSchema = z.object({ reservationId: z.uuid(), ...bankLoanFields });
 export const updateBankLoanSchema = z.object({ bankLoanId: z.uuid(), ...bankLoanFields });

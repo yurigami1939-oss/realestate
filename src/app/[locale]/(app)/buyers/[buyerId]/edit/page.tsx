@@ -4,6 +4,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { PageHeader } from "@/components/app-shell/page-header";
 import { toLocale } from "@/i18n/locales";
+import { toDecimalString } from "@/lib/money";
 import { formatPhone } from "@/lib/phone";
 import { requirePermission } from "@/server/auth/page-guard";
 import { getBuyer } from "@/server/buyers/queries";
@@ -61,6 +62,10 @@ export default async function EditBuyerPage({
           profession: text(b.profession),
           employer: text(b.employer),
           maritalStatus: b.maritalStatus ?? "",
+          householdIncome:
+            b.householdIncome === null ? "" : toDecimalString(b.householdIncome).replace(".", ","),
+          ownsHome: b.ownsHome ?? false,
+          previousHousingAid: b.previousHousingAid ?? false,
           notes: text(b.notes),
           leadId: "",
         }}

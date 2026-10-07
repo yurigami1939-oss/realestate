@@ -24,6 +24,7 @@ import {
   unitStatuses,
   unitTypes,
 } from "../../lib/inventory";
+import { housingPrograms } from "../../lib/housing-aid";
 
 import {
   createdAt,
@@ -52,6 +53,8 @@ export const priceListStatus = pgEnum("price_list_status", ["draft", "applied", 
 const area = () => numeric({ precision: 10, scale: 2 });
 const notDeleted = (t: { deletedAt: unknown }) => sql`${t.deletedAt} is null`;
 
+export const housingProgram = pgEnum("housing_program", housingPrograms);
+
 /** Promotion immobilière. */
 export const project = pgTable(
   "project",
@@ -61,6 +64,8 @@ export const project = pgTable(
     code: text().notNull(),
     name: text().notNull(),
     status: projectStatus().notNull().default("planning"),
+    /** Free market, or logement promotionnel aidé (CNL aid, eligibility checks). */
+    housingProgram: housingProgram().notNull().default("free"),
     address: text(),
     wilaya: text(),
     commune: text(),

@@ -116,6 +116,8 @@ type BuyerSpec = {
   wilaya: string;
   profession: string;
   maritalStatus: "single" | "married";
+  /** Household's monthly income, DA (LPA). */
+  householdIncome?: string;
   received: ("id_card" | "birth_certificate" | "family_record" | "residence_certificate")[];
 };
 
@@ -137,6 +139,7 @@ async function buyerOf(spec: BuyerSpec, leads: Map<string, string>) {
       wilaya: spec.wilaya,
       profession: spec.profession,
       maritalStatus: spec.maritalStatus,
+      householdIncome: spec.householdIncome ?? "",
       leadId: spec.lead ? need(leads, spec.lead) : "",
     }),
   );
@@ -269,6 +272,7 @@ export async function seedSales(actors: Actors, ids: Ids) {
       wilaya: "16 - Alger",
       profession: "Technicien",
       maritalStatus: "single",
+      householdIncome: "68 000",
       received: [],
     },
     ids.leads,

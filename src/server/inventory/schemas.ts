@@ -1,6 +1,7 @@
 /** Isomorphic: shared by inventory forms and actions. Inputs are form strings. */
 import { z } from "zod";
 
+import { housingPrograms } from "@/lib/housing-aid";
 import {
   MAX_GENERATED_UNITS,
   orientations,
@@ -29,6 +30,8 @@ export const projectFields = z.object({
   code: codeText(12),
   name: requiredText(120),
   status: z.enum(projectStatuses),
+  /** Free market or logement promotionnel aidé (LPA checks on its sales). */
+  housingProgram: z.enum(housingPrograms).default("free"),
   address: optionalText(300),
   wilaya: optionalText(80),
   commune: optionalText(80),

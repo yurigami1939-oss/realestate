@@ -412,7 +412,8 @@
         "buildingPermitDate": "Date du permis",
         "launchedOn": "Lancement",
         "plannedDeliveryOn": "Livraison prévue",
-        "description": "Description"
+        "description": "Description",
+        "housingProgram": "Programme"
       }
     },
     "buildings": {
@@ -575,6 +576,10 @@
       "reused": "La fiche du jour est à jour.",
       "line": "Fiche du {date} · {name}",
       "pending": "Fiche en préparation…"
+    },
+    "housingProgram": {
+      "free": "Promotion libre",
+      "lpa": "Logement promotionnel aidé (LPA)"
     }
   },
   "crm": {
@@ -1057,7 +1062,10 @@
       "employer": "Employeur",
       "maritalStatus": "Situation familiale",
       "notes": "Notes",
-      "whatsappOptIn": "Accepte les notifications WhatsApp sur ce numéro (consentement recueilli)"
+      "whatsappOptIn": "Accepte les notifications WhatsApp sur ce numéro (consentement recueilli)",
+      "householdIncome": "Revenus mensuels du ménage (DA)",
+      "ownsHome": "Possède déjà un logement",
+      "previousHousingAid": "A déjà bénéficié d'une aide de l'État au logement"
     },
     "civility": {
       "mr": "M.",
@@ -1396,7 +1404,11 @@
       "disbursed": "Débloqué par la banque : {amount}",
       "errors": {
         "alreadyOpen": "Un dossier de crédit est déjà suivi pour cette vente."
-      }
+      },
+      "subsidized": "Prêt à taux bonifié",
+      "rate": "Taux du prêt (%)",
+      "subsidizedBadge": "taux bonifié",
+      "rateLine": "{rate} %"
     },
     "withdrawnNotice": "Réservation close par désistement le {date}. Encaissé : {paid} ; l'échéancier est conservé pour mémoire.",
     "obligations": {
@@ -5328,6 +5340,32 @@
       "onePerson": "Choisissez un acquéreur ou un prospect.",
       "alreadyAnonymized": "Ce prospect est déjà anonymisé.",
       "leadHasBuyer": "Un dossier acquéreur provient de ce prospect : ses données sont conservées avec ses contrats."
+    }
+  },
+  "housingAid": {
+    "title": "Logement promotionnel aidé (LPA)",
+    "help": "Chiffres des textes en vigueur, à tenir à jour : ils servent à vérifier les dossiers des projets LPA (avertissements seulement) et à estimer l'aide de la CNL et le taux bonifié. Multiples du SNMG : « 6 » ou « 1,5 ».",
+    "snmg": "SNMG mensuel (DA)",
+    "lpaMaxMultiple": "Plafond de revenus du ménage (× SNMG)",
+    "cnlBrackets": "Aide de la CNL par tranche de revenus",
+    "rateBrackets": "Taux bonifié par tranche de revenus",
+    "maxMultiple": "Tranche {index} : revenus jusqu'à (× SNMG)",
+    "aidAmount": "Aide de la tranche {index} (DA)",
+    "rate": "Taux de la tranche {index} (%)",
+    "addBracket": "Ajouter une tranche",
+    "saved": "Paramètres du logement aidé enregistrés.",
+    "saleTitle": "Logement promotionnel aidé",
+    "household": "Ménage de {name}",
+    "multiple": "{multiple} × SNMG",
+    "eligible": "Dossier dans les plafonds de la société.",
+    "cnlAid": "Aide de la CNL estimée : {amount}",
+    "rateLine": "Taux bonifié de la tranche : {rate} %",
+    "issues": {
+      "notConfigured": "Le SNMG n'est pas renseigné dans les réglages de la société.",
+      "incomeMissing": "Revenus du ménage non renseignés sur la fiche acquéreur.",
+      "incomeAbove": "Revenus du ménage au-dessus du plafond LPA.",
+      "ownsHome": "L'acquéreur déclare posséder déjà un logement.",
+      "previousAid": "L'acquéreur déclare avoir déjà bénéficié d'une aide de l'État au logement."
     }
   }
 }

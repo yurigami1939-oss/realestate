@@ -2,9 +2,12 @@ import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { PageHeader } from "@/components/app-shell/page-header";
+import { HousingAidForm } from "@/components/housing-aid/housing-aid-form";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toLocale } from "@/i18n/locales";
-import { formatPercentInput } from "@/lib/money";
+import { formatPercentInput, toDecimalString } from "@/lib/money";
 import { requirePermission } from "@/server/auth/page-guard";
+import { getHousingAidSettings } from "@/server/housing-aid/service";
 import { getCompanySettings } from "@/server/organizations/settings";
 
 import { CompanyForm } from "./_components/company-form";
@@ -19,7 +22,10 @@ export default async function CompanyPage({ params }: PageProps<"/[locale]/setti
   setRequestLocale(toLocale((await params).locale));
   const ctx = await requirePermission("organization:update");
   const settings = await getCompanySettings(ctx);
+  const aid = await getHousingAidSettings(ctx);
   const t = await getTranslations("company");
+  const th = await getTranslations("housingAid");
+  const amount = (v: bigint) => toDecimalString(v).replace(".", ",");
   const limit = (bp: number | undefined) => (bp === undefined ? "" : formatPercentInput(bp));
 
   return (
@@ -58,6 +64,28 @@ export default async function CompanyPage({ params }: PageProps<"/[locale]/setti
           vspLimitCompletion: limit(settings.vspLimits.completion),
         }}
       />
+      <Card data-testid="housing-aid">
+        <CardHeader>
+          <CardTitle className="text-base">{th("title")}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <HousingAidForm
+            defaultValues={{
+              snmg: aid.snmg === null ? "" : amount(aid.snmg),
+              lpaMaxMultiple:
+                aid.lpaMaxMultiple === null ? "" : formatPercentInput(aid.lpaMaxMultiple),
+              cnlBrackets: aid.cnlBrackets.map((b) => ({
+                maxMultiple: formatPercentInput(b.maxMultiple),
+                amount: amount(b.amount),
+              })),
+              rateBrackets: aid.rateBrackets.map((b) => ({
+                maxMultiple: formatPercentInput(b.maxMultiple),
+                rate: formatPercentInput(b.rateBp),
+              })),
+            }}
+          />
+        </CardContent>
+      </Card>
     </div>
   );
 }

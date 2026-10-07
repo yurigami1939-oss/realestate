@@ -46,6 +46,9 @@ export const emptyBuyer: BuyerFormValues = {
   profession: "",
   employer: "",
   maritalStatus: "",
+  householdIncome: "",
+  ownsHome: false,
+  previousHousingAid: false,
   notes: "",
   leadId: "",
 };
@@ -67,7 +70,10 @@ export function BuyerForm({
     resolver: zodResolver(createBuyerSchema),
     defaultValues,
   });
-  type Name = Exclude<keyof BuyerFormValues, "leadId" | "whatsappOptIn">;
+  type Name = Exclude<
+    keyof BuyerFormValues,
+    "leadId" | "whatsappOptIn" | "ownsHome" | "previousHousingAid"
+  >;
   type InputExtras = Pick<
     React.ComponentProps<"input">,
     "dir" | "lang" | "type" | "inputMode" | "list"
@@ -176,6 +182,21 @@ export function BuyerForm({
                 emptyLabel="—"
                 options={maritalStatuses.map((m) => ({ value: m, label: t(`maritalStatus.${m}`) }))}
               />
+            </div>
+            <div className="grid gap-4 sm:grid-cols-3">
+              {field("householdIncome", { ...ltr, inputMode: "decimal" })}
+              <div className="space-y-3 sm:col-span-2 sm:pt-6">
+                <CheckboxField
+                  control={form.control}
+                  name="ownsHome"
+                  label={t("fields.ownsHome")}
+                />
+                <CheckboxField
+                  control={form.control}
+                  name="previousHousingAid"
+                  label={t("fields.previousHousingAid")}
+                />
+              </div>
             </div>
             <TextareaField control={form.control} name="notes" label={t("fields.notes")} />
             <div className="flex gap-2">

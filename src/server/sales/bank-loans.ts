@@ -109,6 +109,8 @@ export async function listSaleBankLoans(ctx: TenantCtx, reservationId: string) {
         decidedOn: bankLoan.decidedOn,
         reference: bankLoan.reference,
         notes: bankLoan.notes,
+        subsidized: bankLoan.subsidized,
+        rateBp: bankLoan.rateBp,
       })
       .from(bankLoan)
       .where(eq(bankLoan.reservationId, reservationId))

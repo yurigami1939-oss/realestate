@@ -29,7 +29,7 @@ import { Link } from "@/i18n/navigation";
 import { toLocale } from "@/i18n/locales";
 import { certificateKinds } from "@/lib/certificates";
 import { addDays, formatDate, formatDateTime, todayInAlgiers } from "@/lib/dates";
-import { formatDZD, toDecimalString } from "@/lib/money";
+import { formatDZD, formatPercentInput, toDecimalString } from "@/lib/money";
 import { formatShare } from "@/lib/payment-plans";
 import { formatPhone } from "@/lib/phone";
 import { can } from "@/lib/permissions";
@@ -46,6 +46,7 @@ import { getSalesSettings } from "@/server/organizations/settings";
 import { getProjectPaymentSetup } from "@/server/payment-plans/queries";
 import { listSaleAmendments } from "@/server/sales/amendments";
 import { listSaleBankLoans } from "@/server/sales/bank-loans";
+import { getSaleHousingAid } from "@/server/housing-aid/service";
 import { getSaleFinancing } from "@/server/sales/financing";
 import { listReservableUnits } from "@/server/sales/queries";
 import { getSale } from "@/server/sales/sale-queries";
@@ -92,6 +93,7 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
   const { loans, disbursed } = await listSaleBankLoans(ctx, saleId);
   const certificates = await listSaleCertificates(ctx, saleId);
   const financing = await getSaleFinancing(ctx, saleId);
+  const housingAid = await getSaleHousingAid(ctx, saleId);
   const accounts = can(ctx.roles, "payment:create") ? await listAccountChoices(ctx) : [];
   const changeable = sale.status === "reserved" && can(ctx.roles, "sale:update");
   const buyerChoices = changeable
@@ -712,6 +714,55 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
             </Card>
           ) : null}
 
+          {housingAid ? (
+            <Card data-testid="sale-lpa">
+              <CardHeader>
+                <CardTitle className="text-base">{t("housingAid.saleTitle")}</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2 text-sm">
+                {housingAid.buyer ? (
+                  <div className="flex justify-between gap-3">
+                    <Link
+                      href={`/buyers/${housingAid.buyer.buyerId}`}
+                      className="text-muted-foreground hover:underline"
+                    >
+                      {t("housingAid.household", {
+                        name: `${housingAid.buyer.lastName} ${housingAid.buyer.firstName}`,
+                      })}
+                    </Link>
+                    <span className="text-end">
+                      {housingAid.buyer.income === null ? (
+                        "—"
+                      ) : (
+                        <bdi dir="ltr">{money(housingAid.buyer.income)}</bdi>
+                      )}
+                      {housingAid.check.multiple !== null ? (
+                        <span className="block text-xs text-muted-foreground">
+                          {t("housingAid.multiple", { multiple: housingAid.check.multiple / 100 })}
+                        </span>
+                      ) : null}
+                    </span>
+                  </div>
+                ) : null}
+                {housingAid.check.issues.length > 0 ? (
+                  <ul className="space-y-1 rounded-md border border-amber-300 bg-amber-50 p-2 text-amber-900">
+                    {housingAid.check.issues.map((issue) => (
+                      <li key={issue}>{t(`housingAid.issues.${issue}`)}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-emerald-700">{t("housingAid.eligible")}</p>
+                )}
+                {housingAid.check.cnlAid !== null ? (
+                  <p>{t("housingAid.cnlAid", { amount: money(housingAid.check.cnlAid) })}</p>
+                ) : null}
+                {housingAid.check.rateBp !== null ? (
+                  <p>{t("housingAid.rateLine", { rate: housingAid.check.rateBp / 100 })}</p>
+                ) : null}
+              </CardContent>
+            </Card>
+          ) : null}
+
           <Card>
             <CardHeader>
               <CardTitle className="text-base">{t("sales.sections.buyers")}</CardTitle>
@@ -1076,6 +1127,11 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
                                     decidedOn: followedLoan.decidedOn ?? "",
                                     reference: followedLoan.reference ?? "",
                                     notes: followedLoan.notes ?? "",
+                                    subsidized: followedLoan.subsidized,
+                                    rateBp:
+                                      followedLoan.rateBp === null
+                                        ? ""
+                                        : formatPercentInput(followedLoan.rateBp),
                                   }
                                 : null
                             }
@@ -1087,6 +1143,14 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
                           <div>
                             {t("sales.loan.line", { bank: l.bank, requested: money(l.requested) })}{" "}
                             <Badge variant="outline">{t(`sales.loan.statuses.${l.status}`)}</Badge>
+                            {l.subsidized || l.rateBp !== null ? (
+                              <span className="ms-1 text-muted-foreground">
+                                {l.subsidized ? t("sales.loan.subsidizedBadge") : ""}
+                                {l.rateBp !== null
+                                  ? ` ${t("sales.loan.rateLine", { rate: l.rateBp / 100 })}`
+                                  : ""}
+                              </span>
+                            ) : null}
                           </div>
                           {l.approved !== null ? (
                             <div className="text-muted-foreground">

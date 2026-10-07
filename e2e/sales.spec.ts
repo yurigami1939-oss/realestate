@@ -104,6 +104,17 @@ test.describe("directrice commerciale", () => {
     await expect(page.getByTestId("sale-commission")).toContainText("1,5");
   });
 
+  test("checks an LPA sale's household against the company's settings", async ({ page }) => {
+    // Les Terrasses de la Corniche is sold as LPA (src/db/seed/housing-aid.ts).
+    await page.goto("/fr/sales?q=Cherfaoui");
+    await page.getByTestId("sales-table").getByRole("link", { name: /^RES-/ }).first().click();
+    const lpa = page.getByTestId("sale-lpa");
+    await expect(lpa).toContainText("Ménage de Cherfaoui Walid");
+    await expect(lpa).toContainText("Dossier dans les plafonds de la société.");
+    await expect(lpa).toContainText("Aide de la CNL estimée");
+    await expect(lpa).toContainText("Taux bonifié de la tranche : 1 %");
+  });
+
   test("adds the employer's aid to the seeded sale's financing plan", async ({ page }) => {
     await page.goto("/fr/sales?status=sold");
     await page.getByTestId("sales-table").getByRole("link", { name: /^RES-/ }).first().click();

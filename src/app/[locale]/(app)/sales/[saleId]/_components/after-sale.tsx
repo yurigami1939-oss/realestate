@@ -10,7 +10,7 @@ import type { z } from "zod";
 
 import { applyFieldErrors } from "@/components/forms/apply-field-errors";
 import { FormDialog } from "@/components/forms/form-dialog";
-import { SelectField, TextareaField } from "@/components/forms/fields";
+import { CheckboxField, SelectField, TextareaField } from "@/components/forms/fields";
 import { TextField, useTranslateKey } from "@/components/forms/text-field";
 import { useAction } from "@/components/forms/use-action";
 import { AccountField, type AccountOption } from "@/components/treasury/account-field";
@@ -515,6 +515,9 @@ export type LoanInput = {
   decidedOn: string;
   reference: string;
   notes: string;
+  subsidized: boolean;
+  /** The loan's rate as typed ("3", "1,5"), "" when unknown. */
+  rateBp: string;
 };
 
 /** Opens or updates the buyer's bank loan file (one followed loan per sale). */
@@ -539,6 +542,8 @@ export function BankLoanDialog({
     decidedOn: loan?.decidedOn ?? "",
     reference: loan?.reference ?? "",
     notes: loan?.notes ?? "",
+    subsidized: loan?.subsidized ?? false,
+    rateBp: loan?.rateBp ?? "",
   };
   const form = useForm<LoanValues, unknown, z.output<typeof createBankLoanSchema>>({
     resolver: zodResolver(createBankLoanSchema),
@@ -616,6 +621,16 @@ export function BankLoanDialog({
         />
       </div>
       <TextField control={form.control} name="reference" label={t("reference")} />
+      <div className="grid items-end gap-4 sm:grid-cols-2">
+        <CheckboxField control={form.control} name="subsidized" label={t("subsidized")} />
+        <TextField
+          control={form.control}
+          name="rateBp"
+          label={t("rate")}
+          inputMode="decimal"
+          dir="ltr"
+        />
+      </div>
       <TextareaField control={form.control} name="notes" label={t("notes")} rows={2} />
     </FormDialog>
   );

@@ -6,6 +6,7 @@ import {
   optionalDateText,
   optionalEmailText,
   optionalEnum,
+  optionalMoneyText,
   optionalNinText,
   optionalPhoneText,
   optionalText,
@@ -44,6 +45,10 @@ export const buyerFields = z.object({
   profession: optionalText(120),
   employer: optionalText(120),
   maritalStatus: optionalEnum(maritalStatuses),
+  /** Household's monthly income, DA (LPA, subsidised loans). */
+  householdIncome: optionalMoneyText(),
+  ownsHome: z.boolean().default(false),
+  previousHousingAid: z.boolean().default(false),
   notes: optionalText(2000),
 });
 

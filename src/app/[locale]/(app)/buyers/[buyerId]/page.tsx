@@ -1,7 +1,7 @@
 import { FileSignature, Pencil } from "lucide-react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { PageHeader } from "@/components/app-shell/page-header";
@@ -166,6 +166,7 @@ function Rows({ rows }: { rows: { label: string; value: React.ReactNode }[] }) {
 
 function IdentityCard({ buyer }: { buyer: BuyerDetail }) {
   const t = useTranslations("buyers");
+  const locale = useLocale() === "ar" ? "ar" : "fr";
   return (
     <Card className="lg:col-span-2">
       <CardHeader>
@@ -209,6 +210,17 @@ function IdentityCard({ buyer }: { buyer: BuyerDetail }) {
             {
               label: t("fields.profession"),
               value: [buyer.profession, buyer.employer].filter(Boolean).join(" · ") || null,
+            },
+            {
+              label: t("fields.householdIncome"),
+              value:
+                buyer.householdIncome === null ? null : (
+                  <span>
+                    <bdi dir="ltr">{formatDZD(buyer.householdIncome, locale)}</bdi>
+                    {buyer.ownsHome ? ` · ${t("fields.ownsHome")}` : ""}
+                    {buyer.previousHousingAid ? ` · ${t("fields.previousHousingAid")}` : ""}
+                  </span>
+                ),
             },
           ]}
         />

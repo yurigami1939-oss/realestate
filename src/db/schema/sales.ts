@@ -17,6 +17,7 @@ import {
 } from "drizzle-orm/pg-core";
 
 import type { TaxSettings } from "../../lib/accounting";
+import type { StoredHousingAid } from "../../lib/housing-aid";
 import { discountRequestStatuses } from "../../lib/discounts";
 import { planStepTriggers } from "../../lib/payment-plans";
 import {
@@ -101,6 +102,11 @@ export const organizationSetting = pgTable(
     /** Accounting export: the chart's codes by flow nature, over the SCF defaults. */
     accountingCodes: jsonb()
       .$type<Partial<Record<string, string>>>()
+      .notNull()
+      .default(sql`'{}'::jsonb`),
+    /** LPA: SNMG, income ceiling, CNL aid and subsidised rate brackets (CLAUDE.md §7). */
+    housingAid: jsonb()
+      .$type<StoredHousingAid>()
       .notNull()
       .default(sql`'{}'::jsonb`),
     /** Accounting export: when sales are booked, VAT rates, stamp duty (CLAUDE.md §7 Treasury). */
@@ -1092,6 +1098,9 @@ export const bankLoan = pgTable(
     decidedOn: date({ mode: "string" }),
     reference: text(),
     notes: text(),
+    /** A subsidised-rate loan (prêt à taux bonifié) and its rate. */
+    subsidized: boolean().notNull().default(false),
+    rateBp: integer(),
     ...timestamps(),
   },
   (t) => [

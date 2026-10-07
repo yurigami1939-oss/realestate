@@ -16,6 +16,7 @@ import { seedObligations } from "./obligations";
 import { seedOnlinePayments } from "./online-payments";
 import { seedWhatsapp } from "./whatsapp";
 import { seedPortal } from "./portal";
+import { seedHousingAid } from "./housing-aid";
 import { seedRentals } from "./rentals";
 import { seedSales } from "./reservations";
 import { seedBankStatement, seedTreasuryAccounts, seedTreasuryMovements } from "./treasury";
@@ -112,6 +113,7 @@ export async function seedDemo(): Promise<void> {
       },
       { projects: projectIds, units: unitIds, leads, plans },
     );
+    await seedHousingAid(ctx("owner", ["owner"]), projectIds);
     await seedResidences({
       owner: ctx("owner", ["owner"]),
       manager: ctx("propertyManager", ["property_manager"]),

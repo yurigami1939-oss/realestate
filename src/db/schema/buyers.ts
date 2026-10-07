@@ -15,7 +15,7 @@ import {
 
 import { buyerDocumentKinds, civilities, documentStatuses, maritalStatuses } from "../../lib/sales";
 
-import { id, organizationId, softDelete, timestamps, updatedAt, userRef } from "./_columns";
+import { id, money, organizationId, softDelete, timestamps, updatedAt, userRef } from "./_columns";
 import { lead } from "./crm";
 import { file } from "./files";
 
@@ -61,6 +61,11 @@ export const buyer = pgTable(
     profession: text(),
     employer: text(),
     maritalStatus: maritalStatus(),
+    /** Household's monthly income, for LPA and subsidised loans (CLAUDE.md §7). */
+    householdIncome: money(),
+    /** Declared: already owns a dwelling / already received a state housing aid. */
+    ownsHome: boolean(),
+    previousHousingAid: boolean(),
     notes: text(),
     ...timestamps(),
     ...softDelete(),
