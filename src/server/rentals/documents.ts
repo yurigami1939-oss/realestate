@@ -53,10 +53,18 @@ export async function loadRentReceiptData(
   const detailsFr = details("n°");
   const detailsAr = details("رقم");
   const periodsFr = p.allocation
-    .map((a) => `du ${formatDate(a.fromOn)} au ${formatDate(a.toOn)}`)
+    .map((a) =>
+      a.settlementYear === undefined
+        ? `du ${formatDate(a.fromOn)} au ${formatDate(a.toOn)}`
+        : `régularisation des charges ${a.settlementYear}`,
+    )
     .join(", ");
   const periodsAr = p.allocation
-    .map((a) => `من ${formatDate(a.fromOn)} إلى ${formatDate(a.toOn)}`)
+    .map((a) =>
+      a.settlementYear === undefined
+        ? `من ${formatDate(a.fromOn)} إلى ${formatDate(a.toOn)}`
+        : `تسوية الأعباء لسنة ${a.settlementYear}`,
+    )
     .join("، ");
   const where = {
     fr: `Bail ${row.leaseNumber} · ${row.projectName}, lot ${row.unitCode}`,

@@ -9,11 +9,13 @@ import { UnitStatusBadge } from "@/components/inventory/status";
 import { InspectionDialog } from "@/components/rentals/inspection-dialog";
 import {
   CancelRentPaymentDialog,
+  CancelSettlementDialog,
   ClearRentChequeDialog,
   EndLeaseDialog,
   RecordRentPaymentDialog,
   RenewLeaseDialog,
   ReviseRentDialog,
+  SettleChargesDialog,
   SettleDepositDialog,
 } from "@/components/rentals/lease-dialogs";
 import { InspectionPdf, LeaseStateBadge, RentReceiptPdf } from "@/components/rentals/rentals-ui";
@@ -89,7 +91,15 @@ export default async function LeasePage({ params }: PageProps<"/[locale]/rentals
   const canInspect = can(ctx.roles, "lease:update");
   // A revision starts with a period after the first one and after the latest revision.
   const lastRevision = lease.revisions.at(-1)?.effectiveOn ?? lease.startOn;
-  const revisable = st.lines.map((l) => l.fromOn).filter((day) => day > lastRevision);
+  const revisable = st.lines
+    .filter((l) => l.settlementYear === undefined)
+    .map((l) => l.fromOn)
+    .filter((day) => day > lastRevision);
+  const canSettle = can(ctx.roles, "lease:update");
+  const toSettle = lease.settlementChoices.filter((c) => !c.settled).reverse();
+  const credit = lease.settlements
+    .filter((s) => s.cancelledAt === null && s.balance < 0n)
+    .reduce((sum, s) => sum - s.balance, 0n);
   const revised =
     lease.inForce.monthlyRent !== lease.monthlyRent ||
     lease.inForce.monthlyCharges !== lease.monthlyCharges;
@@ -255,6 +265,11 @@ export default async function LeasePage({ params }: PageProps<"/[locale]/rentals
                   </div>
                 ))}
               </dl>
+              {credit > 0n ? (
+                <p className="text-xs text-muted-foreground">
+                  {t("settlement.creditIncluded", { amount: money(credit) })}
+                </p>
+              ) : null}
               <div className="overflow-x-auto">
                 <Table data-testid="rent-schedule">
                   <TableHeader>
@@ -269,10 +284,21 @@ export default async function LeasePage({ params }: PageProps<"/[locale]/rentals
                     {st.lines.map((line) => (
                       <TableRow key={line.position}>
                         <TableCell className="whitespace-normal">
-                          {formatDate(line.fromOn)} → {formatDate(line.toOn)}
-                          <span className="block text-xs text-muted-foreground">
-                            {t("monthsCount", { count: line.months })}
-                          </span>
+                          {line.settlementYear === undefined ? (
+                            <>
+                              {formatDate(line.fromOn)} → {formatDate(line.toOn)}
+                              <span className="block text-xs text-muted-foreground">
+                                {t("monthsCount", { count: line.months })}
+                              </span>
+                            </>
+                          ) : (
+                            <>
+                              {t("settlement.line", { year: line.settlementYear })}
+                              <span className="block text-xs text-muted-foreground">
+                                {t("settlement.dueLine", { date: formatDate(line.dueOn) })}
+                              </span>
+                            </>
+                          )}
                         </TableCell>
                         <TableCell className="text-end tabular-nums" dir="ltr">
                           {money(line.amount)}
@@ -290,6 +316,64 @@ export default async function LeasePage({ params }: PageProps<"/[locale]/rentals
               </div>
             </CardContent>
           </Card>
+
+          {lease.settlements.length > 0 || (canSettle && toSettle.length > 0) ? (
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between gap-2">
+                <CardTitle className="text-base">{t("settlement.cardTitle")}</CardTitle>
+                {canSettle && toSettle.length > 0 ? (
+                  <SettleChargesDialog
+                    leaseId={lease.id}
+                    choices={toSettle}
+                    dueOn={addDays(today, 30)}
+                  />
+                ) : null}
+              </CardHeader>
+              <CardContent>
+                {lease.settlements.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">{t("settlement.none")}</p>
+                ) : (
+                  <ul className="divide-y text-sm" data-testid="lease-settlements">
+                    {lease.settlements.map((s) => (
+                      <li
+                        key={s.id}
+                        className={`flex flex-wrap items-start justify-between gap-2 py-2 ${
+                          s.cancelledAt ? "text-muted-foreground line-through" : ""
+                        }`}
+                      >
+                        <div className="space-y-0.5">
+                          <p className="font-medium">{t("settlement.line", { year: s.year })}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {t("settlement.detail", {
+                              provisions: money(s.provisions),
+                              actual: money(s.actual),
+                            })}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {s.createdByName}
+                            {s.note ? ` · ${s.note}` : ""}
+                            {s.cancellationReason ? ` · ${s.cancellationReason}` : ""}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge variant={s.balance > 0n ? "default" : "secondary"}>
+                            {s.balance > 0n
+                              ? t("settlement.dueBadge", { amount: money(s.balance) })
+                              : s.balance < 0n
+                                ? t("settlement.creditBadge", { amount: money(-s.balance) })
+                                : t("settlement.even")}
+                          </Badge>
+                          {canSettle && s.cancelledAt === null ? (
+                            <CancelSettlementDialog settlementId={s.id} />
+                          ) : null}
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </CardContent>
+            </Card>
+          ) : null}
 
           <Card>
             <CardHeader>

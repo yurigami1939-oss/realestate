@@ -20,7 +20,7 @@ import { nextDocumentNumber } from "@/server/numbering/next-document-number";
 import { addLeaseOccupant, endLeaseOccupant } from "@/server/residences/service";
 import { notifyRentPayment } from "@/server/whatsapp/notify";
 
-import { leasePaid, leaseRevisions, rentStatement } from "./accounts";
+import { leaseExtras, leasePaid, leaseRevisions, rentStatement } from "./accounts";
 import type {
   cancelRentPaymentSchema,
   clearRentChequeSchema,
@@ -366,11 +366,9 @@ export async function recordRentPayment(ctx: TenantCtx, input: In<typeof recordR
   return withTenant(ctx, async (tx) => {
     const current = await loadLease(tx, input.leaseId);
     const paid = (await leasePaid(tx, [current.id])).get(current.id) ?? { rent: 0n, deposit: 0n };
-    const terms = {
-      ...current,
-      revisions: (await leaseRevisions(tx, [current.id])).get(current.id),
-    };
-    let allocation: { fromOn: string; toOn: string; amount: string }[] = [];
+    const terms = { ...current, ...(await leaseExtras(tx, [current.id]))(current.id) };
+    let allocation: { fromOn: string; toOn: string; amount: string; settlementYear?: number }[] =
+      [];
     if (input.kind === "rent") {
       const before = rentStatement(terms, paid.rent, today);
       if (input.amount > before.remaining) throw invalid("amount", "rentals.errors.aboveRemaining");
@@ -378,9 +376,13 @@ export async function recordRentPayment(ctx: TenantCtx, input: In<typeof recordR
       allocation = after.lines.flatMap((line) => {
         const settled =
           line.paid - (before.lines.find((l) => l.position === line.position)?.paid ?? 0n);
-        return settled > 0n
-          ? [{ fromOn: line.fromOn, toOn: line.toOn, amount: settled.toString() }]
-          : [];
+        if (settled <= 0n) return [];
+        const entry = { fromOn: line.fromOn, toOn: line.toOn, amount: settled.toString() };
+        return [
+          line.settlementYear === undefined
+            ? entry
+            : { ...entry, settlementYear: line.settlementYear },
+        ];
       });
     } else {
       assertActive(current);

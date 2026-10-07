@@ -191,7 +191,7 @@ export const rentPayment = pgTable(
     receiptNumber: text().notNull(),
     /** Rent periods the payment settled when it was recorded, as printed on the quittance. */
     allocation: jsonb()
-      .$type<{ fromOn: string; toOn: string; amount: string }[]>()
+      .$type<{ fromOn: string; toOn: string; amount: string; settlementYear?: number }[]>()
       .notNull()
       .default(sql`'[]'::jsonb`),
     /** The cash desk or account the money landed on (CLAUDE.md §7 Treasury). */
@@ -307,5 +307,45 @@ export const leaseRevision = pgTable(
       foreignColumns: [lease.organizationId, lease.id],
     }),
     check("lease_revision_amounts", sql`${t.monthlyRent} > 0 and ${t.monthlyCharges} >= 0`),
+  ],
+);
+
+/**
+ * Régularisation annuelle des charges of a lease: the provisions billed for a year against the
+ * actual charges; the balance is due from the tenant (positive) or credited to them (negative)
+ * in the rent account. Cancelled with a reason, never edited; one live per lease and year.
+ */
+export const leaseChargeSettlement = pgTable(
+  "lease_charge_settlement",
+  {
+    id: id(),
+    organizationId: organizationId(),
+    leaseId: uuid().notNull(),
+    year: integer().notNull(),
+    provisions: money().notNull(),
+    actual: money().notNull(),
+    /** actual − provisions: due from the tenant when positive, a credit when negative. */
+    balance: money().notNull(),
+    dueOn: date({ mode: "string" }).notNull(),
+    note: text(),
+    createdBy: userRef().notNull(),
+    createdAt: createdAt(),
+    cancelledAt: instant(),
+    cancellationReason: text(),
+  },
+  (t) => [
+    unique().on(t.organizationId, t.id),
+    foreignKey({
+      name: "lease_charge_settlement_lease_fk",
+      columns: [t.organizationId, t.leaseId],
+      foreignColumns: [lease.organizationId, lease.id],
+    }),
+    uniqueIndex("lease_charge_settlement_live_key")
+      .on(t.organizationId, t.leaseId, t.year)
+      .where(sql`${t.cancelledAt} is null`),
+    check(
+      "lease_charge_settlement_amounts",
+      sql`${t.provisions} >= 0 and ${t.actual} >= 0 and ${t.balance} = ${t.actual} - ${t.provisions}`,
+    ),
   ],
 );

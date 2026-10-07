@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { defineAction } from "@/server/action";
 
 import {
+  cancelChargeSettlementSchema,
   cancelRentPaymentSchema,
   clearRentChequeSchema,
   createLeaseSchema,
@@ -16,6 +17,7 @@ import {
   rentReceiptIdSchema,
   reviseRentSchema,
   settleDepositSchema,
+  settleLeaseChargesSchema,
   updateLeaseSchema,
 } from "./schemas";
 import {
@@ -32,6 +34,7 @@ import {
   settleDeposit,
   updateLease,
 } from "./service";
+import { cancelChargeSettlement, settleLeaseCharges } from "./settlements";
 
 function mutation<T>(run: () => Promise<T>): Promise<T> {
   return run().then((result) => {
@@ -68,6 +71,14 @@ export const renewLeaseAction = defineAction(
 export const reviseRentAction = defineAction(
   { input: reviseRentSchema, permission: "lease:update" },
   (input, ctx) => mutation(() => reviseRent(ctx, input)),
+);
+export const settleLeaseChargesAction = defineAction(
+  { input: settleLeaseChargesSchema, permission: "lease:update" },
+  (input, ctx) => mutation(() => settleLeaseCharges(ctx, input)),
+);
+export const cancelChargeSettlementAction = defineAction(
+  { input: cancelChargeSettlementSchema, permission: "lease:update" },
+  (input, ctx) => mutation(() => cancelChargeSettlement(ctx, input)),
 );
 export const settleDepositAction = defineAction(
   { input: settleDepositSchema, permission: "lease:update" },

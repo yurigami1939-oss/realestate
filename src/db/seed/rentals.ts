@@ -2,8 +2,8 @@
  * Demo rentals (module 5): the shop the company kept at El Yasmine leased to a pharmacy (rent
  * paid quarterly in advance, the current quarter overdue), a flat of Les Amandiers rented to a
  * family (rent paid to date, term ending within two months) and another one left last spring
- * (exit inspection, part of the deposit kept). Dated relative to today (Algiers); the PDFs
- * render when `pnpm worker` runs.
+ * (exit inspection, part of the deposit kept); the pharmacy's charges of last year are settled
+ * (a balance due). Dated relative to today (Algiers); the PDFs render when `pnpm worker` runs.
  */
 import { and, eq } from "drizzle-orm";
 
@@ -20,6 +20,7 @@ import {
   recordRentPaymentSchema,
   reviseRentSchema,
   settleDepositSchema,
+  settleLeaseChargesSchema,
 } from "@/server/rentals/schemas";
 import {
   createLease,
@@ -29,6 +30,7 @@ import {
   reviseRent,
   settleDeposit,
 } from "@/server/rentals/service";
+import { settleLeaseCharges } from "@/server/rentals/settlements";
 
 type Actors = { manager: TenantCtx; cashier: TenantCtx };
 
@@ -188,6 +190,23 @@ export async function seedRentals(actors: Actors) {
       reason: "Indexation annuelle de 3 % (article 5 du bail)",
     }),
   );
+  // Last year's charges settled against its provisions: 4 500 DA more, due within 20 days.
+  const lastYear = Number(today.slice(0, 4)) - 1;
+  const choice = (await getLease(actors.manager, pharmacy))?.settlementChoices.find(
+    (c) => c.year === lastYear,
+  );
+  if (choice) {
+    await settleLeaseCharges(
+      actors.manager,
+      settleLeaseChargesSchema.parse({
+        leaseId: pharmacy,
+        year: String(lastYear),
+        actual: asInput(choice.provisions + 4_500_00n),
+        dueOn: addDays(today, 20),
+        note: "Décompte des charges de la résidence El Yasmine",
+      }),
+    );
+  }
   await inspect(
     actors,
     pharmacy,

@@ -94,6 +94,9 @@ REVOKE DELETE, TRUNCATE ON public.residence_check FROM realestate_app;
 REVOKE UPDATE, DELETE, TRUNCATE ON public.residence_check_visit FROM realestate_app;
 GRANT UPDATE (scan_file_id) ON public.residence_check_visit TO realestate_app;
 -- Rent revisions are kept as recorded.
+-- Charge settlements of leases are cancelled, never edited.
+REVOKE UPDATE, DELETE, TRUNCATE ON public.lease_charge_settlement FROM realestate_app;
+GRANT UPDATE (cancelled_at, cancellation_reason) ON public.lease_charge_settlement TO realestate_app;
 REVOKE UPDATE, DELETE, TRUNCATE ON public.lease_revision FROM realestate_app;
 -- Recovery files are closed, never deleted; their steps are append-only; a repayment plan is
 -- cancelled, never edited.

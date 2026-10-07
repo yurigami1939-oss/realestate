@@ -8,6 +8,7 @@ import {
   DoorOpen,
   HandCoins,
   RefreshCw,
+  Scale,
   TrendingUp,
 } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
@@ -26,10 +27,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatDate } from "@/lib/dates";
-import { applyRate, formatDZD, toDecimalString } from "@/lib/money";
+import { applyRate, formatDZD, parseDZD, toDecimalString } from "@/lib/money";
 import { rentFrequencies, type RentPaymentKind, rentPaymentMethods } from "@/lib/rentals";
 import type { AppErrorShape } from "@/lib/result";
 import {
+  cancelChargeSettlementAction,
   cancelRentPaymentAction,
   clearRentChequeAction,
   endLeaseAction,
@@ -37,8 +39,10 @@ import {
   renewLeaseAction,
   reviseRentAction,
   settleDepositAction,
+  settleLeaseChargesAction,
 } from "@/server/rentals/actions";
 import {
+  cancelChargeSettlementSchema,
   cancelRentPaymentSchema,
   clearRentChequeSchema,
   endLeaseSchema,
@@ -46,6 +50,7 @@ import {
   renewLeaseSchema,
   reviseRentSchema,
   settleDepositSchema,
+  settleLeaseChargesSchema,
 } from "@/server/rentals/schemas";
 
 /** Field errors from the server land on the form; other errors are toasted. */
@@ -593,6 +598,157 @@ export function ReviseRentDialog({
           dir="ltr"
         />
       </div>
+      <TextareaField control={form.control} name="reason" label={t("reason")} rows={2} />
+    </FormDialog>
+  );
+}
+
+type SettlementValues = z.input<typeof settleLeaseChargesSchema>;
+
+/** A year the lease's charges can be settled for, with its provisions and the suggested actual. */
+export type SettlementChoice = {
+  year: number;
+  provisions: bigint;
+  suggested: bigint | null;
+};
+
+/**
+ * Régularisation des charges: the year's actual charges against the provisions billed; the
+ * balance is due from the tenant, or credited to them.
+ */
+export function SettleChargesDialog({
+  leaseId,
+  choices,
+  dueOn,
+}: {
+  leaseId: string;
+  /** Years not settled yet, latest first. */
+  choices: SettlementChoice[];
+  /** Default due day of a balance owed by the tenant. */
+  dueOn: string;
+}) {
+  const t = useTranslations("rentals.settlement");
+  const locale = useLocale() === "ar" ? "ar" : "fr";
+  const [open, setOpen] = useState(false);
+  const settle = useAction(settleLeaseChargesAction);
+  const input = (v: bigint | null | undefined) =>
+    v === null || v === undefined ? "" : toDecimalString(v).replace(".", ",");
+  const first = choices[0];
+  const form = useForm<SettlementValues, unknown, z.output<typeof settleLeaseChargesSchema>>({
+    resolver: zodResolver(settleLeaseChargesSchema),
+    defaultValues: {
+      leaseId,
+      year: first ? String(first.year) : "",
+      actual: input(first?.suggested),
+      dueOn,
+      note: "",
+    },
+  });
+  const year = useWatch({ control: form.control, name: "year" });
+  const actual = useWatch({ control: form.control, name: "actual" });
+  const choice = choices.find((c) => String(c.year) === year);
+  const parsed = parseDZD(actual ?? "");
+  const balance = choice && parsed !== null ? parsed - choice.provisions : null;
+  return (
+    <FormDialog
+      open={open}
+      onOpenChange={setOpen}
+      trigger={
+        <Button variant="outline" size="sm">
+          <Scale data-icon="inline-start" />
+          {t("open")}
+        </Button>
+      }
+      title={t("title")}
+      description={t("description")}
+      submitLabel={t("submit")}
+      pending={settle.pending}
+      onSubmit={form.handleSubmit(() =>
+        settle.run(form.getValues(), {
+          onSuccess: () => {
+            toast.success(t("done"));
+            setOpen(false);
+          },
+          onError: fieldErrors(form),
+        }),
+      )}
+    >
+      <div className="grid gap-4 sm:grid-cols-2">
+        <SelectField
+          control={form.control}
+          name="year"
+          label={t("year")}
+          options={choices.map((c) => ({ value: String(c.year), label: String(c.year) }))}
+          onValueChange={(value) =>
+            form.setValue("actual", input(choices.find((c) => String(c.year) === value)?.suggested))
+          }
+        />
+        <TextField
+          control={form.control}
+          name="actual"
+          label={t("actual")}
+          description={choice?.suggested === null ? t("noCalls") : t("suggestedHelp")}
+          inputMode="decimal"
+          dir="ltr"
+        />
+      </div>
+      {choice ? (
+        <dl className="grid gap-1 rounded-md border p-3 text-sm" data-testid="settlement-preview">
+          <div className="flex justify-between gap-3">
+            <dt className="text-muted-foreground">{t("provisions")}</dt>
+            <dd dir="ltr">{formatDZD(choice.provisions, locale)}</dd>
+          </div>
+          {balance !== null ? (
+            <div className="flex justify-between gap-3 font-medium">
+              <dt>{balance >= 0n ? t("due") : t("credit")}</dt>
+              <dd dir="ltr">{formatDZD(balance >= 0n ? balance : -balance, locale)}</dd>
+            </div>
+          ) : null}
+        </dl>
+      ) : null}
+      <TextField control={form.control} name="dueOn" label={t("dueOn")} type="date" dir="ltr" />
+      <TextareaField control={form.control} name="note" label={t("note")} rows={2} />
+    </FormDialog>
+  );
+}
+
+export function CancelSettlementDialog({ settlementId }: { settlementId: string }) {
+  const t = useTranslations("rentals.settlement");
+  const [open, setOpen] = useState(false);
+  const cancel = useAction(cancelChargeSettlementAction);
+  const form = useForm<
+    z.input<typeof cancelChargeSettlementSchema>,
+    unknown,
+    z.output<typeof cancelChargeSettlementSchema>
+  >({
+    resolver: zodResolver(cancelChargeSettlementSchema),
+    defaultValues: { settlementId, reason: "" },
+  });
+  return (
+    <FormDialog
+      open={open}
+      onOpenChange={setOpen}
+      trigger={
+        <Button variant="ghost" size="sm">
+          <Ban data-icon="inline-start" />
+          {t("cancel")}
+        </Button>
+      }
+      title={t("cancelTitle")}
+      description={t("cancelDescription")}
+      submitLabel={t("cancel")}
+      destructive
+      pending={cancel.pending}
+      onSubmit={form.handleSubmit(() =>
+        cancel.run(form.getValues(), {
+          onSuccess: () => {
+            toast.success(t("cancelled"));
+            setOpen(false);
+          },
+          onError: fieldErrors(form),
+        }),
+      )}
+    >
       <TextareaField control={form.control} name="reason" label={t("reason")} rows={2} />
     </FormDialog>
   );

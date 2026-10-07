@@ -1,12 +1,18 @@
 import "server-only";
 
-import { and, eq, inArray, sql } from "drizzle-orm";
+import { and, eq, inArray, isNull, sql } from "drizzle-orm";
 
 import type { Tx } from "@/db/client";
-import { leaseRevision, rentPayment } from "@/db/schema";
+import { leaseChargeSettlement, leaseRevision, rentPayment } from "@/db/schema";
 import type { CalendarDate } from "@/lib/dates";
 import type { Centimes } from "@/lib/money";
-import { buildRentPeriods, type RentFrequency, type RentRevision } from "@/lib/rentals";
+import {
+  buildRentPeriods,
+  type ChargeSettlement,
+  rentAccountLines,
+  type RentFrequency,
+  type RentRevision,
+} from "@/lib/rentals";
 import { computeStatement } from "@/lib/statement";
 
 const NO_PENALTY = { monthlyRateBp: 0, graceDays: 0, capBp: 0 };
@@ -20,7 +26,46 @@ export type LeaseTerms = {
   endedOn: CalendarDate | null;
   /** Rent revisions, from `leaseRevisions` (none = the lease's amounts throughout). */
   revisions?: readonly RentRevision[];
+  /** Yearly charges settlements, from `leaseSettlements`. */
+  settlements?: readonly ChargeSettlement[];
 };
+
+/** The live charges settlements of these leases, by lease. */
+export async function leaseSettlements(
+  tx: Tx,
+  leaseIds: string[],
+): Promise<Map<string, ChargeSettlement[]>> {
+  const byLease = new Map<string, ChargeSettlement[]>();
+  if (leaseIds.length === 0) return byLease;
+  const rows = await tx
+    .select({
+      leaseId: leaseChargeSettlement.leaseId,
+      year: leaseChargeSettlement.year,
+      balance: leaseChargeSettlement.balance,
+      dueOn: leaseChargeSettlement.dueOn,
+    })
+    .from(leaseChargeSettlement)
+    .where(
+      and(
+        inArray(leaseChargeSettlement.leaseId, leaseIds),
+        isNull(leaseChargeSettlement.cancelledAt),
+      ),
+    );
+  for (const { leaseId, ...settlement } of rows) {
+    byLease.set(leaseId, [...(byLease.get(leaseId) ?? []), settlement]);
+  }
+  return byLease;
+}
+
+/** Revisions and settlements of these leases, as the terms' extras. */
+export async function leaseExtras(tx: Tx, leaseIds: string[]) {
+  const revisions = await leaseRevisions(tx, leaseIds);
+  const settlements = await leaseSettlements(tx, leaseIds);
+  return (leaseId: string) => ({
+    revisions: revisions.get(leaseId),
+    settlements: settlements.get(leaseId),
+  });
+}
 
 /** The rent revisions of these leases, by lease, oldest first. */
 export async function leaseRevisions(
@@ -75,10 +120,10 @@ export async function leasePaid(
  * periods started by its last day.
  */
 export function rentStatement(lease: LeaseTerms, rentPaid: Centimes, today: CalendarDate) {
-  const periods = buildRentPeriods(lease);
+  const { lines, credit } = rentAccountLines(buildRentPeriods(lease), lease.settlements);
   return computeStatement(
-    periods.map((p) => ({ ...p, label: p.fromOn })),
-    rentPaid,
+    lines.map((p) => ({ ...p, label: p.fromOn })),
+    rentPaid + credit,
     today,
     NO_PENALTY,
   );

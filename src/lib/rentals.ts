@@ -56,7 +56,50 @@ export type RentPeriod = {
   amount: Centimes;
   /** Rent is paid in advance: due on the first day of its period. */
   dueOn: CalendarDate;
+  /** A charges settlement's balance due from the tenant (not a rent period). */
+  settlementYear?: number;
 };
+
+/** A yearly charges settlement: positive = due from the tenant, negative = a credit. */
+export type ChargeSettlement = { year: number; balance: Centimes; dueOn: CalendarDate };
+
+/** The charges provisions billed by the periods starting in a year. */
+export function provisionsOfYear(periods: readonly RentPeriod[], year: number): Centimes {
+  return periods
+    .filter((p) => p.settlementYear === undefined && p.fromOn.startsWith(`${year}-`))
+    .reduce((sum, p) => sum + p.charges, 0n);
+}
+
+/**
+ * The lines of a rent account: the periods, then each settlement due from the tenant as a
+ * line of its own; credits (settlements in the tenant's favour) are returned apart, to count
+ * with the payments.
+ */
+export function rentAccountLines(
+  periods: readonly RentPeriod[],
+  settlements: readonly ChargeSettlement[] = [],
+): { lines: RentPeriod[]; credit: Centimes } {
+  const lines = [...periods];
+  let credit = 0n;
+  for (const settlement of [...settlements].sort((a, b) => a.year - b.year)) {
+    if (settlement.balance > 0n) {
+      lines.push({
+        position: lines.length + 1,
+        fromOn: `${settlement.year}-01-01`,
+        toOn: `${settlement.year}-12-31`,
+        months: 0,
+        rent: 0n,
+        charges: settlement.balance,
+        amount: settlement.balance,
+        dueOn: settlement.dueOn,
+        settlementYear: settlement.year,
+      });
+    } else {
+      credit += -settlement.balance;
+    }
+  }
+  return { lines, credit };
+}
 
 /** A rent revision: from `effectiveOn` (a period's first day) on, the new monthly amounts. */
 export type RentRevision = {

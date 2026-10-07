@@ -8,6 +8,7 @@ import {
   building,
   file,
   lease,
+  leaseChargeSettlement,
   leaseInspection,
   leaseRevision,
   project,
@@ -23,7 +24,8 @@ import { isUuid } from "@/lib/ids";
 import { ENDING_SOON_DAYS, leaseState, rentOn } from "@/lib/rentals";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
 
-import { leasePaid, leaseRevisions, rentStatement } from "./accounts";
+import { leaseExtras, leasePaid, rentStatement } from "./accounts";
+import { settlementChoices } from "./settlements";
 
 export type LeaseFilters = { status?: "active" | "ended" | "all"; projectId?: string };
 
@@ -77,13 +79,13 @@ export async function listLeases(ctx: TenantCtx, filters: LeaseFilters = {}) {
       .from(project)
       .innerJoin(lease, eq(lease.projectId, project.id))
       .orderBy(asc(project.name));
-    const revisions = await leaseRevisions(
+    const extras = await leaseExtras(
       tx,
       rows.map((r) => r.id),
     );
     return {
       items: rows.map((r) => {
-        const terms = { ...r, revisions: revisions.get(r.id) };
+        const terms = { ...r, ...extras(r.id) };
         const statement = rentStatement(terms, paid.get(r.id)?.rent ?? 0n, today);
         return {
           ...r,
@@ -170,6 +172,27 @@ export async function getLease(ctx: TenantCtx, leaseId: string) {
       monthlyRent,
       monthlyCharges,
     }));
+    const settlementRows = await tx
+      .select({
+        id: leaseChargeSettlement.id,
+        year: leaseChargeSettlement.year,
+        provisions: leaseChargeSettlement.provisions,
+        actual: leaseChargeSettlement.actual,
+        balance: leaseChargeSettlement.balance,
+        dueOn: leaseChargeSettlement.dueOn,
+        note: leaseChargeSettlement.note,
+        createdAt: leaseChargeSettlement.createdAt,
+        createdByName: user.name,
+        cancelledAt: leaseChargeSettlement.cancelledAt,
+        cancellationReason: leaseChargeSettlement.cancellationReason,
+      })
+      .from(leaseChargeSettlement)
+      .innerJoin(user, eq(user.id, leaseChargeSettlement.createdBy))
+      .where(eq(leaseChargeSettlement.leaseId, l.id))
+      .orderBy(asc(leaseChargeSettlement.year), asc(leaseChargeSettlement.createdAt));
+    const settlements = settlementRows
+      .filter((s) => s.cancelledAt === null)
+      .map(({ year, balance, dueOn }) => ({ year, balance, dueOn }));
     const [renewedFrom] = l.renewedFromId
       ? await tx
           .select({ id: lease.id, number: lease.number })
@@ -213,8 +236,10 @@ export async function getLease(ctx: TenantCtx, leaseId: string) {
       buildingName: row.buildingName,
       projectName: row.projectName,
       state: leaseState(l, today),
-      statement: rentStatement({ ...l, revisions }, paid.rent, today),
+      statement: rentStatement({ ...l, revisions, settlements }, paid.rent, today),
       revisions: revisionRows,
+      settlements: settlementRows,
+      settlementChoices: await settlementChoices(tx, l, today),
       inForce: rentOn({ ...l, revisions }, today),
       payments,
       inspections,
@@ -288,17 +313,13 @@ export async function loadOverdueRents(tx: Tx, today: CalendarDate) {
     tx,
     rows.map((r) => r.id),
   );
-  const revisions = await leaseRevisions(
+  const extras = await leaseExtras(
     tx,
     rows.map((r) => r.id),
   );
   return rows
     .flatMap((r) => {
-      const statement = rentStatement(
-        { ...r, revisions: revisions.get(r.id) },
-        paid.get(r.id)?.rent ?? 0n,
-        today,
-      );
+      const statement = rentStatement({ ...r, ...extras(r.id) }, paid.get(r.id)?.rent ?? 0n, today);
       const oldest = statement.lines.find((l) => l.state === "overdue");
       if (statement.overdue === 0n || !oldest) return [];
       return [

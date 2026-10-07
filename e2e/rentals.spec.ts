@@ -97,6 +97,34 @@ test.describe("gestionnaire", () => {
     await expect(page.getByTestId("lease-revisions")).toContainText("Indexation convenue");
   });
 
+  test("settles a year's charges; the pharmacy's last year is already settled", async ({
+    page,
+  }) => {
+    const year = new Date().getFullYear();
+    await page.goto("/fr/rentals");
+    const leases = page.getByTestId("leases");
+    await leases.locator('[data-unit="Y-00-02"]').getByRole("link").first().click();
+    await expect(page.getByTestId("lease-settlements")).toContainText(
+      `Régularisation des charges ${year - 1}`,
+    );
+    await expect(page.getByTestId("rent-schedule")).toContainText(
+      `Régularisation des charges ${year - 1}`,
+    );
+
+    await page.goto("/fr/rentals");
+    await leases.locator('[data-unit="D-03-03"]').getByRole("link").first().click();
+    await page.getByRole("button", { name: "Régulariser les charges" }).click();
+    const dialog = page.getByRole("dialog");
+    await dialog.getByLabel("Charges réelles de l'année (DA)").fill("12 000");
+    await expect(dialog.getByTestId("settlement-preview")).toContainText(
+      "Solde dû par le locataire",
+    );
+    await dialog.getByRole("button", { name: "Enregistrer la régularisation" }).click();
+    await expect(page.getByText("Régularisation enregistrée.")).toBeVisible();
+    await expect(page.getByTestId("lease-settlements")).toContainText("Régularisation des charges");
+    await expect(page.getByTestId("rent-schedule")).toContainText("Régularisation des charges");
+  });
+
   test("follows the overdue rents", async ({ page }) => {
     await page.goto("/fr/dashboard");
     await page.getByRole("link", { name: "Loyers impayés", exact: true }).click();

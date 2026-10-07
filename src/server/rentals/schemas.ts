@@ -159,3 +159,18 @@ export const reviseRentSchema = z.object({
   monthlyCharges: optionalMoneyText(),
   reason: requiredText(300),
 });
+
+/** Régularisation des charges: the actual charges of a year against the provisions billed. */
+export const settleLeaseChargesSchema = z.object({
+  leaseId: z.uuid(),
+  year: intText(2000, 2100),
+  /** The tenant's share of the year's actual charges, DA. */
+  actual: moneyText().refine((v) => v >= 0n, "validation.amount"),
+  dueOn: dateText(),
+  note: optionalText(500),
+});
+
+export const cancelChargeSettlementSchema = z.object({
+  settlementId: z.uuid(),
+  reason: requiredText(300),
+});

@@ -2082,7 +2082,11 @@
       "noItems": "Ajoutez au moins un élément.",
       "inspectionRecorded": "Cet état des lieux est déjà enregistré.",
       "revisionPeriod": "Choisissez le premier jour d'une échéance du bail, après la première.",
-      "revisionOrder": "Une révision existe déjà à cette date ou après."
+      "revisionOrder": "Une révision existe déjà à cette date ou après.",
+      "settlementDue": "L'échéance ne peut être passée.",
+      "settlementYear": "Aucune période du bail ne commence cette année.",
+      "settlementExists": "Les charges de cette année sont déjà régularisées.",
+      "settlementCancelled": "Cette régularisation est déjà annulée."
     },
     "guarantor": "Caution",
     "revise": {
@@ -2098,6 +2102,36 @@
     "revisions": {
       "inForce": "Loyer en vigueur",
       "line": "Depuis le {date} : {rent} par mois"
+    },
+    "settlement": {
+      "cardTitle": "Régularisation des charges",
+      "none": "Aucune régularisation enregistrée.",
+      "open": "Régulariser les charges",
+      "title": "Régularisation annuelle des charges",
+      "description": "Les charges réelles de l'année face aux provisions facturées : le solde est dû par le locataire, ou porté à son crédit sur les prochains loyers.",
+      "submit": "Enregistrer la régularisation",
+      "done": "Régularisation enregistrée.",
+      "year": "Année",
+      "actual": "Charges réelles de l'année (DA)",
+      "suggestedHelp": "Proposé : les charges courantes appelées au lot cette année (hors fonds de réserve), pour les mois loués.",
+      "noCalls": "Aucun appel de charges pour ce lot cette année : saisissez le montant réel.",
+      "provisions": "Provisions facturées",
+      "due": "Solde dû par le locataire",
+      "credit": "Solde en faveur du locataire",
+      "dueOn": "Échéance du solde",
+      "note": "Remarque",
+      "line": "Régularisation des charges {year}",
+      "dueLine": "échéance le {date}",
+      "detail": "Provisions {provisions} · charges réelles {actual}",
+      "dueBadge": "À payer {amount}",
+      "creditBadge": "Crédit {amount}",
+      "even": "Soldée",
+      "creditIncluded": "Dont crédit de régularisation : {amount}",
+      "cancel": "Annuler",
+      "cancelTitle": "Annuler la régularisation ?",
+      "cancelDescription": "Elle ne compte plus dans le compte du locataire (les sommes payées passent aux échéances suivantes) et l'année pourra être régularisée à nouveau.",
+      "cancelled": "Régularisation annulée.",
+      "reason": "Motif"
     }
   },
   "audit": {
