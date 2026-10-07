@@ -6,6 +6,7 @@ import type { Tx } from "@/db/client";
 import { handover } from "@/db/schema";
 
 import { portalScope } from "./context";
+import { isPortalLease } from "./leases";
 import { portalCanReadResidenceFile } from "./residences";
 import { isPortalReport, isPortalSale } from "./sales";
 
@@ -15,7 +16,7 @@ import { isPortalReport, isPortalSale } from "./sales";
  * calls, reminder letters, signed scans), so a buyer reads all of them; residence documents are
  * checked one by one (a co-owner's own calls, receipts and letters, its residences' assembly
  * papers, published notices); site photos of the published reports of its projects; the
- * delivery PVs of its sales.
+ * delivery PVs of its sales; the documents of the leases it is the tenant of.
  */
 export async function portalCanRead(
   tx: Tx,
@@ -34,6 +35,9 @@ export async function portalCanRead(
       const { buyerIds } = await portalScope(tx, { userId });
       return buyerIds.includes(stored.entityId);
     }
+    case "lease":
+      // A tenant's quittances, deposit receipts, inspection reports and signed lease.
+      return isPortalLease(tx, userId, stored.entityId);
     case "handover": {
       const [row] = await tx
         .select({ reservationId: handover.reservationId })

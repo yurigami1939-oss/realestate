@@ -92,6 +92,7 @@ export function GatewayForm({
                 name="chargesEnabled"
                 label={t("chargesEnabled")}
               />
+              <CheckboxField control={form.control} name="rentEnabled" label={t("rentEnabled")} />
             </FieldSet>
             <div>
               <Button type="submit" disabled={save.pending}>

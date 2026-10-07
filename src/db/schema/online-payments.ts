@@ -20,6 +20,7 @@ import {
 
 import { createdAt, id, instant, money, organizationId, updatedAt, userRef } from "./_columns";
 import { chargePayment } from "./charges";
+import { lease, rentPayment } from "./rentals";
 import { residence, residenceUnit } from "./residences";
 import { payment, reservation } from "./sales";
 
@@ -39,9 +40,10 @@ export const paymentGateway = pgTable("payment_gateway", {
   username: text().notNull(),
   passwordEncrypted: text().notNull(),
   terminalId: text().notNull(),
-  /** What the portal lets buyers and co-owners pay online. */
+  /** What the portal lets buyers, co-owners and tenants pay online. */
   salesEnabled: boolean().notNull().default(true),
   chargesEnabled: boolean().notNull().default(true),
+  rentEnabled: boolean().notNull().default(false),
   updatedAt: updatedAt(),
   updatedBy: userRef(),
 });
@@ -57,10 +59,14 @@ export const onlinePayment = pgTable(
     id: id(),
     organizationId: organizationId(),
     purpose: onlinePaymentPurpose().notNull(),
-    /** The sale paid (`sale`), or the residence and unit whose charges are paid (`charges`). */
+    /**
+     * The sale paid (`sale`), the residence and unit whose charges are paid (`charges`), or the
+     * lease whose rent is paid (`rent`).
+     */
     reservationId: uuid(),
     residenceId: uuid(),
     unitId: uuid(),
+    leaseId: uuid(),
     amount: money().notNull(),
     /** Sent to the gateway: 10 characters, unique per organization. */
     orderNumber: text().notNull(),
@@ -85,6 +91,7 @@ export const onlinePayment = pgTable(
     /** The payment it was recorded as (with its receipt). */
     paymentId: uuid(),
     chargePaymentId: uuid(),
+    rentPaymentId: uuid(),
     /** Paid but not recorded (sale closed, balance already settled…): message key. */
     issue: text(),
     refundedAt: instant(),
@@ -125,6 +132,23 @@ export const onlinePayment = pgTable(
     index().on(t.organizationId, t.userId),
     index().on(t.organizationId, t.reservationId),
     index().on(t.organizationId, t.residenceId, t.unitId),
+    index().on(t.organizationId, t.leaseId),
+    foreignKey({
+      name: "online_payment_lease_fk",
+      columns: [t.organizationId, t.leaseId],
+      foreignColumns: [lease.organizationId, lease.id],
+    }),
+    foreignKey({
+      name: "online_payment_rent_payment_fk",
+      columns: [t.organizationId, t.rentPaymentId],
+      foreignColumns: [rentPayment.organizationId, rentPayment.id],
+    }),
+    // `::text`: the enum value `rent` is added by the same migration.
+    check("online_payment_lease", sql`(${t.purpose}::text = 'rent') = (${t.leaseId} is not null)`),
+    check(
+      "online_payment_rent_recorded",
+      sql`${t.rentPaymentId} is null or ${t.purpose}::text = 'rent'`,
+    ),
     check("online_payment_amount", sql`${t.amount} >= 5000`),
     check(
       "online_payment_target",

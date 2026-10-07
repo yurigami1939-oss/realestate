@@ -1,4 +1,4 @@
-import { Building2, Home } from "lucide-react";
+import { Building2, Home, KeyRound } from "lucide-react";
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
@@ -21,13 +21,13 @@ export default async function PortalHomePage({ params }: PageProps<"/[locale]/po
   const { locale } = await params;
   setRequestLocale(toLocale(locale));
   const ctx = await requirePortalCtx();
-  const { sales, units } = await getPortalOverview(ctx);
+  const { sales, units, leases } = await getPortalOverview(ctx);
   const t = await getTranslations("portal.home");
 
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-semibold">{t("welcome", { name: ctx.name })}</h1>
-      {sales.length === 0 && units.length === 0 ? (
+      {sales.length === 0 && units.length === 0 && leases.length === 0 ? (
         <p className="rounded-lg border border-dashed p-6 text-center text-muted-foreground">
           {t("empty")}
         </p>
@@ -84,6 +84,34 @@ export default async function PortalHomePage({ params }: PageProps<"/[locale]/po
                     </CardTitle>
                     <Badge variant="outline">{t(`kind.${u.kind}`)}</Badge>
                   </CardHeader>
+                </Card>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+      {leases.length > 0 ? (
+        <section className="space-y-3">
+          <h2 className="flex items-center gap-2 font-medium">
+            <KeyRound className="size-4" aria-hidden />
+            {t("leases")}
+          </h2>
+          <ul className="grid gap-3 sm:grid-cols-2" data-testid="portal-leases">
+            {leases.map((l) => (
+              <li key={l.id}>
+                <Card>
+                  <CardHeader className="flex flex-row items-start justify-between gap-2">
+                    <CardTitle className="text-base">
+                      <Link href={`/portal/leases/${l.id}`} className="hover:underline">
+                        {l.projectName} · <bdi dir="ltr">{l.unitCode}</bdi>
+                      </Link>
+                    </CardTitle>
+                    <Badge variant="outline">{t(`leaseStatus.${l.status}`)}</Badge>
+                  </CardHeader>
+                  <CardContent className="text-sm text-muted-foreground">
+                    <bdi dir="ltr">{l.number}</bdi> ·{" "}
+                    {t("leaseTerm", { from: formatDate(l.startOn), to: formatDate(l.endOn) })}
+                  </CardContent>
                 </Card>
               </li>
             ))}

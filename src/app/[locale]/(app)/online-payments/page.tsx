@@ -91,11 +91,13 @@ export default async function OnlinePaymentsPage({
             </TableHeader>
             <TableBody>
               {rows.map((p) => {
-                const receiptNumber = p.receiptNumber ?? p.chargeReceiptNumber;
-                const href =
-                  p.purpose === "sale"
-                    ? `/sales/${p.reservationId ?? ""}`
-                    : `/residences/${p.residenceId ?? ""}/accounts/${p.unitId ?? ""}`;
+                const receiptNumber =
+                  p.receiptNumber ?? p.chargeReceiptNumber ?? p.rentReceiptNumber;
+                const href = {
+                  sale: `/sales/${p.reservationId ?? ""}`,
+                  charges: `/residences/${p.residenceId ?? ""}/accounts/${p.unitId ?? ""}`,
+                  rent: `/rentals/${p.leaseId ?? ""}`,
+                }[p.purpose];
                 return (
                   <TableRow key={p.id} data-order={p.orderNumber}>
                     <TableCell className="whitespace-nowrap">
@@ -103,22 +105,15 @@ export default async function OnlinePaymentsPage({
                     </TableCell>
                     <TableCell className="whitespace-normal">
                       <Link href={href} className="font-medium hover:underline">
-                        {p.purpose === "sale" ? (
-                          <>
-                            {p.projectName} · <bdi dir="ltr">{p.unitCode}</bdi>
-                          </>
-                        ) : (
-                          <>
-                            {p.residenceName} · <bdi dir="ltr">{p.unitCode}</bdi>
-                          </>
-                        )}
+                        {p.purpose === "charges" ? p.residenceName : p.projectName} ·{" "}
+                        <bdi dir="ltr">{p.unitCode}</bdi>
                       </Link>
                       <div className="text-xs text-muted-foreground">
                         {t(`purpose.${p.purpose}`)}
-                        {p.saleNumber ? (
+                        {p.saleNumber || p.leaseNumber ? (
                           <>
                             {" · "}
-                            <bdi dir="ltr">{p.saleNumber}</bdi>
+                            <bdi dir="ltr">{p.saleNumber ?? p.leaseNumber}</bdi>
                           </>
                         ) : null}
                       </div>

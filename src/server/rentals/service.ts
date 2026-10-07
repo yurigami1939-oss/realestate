@@ -7,8 +7,10 @@ import type { Tx } from "@/db/client";
 import { lease, leaseInspection, leaseRevision, rentPayment, resident, unit } from "@/db/schema";
 import { withTenant } from "@/db/tenant";
 import { enqueueInTx } from "@/jobs/enqueue";
-import { addDays, todayInAlgiers } from "@/lib/dates";
-import { buildRentPeriods, leaseEndOn, rentOn } from "@/lib/rentals";
+import { addDays, type CalendarDate, todayInAlgiers } from "@/lib/dates";
+import type { Centimes } from "@/lib/money";
+import { buildRentPeriods, leaseEndOn, rentOn, type RentPaymentKind } from "@/lib/rentals";
+import type { PaymentMethod } from "@/lib/sales";
 import { AppError } from "@/lib/result";
 import { recordAudit } from "@/server/audit/record-audit";
 import { unmatchEntry } from "@/server/treasury/reconciliation-entries";
@@ -47,7 +49,7 @@ function assertNotFuture(day: string, field: string) {
 }
 
 /** A lease of the organization (locked: its payments and changes are serialized). */
-async function loadLease(tx: Tx, leaseId: string) {
+export async function loadLease(tx: Tx, leaseId: string) {
   const [row] = await tx.select().from(lease).where(eq(lease.id, leaseId)).for("update");
   if (!row) throw new AppError("NOT_FOUND");
   return row;
@@ -362,127 +364,163 @@ export async function reviseRent(ctx: TenantCtx, input: In<typeof reviseRentSche
 export async function recordRentPayment(ctx: TenantCtx, input: In<typeof recordRentPaymentSchema>) {
   assertCan(ctx, "payment:create");
   assertNotFuture(input.paidOn, "paidOn");
-  const today = todayInAlgiers();
   return withTenant(ctx, async (tx) => {
     const current = await loadLease(tx, input.leaseId);
-    const paid = (await leasePaid(tx, [current.id])).get(current.id) ?? { rent: 0n, deposit: 0n };
-    const terms = { ...current, ...(await leaseExtras(tx, [current.id]))(current.id) };
-    let allocation: { fromOn: string; toOn: string; amount: string; settlementYear?: number }[] =
-      [];
-    if (input.kind === "rent") {
-      const before = rentStatement(terms, paid.rent, today);
-      if (input.amount > before.remaining) throw invalid("amount", "rentals.errors.aboveRemaining");
-      const after = rentStatement(terms, paid.rent + input.amount, today);
-      allocation = after.lines.flatMap((line) => {
-        const settled =
-          line.paid - (before.lines.find((l) => l.position === line.position)?.paid ?? 0n);
-        if (settled <= 0n) return [];
-        const entry = { fromOn: line.fromOn, toOn: line.toOn, amount: settled.toString() };
-        return [
-          line.settlementYear === undefined
-            ? entry
-            : { ...entry, settlementYear: line.settlementYear },
-        ];
-      });
-    } else {
-      assertActive(current);
-      const missing = current.deposit - current.depositCarried - paid.deposit;
-      if (input.amount > missing) throw invalid("amount", "rentals.errors.aboveDeposit");
-    }
-
-    const { number } = await nextDocumentNumber(tx, ctx, "rent_receipt");
-    const [row] = await tx
-      .insert(rentPayment)
-      .values({
-        organizationId: ctx.orgId,
-        leaseId: current.id,
-        kind: input.kind,
-        amount: input.amount,
-        method: input.method,
-        paidOn: input.paidOn,
-        reference: input.reference,
-        bank: input.bank,
-        payerName: input.payerName,
-        notes: input.notes,
-        receiptNumber: number,
-        allocation,
-        accountId: await resolvePaymentAccount(tx, input.method, input.accountId),
-        recordedBy: ctx.userId,
-      })
-      .returning({ id: rentPayment.id });
-    if (!row) throw new Error("recordRentPayment: no row returned");
-    await recordAudit(tx, ctx, {
-      actorUserId: ctx.userId,
-      action: "rent_payment.create",
-      entityType: "lease",
-      entityId: current.id,
-      after: {
-        lease: current.number,
-        receipt: number,
-        kind: input.kind,
-        amount: input.amount,
-        method: input.method,
-        paidOn: input.paidOn,
-        allocation,
-      },
-    });
-    await enqueueInTx(
-      tx,
-      "pdf.document",
-      { organizationId: ctx.orgId, kind: "rent_receipt", id: row.id },
-      { singletonKey: `rent_receipt:${row.id}` },
-    );
-    await notifyRentPayment(tx, ctx, current.id, { amount: input.amount, receiptNumber: number });
-    return { paymentId: row.id, receiptNumber: number };
+    return insertRentPayment(tx, ctx, current, input);
   });
+}
+
+export type RentPaymentEntry = {
+  kind: RentPaymentKind;
+  amount: Centimes;
+  method: PaymentMethod;
+  paidOn: CalendarDate;
+  reference: string | null;
+  bank: string | null;
+  payerName: string;
+  notes: string | null;
+  /** The account chosen; absent or empty = the method's default account. */
+  accountId?: string | null;
+};
+
+/**
+ * Inserts a rent or deposit payment and its receipt QIT-… on a lease the caller has locked
+ * (`loadLease`): counter payments and confirmed online payments (CLAUDE.md §7 Online payment).
+ * `audit` is added to the audit entry.
+ */
+export async function insertRentPayment(
+  tx: Tx,
+  actor: { orgId: string; userId: string },
+  current: typeof lease.$inferSelect,
+  input: RentPaymentEntry,
+  audit: Record<string, unknown> = {},
+) {
+  const today = todayInAlgiers();
+  const paid = (await leasePaid(tx, [current.id])).get(current.id) ?? { rent: 0n, deposit: 0n };
+  const terms = { ...current, ...(await leaseExtras(tx, [current.id]))(current.id) };
+  let allocation: { fromOn: string; toOn: string; amount: string; settlementYear?: number }[] = [];
+  if (input.kind === "rent") {
+    const before = rentStatement(terms, paid.rent, today);
+    if (input.amount > before.remaining) throw invalid("amount", "rentals.errors.aboveRemaining");
+    const after = rentStatement(terms, paid.rent + input.amount, today);
+    allocation = after.lines.flatMap((line) => {
+      const settled =
+        line.paid - (before.lines.find((l) => l.position === line.position)?.paid ?? 0n);
+      if (settled <= 0n) return [];
+      const entry = { fromOn: line.fromOn, toOn: line.toOn, amount: settled.toString() };
+      return [
+        line.settlementYear === undefined
+          ? entry
+          : { ...entry, settlementYear: line.settlementYear },
+      ];
+    });
+  } else {
+    assertActive(current);
+    const missing = current.deposit - current.depositCarried - paid.deposit;
+    if (input.amount > missing) throw invalid("amount", "rentals.errors.aboveDeposit");
+  }
+
+  const { number } = await nextDocumentNumber(tx, actor, "rent_receipt");
+  const [row] = await tx
+    .insert(rentPayment)
+    .values({
+      organizationId: actor.orgId,
+      leaseId: current.id,
+      kind: input.kind,
+      amount: input.amount,
+      method: input.method,
+      paidOn: input.paidOn,
+      reference: input.reference,
+      bank: input.bank,
+      payerName: input.payerName,
+      notes: input.notes,
+      receiptNumber: number,
+      allocation,
+      accountId: await resolvePaymentAccount(tx, input.method, input.accountId),
+      recordedBy: actor.userId,
+    })
+    .returning({ id: rentPayment.id });
+  if (!row) throw new Error("recordRentPayment: no row returned");
+  await recordAudit(tx, actor, {
+    actorUserId: actor.userId,
+    action: "rent_payment.create",
+    entityType: "lease",
+    entityId: current.id,
+    after: {
+      lease: current.number,
+      receipt: number,
+      kind: input.kind,
+      amount: input.amount,
+      method: input.method,
+      paidOn: input.paidOn,
+      allocation,
+      ...audit,
+    },
+  });
+  await enqueueInTx(
+    tx,
+    "pdf.document",
+    { organizationId: actor.orgId, kind: "rent_receipt", id: row.id },
+    { singletonKey: `rent_receipt:${row.id}` },
+  );
+  await notifyRentPayment(tx, actor, current.id, { amount: input.amount, receiptNumber: number });
+  return { paymentId: row.id, receiptNumber: number };
 }
 
 /**
  * Cancels a rent or deposit payment and its receipt with a reason (accountants; e.g. a bounced
  * cheque). Never deleted; what it settled is due again (derived). Audited.
  */
-export async function cancelRentPayment(ctx: TenantCtx, input: In<typeof cancelRentPaymentSchema>) {
+export async function cancelRentPayment(
+  ctx: TenantCtx,
+  input: In<typeof cancelRentPaymentSchema>,
+  outer?: Tx,
+) {
   assertCan(ctx, "payment:cancel");
-  await withTenant(ctx, async (tx) => {
-    const [current] = await tx
-      .select({
-        leaseId: rentPayment.leaseId,
-        kind: rentPayment.kind,
-        status: rentPayment.status,
-        amount: rentPayment.amount,
-        receiptNumber: rentPayment.receiptNumber,
-      })
-      .from(rentPayment)
-      .where(eq(rentPayment.id, input.paymentId))
-      .for("update");
-    if (!current) throw new AppError("NOT_FOUND");
-    if (current.status === "cancelled") {
-      throw new AppError("CONFLICT", "payments.errors.alreadyCancelled");
-    }
-    const owner = await loadLease(tx, current.leaseId);
-    if (current.kind === "deposit" && owner.depositSettledOn) {
-      throw new AppError("CONFLICT", "rentals.errors.depositSettled");
-    }
-    await tx
-      .update(rentPayment)
-      .set({
-        status: "cancelled",
-        cancelledAt: new Date(),
-        cancelledBy: ctx.userId,
-        cancellationReason: input.reason,
-      })
-      .where(eq(rentPayment.id, input.paymentId));
-    await unmatchEntry(tx, `rent:${input.paymentId}`);
-    await recordAudit(tx, ctx, {
-      actorUserId: ctx.userId,
-      action: "rent_payment.cancel",
-      entityType: "lease",
-      entityId: current.leaseId,
-      before: { status: "valid", amount: current.amount, receipt: current.receiptNumber },
-      after: { status: "cancelled" },
-      reason: input.reason,
-    });
-  });
+  await withTenant(
+    ctx,
+    async (tx) => {
+      const [current] = await tx
+        .select({
+          leaseId: rentPayment.leaseId,
+          kind: rentPayment.kind,
+          status: rentPayment.status,
+          amount: rentPayment.amount,
+          receiptNumber: rentPayment.receiptNumber,
+        })
+        .from(rentPayment)
+        .where(eq(rentPayment.id, input.paymentId))
+        .for("update");
+      if (!current) throw new AppError("NOT_FOUND");
+      if (current.status === "cancelled") {
+        throw new AppError("CONFLICT", "payments.errors.alreadyCancelled");
+      }
+      const owner = await loadLease(tx, current.leaseId);
+      if (current.kind === "deposit" && owner.depositSettledOn) {
+        throw new AppError("CONFLICT", "rentals.errors.depositSettled");
+      }
+      await tx
+        .update(rentPayment)
+        .set({
+          status: "cancelled",
+          cancelledAt: new Date(),
+          cancelledBy: ctx.userId,
+          cancellationReason: input.reason,
+        })
+        .where(eq(rentPayment.id, input.paymentId));
+      await unmatchEntry(tx, `rent:${input.paymentId}`);
+      await recordAudit(tx, ctx, {
+        actorUserId: ctx.userId,
+        action: "rent_payment.cancel",
+        entityType: "lease",
+        entityId: current.leaseId,
+        before: { status: "valid", amount: current.amount, receipt: current.receiptNumber },
+        after: { status: "cancelled" },
+        reason: input.reason,
+      });
+    },
+    outer,
+  );
 }
 
 /** Records the day the bank cleared a cheque (its receipt was « sous réserve »). Audited. */

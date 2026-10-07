@@ -53,6 +53,7 @@ export default async function OnlinePaymentSettingsPage({
           terminalId: settings?.terminalId ?? "",
           salesEnabled: settings?.salesEnabled ?? true,
           chargesEnabled: settings?.chargesEnabled ?? true,
+          rentEnabled: settings?.rentEnabled ?? false,
         }}
       />
       <p className="text-sm text-muted-foreground">{t("help")}</p>

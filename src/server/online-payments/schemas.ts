@@ -18,11 +18,13 @@ export const gatewaySettingsSchema = z.object({
   terminalId: requiredText(40),
   salesEnabled: z.boolean(),
   chargesEnabled: z.boolean(),
+  rentEnabled: z.boolean().default(false),
 });
 
 /**
- * A portal account pays online: a sale of its own (`targetId` = the sale) or the charges of a
- * unit it co-owns (`targetId` = the unit), at least 50 DA, after accepting the conditions.
+ * A portal account pays online: a sale of its own (`targetId` = the sale), the charges of a
+ * unit it co-owns (`targetId` = the unit) or the rent of its lease (`targetId` = the lease), at
+ * least 50 DA, after accepting the conditions.
  */
 export const startOnlinePaymentSchema = z.object({
   purpose: z.enum(onlinePaymentPurposes),

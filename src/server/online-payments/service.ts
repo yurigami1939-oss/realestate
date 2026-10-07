@@ -8,10 +8,12 @@ import type { z } from "zod";
 import type { Tx } from "@/db/client";
 import {
   chargePayment,
+  lease,
   onlinePayment,
   payment,
   paymentGateway,
   project,
+  rentPayment,
   reservation,
   residence,
   unit,
@@ -29,7 +31,10 @@ import { chargeStatement, liveCalls, paidByUnit } from "@/server/charges/account
 import { cancelChargePayment, insertChargePayment } from "@/server/charges/payments";
 import { cancelPayment, insertSalePayment } from "@/server/payments/service";
 import { type PortalCtx, portalScope } from "@/server/portal/context";
+import { portalLeases } from "@/server/portal/leases";
 import { portalSales } from "@/server/portal/sales";
+import { leaseExtras, leasePaid, rentStatement } from "@/server/rentals/accounts";
+import { cancelRentPayment, insertRentPayment, loadLease } from "@/server/rentals/service";
 import { loadResidence } from "@/server/residences/service";
 import { paidTotals } from "@/server/sales/sale-queries";
 import { encryptSecret } from "@/server/secrets";
@@ -79,6 +84,7 @@ export async function saveGatewaySettings(ctx: TenantCtx, input: In<typeof gatew
       terminalId: input.terminalId,
       salesEnabled: input.salesEnabled,
       chargesEnabled: input.chargesEnabled,
+      rentEnabled: input.rentEnabled,
       updatedBy: ctx.userId,
     };
     const password = input.password ? { passwordEncrypted: encryptSecret(input.password) } : {};
@@ -101,6 +107,7 @@ export async function saveGatewaySettings(ctx: TenantCtx, input: In<typeof gatew
       terminalId: s.terminalId,
       salesEnabled: s.salesEnabled,
       chargesEnabled: s.chargesEnabled,
+      rentEnabled: s.rentEnabled,
     });
     await recordAudit(tx, ctx, {
       actorUserId: ctx.userId,
@@ -113,7 +120,10 @@ export async function saveGatewaySettings(ctx: TenantCtx, input: In<typeof gatew
   });
 }
 
-/** What a portal account is about to pay: its own sale, or the charges of a unit it co-owns. */
+/**
+ * What a portal account is about to pay: its own sale, the charges of a unit it co-owns, or the
+ * rent of a lease it is the tenant (occupant) of.
+ */
 async function portalTarget(
   tx: Tx,
   ctx: PortalCtx,
@@ -138,9 +148,22 @@ async function portalTarget(
     if (!sale) throw new AppError("NOT_FOUND");
     const paid = (await paidTotals(tx, [sale.id])).get(sale.id) ?? 0n;
     return {
-      target: { reservationId: sale.id, residenceId: null, unitId: null },
+      target: { reservationId: sale.id, residenceId: null, unitId: null, leaseId: null },
       remaining: sale.price - paid,
       description: `${sale.projectName} - ${sale.unitCode} - ${sale.number}`,
+    };
+  }
+  if (purpose === "rent") {
+    const [rented] = await portalLeases(tx, scope, targetId);
+    if (!rented) throw new AppError("NOT_FOUND");
+    const [row] = await tx.select().from(lease).where(eq(lease.id, rented.id));
+    if (!row) throw new AppError("NOT_FOUND");
+    const extras = (await leaseExtras(tx, [row.id]))(row.id);
+    const paid = (await leasePaid(tx, [row.id])).get(row.id)?.rent ?? 0n;
+    return {
+      target: { reservationId: null, residenceId: null, unitId: null, leaseId: row.id },
+      remaining: rentStatement({ ...row, ...extras }, paid, todayInAlgiers()).remaining,
+      description: `${rented.projectName} - ${rented.unitCode} - ${row.number}`,
     };
   }
   const owned = scope.residents.find((r) => r.kind === "co_owner" && r.unitId === targetId);
@@ -153,7 +176,12 @@ async function portalTarget(
   const calls = await liveCalls(tx, owned.residenceId, [owned.unitId]);
   const paid = (await paidByUnit(tx, owned.residenceId, [owned.unitId])).get(owned.unitId) ?? 0n;
   return {
-    target: { reservationId: null, residenceId: owned.residenceId, unitId: owned.unitId },
+    target: {
+      reservationId: null,
+      residenceId: owned.residenceId,
+      unitId: owned.unitId,
+      leaseId: null,
+    },
     remaining: chargeStatement(calls, paid, todayInAlgiers()).remaining,
     description: `${home?.name ?? ""} - ${home?.unitCode ?? ""} - charges`,
   };
@@ -185,7 +213,11 @@ export async function startOnlinePayment(
     const gateway = await loadGateway(tx, ctx.orgId);
     const open =
       gateway?.enabled &&
-      (input.purpose === "sale" ? gateway.salesEnabled : gateway.chargesEnabled);
+      {
+        sale: gateway.salesEnabled,
+        charges: gateway.chargesEnabled,
+        rent: gateway.rentEnabled,
+      }[input.purpose];
     if (!gateway || !open) throw new AppError("CONFLICT", "onlinePayments.errors.disabled");
     const { target, remaining, description } = await portalTarget(
       tx,
@@ -294,8 +326,9 @@ async function recordOnlinePayment(tx: Tx, row: OnlinePaymentRow, state: SatimOr
     notes: null,
   };
   const audit = { onlineOrder: row.orderNumber, approvalCode: state.approvalCode };
+  const none = { paymentId: null, chargePaymentId: null, rentPaymentId: null };
   if (state.amount !== null && state.amount !== row.amount) {
-    return { paymentId: null, chargePaymentId: null, issue: "onlinePayments.issues.amount" };
+    return { ...none, issue: "onlinePayments.issues.amount" };
   }
   try {
     return await tx.transaction(async (sp) => {
@@ -308,20 +341,28 @@ async function recordOnlinePayment(tx: Tx, row: OnlinePaymentRow, state: SatimOr
           .for("update");
         if (!sale) throw new AppError("NOT_FOUND");
         const { paymentId } = await insertSalePayment(sp, actor, sale, entry, audit);
-        return { paymentId, chargePaymentId: null, issue: null };
+        return { ...none, paymentId, issue: null };
+      }
+      if (row.purpose === "rent") {
+        if (!row.leaseId) throw new Error("online payment without lease");
+        const rented = await loadLease(sp, row.leaseId);
+        const { paymentId } = await insertRentPayment(
+          sp,
+          actor,
+          rented,
+          { ...entry, kind: "rent" },
+          audit,
+        );
+        return { ...none, rentPaymentId: paymentId, issue: null };
       }
       if (!row.residenceId || !row.unitId) throw new Error("online payment without unit");
       const home = await loadResidence(sp, row.residenceId);
       const { paymentId } = await insertChargePayment(sp, actor, home, row.unitId, entry, audit);
-      return { paymentId: null, chargePaymentId: paymentId, issue: null };
+      return { ...none, chargePaymentId: paymentId, issue: null };
     });
   } catch (error) {
     if (!(error instanceof AppError)) throw error;
-    return {
-      paymentId: null,
-      chargePaymentId: null,
-      issue: error.messageKey ?? `errors.${error.code}`,
-    };
+    return { ...none, issue: error.messageKey ?? `errors.${error.code}` };
   }
 }
 
@@ -423,9 +464,15 @@ export async function checkOnlinePayment(
   return row?.status === "pending" ? "open" : "settled";
 }
 
-/** Staff may act on a sale's online payments with `sale:read_all`, on charges with `charge:read`. */
+/**
+ * Staff may act on a sale's online payments with `sale:read_all`, on charges with `charge:read`,
+ * on rents with `lease:read`.
+ */
 export const seesOnlinePayment = (ctx: Pick<TenantCtx, "roles">, purpose: OnlinePaymentPurpose) =>
-  can(ctx.roles, purpose === "sale" ? "sale:read_all" : "charge:read");
+  can(
+    ctx.roles,
+    ({ sale: "sale:read_all", charges: "charge:read", rent: "lease:read" } as const)[purpose],
+  );
 
 async function loadForStaff(ctx: TenantCtx, onlinePaymentId: string) {
   const [row] = await withTenant(ctx, (tx) =>
@@ -520,6 +567,19 @@ export async function refundOnlinePayment(
         await cancelChargePayment(
           ctx,
           { paymentId: current.chargePaymentId, reason: input.reason },
+          tx,
+        );
+      }
+    }
+    if (current.rentPaymentId) {
+      const [recorded] = await tx
+        .select({ status: rentPayment.status })
+        .from(rentPayment)
+        .where(eq(rentPayment.id, current.rentPaymentId));
+      if (recorded?.status === "valid") {
+        await cancelRentPayment(
+          ctx,
+          { paymentId: current.rentPaymentId, reason: input.reason },
           tx,
         );
       }

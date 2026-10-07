@@ -3586,6 +3586,12 @@
       "kind": {
         "co_owner": "Copropriétaire",
         "occupant": "Occupant"
+      },
+      "leases": "Mes locations",
+      "leaseTerm": "du {from} au {to}",
+      "leaseStatus": {
+        "active": "En cours",
+        "ended": "Terminé"
       }
     },
     "errors": {
@@ -3740,7 +3746,8 @@
         "failure": "Si le paiement n'aboutit pas, aucun montant n'est débité. En cas d'erreur ou de débit sans reçu, contactez {company}{contact} : un paiement en trop est remboursé sur la carte utilisée.",
         "card": "Pour tout problème lié à votre carte, contactez votre banque ou le numéro vert de la SATIM : {number}.",
         "data": "Vos données sont traitées par {company} pour la gestion de votre dossier, conformément à la loi 18-07 relative à la protection des personnes physiques dans le traitement des données à caractère personnel."
-      }
+      },
+      "introRent": "Réglez votre loyer en ligne par carte CIB ou Edahabia : la quittance est émise dès la confirmation du paiement."
     },
     "documents": {
       "title": "Mon dossier",
@@ -3753,6 +3760,22 @@
       "toVerify": "Envoyée · en vérification",
       "errors": {
         "verified": "Cette pièce est déjà vérifiée par le promoteur."
+      }
+    },
+    "lease": {
+      "title": "Ma location",
+      "rentLine": "Loyer {rent} par mois · paiement : {frequency}",
+      "chargesLine": "provision pour charges {charges} par mois",
+      "schedule": "Échéancier des loyers",
+      "dueOn": "Échéance",
+      "remaining": "Reste dû",
+      "deposit": "dépôt de garantie",
+      "quittance": "Quittance {number}",
+      "depositLine": "Dépôt de garantie détenu : {held} sur {deposit}",
+      "inspections": "États des lieux",
+      "inspection": {
+        "check_in": "État des lieux d'entrée du {date}",
+        "check_out": "État des lieux de sortie du {date}"
       }
     }
   },
@@ -3769,7 +3792,8 @@
     },
     "purpose": {
       "sale": "Échéances",
-      "charges": "Charges"
+      "charges": "Charges",
+      "rent": "Loyer"
     },
     "environment": {
       "test": "Test (SATIM)",
@@ -3838,7 +3862,8 @@
       "saved": "Paramètres de paiement en ligne enregistrés.",
       "standIn": "La plateforme de test est simulée par l'application (développement) : aucun identifiant SATIM n'est nécessaire pour essayer.",
       "help": "Pour obtenir un compte marchand : votre banque (membre du réseau CIB) demande l'adhésion au paiement en ligne auprès de la SATIM, qui fournit l'identifiant, le mot de passe et le n° de terminal de test, puis ceux de production après la certification.",
-      "helpLine": "Numéro vert de la SATIM : {number}"
+      "helpLine": "Numéro vert de la SATIM : {number}",
+      "rentEnabled": "Loyers des locataires"
     }
   },
   "whatsapp": {

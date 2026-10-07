@@ -14,6 +14,7 @@ import {
 import { withTenant } from "@/db/tenant";
 
 import { type PortalCtx, portalScope } from "./context";
+import { portalLeases } from "./leases";
 import { portalSales } from "./sales";
 
 /** The portal home: the account's purchases (live sales of its buyer files) and its units. */
@@ -59,7 +60,8 @@ export async function getPortalOverview(ctx: PortalCtx) {
               ),
             )
             .orderBy(asc(residence.name), asc(unit.code));
-    return { sales, units };
+    const leases = await portalLeases(tx, scope);
+    return { sales, units, leases };
   });
 }
 
@@ -73,8 +75,13 @@ export async function getPortalSections(ctx: PortalCtx) {
   return withTenant(ctx, async (tx) => {
     const { buyerIds, residents } = await portalScope(tx, ctx);
     const coOwner = residents.some((r) => r.kind === "co_owner");
+    const [tenant] = await portalLeases(tx, { buyerIds, residents });
     const [gateway] = await tx
-      .select({ sale: paymentGateway.salesEnabled, charges: paymentGateway.chargesEnabled })
+      .select({
+        sale: paymentGateway.salesEnabled,
+        charges: paymentGateway.chargesEnabled,
+        rent: paymentGateway.rentEnabled,
+      })
       .from(paymentGateway)
       .where(and(eq(paymentGateway.organizationId, ctx.orgId), eq(paymentGateway.enabled, true)));
     const [paid] = await tx
@@ -89,7 +96,9 @@ export async function getPortalSections(ctx: PortalCtx) {
       payments:
         paid !== undefined ||
         (gateway !== undefined &&
-          ((gateway.sale && buyerIds.length > 0) || (gateway.charges && coOwner))),
+          ((gateway.sale && buyerIds.length > 0) ||
+            (gateway.charges && coOwner) ||
+            (gateway.rent && tenant !== undefined))),
     };
   });
 }

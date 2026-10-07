@@ -49,16 +49,18 @@ export default async function PortalOnlinePaymentPage({
   const t = await getTranslations("portal.pay.result");
   const money = (v: bigint) => formatDZD(v, locale);
   const look = statusLook[payment.status];
-  const object =
-    payment.purpose === "sale"
-      ? `${payment.projectName ?? ""} · ${payment.unitCode ?? ""}`
-      : `${payment.residenceName ?? ""} · ${payment.unitCode ?? ""}`;
-  const back =
-    payment.purpose === "sale"
-      ? `/portal/sales/${payment.reservationId ?? ""}`
-      : `/portal/units/${payment.unitId ?? ""}`;
-  const receiptNumber = payment.receiptNumber ?? payment.chargeReceiptNumber;
-  const receiptFileId = payment.receiptFileId ?? payment.chargeReceiptFileId;
+  const object = `${
+    (payment.purpose === "charges" ? payment.residenceName : payment.projectName) ?? ""
+  } · ${payment.unitCode ?? ""}`;
+  const back = {
+    sale: `/portal/sales/${payment.reservationId ?? ""}`,
+    charges: `/portal/units/${payment.unitId ?? ""}`,
+    rent: `/portal/leases/${payment.leaseId ?? ""}`,
+  }[payment.purpose];
+  const receiptNumber =
+    payment.receiptNumber ?? payment.chargeReceiptNumber ?? payment.rentReceiptNumber;
+  const receiptFileId =
+    payment.receiptFileId ?? payment.chargeReceiptFileId ?? payment.rentReceiptFileId;
   const details: [string, string | null][] = [
     [t("order"), payment.orderNumber],
     [t("transaction"), payment.gatewayOrderId],

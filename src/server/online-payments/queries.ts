@@ -1,15 +1,17 @@
 import "server-only";
 
-import { and, count, desc, eq, ilike, isNotNull, or, type SQL, sql } from "drizzle-orm";
+import { and, count, desc, eq, ilike, inArray, isNotNull, or, type SQL, sql } from "drizzle-orm";
 
 import type { Tx } from "@/db/client";
 import {
   chargePayment,
+  lease,
   onlinePayment,
   organization,
   paymentGateway,
   project,
   receipt,
+  rentPayment,
   reservation,
   residence,
   unit,
@@ -37,6 +39,7 @@ export async function getGatewaySettings(ctx: TenantCtx) {
         terminalId: paymentGateway.terminalId,
         salesEnabled: paymentGateway.salesEnabled,
         chargesEnabled: paymentGateway.chargesEnabled,
+        rentEnabled: paymentGateway.rentEnabled,
         updatedAt: paymentGateway.updatedAt,
       })
       .from(paymentGateway)
@@ -53,6 +56,7 @@ export async function portalPaymentOptions(tx: Tx, orgId: string) {
       environment: paymentGateway.environment,
       sale: paymentGateway.salesEnabled,
       charges: paymentGateway.chargesEnabled,
+      rent: paymentGateway.rentEnabled,
     })
     .from(paymentGateway)
     .where(eq(paymentGateway.organizationId, orgId));
@@ -82,7 +86,9 @@ const columns = {
   reservationId: onlinePayment.reservationId,
   residenceId: onlinePayment.residenceId,
   unitId: onlinePayment.unitId,
+  leaseId: onlinePayment.leaseId,
   saleNumber: reservation.number,
+  leaseNumber: lease.number,
   projectName: project.name,
   residenceName: residence.name,
   unitCode: unit.code,
@@ -90,35 +96,47 @@ const columns = {
   receiptFileId: receipt.pdfFileId,
   chargeReceiptNumber: chargePayment.receiptNumber,
   chargeReceiptFileId: chargePayment.pdfFileId,
+  rentReceiptNumber: rentPayment.receiptNumber,
+  rentReceiptFileId: rentPayment.pdfFileId,
 };
 
-/** The query with what each payment paid joined (sale or residence, unit, receipt). */
+/** The query with what each payment paid joined (sale, residence or lease, unit, receipt). */
 function selectPayments(tx: Tx) {
   return tx
     .select(columns)
     .from(onlinePayment)
     .leftJoin(reservation, eq(reservation.id, onlinePayment.reservationId))
-    .leftJoin(project, eq(project.id, reservation.projectId))
+    .leftJoin(lease, eq(lease.id, onlinePayment.leaseId))
+    .leftJoin(project, or(eq(project.id, reservation.projectId), eq(project.id, lease.projectId)))
     .leftJoin(residence, eq(residence.id, onlinePayment.residenceId))
     .leftJoin(
       unit,
       or(
         eq(unit.id, reservation.unitId),
+        eq(unit.id, lease.unitId),
         and(eq(onlinePayment.purpose, "charges"), eq(unit.id, onlinePayment.unitId)),
       ),
     )
     .leftJoin(receipt, eq(receipt.paymentId, onlinePayment.paymentId))
-    .leftJoin(chargePayment, eq(chargePayment.id, onlinePayment.chargePaymentId));
+    .leftJoin(chargePayment, eq(chargePayment.id, onlinePayment.chargePaymentId))
+    .leftJoin(rentPayment, eq(rentPayment.id, onlinePayment.rentPaymentId));
 }
 
-/** Rows the member may see: sales ones with `sale:read_all`, charges ones with `charge:read`. */
+/**
+ * Rows the member may see: sales ones with `sale:read_all`, charges ones with `charge:read`,
+ * rents with `lease:read`.
+ */
 function visibleTo(ctx: TenantCtx): SQL | undefined {
-  const sales = can(ctx.roles, "sale:read_all");
-  const charges = can(ctx.roles, "charge:read");
-  if (sales && charges) return undefined;
-  if (sales) return eq(onlinePayment.purpose, "sale");
-  if (charges) return eq(onlinePayment.purpose, "charges");
-  return sql`false`;
+  const seen = (
+    [
+      ["sale", "sale:read_all"],
+      ["charges", "charge:read"],
+      ["rent", "lease:read"],
+    ] as const
+  ).flatMap(([purpose, permission]) => (can(ctx.roles, permission) ? [purpose] : []));
+  if (seen.length === 3) return undefined;
+  if (seen.length === 0) return sql`false`;
+  return inArray(onlinePayment.purpose, seen);
 }
 
 /** Staff list (`payment:read`), latest first, with the ones paid but not recorded on demand. */

@@ -8,8 +8,8 @@ import type { Centimes } from "./money";
 export const gatewayEnvironments = ["test", "production"] as const;
 export type GatewayEnvironment = (typeof gatewayEnvironments)[number];
 
-/** What an online payment settles: a sale's installments, or a co-owned unit's charges. */
-export const onlinePaymentPurposes = ["sale", "charges"] as const;
+/** What an online payment settles: a sale's installments, a co-owned unit's charges, a rent. */
+export const onlinePaymentPurposes = ["sale", "charges", "rent"] as const;
 export type OnlinePaymentPurpose = (typeof onlinePaymentPurposes)[number];
 
 /**

@@ -7,11 +7,12 @@
  */
 import { and, eq } from "drizzle-orm";
 
-import { project, unit } from "@/db/schema";
+import { lease as leaseTable, project, unit } from "@/db/schema";
 import { withTenant } from "@/db/tenant";
 import { addDays, addMonths, todayInAlgiers } from "@/lib/dates";
 import { type Centimes, toDecimalString } from "@/lib/money";
 import type { TenantCtx } from "@/server/auth/session";
+import { inviteToPortal } from "@/server/portal/invitations";
 import { getLease } from "@/server/rentals/queries";
 import {
   createLeaseSchema,
@@ -31,6 +32,8 @@ import {
   settleDeposit,
 } from "@/server/rentals/service";
 import { settleLeaseCharges } from "@/server/rentals/settlements";
+
+import { demoUsers } from "./demo";
 
 type Actors = { manager: TenantCtx; cashier: TenantCtx };
 
@@ -255,6 +258,39 @@ export async function seedRentals(actors: Actors) {
     ],
     { electricity: "000412", water: "0057", keys: "3" },
   );
+
+  // The demo resident account (Mohamed Cherif) rents D-02-03 for his son: deposit and rent paid
+  // to date, the account linked to its tenant record — the portal shows the lease and offers the
+  // next month online.
+  const resident = demoUsers.find((u) => u.key === "resident");
+  if (!resident) throw new Error("seed: demo resident missing");
+  const cherif = await lease(actors, {
+    project: "AMND",
+    unit: "D-02-03",
+    kind: "residential",
+    tenantName: "Cherif Mohamed",
+    tenantNameAr: "شريف محمد",
+    tenantPhone: "0661 50 12 34",
+    tenantEmail: resident.email,
+    startDaysAgo: 40,
+    durationMonths: 12,
+    monthlyRent: "32 000",
+    frequency: "monthly",
+    deposit: "64 000",
+  });
+  await pay(actors, cherif, "deposit", 64_000_00n, addDays(today, -42), "Mohamed Cherif");
+  const due = (await getLease(actors.manager, cherif))?.statement.lines.filter(
+    (l) => l.dueOn <= today,
+  );
+  await payPeriods(actors, cherif, due?.length ?? 0, "Mohamed Cherif");
+  const [tenant] = await withTenant(actors.manager, (tx) =>
+    tx
+      .select({ occupantId: leaseTable.occupantId })
+      .from(leaseTable)
+      .where(eq(leaseTable.id, cherif)),
+  );
+  if (!tenant?.occupantId) throw new Error("seed: the Cherif lease has no occupant");
+  await inviteToPortal(actors.manager, { kind: "resident", id: tenant.occupantId });
 
   // A tenant who left last spring: exit inspection, part of the deposit kept for the paint.
   const left = await lease(actors, {

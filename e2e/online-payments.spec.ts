@@ -101,4 +101,32 @@ test.describe("paiement en ligne", () => {
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("الدفع الإلكتروني (ساتيم)");
     await owner.close();
   });
+
+  // Last: the cashier's list above counts the sale payments only.
+  test.describe("locataire", () => {
+    test.use({ storageState: authFile("resident") });
+
+    test("pays next month's rent by card and gets the quittance", async ({ page }) => {
+      await page.goto("/fr/portal");
+      await page
+        .getByTestId("portal-leases")
+        .getByRole("link", { name: "Résidence Les Amandiers · D-02-03" })
+        .click();
+      await expect(page.getByTestId("portal-rent-payments")).toContainText("Quittance QIT-");
+      await page
+        .getByTestId("portal-pay-online")
+        .getByRole("button", { name: "Payer en ligne" })
+        .click();
+      const dialog = page.getByRole("dialog");
+      // Rent paid to date: the next month is offered.
+      await expect(dialog.getByLabel("Montant (DA)")).toHaveValue(/^32\s000,00$/);
+      await dialog.getByLabel("J'accepte les conditions de paiement en ligne").check();
+      await dialog.getByRole("button", { name: "Continuer vers le paiement" }).click();
+      await page.getByRole("button", { name: "Payer · ادفع" }).click();
+      await expect(page.getByRole("heading", { level: 1 })).toHaveText("Paiement accepté");
+      await expectPdf(page, page.getByRole("link", { name: /^Reçu QIT-\d{4}-\d{6}$/ }));
+      await page.getByRole("link", { name: "Retour" }).click();
+      await expect(page.getByTestId("portal-rent-payments")).toContainText("Carte CIB / Edahabia");
+    });
+  });
 });

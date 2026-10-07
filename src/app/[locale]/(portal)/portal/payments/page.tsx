@@ -46,9 +46,9 @@ export default async function PortalOnlinePaymentsPage({
                 <Link href={`/portal/payments/${p.id}`} className="font-medium hover:underline">
                   <bdi dir="ltr">{formatDZD(p.amount, locale)}</bdi>
                   {" · "}
-                  {p.purpose === "sale"
-                    ? `${p.projectName ?? ""} · ${p.unitCode ?? ""}`
-                    : `${p.residenceName ?? ""} · ${p.unitCode ?? ""}`}
+                  {`${(p.purpose === "charges" ? p.residenceName : p.projectName) ?? ""} · ${
+                    p.unitCode ?? ""
+                  }`}
                 </Link>
                 <div className="text-muted-foreground">
                   {formatDateTime(p.createdAt)} · {t("order", { number: p.orderNumber })}

@@ -435,6 +435,13 @@
       "when": 1791382209084,
       "tag": "0061_sale_financing",
       "breakpoints": true
+    },
+    {
+      "idx": 62,
+      "version": "7",
+      "when": 1791383650620,
+      "tag": "0062_online_rent_payments",
+      "breakpoints": true
     }
   ]
 }

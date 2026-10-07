@@ -6,15 +6,17 @@ import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
   auditLog,
   chargePayment,
+  lease,
   onlinePayment,
   payment,
   paymentGateway,
   portalLink,
   receipt,
+  rentPayment,
 } from "@/db/schema";
 import { withTenant } from "@/db/tenant";
 import { stopEnqueue } from "@/jobs/enqueue";
-import { addDays, todayInAlgiers } from "@/lib/dates";
+import { addDays, addMonths, todayInAlgiers } from "@/lib/dates";
 import type { TenantCtx } from "@/server/auth/session";
 import { createBuyerSchema } from "@/server/buyers/schemas";
 import { createBuyer } from "@/server/buyers/service";
@@ -29,7 +31,10 @@ import {
 import { recordPaymentSchema } from "@/server/payments/schemas";
 import { recordPayment } from "@/server/payments/service";
 import type { PortalCtx } from "@/server/portal/context";
+import { getPortalLease, isPortalLease } from "@/server/portal/leases";
 import { getPortalSale } from "@/server/portal/sales";
+import { createLeaseSchema } from "@/server/rentals/schemas";
+import { createLease } from "@/server/rentals/service";
 import { addResidentSchema, createResidenceSchema } from "@/server/residences/schemas";
 import { addResident, createResidence } from "@/server/residences/service";
 import { createReservation } from "@/server/sales/reservations";
@@ -505,5 +510,109 @@ describe("online payment of charges", () => {
     await expect(listOnlinePayments(team.agentA, { q: null })).rejects.toMatchObject({
       code: "FORBIDDEN",
     });
+  });
+});
+
+describe("online payment of a rent", () => {
+  it("records the tenant's rent with its quittance, then refunds it", async () => {
+    const team = await createSalesTeam();
+    const setup = await createSaleSetup(team);
+    const manager = await addMember(team.orgId, ["property_manager"]);
+    const accountant = await addMember(team.orgId, ["accountant"]);
+    await createResidence(
+      manager,
+      createResidenceSchema.parse({
+        projectId: setup.projectId,
+        name: "Résidence Les Oliviers",
+        shareBasis: "10000",
+        chargeFrequency: "quarterly",
+        reserveFund: "0",
+        callDueDays: "30",
+      }),
+    );
+    // 40 000 DA a month for a year since a month ago: two months due today.
+    const { id: leaseId } = await createLease(
+      manager,
+      createLeaseSchema.parse({
+        unitId: setup.unitIds[1],
+        kind: "residential",
+        tenantName: "Saadi Amel",
+        tenantPhone: "0661 70 80 90",
+        signedOn: addDays(addMonths(todayInAlgiers(), -1), -3),
+        startOn: addMonths(todayInAlgiers(), -1),
+        durationMonths: "12",
+        monthlyRent: "40 000",
+        frequency: "monthly",
+        deposit: "",
+        notes: "",
+      }),
+    );
+    const [rented] = await withTenant(manager, (tx) =>
+      tx.select({ occupantId: lease.occupantId }).from(lease).where(eq(lease.id, leaseId)),
+    );
+    const tenant = await portalAccount(manager, { residentId: rented?.occupantId ?? "" });
+    const rent = (amount: string, targetId = leaseId) =>
+      startOnlinePaymentSchema.parse({ purpose: "rent", targetId, amount, acceptTerms: true });
+
+    // Rent is off until the gérant offers it.
+    await saveGatewaySettings(team.owner, gateway());
+    await expect(startOnlinePayment(tenant, rent("40 000"))).rejects.toMatchObject({
+      messageKey: "onlinePayments.errors.disabled",
+    });
+    await saveGatewaySettings(team.owner, gateway({ rentEnabled: true }));
+    await expect(startOnlinePayment(tenant, rent("480 000,01"))).rejects.toMatchObject({
+      messageKey: "onlinePayments.errors.aboveBalance",
+    });
+    await expect(startOnlinePayment(tenant, rent("1 000", randomUUID()))).rejects.toMatchObject({
+      code: "NOT_FOUND",
+    });
+    // A buyer of another organization offering rents too.
+    const other = await saleScenario();
+    await saveGatewaySettings(other.team.owner, gateway({ rentEnabled: true }));
+    await expect(startOnlinePayment(other.buyer, rent("1 000"))).rejects.toMatchObject({
+      code: "NOT_FOUND",
+    });
+
+    const started = await startOnlinePayment(tenant, rent("40 000"));
+    decideStandInOrder((await rowOf(team.orgId, started.id)).gatewayOrderId ?? "", "pay");
+    const paid = await finalizeOnlinePayment(team.orgId, started.id);
+    expect(paid).toMatchObject({ status: "paid", issue: null, paymentId: null });
+    const [quittance] = await withTenant(team.owner, (tx) =>
+      tx.select().from(rentPayment).where(eq(rentPayment.leaseId, leaseId)),
+    );
+    expect(quittance).toMatchObject({
+      id: paid?.rentPaymentId,
+      kind: "rent",
+      amount: 40_000_00n,
+      method: "card",
+      recordedBy: tenant.userId,
+    });
+    expect(quittance?.receiptNumber).toMatch(/^QIT-\d{4}-\d{6}$/);
+
+    const account = await getPortalLease(tenant, leaseId);
+    expect(account?.statement).toMatchObject({ paid: 40_000_00n, remaining: 440_000_00n });
+    expect(account?.payments).toHaveLength(1);
+    expect(await getPortalLease(other.buyer, leaseId)).toBeNull();
+    expect(await withTenant(tenant, (tx) => isPortalLease(tx, tenant.userId, leaseId))).toBe(true);
+    expect(await getPortalOnlinePayment(tenant, started.id)).toMatchObject({
+      purpose: "rent",
+      rentReceiptNumber: quittance?.receiptNumber,
+      leaseNumber: expect.stringMatching(/^BAL-/),
+    });
+    const { rows } = await listOnlinePayments(accountant, { q: null });
+    expect(rows.map((r) => r.id)).toContain(started.id);
+
+    await refundOnlinePayment(
+      accountant,
+      refundOnlinePaymentSchema.parse({ onlinePaymentId: started.id, reason: "Payé deux fois" }),
+    );
+    const [cancelled] = await withTenant(team.owner, (tx) =>
+      tx
+        .select({ status: rentPayment.status })
+        .from(rentPayment)
+        .where(eq(rentPayment.leaseId, leaseId)),
+    );
+    expect(cancelled?.status).toBe("cancelled");
+    expect((await rowOf(team.orgId, started.id)).status).toBe("refunded");
   });
 });
