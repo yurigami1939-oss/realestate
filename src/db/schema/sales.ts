@@ -22,6 +22,7 @@ import {
   bankLoanStatuses,
   commissionStatuses,
   constructionStages,
+  financingSources,
   optionStatuses,
   paymentMethods,
   reminderKinds,
@@ -707,6 +708,8 @@ export const receiptStatus = pgEnum("receipt_status", ["issued", "cancelled"]);
  * cheque's clearance date can change — enforced by column grants in post-migrate.sql. Applied to
  * installments by the derived FIFO statement (src/lib/statement.ts), never stored.
  */
+export const financingSource = pgEnum("financing_source", financingSources);
+
 export const payment = pgTable(
   "payment",
   {
@@ -730,6 +733,8 @@ export const payment = pgTable(
     legacyReceipt: text(),
     /** The cash desk or account the money landed on (CLAUDE.md §7 Treasury). */
     accountId: uuid(),
+    /** Where the money comes from (financing plan); null = derived from the method. */
+    financingSource: financingSource(),
     status: paymentStatus().notNull().default("valid"),
     cancelledAt: instant(),
     cancelledBy: userRef(),
@@ -1060,6 +1065,35 @@ export const bankLoan = pgTable(
       "bank_loan_amounts",
       sql`${t.requested} > 0 and (${t.approved} is null or ${t.approved} > 0)`,
     ),
+  ],
+);
+
+/**
+ * Plan de financement of a sale (CLAUDE.md §7 After the reservation): what each source is
+ * expected to bring (own funds, bank loan, aid…), one line per source, saved as a whole; what
+ * each has brought is derived from the payments.
+ */
+export const saleFinancing = pgTable(
+  "sale_financing",
+  {
+    id: id(),
+    organizationId: organizationId(),
+    reservationId: uuid().notNull(),
+    source: financingSource().notNull(),
+    expected: money().notNull(),
+    /** The bank, the aid's decision number… */
+    reference: text(),
+    ...timestamps(),
+  },
+  (t) => [
+    unique().on(t.organizationId, t.id),
+    unique("sale_financing_source_key").on(t.organizationId, t.reservationId, t.source),
+    foreignKey({
+      name: "sale_financing_reservation_fk",
+      columns: [t.organizationId, t.reservationId],
+      foreignColumns: [reservation.organizationId, reservation.id],
+    }),
+    check("sale_financing_expected", sql`${t.expected} > 0`),
   ],
 );
 

@@ -10,7 +10,7 @@ import { enqueueInTx } from "@/jobs/enqueue";
 import { type CalendarDate, todayInAlgiers } from "@/lib/dates";
 import type { Centimes } from "@/lib/money";
 import { AppError } from "@/lib/result";
-import type { PaymentMethod } from "@/lib/sales";
+import type { FinancingSource, PaymentMethod } from "@/lib/sales";
 import { computeStatement } from "@/lib/statement";
 import { recordAudit } from "@/server/audit/record-audit";
 import { unmatchEntry } from "@/server/treasury/reconciliation-entries";
@@ -56,6 +56,8 @@ export type SalePaymentEntry = {
   notes: string | null;
   /** The account chosen; absent or empty = the method's default account. */
   accountId?: string | null;
+  /** Where the money comes from (financing plan); absent = derived from the method. */
+  financingSource?: FinancingSource | null;
 };
 
 /**
@@ -111,6 +113,7 @@ export async function insertSalePayment(
       payerName: input.payerName,
       notes: input.notes,
       accountId: await resolvePaymentAccount(tx, input.method, input.accountId),
+      financingSource: input.financingSource ?? null,
       recordedBy: actor.userId,
     })
     .returning({ id: payment.id });

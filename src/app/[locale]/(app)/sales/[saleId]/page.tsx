@@ -6,6 +6,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { PageHeader } from "@/components/app-shell/page-header";
 import { PhoneText } from "@/components/crm/phone";
 import { DeliveryStateBadge } from "@/components/handovers/badges";
+import { FinancingDialog } from "@/components/sales/financing-dialog";
 import { InstallmentStateBadge, SaleStatusBadge } from "@/components/sales/badges";
 import { IssueCertificateDialog } from "@/components/certificates/issue-certificate-dialog";
 import { DocumentPdf, PendingDocumentsRefresher } from "@/components/sales/document-pdf";
@@ -45,6 +46,7 @@ import { getSalesSettings } from "@/server/organizations/settings";
 import { getProjectPaymentSetup } from "@/server/payment-plans/queries";
 import { listSaleAmendments } from "@/server/sales/amendments";
 import { listSaleBankLoans } from "@/server/sales/bank-loans";
+import { getSaleFinancing } from "@/server/sales/financing";
 import { listReservableUnits } from "@/server/sales/queries";
 import { getSale } from "@/server/sales/sale-queries";
 import { listSaleWithdrawals } from "@/server/sales/withdrawals";
@@ -89,6 +91,7 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
   const withdrawals = await listSaleWithdrawals(ctx, saleId);
   const { loans, disbursed } = await listSaleBankLoans(ctx, saleId);
   const certificates = await listSaleCertificates(ctx, saleId);
+  const financing = await getSaleFinancing(ctx, saleId);
   const accounts = can(ctx.roles, "payment:create") ? await listAccountChoices(ctx) : [];
   const changeable = sale.status === "reserved" && can(ctx.roles, "sale:update");
   const buyerChoices = changeable
@@ -215,6 +218,11 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
                 payerName={mainBuyer ? `${mainBuyer.firstName} ${mainBuyer.lastName}` : ""}
                 today={today}
                 accounts={accounts}
+                sources={
+                  financing?.lines
+                    .filter((l) => l.planned && l.source !== "own_funds")
+                    .map((l) => l.source) ?? []
+                }
               />
             ) : null}
             {sale.status === "reserved" && can(ctx.roles, "sale:sign") ? (
@@ -620,6 +628,68 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
               </dl>
             </CardContent>
           </Card>
+
+          {financing && (financing.lines.length > 0 || (live && can(ctx.roles, "sale:finance"))) ? (
+            <Card data-testid="sale-financing">
+              <CardHeader className="flex flex-row items-center justify-between gap-2">
+                <CardTitle className="text-base">{t("sales.financing.title")}</CardTitle>
+                {live && can(ctx.roles, "sale:finance") ? (
+                  <FinancingDialog
+                    reservationId={sale.id}
+                    price={sale.price}
+                    lines={financing.lines
+                      .filter((l) => l.planned)
+                      .map((l) => ({
+                        source: l.source,
+                        expected: moneyInput(l.expected),
+                        reference: l.reference ?? "",
+                      }))}
+                  />
+                ) : null}
+              </CardHeader>
+              <CardContent className="space-y-3 text-sm">
+                {financing.hasPlan ? null : (
+                  <p className="text-muted-foreground">{t("sales.financing.none")}</p>
+                )}
+                {financing.lines.length > 0 ? (
+                  <ul className="space-y-2">
+                    {financing.lines.map((l) => (
+                      <li key={l.source} className="space-y-0.5">
+                        <div className="flex justify-between gap-3">
+                          <span className="font-medium">
+                            {t(`sales.financing.source.${l.source}`)}
+                          </span>
+                          <bdi dir="ltr" className="tabular-nums">
+                            {money(l.received)} / {money(l.expected)}
+                          </bdi>
+                        </div>
+                        {l.reference ? (
+                          <div className="text-muted-foreground" dir="auto">
+                            {l.reference}
+                          </div>
+                        ) : null}
+                        {l.expected > l.received ? (
+                          <div className="text-xs text-muted-foreground">
+                            {t("sales.financing.toCome", {
+                              amount: money(l.expected - l.received),
+                            })}
+                          </div>
+                        ) : null}
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+                {financing.hasPlan && financing.unplanned !== 0n ? (
+                  <p
+                    className="rounded-md border border-amber-300 bg-amber-50 p-2 text-amber-900"
+                    data-testid="financing-gap"
+                  >
+                    {t("sales.financing.gap", { amount: money(financing.unplanned) })}
+                  </p>
+                ) : null}
+              </CardContent>
+            </Card>
+          ) : null}
 
           <Card>
             <CardHeader>

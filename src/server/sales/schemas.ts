@@ -4,6 +4,7 @@ import { z } from "zod";
 import {
   bankLoanStatuses,
   counterPaymentMethods,
+  financingSources,
   MAX_BUYERS_PER_SALE,
   withdrawalKinds,
 } from "@/lib/sales";
@@ -171,6 +172,24 @@ const bankLoanFields = {
 };
 export const createBankLoanSchema = z.object({ reservationId: z.uuid(), ...bankLoanFields });
 export const updateBankLoanSchema = z.object({ bankLoanId: z.uuid(), ...bankLoanFields });
+
+/** The financing plan of a sale, saved as a whole: one line per source. */
+export const saveSaleFinancingSchema = z.object({
+  reservationId: z.uuid(),
+  lines: z
+    .array(
+      z.object({
+        source: z.enum(financingSources),
+        expected: moneyText().refine((v) => v > 0n, "validation.amount"),
+        reference: optionalText(120),
+      }),
+    )
+    .max(financingSources.length)
+    .refine(
+      (lines) => new Set(lines.map((l) => l.source)).size === lines.length,
+      "sales.financing.errors.duplicate",
+    ),
+});
 
 /** Documents of a sale whose PDF can be requested again (worker was down…). */
 export const saleDocumentKinds = [

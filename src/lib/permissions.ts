@@ -37,7 +37,7 @@ export const statement = {
    * `read_all` = every sale. `update`: contracts, transfers, swaps, bank loans.
    * `withdraw` proposes a withdrawal, `approve` (gérant) approves it (CLAUDE.md §12).
    * `remind`: reminder letters for overdue installments. `certify`: certificates (attestations)
-   * for the buyers and their banks.
+   * for the buyers and their banks. `finance`: the sale's financing plan.
    */
   sale: [
     "read",
@@ -50,6 +50,7 @@ export const statement = {
     "approve",
     "remind",
     "certify",
+    "finance",
   ],
   /** Payments and receipts: cashiers record, accountants cancel (CLAUDE.md §5 roles). */
   payment: ["read", "create", "cancel"],
@@ -130,6 +131,7 @@ export const roles = {
       "approve",
       "remind",
       "certify",
+      "finance",
     ],
     payment: ["read", "create", "cancel"],
     milestone: ["validate"],
@@ -171,6 +173,7 @@ export const roles = {
       "withdraw",
       "remind",
       "certify",
+      "finance",
     ],
     payment: ["read"],
     milestone: ["validate"],
@@ -189,7 +192,7 @@ export const roles = {
     quotation: ["create"],
     discount: ["request"],
     buyer: ["read", "create", "update"],
-    sale: ["read", "create"],
+    sale: ["read", "create", "finance"],
     commission: ["read"],
     construction: ["read"],
   }),

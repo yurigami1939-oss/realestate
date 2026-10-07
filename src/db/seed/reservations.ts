@@ -21,11 +21,13 @@ import { getProjectPaymentSetup } from "@/server/payment-plans/queries";
 import { recordPaymentSchema } from "@/server/payments/schemas";
 import { recordPayment } from "@/server/payments/service";
 import { createBankLoan } from "@/server/sales/bank-loans";
+import { saveSaleFinancing } from "@/server/sales/financing";
 import { placeOption } from "@/server/sales/options";
 import { createReservation, recordSale } from "@/server/sales/reservations";
 import { getSale } from "@/server/sales/sale-queries";
 import {
   createBankLoanSchema,
+  saveSaleFinancingSchema,
   createReservationSchema,
   proposeWithdrawalSchema,
   recordSaleSchema,
@@ -385,6 +387,17 @@ export async function seedSales(actors: Actors, ids: Ids) {
     }),
   );
   await pay(karimaSale.id, 300_000_000n, 10, "CNEP-Banque", "bank_loan");
+  // Her financing plan: the approved loan, the rest from her own funds.
+  await saveSaleFinancing(
+    manager,
+    saveSaleFinancingSchema.parse({
+      reservationId: karimaSale.id,
+      lines: [
+        { source: "own_funds", expected: asInput(karimaSale.price - 850_000_000n), reference: "" },
+        { source: "bank_loan", expected: "8 500 000", reference: "CNEP-Banque, agence Kouba" },
+      ],
+    }),
+  );
 
   // 2. Houda Meziane: half of the signing paid, the rest overdue; a reminder letter.
   const houdaSale = await reserve(agentB, {

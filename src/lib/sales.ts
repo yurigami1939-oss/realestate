@@ -111,6 +111,33 @@ export const bankLoanStatuses = [
 ] as const;
 export type BankLoanStatus = (typeof bankLoanStatuses)[number];
 
+/**
+ * Where a sale's money comes from (plan de financement): the buyer's own funds, a bank loan, an
+ * Islamic financing (Mourabaha, Ijara), the CNL's aid, the FNPOS, the employer's social fund or
+ * anything else.
+ */
+export const financingSources = [
+  "own_funds",
+  "bank_loan",
+  "islamic_financing",
+  "cnl_aid",
+  "fnpos",
+  "employer",
+  "other",
+] as const;
+export type FinancingSource = (typeof financingSources)[number];
+
+/**
+ * The source a payment counts for: the one recorded with it, else a bank loan's disbursement
+ * for the method `bank_loan` and the buyer's own funds for anything else.
+ */
+export function paymentSource(
+  method: PaymentMethod,
+  source: FinancingSource | null,
+): FinancingSource {
+  return source ?? (method === "bank_loan" ? "bank_loan" : "own_funds");
+}
+
 export const commissionStatuses = ["earned", "paid", "cancelled"] as const;
 export type CommissionStatus = (typeof commissionStatuses)[number];
 

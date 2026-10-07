@@ -428,6 +428,13 @@
       "when": 1791380374527,
       "tag": "0060_lease_charge_settlements",
       "breakpoints": true
+    },
+    {
+      "idx": 61,
+      "version": "7",
+      "when": 1791382209084,
+      "tag": "0061_sale_financing",
+      "breakpoints": true
     }
   ]
 }

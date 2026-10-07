@@ -7,6 +7,7 @@ import { defineAction } from "@/server/action";
 import { rescheduleSale } from "./amendments";
 import { createBankLoan, updateBankLoan } from "./bank-loans";
 import { swapUnit, transferReservation } from "./changes";
+import { saveSaleFinancing } from "./financing";
 import { requestSaleDocument } from "./document-requests";
 import { cancelOption, placeOption } from "./options";
 import { createReservation, recordSale, updateReservationContract } from "./reservations";
@@ -21,6 +22,7 @@ import {
   recordWithdrawalRefundSchema,
   requestSaleDocumentSchema,
   rescheduleSaleSchema,
+  saveSaleFinancingSchema,
   reservationContractSchema,
   swapUnitSchema,
   transferReservationSchema,
@@ -94,6 +96,10 @@ export const swapUnitAction = defineAction(
 export const createBankLoanAction = defineAction(
   { input: createBankLoanSchema, permission: "sale:update" },
   (input, ctx) => mutation(() => createBankLoan(ctx, input)),
+);
+export const saveSaleFinancingAction = defineAction(
+  { input: saveSaleFinancingSchema, permission: "sale:finance" },
+  (input, ctx) => mutation(() => saveSaleFinancing(ctx, input)),
 );
 export const updateBankLoanAction = defineAction(
   { input: updateBankLoanSchema, permission: "sale:update" },

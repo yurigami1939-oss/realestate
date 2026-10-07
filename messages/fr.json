@@ -1453,6 +1453,39 @@
       "approveTitle": "Valider la résiliation ?",
       "approveDescription": "Le contrat est résilié et le lot redevient disponible. Remboursement prévu : {refund}, recalculé sur les encaissements à ce jour.",
       "approved": "Résiliation validée."
+    },
+    "financing": {
+      "title": "Plan de financement",
+      "none": "Aucun plan de financement : indiquez ce que chaque source doit apporter.",
+      "edit": "Plan de financement",
+      "editTitle": "Plan de financement de la vente",
+      "editDescription": "Ce que chaque source doit apporter sur le prix de {price} ; ce qu'elle a déjà versé se calcule à partir des encaissements.",
+      "saved": "Plan de financement enregistré.",
+      "addLine": "Ajouter une source",
+      "totalLine": "Prévu {total} · reste {rest}",
+      "toCome": "Reste à recevoir : {amount}",
+      "gap": "Part du prix non couverte par le plan : {amount}",
+      "auto": "Selon le mode de paiement",
+      "source": {
+        "own_funds": "Apport personnel",
+        "bank_loan": "Crédit bancaire",
+        "islamic_financing": "Financement islamique (Mourabaha)",
+        "cnl_aid": "Aide de la CNL",
+        "fnpos": "Aide du FNPOS",
+        "employer": "Aide de l'employeur (œuvres sociales)",
+        "other": "Autre"
+      },
+      "fields": {
+        "source": "Source",
+        "expected": "Montant prévu (DA)",
+        "reference": "Référence",
+        "referenceHint": "Banque, n° de décision…",
+        "paymentSource": "Provenance des fonds"
+      },
+      "errors": {
+        "duplicate": "Chaque source ne figure qu'une fois.",
+        "abovePrice": "Le plan ne peut dépasser le prix de vente."
+      }
     }
   },
   "payments": {

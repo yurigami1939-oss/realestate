@@ -16,7 +16,7 @@ import { TextField } from "@/components/forms/text-field";
 import { useAction } from "@/components/forms/use-action";
 import { Button } from "@/components/ui/button";
 import { formatDZD } from "@/lib/money";
-import { counterPaymentMethods } from "@/lib/sales";
+import { counterPaymentMethods, type FinancingSource } from "@/lib/sales";
 import { issueReminderAction } from "@/server/collections/actions";
 import { issueReminderSchema } from "@/server/collections/schemas";
 import {
@@ -42,6 +42,7 @@ export function RecordPaymentDialog({
   payerName,
   today,
   accounts,
+  sources,
 }: {
   reservationId: string;
   number: string;
@@ -50,8 +51,11 @@ export function RecordPaymentDialog({
   today: string;
   /** Cash desks and accounts the payment may land on. */
   accounts: AccountOption[];
+  /** Sources of the sale's financing plan besides the buyer's own funds. */
+  sources: FinancingSource[];
 }) {
   const t = useTranslations("payments");
+  const tf = useTranslations("sales.financing");
   const locale = useLocale() === "ar" ? "ar" : "fr";
   const [open, setOpen] = useState(false);
   const record = useAction(recordPaymentAction);
@@ -67,6 +71,7 @@ export function RecordPaymentDialog({
       payerName,
       notes: "",
       accountId: "",
+      financingSource: "",
     },
   });
   const method = useWatch({ control: form.control, name: "method" });
@@ -129,6 +134,18 @@ export function RecordPaymentDialog({
       </div>
       <TextField control={form.control} name="payerName" label={t("fields.payerName")} />
       <AccountField control={form.control} name="accountId" method={method} accounts={accounts} />
+      {sources.length > 0 ? (
+        <SelectField
+          control={form.control}
+          name="financingSource"
+          label={tf("fields.paymentSource")}
+          emptyLabel={tf("auto")}
+          options={(["own_funds", ...sources] as const).map((s) => ({
+            value: s,
+            label: tf(`source.${s}`),
+          }))}
+        />
+      ) : null}
       <TextareaField control={form.control} name="notes" label={t("fields.notes")} rows={2} />
     </FormDialog>
   );

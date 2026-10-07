@@ -99,6 +99,31 @@ test.describe("directrice commerciale", () => {
     await expect(page.getByTestId("sale-commission")).toContainText("1,5");
   });
 
+  test("adds the employer's aid to the seeded sale's financing plan", async ({ page }) => {
+    await page.goto("/fr/sales?status=sold");
+    await page.getByTestId("sales-table").getByRole("link", { name: /^RES-/ }).first().click();
+    const card = page.getByTestId("sale-financing");
+    await expect(card).toContainText("Apport personnel");
+    await expect(card).toContainText("Crédit bancaire");
+
+    await card.getByRole("button", { name: "Plan de financement" }).click();
+    const dialog = page.getByRole("dialog");
+    await dialog.getByRole("button", { name: "Ajouter une source" }).click();
+    await dialog.getByRole("combobox", { name: "Source 3" }).click();
+    await page.getByRole("option", { name: "Aide de l'employeur (œuvres sociales)" }).click();
+    await dialog.getByLabel("Montant prévu (DA) 3").fill("500 000");
+    await dialog.getByRole("button", { name: "Enregistrer", exact: true }).click();
+    // The plan cannot exceed the price: the buyer's own funds go down by as much.
+    await expect(dialog.getByText("Le plan ne peut dépasser le prix de vente.")).toBeVisible();
+    const own = dialog.getByLabel("Montant prévu (DA) 1");
+    const lower = Number((await own.inputValue()).replace(",", ".")) - 500_000;
+    await own.fill(lower.toFixed(2).replace(".", ","));
+    await dialog.getByRole("button", { name: "Enregistrer", exact: true }).click();
+    await expect(page.getByText("Plan de financement enregistré.")).toBeVisible();
+    await expect(card).toContainText("Aide de l'employeur (œuvres sociales)");
+    await expect(page.getByTestId("financing-gap")).toHaveCount(0);
+  });
+
   test("follows sales and collections on the dashboard", async ({ page }) => {
     await page.goto("/fr/dashboard");
     await expect(page.getByTestId("dashboard-sales")).toBeVisible();
