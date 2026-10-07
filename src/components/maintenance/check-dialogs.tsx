@@ -35,8 +35,6 @@ import { createCheckSchema, recordVisitSchema } from "@/server/maintenance/schem
 type SupplierOption = { id: string; name: string };
 type CheckValues = Omit<z.input<typeof createCheckSchema>, "residenceId">;
 
-const NONE = "";
-
 /** A new deadline of a residence, or one corrected (`checkId` and its values). */
 export function CheckDialog({
   residenceId,
@@ -67,7 +65,7 @@ export function CheckDialog({
         kind: "inspection",
         category: "lift",
         title: "",
-        supplierId: NONE,
+        supplierId: "",
         frequencyMonths: "12",
         nextDueOn: today,
         reference: "",
@@ -139,22 +137,18 @@ export function CheckDialog({
           control={form.control}
           name="supplierId"
           label={t("fields.supplier")}
-          options={[
-            { value: NONE, label: t("noSupplier") },
-            ...suppliers.map((s) => ({ value: s.id, label: s.name })),
-          ]}
+          emptyLabel={t("noSupplier")}
+          options={suppliers.map((s) => ({ value: s.id, label: s.name }))}
         />
         <SelectField
           control={form.control}
           name="frequencyMonths"
           label={t("fields.frequency")}
-          options={[
-            { value: "", label: t("oneOff") },
-            ...checkFrequencies.map((m) => ({
-              value: String(m),
-              label: t("everyMonths", { count: m }),
-            })),
-          ]}
+          emptyLabel={t("oneOff")}
+          options={checkFrequencies.map((m) => ({
+            value: String(m),
+            label: t("everyMonths", { count: m }),
+          }))}
         />
         <TextField
           control={form.control}
@@ -196,7 +190,7 @@ export function VisitDialog({
     defaultValues: {
       checkId,
       doneOn: today,
-      supplierId: supplierId ?? NONE,
+      supplierId: supplierId ?? "",
       result: "compliant",
       notes: "",
       cost: "",
@@ -251,10 +245,8 @@ export function VisitDialog({
           control={form.control}
           name="supplierId"
           label={t("fields.doneBy")}
-          options={[
-            { value: NONE, label: t("noSupplier") },
-            ...suppliers.map((s) => ({ value: s.id, label: s.name })),
-          ]}
+          emptyLabel={t("noSupplier")}
+          options={suppliers.map((s) => ({ value: s.id, label: s.name }))}
         />
         <TextField
           control={form.control}
