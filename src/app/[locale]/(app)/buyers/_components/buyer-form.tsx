@@ -9,6 +9,7 @@ import type { z } from "zod";
 import { applyFieldErrors } from "@/components/forms/apply-field-errors";
 import { CheckboxField, SelectField, TextareaField } from "@/components/forms/fields";
 import { TextField } from "@/components/forms/text-field";
+import { WILAYA_OPTIONS, WilayaOptions } from "@/components/forms/wilaya-options";
 import { useAction } from "@/components/forms/use-action";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -67,7 +68,10 @@ export function BuyerForm({
     defaultValues,
   });
   type Name = Exclude<keyof BuyerFormValues, "leadId" | "whatsappOptIn">;
-  type InputExtras = Pick<React.ComponentProps<"input">, "dir" | "lang" | "type" | "inputMode">;
+  type InputExtras = Pick<
+    React.ComponentProps<"input">,
+    "dir" | "lang" | "type" | "inputMode" | "list"
+  >;
   const field = (name: Name, extra: InputExtras = {}) => (
     <TextField control={form.control} name={name} label={t(`fields.${name}`)} {...extra} />
   );
@@ -157,8 +161,9 @@ export function BuyerForm({
             {field("address")}
             <div className="grid gap-4 sm:grid-cols-2">
               {field("commune")}
-              {field("wilaya")}
+              {field("wilaya", { list: WILAYA_OPTIONS })}
             </div>
+            <WilayaOptions />
 
             <FieldSeparator>{t("sections.situation")}</FieldSeparator>
             <div className="grid gap-4 sm:grid-cols-3">

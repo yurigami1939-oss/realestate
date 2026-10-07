@@ -459,7 +459,7 @@ The WhatsApp message log (`notification:read`) is open to the gérant, the direc
 | Société (SARL) | `organization` | Better Auth table + legal fields below |
 | RC, NIF, NIS, AI (identifiants légaux SARL) | `organization.rc_number`, `nif`, `nis`, `ai_number` | + `legal_name`, `address`, `wilaya`, `phone`; printed on documents |
 | Membre / Invitation | `member` / `invitation` | Better Auth tables |
-| Wilaya / Commune | `wilaya` / `commune` | free text on projects, leads and buyers; global reference tables deferred until a form needs a strict list |
+| Wilaya / Commune | `wilaya` / `commune` | free text on projects, leads and buyers; the 58 wilayas offered as suggestions (`src/lib/wilayas.ts`, `WilayaOptions`); communes stay free text |
 
 ## 7. Domain rules & invariants
 
@@ -1096,7 +1096,9 @@ Every item of the functional audit (what an Algerian promoter, its syndic and it
   - [x] Individuals' requests: export of a buyer's or a prospect's data, erasure of prospects (corrections through the forms)
   - [ ] Retention periods (automatic) and the register of processing
   - [ ] Consent beyond WhatsApp, logging who reads personal data
-- [ ] **16. Configuration**: custom roles per company, editable wording on documents, reference list of wilayas and communes.
+- [ ] **16. Configuration**
+  - [x] Reference list of the 58 wilayas (FR / AR), suggested in the address fields (still free text)
+  - [ ] Communes, custom roles per company, editable wording on documents
 - [ ] **17. Mobile**
   - [x] Installable app (web app manifest, icons, standalone window, iOS home screen)
   - [ ] Push notifications for field staff and residents

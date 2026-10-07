@@ -9,6 +9,7 @@ import type { z } from "zod";
 import { applyFieldErrors } from "@/components/forms/apply-field-errors";
 import { CheckboxField } from "@/components/forms/fields";
 import { TextField } from "@/components/forms/text-field";
+import { WILAYA_OPTIONS, WilayaOptions } from "@/components/forms/wilaya-options";
 import { useAction } from "@/components/forms/use-action";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -54,7 +55,13 @@ export function CompanyForm({ defaultValues }: { defaultValues: CompanyFormValue
             </div>
             <div className="grid gap-4 sm:grid-cols-3">
               <div className="sm:col-span-2">{text("address")}</div>
-              {text("wilaya")}
+              <TextField
+                control={form.control}
+                name="wilaya"
+                label={f("wilaya")}
+                list={WILAYA_OPTIONS}
+              />
+              <WilayaOptions />
             </div>
             <div className="grid gap-4 sm:grid-cols-3">
               {text("phone", true)}
