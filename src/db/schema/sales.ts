@@ -96,6 +96,11 @@ export const organizationSetting = pgTable(
     emailDocuments: boolean().notNull().default(false),
     /** The promoter's FGCMPI membership number (n° d'adhésion). */
     fgcmpiNumber: text(),
+    /** Accounting export: the chart's codes by flow nature, over the SCF defaults. */
+    accountingCodes: jsonb()
+      .$type<Partial<Record<string, string>>>()
+      .notNull()
+      .default(sql`'{}'::jsonb`),
     /** Company logo (PNG/JPEG), printed on the documents issued afterwards. */
     logoFileId: uuid(),
     updatedAt: updatedAt(),

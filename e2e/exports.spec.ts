@@ -38,3 +38,35 @@ test.describe("exports Excel", () => {
     expect(rows?.data[1]?.[3]).toBe("Cherif Mohamed");
   });
 });
+
+test.describe("accounting export", () => {
+  test.use({ storageState: authFile("owner") });
+
+  test("the gérant downloads the period's balanced entries", async ({ page }) => {
+    await page.goto("/fr/treasury");
+    await page.getByRole("link", { name: "Export comptable" }).click();
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Export comptable");
+    await expect(page.getByLabel("Acquéreurs (ventes, remboursements)")).toHaveAttribute(
+      "placeholder",
+      "411000",
+    );
+    await page.getByLabel("Du", { exact: true }).fill("2024-01-01");
+    await expect(page).toHaveURL(/from=2024-01-01/);
+    await expect(page.getByTestId("export-accounting")).toHaveAttribute("href", /from=2024-01-01/);
+    const [download] = await Promise.all([
+      page.waitForEvent("download"),
+      page.getByTestId("export-accounting").click(),
+    ]);
+    expect(download.suggestedFilename()).toMatch(/^ecritures-2024-01-01_\d{4}-\d{2}-\d{2}\.xlsx$/);
+    const [sheet] = await readXlsxFile((await download.path()) ?? "");
+    expect(sheet?.sheet).toBe("Écritures");
+    const rows = sheet?.data ?? [];
+    expect(rows[0]).toEqual(["Journal", "Date", "Pièce", "Compte", "Libellé", "Débit", "Crédit"]);
+    // Seeded collections on the cash desk and the bank, each balanced; the total too.
+    expect(rows.some((r) => r[0] === "CA" && r[3] === "530000")).toBe(true);
+    expect(rows.some((r) => r[0] === "BQ" && r[3] === "411000")).toBe(true);
+    const total = rows.at(-1);
+    expect(total?.[4]).toBe("Total");
+    expect(total?.[5]).toBe(total?.[6]);
+  });
+});

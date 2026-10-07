@@ -28,6 +28,7 @@ import { can } from "@/lib/permissions";
 import { AppError } from "@/lib/result";
 import { ageingBuckets } from "@/lib/reports";
 import { computeStatement } from "@/lib/statement";
+import { getAccountingEntries } from "@/server/accounting/service";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
 import { visibleBuyers } from "@/server/buyers/access";
 import { searchCondition as buyerSearch } from "@/server/buyers/queries";
@@ -955,6 +956,46 @@ async function ledger(
   };
 }
 
+/** Journal entries of the period (two lines per flow), for the chartered accountant. */
+async function accounting(
+  ctx: TenantCtx,
+  params: ExportParams<"accounting">,
+  t: Translate,
+): Promise<ExportResult> {
+  const found = await getAccountingEntries(ctx, params);
+  const lines = cap(found.lines);
+  return {
+    file: exportFileName("ecritures", `${found.from}_${found.to}`),
+    rows: lines.length,
+    sheets: [
+      {
+        name: t("accounting.sheet"),
+        columns: [
+          { header: t("accounting.columns.journal"), width: 10 },
+          { header: t("accounting.columns.date"), kind: "date" },
+          { header: t("accounting.columns.piece"), width: 18 },
+          { header: t("accounting.columns.account"), width: 12 },
+          { header: t("accounting.columns.label"), width: 44 },
+          { header: t("accounting.columns.debit"), kind: "money" },
+          { header: t("accounting.columns.credit"), kind: "money" },
+        ],
+        rows: [
+          ...lines.map((l) => [
+            l.journal,
+            l.on,
+            l.piece,
+            l.account,
+            l.label,
+            l.debit > 0n ? l.debit : null,
+            l.credit > 0n ? l.credit : null,
+          ]),
+          [null, null, null, null, t("accounting.total"), found.debit, found.credit],
+        ],
+      },
+    ],
+  };
+}
+
 /** The management reports, one sheet per table. */
 async function report(
   ctx: TenantCtx,
@@ -1107,4 +1148,5 @@ export const builders: { [K in ExportKind]: Builder<K> } = {
   invoices,
   ledger,
   report,
+  accounting,
 };

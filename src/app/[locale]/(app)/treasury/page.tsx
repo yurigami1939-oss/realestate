@@ -1,9 +1,11 @@
+import { BookOpenCheck } from "lucide-react";
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { PageHeader } from "@/components/app-shell/page-header";
 import { CreateAccountDialog, MovementDialog } from "@/components/treasury/treasury-dialogs";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "@/i18n/navigation";
 import { toLocale } from "@/i18n/locales";
@@ -57,6 +59,12 @@ export default async function TreasuryPage({ params }: PageProps<"/[locale]/trea
                 />
               ) : null}
               <CreateAccountDialog today={today} />
+              <Button asChild variant="outline">
+                <Link href="/treasury/accounting">
+                  <BookOpenCheck data-icon="inline-start" />
+                  {t("accountingLink")}
+                </Link>
+              </Button>
             </>
           ) : null
         }

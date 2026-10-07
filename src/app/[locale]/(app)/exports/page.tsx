@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { PageHeader } from "@/components/app-shell/page-header";
-import { ChoiceExport, CollectionsExport, PlainExport } from "@/components/exports/export-forms";
+import { ChoiceExport, PeriodExport, PlainExport } from "@/components/exports/export-forms";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toLocale } from "@/i18n/locales";
 import { todayInAlgiers } from "@/lib/dates";
@@ -37,7 +37,11 @@ export default async function ExportsPage({ params }: PageProps<"/[locale]/expor
   )[] = [
     allowed("payment:read") && {
       key: "collections",
-      control: <CollectionsExport from={`${today.slice(0, 7)}-01`} to={today} />,
+      control: <PeriodExport kind="collections" from={`${today.slice(0, 7)}-01`} to={today} />,
+    },
+    allowed("treasury:update") && {
+      key: "accounting",
+      control: <PeriodExport kind="accounting" from={`${today.slice(0, 7)}-01`} to={today} />,
     },
     allowed("sale:read") && { key: "sales", control: <PlainExport kind="sales" /> },
     allowed("sale:read") && { key: "installments", control: <PlainExport kind="installments" /> },

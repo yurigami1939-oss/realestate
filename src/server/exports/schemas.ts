@@ -17,6 +17,7 @@ export const exportKinds = [
   "invoices",
   "ledger",
   "report",
+  "accounting",
 ] as const;
 export type ExportKind = (typeof exportKinds)[number];
 
@@ -49,6 +50,8 @@ export const exportParams = {
   ledger: z.object({ account: z.uuid(), from: day, to: day }),
   /** The management reports over a period, optionally one project. */
   report: z.object({ from: day, to: day, project: optionalId }),
+  /** Journal entries of every treasury account over a period, for the chartered accountant. */
+  accounting: z.object({ from: day, to: day }),
 } as const satisfies Record<ExportKind, z.ZodType>;
 
 export type ExportParams<K extends ExportKind> = z.output<(typeof exportParams)[K]>;

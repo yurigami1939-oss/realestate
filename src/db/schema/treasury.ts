@@ -52,6 +52,9 @@ export const treasuryAccount = pgTable(
     isDefault: boolean().notNull().default(false),
     closedOn: date({ mode: "string" }),
     notes: text(),
+    /** Accounting export: the account's code and journal (defaults by kind: 53, 512, 517). */
+    accountingCode: text(),
+    journalCode: text(),
     ...timestamps(),
   },
   (t) => [

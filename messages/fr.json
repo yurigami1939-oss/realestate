@@ -76,7 +76,8 @@
     "phone": "Numéro de téléphone invalide (ex. 0550 12 34 56).",
     "dateTime": "Date et heure invalides.",
     "nin": "NIN invalide (18 chiffres).",
-    "time": "Heure invalide (HH:MM)."
+    "time": "Heure invalide (HH:MM).",
+    "accountCode": "Chiffres et lettres uniquement."
   },
   "auth": {
     "fields": {
@@ -3951,6 +3952,10 @@
       "invoices": {
         "title": "Factures fournisseurs",
         "description": "Les factures avec leur imputation et leur paiement."
+      },
+      "accounting": {
+        "title": "Écritures comptables",
+        "description": "Les flux de toutes vos caisses et comptes sur la période, en écritures équilibrées (journal, pièce, compte, débit, crédit) pour votre expert-comptable."
       }
     }
   },
@@ -4383,7 +4388,8 @@
       "statements": "Relevés importés",
       "statementLine": "Du {from} au {to} · {count, plural, one {# opération} other {# opérations}}",
       "importedBy": "Importé par {name} le {date}"
-    }
+    },
+    "accountingLink": "Export comptable"
   },
   "costs": {
     "title": "Coûts et marge",
@@ -5034,5 +5040,46 @@
     "disabled": "Double authentification désactivée.",
     "wrongPassword": "Mot de passe incorrect.",
     "invalidCode": "Code incorrect. Réessayez."
+  },
+  "accounting": {
+    "title": "Export comptable",
+    "description": "Les écritures de la période pour votre expert-comptable : chaque encaissement, paiement et mouvement de vos caisses et comptes, en deux lignes équilibrées.",
+    "export": "Écritures de la période",
+    "download": "Télécharger les écritures (Excel)",
+    "hint": "Un journal par caisse ou compte ; les chèques comptent à leur réception, les virements internes passent par le compte de virements internes. Les ventes et appels de charges eux-mêmes restent à comptabiliser par l'expert-comptable.",
+    "chart": "Plan comptable",
+    "counterparts": "Comptes de contrepartie (laissés vides : plan SCF par défaut)",
+    "accounts": "Caisses et comptes",
+    "accountCode": "Compte",
+    "journalCode": "Journal",
+    "saved": "Plan comptable enregistré.",
+    "sheet": "Écritures",
+    "total": "Total",
+    "columns": {
+      "journal": "Journal",
+      "date": "Date",
+      "piece": "Pièce",
+      "account": "Compte",
+      "label": "Libellé",
+      "debit": "Débit",
+      "credit": "Crédit"
+    },
+    "key": {
+      "clients": "Acquéreurs (ventes, remboursements)",
+      "coOwners": "Copropriétaires (charges)",
+      "tenants": "Locataires (loyers)",
+      "deposits": "Dépôts de garantie reçus",
+      "suppliers": "Fournisseurs",
+      "contractors": "Entreprises de travaux (situations, retenues)",
+      "staff": "Personnel (paie)",
+      "staffAdvances": "Avances au personnel",
+      "partners": "Commissions d'apporteurs",
+      "bankFees": "Frais bancaires",
+      "expenses": "Autres dépenses",
+      "income": "Autres recettes",
+      "transfers": "Virements internes",
+      "cashShort": "Écarts de caisse (manquants)",
+      "cashOver": "Écarts de caisse (excédents)"
+    }
   }
 }

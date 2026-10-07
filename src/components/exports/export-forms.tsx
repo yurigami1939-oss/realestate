@@ -29,16 +29,24 @@ function DownloadLink({ kind, params }: { kind: ExportKind; params: Record<strin
   );
 }
 
-/** Journal des encaissements over a period (this month by default). */
-export function CollectionsExport({ from, to }: { from: string; to: string }) {
+/** An export over a period (this month by default): the collections journal, the entries. */
+export function PeriodExport({
+  kind,
+  from,
+  to,
+}: {
+  kind: "collections" | "accounting";
+  from: string;
+  to: string;
+}) {
   const t = useTranslations("exports.page");
   const [range, setRange] = useState({ from, to });
   return (
     <div className="flex flex-wrap items-end gap-3">
       <div className="space-y-1">
-        <Label htmlFor="export-from">{t("from")}</Label>
+        <Label htmlFor={`export-${kind}-from`}>{t("from")}</Label>
         <Input
-          id="export-from"
+          id={`export-${kind}-from`}
           type="date"
           dir="ltr"
           value={range.from}
@@ -46,16 +54,16 @@ export function CollectionsExport({ from, to }: { from: string; to: string }) {
         />
       </div>
       <div className="space-y-1">
-        <Label htmlFor="export-to">{t("to")}</Label>
+        <Label htmlFor={`export-${kind}-to`}>{t("to")}</Label>
         <Input
-          id="export-to"
+          id={`export-${kind}-to`}
           type="date"
           dir="ltr"
           value={range.to}
           onChange={(e) => setRange({ ...range, to: e.target.value })}
         />
       </div>
-      <DownloadLink kind="collections" params={range} />
+      <DownloadLink kind={kind} params={range} />
     </div>
   );
 }
