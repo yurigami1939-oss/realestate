@@ -13,6 +13,7 @@ import {
   EndLeaseDialog,
   RecordRentPaymentDialog,
   RenewLeaseDialog,
+  ReviseRentDialog,
   SettleDepositDialog,
 } from "@/components/rentals/lease-dialogs";
 import { InspectionPdf, LeaseStateBadge, RentReceiptPdf } from "@/components/rentals/rentals-ui";
@@ -86,6 +87,12 @@ export default async function LeasePage({ params }: PageProps<"/[locale]/rentals
   const checkIn = inspectionOf("check_in");
   const checkOut = inspectionOf("check_out");
   const canInspect = can(ctx.roles, "lease:update");
+  // A revision starts with a period after the first one and after the latest revision.
+  const lastRevision = lease.revisions.at(-1)?.effectiveOn ?? lease.startOn;
+  const revisable = st.lines.map((l) => l.fromOn).filter((day) => day > lastRevision);
+  const revised =
+    lease.inForce.monthlyRent !== lease.monthlyRent ||
+    lease.inForce.monthlyCharges !== lease.monthlyCharges;
 
   const terms: { label: string; value: React.ReactNode }[] = [
     { label: t("fields.signedOn"), value: formatDate(lease.signedOn) },
@@ -103,6 +110,21 @@ export default async function LeasePage({ params }: PageProps<"/[locale]/rentals
           {
             label: t("fields.monthlyCharges"),
             value: <bdi dir="ltr">{money(lease.monthlyCharges)}</bdi>,
+          },
+        ]
+      : []),
+    ...(revised
+      ? [
+          {
+            label: t("revisions.inForce"),
+            value: (
+              <bdi dir="ltr">
+                {money(lease.inForce.monthlyRent)}
+                {lease.inForce.monthlyCharges > 0n
+                  ? ` + ${money(lease.inForce.monthlyCharges)}`
+                  : ""}
+              </bdi>
+            ),
           },
         ]
       : []),
@@ -153,12 +175,22 @@ export default async function LeasePage({ params }: PageProps<"/[locale]/rentals
                   today={today}
                   defaults={{
                     durationMonths: String(lease.durationMonths),
-                    monthlyRent: asInput(lease.monthlyRent),
-                    monthlyCharges: asInput(lease.monthlyCharges, true),
+                    monthlyRent: asInput(lease.inForce.monthlyRent),
+                    monthlyCharges: asInput(lease.inForce.monthlyCharges, true),
                     frequency: lease.frequency,
                     deposit: asInput(lease.deposit, true),
                   }}
                 />
+                {revisable.length > 0 ? (
+                  <ReviseRentDialog
+                    leaseId={lease.id}
+                    periods={[
+                      ...revisable.filter((day) => day >= today),
+                      ...revisable.filter((day) => day < today).reverse(),
+                    ]}
+                    current={lease.inForce}
+                  />
+                ) : null}
                 <EndLeaseDialog leaseId={lease.id} today={today} />
               </>
             ) : null}
@@ -437,6 +469,27 @@ export default async function LeasePage({ params }: PageProps<"/[locale]/rentals
               {lease.tenantAddress ? (
                 <div className="text-muted-foreground">{lease.tenantAddress}</div>
               ) : null}
+              {lease.guarantorName ? (
+                <div className="pt-2" data-testid="lease-guarantor">
+                  <span className="text-muted-foreground">{t("guarantor")} : </span>
+                  {lease.guarantorName}
+                  {lease.guarantorIdNumber ? (
+                    <span className="text-muted-foreground">
+                      {" · "}
+                      <bdi dir="ltr">{lease.guarantorIdNumber}</bdi>
+                    </span>
+                  ) : null}
+                  {lease.guarantorPhone ? (
+                    <span className="text-muted-foreground">
+                      {" · "}
+                      <bdi dir="ltr">{lease.guarantorPhone}</bdi>
+                    </span>
+                  ) : null}
+                  {lease.guarantorAddress ? (
+                    <div className="text-muted-foreground">{lease.guarantorAddress}</div>
+                  ) : null}
+                </div>
+              ) : null}
               {lease.occupancy ? (
                 <div className="pt-2">
                   <Link
@@ -469,6 +522,21 @@ export default async function LeasePage({ params }: PageProps<"/[locale]/rentals
                   </div>
                 ))}
               </dl>
+              {lease.revisions.length > 0 ? (
+                <ul className="space-y-1 border-t pt-2 text-xs" data-testid="lease-revisions">
+                  {lease.revisions.map((r) => (
+                    <li key={r.id}>
+                      {t("revisions.line", {
+                        date: formatDate(r.effectiveOn),
+                        rent: money(r.monthlyRent),
+                      })}
+                      <span className="block text-muted-foreground">
+                        {r.reason} · {r.createdByName}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
               <Separator />
               <div className="space-y-1" data-testid="lease-deposit">
                 <div className="flex justify-between gap-3">

@@ -50,6 +50,11 @@ const tenantFields = {
   tenantAddress: optionalText(300),
   /** Trade carried on in a commercial unit. */
   activity: optionalText(160),
+  /** The guarantor (caution), if any. */
+  guarantorName: optionalText(160),
+  guarantorIdNumber: optionalText(40),
+  guarantorPhone: optionalText(40),
+  guarantorAddress: optionalText(300),
 };
 
 export const createLeaseSchema = z.object({
@@ -145,3 +150,12 @@ export const recordInspectionSchema = z.object({
 });
 
 export const inspectionIdSchema = z.object({ inspectionId: z.uuid() });
+
+/** A rent revision from a period of the lease on (indexation, renegotiation). */
+export const reviseRentSchema = z.object({
+  leaseId: z.uuid(),
+  effectiveOn: dateText(),
+  monthlyRent: moneyText().refine((v) => v > 0n, "validation.amount"),
+  monthlyCharges: optionalMoneyText(),
+  reason: requiredText(300),
+});

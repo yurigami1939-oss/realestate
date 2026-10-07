@@ -13,7 +13,7 @@ import { TextField } from "@/components/forms/text-field";
 import { useAction } from "@/components/forms/use-action";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { FieldGroup } from "@/components/ui/field";
+import { FieldGroup, FieldSeparator } from "@/components/ui/field";
 import { useRouter } from "@/i18n/navigation";
 import { formatDate } from "@/lib/dates";
 import { formatDZD, parseDZD } from "@/lib/money";
@@ -94,6 +94,10 @@ export function LeaseForm({
       tenantEmail: "",
       tenantAddress: "",
       activity: "",
+      guarantorName: "",
+      guarantorIdNumber: "",
+      guarantorPhone: "",
+      guarantorAddress: "",
       signedOn: today,
       startOn: today,
       durationMonths: "12",
@@ -202,6 +206,31 @@ export function LeaseForm({
                 control={form.control}
                 name="tenantWhatsappOptIn"
                 label={t("fields.tenantWhatsappOptIn")}
+              />
+              <FieldSeparator>{t("form.guarantor")}</FieldSeparator>
+              <div className="grid gap-4 sm:grid-cols-3">
+                <TextField
+                  control={form.control}
+                  name="guarantorName"
+                  label={t("fields.guarantorName")}
+                />
+                <TextField
+                  control={form.control}
+                  name="guarantorIdNumber"
+                  label={t("fields.guarantorIdNumber")}
+                  dir="ltr"
+                />
+                <TextField
+                  control={form.control}
+                  name="guarantorPhone"
+                  label={t("fields.guarantorPhone")}
+                  dir="ltr"
+                />
+              </div>
+              <TextField
+                control={form.control}
+                name="guarantorAddress"
+                label={t("fields.guarantorAddress")}
               />
             </FieldGroup>
           </CardContent>

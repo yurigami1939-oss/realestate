@@ -9,6 +9,7 @@ import {
   file,
   lease,
   leaseInspection,
+  leaseRevision,
   project,
   rentPayment,
   residence,
@@ -19,10 +20,10 @@ import {
 import { withTenant } from "@/db/tenant";
 import { addDays, type CalendarDate, todayInAlgiers } from "@/lib/dates";
 import { isUuid } from "@/lib/ids";
-import { ENDING_SOON_DAYS, leaseState } from "@/lib/rentals";
+import { ENDING_SOON_DAYS, leaseState, rentOn } from "@/lib/rentals";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
 
-import { leasePaid, rentStatement } from "./accounts";
+import { leasePaid, leaseRevisions, rentStatement } from "./accounts";
 
 export type LeaseFilters = { status?: "active" | "ended" | "all"; projectId?: string };
 
@@ -76,11 +77,18 @@ export async function listLeases(ctx: TenantCtx, filters: LeaseFilters = {}) {
       .from(project)
       .innerJoin(lease, eq(lease.projectId, project.id))
       .orderBy(asc(project.name));
+    const revisions = await leaseRevisions(
+      tx,
+      rows.map((r) => r.id),
+    );
     return {
       items: rows.map((r) => {
-        const statement = rentStatement(r, paid.get(r.id)?.rent ?? 0n, today);
+        const terms = { ...r, revisions: revisions.get(r.id) };
+        const statement = rentStatement(terms, paid.get(r.id)?.rent ?? 0n, today);
         return {
           ...r,
+          // The rent in force today (after any revision).
+          monthlyRent: rentOn(terms, today).monthlyRent,
           overdue: statement.overdue,
           state: leaseState(r, today),
         };
@@ -143,6 +151,25 @@ export async function getLease(ctx: TenantCtx, leaseId: string) {
       .where(eq(rentPayment.leaseId, l.id))
       .orderBy(desc(rentPayment.paidOn), desc(rentPayment.createdAt));
     const paid = (await leasePaid(tx, [l.id])).get(l.id) ?? { rent: 0n, deposit: 0n };
+    const revisionRows = await tx
+      .select({
+        id: leaseRevision.id,
+        effectiveOn: leaseRevision.effectiveOn,
+        monthlyRent: leaseRevision.monthlyRent,
+        monthlyCharges: leaseRevision.monthlyCharges,
+        reason: leaseRevision.reason,
+        createdAt: leaseRevision.createdAt,
+        createdByName: user.name,
+      })
+      .from(leaseRevision)
+      .innerJoin(user, eq(user.id, leaseRevision.createdBy))
+      .where(eq(leaseRevision.leaseId, l.id))
+      .orderBy(asc(leaseRevision.effectiveOn));
+    const revisions = revisionRows.map(({ effectiveOn, monthlyRent, monthlyCharges }) => ({
+      effectiveOn,
+      monthlyRent,
+      monthlyCharges,
+    }));
     const [renewedFrom] = l.renewedFromId
       ? await tx
           .select({ id: lease.id, number: lease.number })
@@ -186,7 +213,9 @@ export async function getLease(ctx: TenantCtx, leaseId: string) {
       buildingName: row.buildingName,
       projectName: row.projectName,
       state: leaseState(l, today),
-      statement: rentStatement(l, paid.rent, today),
+      statement: rentStatement({ ...l, revisions }, paid.rent, today),
+      revisions: revisionRows,
+      inForce: rentOn({ ...l, revisions }, today),
       payments,
       inspections,
       depositHeld: l.depositCarried + paid.deposit,
@@ -259,9 +288,17 @@ export async function loadOverdueRents(tx: Tx, today: CalendarDate) {
     tx,
     rows.map((r) => r.id),
   );
+  const revisions = await leaseRevisions(
+    tx,
+    rows.map((r) => r.id),
+  );
   return rows
     .flatMap((r) => {
-      const statement = rentStatement(r, paid.get(r.id)?.rent ?? 0n, today);
+      const statement = rentStatement(
+        { ...r, revisions: revisions.get(r.id) },
+        paid.get(r.id)?.rent ?? 0n,
+        today,
+      );
       const oldest = statement.lines.find((l) => l.state === "overdue");
       if (statement.overdue === 0n || !oldest) return [];
       return [

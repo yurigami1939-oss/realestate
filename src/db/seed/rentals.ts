@@ -9,7 +9,7 @@ import { and, eq } from "drizzle-orm";
 
 import { project, unit } from "@/db/schema";
 import { withTenant } from "@/db/tenant";
-import { addDays, todayInAlgiers } from "@/lib/dates";
+import { addDays, addMonths, todayInAlgiers } from "@/lib/dates";
 import { type Centimes, toDecimalString } from "@/lib/money";
 import type { TenantCtx } from "@/server/auth/session";
 import { getLease } from "@/server/rentals/queries";
@@ -18,6 +18,7 @@ import {
   endLeaseSchema,
   recordInspectionSchema,
   recordRentPaymentSchema,
+  reviseRentSchema,
   settleDepositSchema,
 } from "@/server/rentals/schemas";
 import {
@@ -25,6 +26,7 @@ import {
   endLease,
   recordInspection,
   recordRentPayment,
+  reviseRent,
   settleDeposit,
 } from "@/server/rentals/service";
 
@@ -62,6 +64,7 @@ type LeaseSpec = {
   deposit: string;
   /** The tenant agreed to WhatsApp notifications. */
   whatsapp?: boolean;
+  guarantor?: { name: string; idNumber: string; phone: string };
 };
 
 async function lease({ manager }: Actors, spec: LeaseSpec) {
@@ -79,6 +82,10 @@ async function lease({ manager }: Actors, spec: LeaseSpec) {
       tenantEmail: spec.tenantEmail ?? "",
       tenantAddress: "",
       activity: spec.activity ?? "",
+      guarantorName: spec.guarantor?.name ?? "",
+      guarantorIdNumber: spec.guarantor?.idNumber ?? "",
+      guarantorPhone: spec.guarantor?.phone ?? "",
+      guarantorAddress: "",
       signedOn: addDays(today, -spec.startDaysAgo - 7),
       startOn: addDays(today, -spec.startDaysAgo),
       durationMonths: String(spec.durationMonths),
@@ -170,6 +177,17 @@ export async function seedRentals(actors: Actors) {
   });
   await pay(actors, pharmacy, "deposit", 195_000_00n, addDays(today, -407), "Pharmacie El Yasmine");
   await payPeriods(actors, pharmacy, 4, "Pharmacie El Yasmine");
+  // Its second year is indexed by 3 % (the quarter now overdue is due at the new rent).
+  await reviseRent(
+    actors.manager,
+    reviseRentSchema.parse({
+      leaseId: pharmacy,
+      effectiveOn: addMonths(addDays(today, -400), 12),
+      monthlyRent: "61 800",
+      monthlyCharges: "5 000",
+      reason: "Indexation annuelle de 3 % (article 5 du bail)",
+    }),
+  );
   await inspect(
     actors,
     pharmacy,
@@ -195,6 +213,7 @@ export async function seedRentals(actors: Actors) {
     tenantPhone: "0661 48 20 73",
     tenantEmail: "y.hamidi@example.test",
     whatsapp: true,
+    guarantor: { name: "Hamidi Rachid", idNumber: "109870123456789012", phone: "0550 12 98 76" },
     startDaysAgo: 320,
     durationMonths: 12,
     monthlyRent: "35 000",

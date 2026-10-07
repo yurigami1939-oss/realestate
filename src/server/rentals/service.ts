@@ -4,11 +4,11 @@ import { and, eq, isNull } from "drizzle-orm";
 import type { z } from "zod";
 
 import type { Tx } from "@/db/client";
-import { lease, leaseInspection, rentPayment, resident, unit } from "@/db/schema";
+import { lease, leaseInspection, leaseRevision, rentPayment, resident, unit } from "@/db/schema";
 import { withTenant } from "@/db/tenant";
 import { enqueueInTx } from "@/jobs/enqueue";
 import { addDays, todayInAlgiers } from "@/lib/dates";
-import { leaseEndOn } from "@/lib/rentals";
+import { buildRentPeriods, leaseEndOn, rentOn } from "@/lib/rentals";
 import { AppError } from "@/lib/result";
 import { recordAudit } from "@/server/audit/record-audit";
 import { unmatchEntry } from "@/server/treasury/reconciliation-entries";
@@ -20,7 +20,7 @@ import { nextDocumentNumber } from "@/server/numbering/next-document-number";
 import { addLeaseOccupant, endLeaseOccupant } from "@/server/residences/service";
 import { notifyRentPayment } from "@/server/whatsapp/notify";
 
-import { leasePaid, rentStatement } from "./accounts";
+import { leasePaid, leaseRevisions, rentStatement } from "./accounts";
 import type {
   cancelRentPaymentSchema,
   clearRentChequeSchema,
@@ -29,6 +29,7 @@ import type {
   recordInspectionSchema,
   recordRentPaymentSchema,
   renewLeaseSchema,
+  reviseRentSchema,
   settleDepositSchema,
   updateLeaseSchema,
 } from "./schemas";
@@ -89,6 +90,10 @@ const tenantValues = (input: In<typeof createLeaseSchema> | In<typeof updateLeas
   tenantEmail: input.tenantEmail,
   tenantAddress: input.tenantAddress,
   activity: input.activity,
+  guarantorName: input.guarantorName,
+  guarantorIdNumber: input.guarantorIdNumber,
+  guarantorPhone: input.guarantorPhone,
+  guarantorAddress: input.guarantorAddress,
   notes: input.notes,
 });
 
@@ -273,6 +278,10 @@ export async function renewLease(ctx: TenantCtx, input: In<typeof renewLeaseSche
         tenantEmail: current.tenantEmail,
         tenantAddress: current.tenantAddress,
         activity: current.activity,
+        guarantorName: current.guarantorName,
+        guarantorIdNumber: current.guarantorIdNumber,
+        guarantorPhone: current.guarantorPhone,
+        guarantorAddress: current.guarantorAddress,
         ...terms,
         depositCarried: current.depositCarried + paid.deposit,
         renewedFromId: current.id,
@@ -294,6 +303,57 @@ export async function renewLease(ctx: TenantCtx, input: In<typeof renewLeaseSche
 }
 
 /**
+ * Revises the rent of an active lease (`lease:update`; indexation or a new agreement): from one
+ * of its periods on — after its first one and after any earlier revision — every period is due
+ * at the new monthly rent and charges; the periods before keep theirs, issued quittances
+ * stay as printed. Audited.
+ */
+export async function reviseRent(ctx: TenantCtx, input: In<typeof reviseRentSchema>) {
+  assertCan(ctx, "lease:update");
+  return withTenant(ctx, async (tx) => {
+    const current = await loadLease(tx, input.leaseId);
+    assertActive(current);
+    const revisions = (await leaseRevisions(tx, [current.id])).get(current.id) ?? [];
+    const starts = buildRentPeriods({ ...current, revisions }).map((p) => p.fromOn);
+    if (input.effectiveOn <= current.startOn || !starts.includes(input.effectiveOn)) {
+      throw invalid("effectiveOn", "rentals.errors.revisionPeriod");
+    }
+    const latest = revisions.at(-1);
+    if (latest && input.effectiveOn <= latest.effectiveOn) {
+      throw invalid("effectiveOn", "rentals.errors.revisionOrder");
+    }
+    const before = rentOn({ ...current, revisions }, input.effectiveOn);
+    const [row] = await tx
+      .insert(leaseRevision)
+      .values({
+        organizationId: ctx.orgId,
+        leaseId: current.id,
+        effectiveOn: input.effectiveOn,
+        monthlyRent: input.monthlyRent,
+        monthlyCharges: input.monthlyCharges ?? 0n,
+        reason: input.reason,
+        createdBy: ctx.userId,
+      })
+      .returning({ id: leaseRevision.id });
+    if (!row) throw new Error("reviseRent: no row returned");
+    await recordAudit(tx, ctx, {
+      actorUserId: ctx.userId,
+      action: "lease.revise",
+      entityType: "lease",
+      entityId: current.id,
+      before,
+      after: {
+        effectiveOn: input.effectiveOn,
+        monthlyRent: input.monthlyRent,
+        monthlyCharges: input.monthlyCharges ?? 0n,
+      },
+      reason: input.reason,
+    });
+    return { id: row.id };
+  });
+}
+
+/**
  * Records a rent or deposit payment and issues its receipt QIT-… in the same transaction
  * (CLAUDE.md §7 Rentals): rent is applied to the oldest periods first and never above what
  * remains on the schedule; a deposit never above what is still missing of it. Audited; the
@@ -306,11 +366,15 @@ export async function recordRentPayment(ctx: TenantCtx, input: In<typeof recordR
   return withTenant(ctx, async (tx) => {
     const current = await loadLease(tx, input.leaseId);
     const paid = (await leasePaid(tx, [current.id])).get(current.id) ?? { rent: 0n, deposit: 0n };
+    const terms = {
+      ...current,
+      revisions: (await leaseRevisions(tx, [current.id])).get(current.id),
+    };
     let allocation: { fromOn: string; toOn: string; amount: string }[] = [];
     if (input.kind === "rent") {
-      const before = rentStatement(current, paid.rent, today);
+      const before = rentStatement(terms, paid.rent, today);
       if (input.amount > before.remaining) throw invalid("amount", "rentals.errors.aboveRemaining");
-      const after = rentStatement(current, paid.rent + input.amount, today);
+      const after = rentStatement(terms, paid.rent + input.amount, today);
       allocation = after.lines.flatMap((line) => {
         const settled =
           line.paid - (before.lines.find((l) => l.position === line.position)?.paid ?? 0n);

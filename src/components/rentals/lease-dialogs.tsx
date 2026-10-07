@@ -1,7 +1,15 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Ban, Banknote, CheckCircle2, DoorOpen, HandCoins, RefreshCw } from "lucide-react";
+import {
+  Ban,
+  Banknote,
+  CheckCircle2,
+  DoorOpen,
+  HandCoins,
+  RefreshCw,
+  TrendingUp,
+} from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
 import { type FieldValues, type UseFormReturn, useForm, useWatch } from "react-hook-form";
@@ -15,7 +23,10 @@ import { TextField } from "@/components/forms/text-field";
 import { useAction } from "@/components/forms/use-action";
 import { AccountField, type AccountOption } from "@/components/treasury/account-field";
 import { Button } from "@/components/ui/button";
-import { formatDZD } from "@/lib/money";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { formatDate } from "@/lib/dates";
+import { applyRate, formatDZD, toDecimalString } from "@/lib/money";
 import { rentFrequencies, type RentPaymentKind, rentPaymentMethods } from "@/lib/rentals";
 import type { AppErrorShape } from "@/lib/result";
 import {
@@ -24,6 +35,7 @@ import {
   endLeaseAction,
   recordRentPaymentAction,
   renewLeaseAction,
+  reviseRentAction,
   settleDepositAction,
 } from "@/server/rentals/actions";
 import {
@@ -32,6 +44,7 @@ import {
   endLeaseSchema,
   recordRentPaymentSchema,
   renewLeaseSchema,
+  reviseRentSchema,
   settleDepositSchema,
 } from "@/server/rentals/schemas";
 
@@ -477,6 +490,107 @@ export function SettleDepositDialog({
           method={method}
           accounts={accounts}
           outgoing
+        />
+      </div>
+      <TextareaField control={form.control} name="reason" label={t("reason")} rows={2} />
+    </FormDialog>
+  );
+}
+
+type ReviseValues = z.input<typeof reviseRentSchema>;
+
+/**
+ * A rent revision from a coming period of the lease: the new monthly rent (typed, or the
+ * current one indexed by a percentage) and charges provision, with the reason.
+ */
+export function ReviseRentDialog({
+  leaseId,
+  periods,
+  current,
+}: {
+  leaseId: string;
+  /** First days of the periods it may start from. */
+  periods: string[];
+  /** The monthly amounts in force today, in centimes. */
+  current: { monthlyRent: bigint; monthlyCharges: bigint };
+}) {
+  const t = useTranslations("rentals.revise");
+  const tf = useTranslations("rentals");
+  const locale = useLocale() === "ar" ? "ar" : "fr";
+  const [open, setOpen] = useState(false);
+  const revise = useAction(reviseRentAction);
+  const input = (v: bigint) => toDecimalString(v).replace(".", ",");
+  const form = useForm<ReviseValues, unknown, z.output<typeof reviseRentSchema>>({
+    resolver: zodResolver(reviseRentSchema),
+    defaultValues: {
+      leaseId,
+      effectiveOn: periods[0] ?? "",
+      monthlyRent: input(current.monthlyRent),
+      monthlyCharges: current.monthlyCharges > 0n ? input(current.monthlyCharges) : "",
+      reason: "",
+    },
+  });
+  return (
+    <FormDialog
+      open={open}
+      onOpenChange={setOpen}
+      trigger={
+        <Button variant="outline">
+          <TrendingUp data-icon="inline-start" />
+          {t("open")}
+        </Button>
+      }
+      title={t("title")}
+      description={t("description", { rent: formatDZD(current.monthlyRent, locale) })}
+      submitLabel={t("submit")}
+      pending={revise.pending}
+      onSubmit={form.handleSubmit(() =>
+        revise.run(form.getValues(), {
+          onSuccess: () => {
+            toast.success(t("done"));
+            setOpen(false);
+          },
+          onError: fieldErrors(form),
+        }),
+      )}
+    >
+      <SelectField
+        control={form.control}
+        name="effectiveOn"
+        label={t("effectiveOn")}
+        options={periods.map((day) => ({ value: day, label: formatDate(day) }))}
+      />
+      <div className="grid gap-4 sm:grid-cols-3">
+        <div className="space-y-2">
+          <Label htmlFor="revise-index">{t("index")}</Label>
+          <Input
+            id="revise-index"
+            inputMode="decimal"
+            dir="ltr"
+            placeholder="3"
+            onChange={(event) => {
+              const bp = Math.round(Number(event.target.value.replace(",", ".")) * 100);
+              if (!Number.isFinite(bp) || bp < 0 || bp > 10_000) return;
+              form.setValue(
+                "monthlyRent",
+                input(current.monthlyRent + applyRate(current.monthlyRent, bp)),
+              );
+            }}
+          />
+        </div>
+        <TextField
+          control={form.control}
+          name="monthlyRent"
+          label={tf("fields.monthlyRent")}
+          inputMode="decimal"
+          dir="ltr"
+        />
+        <TextField
+          control={form.control}
+          name="monthlyCharges"
+          label={tf("fields.monthlyCharges")}
+          inputMode="decimal"
+          dir="ltr"
         />
       </div>
       <TextareaField control={form.control} name="reason" label={t("reason")} rows={2} />

@@ -14,6 +14,7 @@ import {
   recordRentPaymentSchema,
   renewLeaseSchema,
   rentReceiptIdSchema,
+  reviseRentSchema,
   settleDepositSchema,
   updateLeaseSchema,
 } from "./schemas";
@@ -27,6 +28,7 @@ import {
   renewLease,
   requestInspectionReport,
   requestRentReceipt,
+  reviseRent,
   settleDeposit,
   updateLease,
 } from "./service";
@@ -62,6 +64,10 @@ export const endLeaseAction = defineAction(
 export const renewLeaseAction = defineAction(
   { input: renewLeaseSchema, permission: "lease:update" },
   (input, ctx) => leaseMutation(() => renewLease(ctx, input)),
+);
+export const reviseRentAction = defineAction(
+  { input: reviseRentSchema, permission: "lease:update" },
+  (input, ctx) => mutation(() => reviseRent(ctx, input)),
 );
 export const settleDepositAction = defineAction(
   { input: settleDepositSchema, permission: "lease:update" },

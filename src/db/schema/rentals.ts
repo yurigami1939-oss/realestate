@@ -63,6 +63,11 @@ export const lease = pgTable(
     tenantAddress: text(),
     /** Trade carried on in a commercial unit. */
     activity: text(),
+    /** The guarantor (caution) who answers for the tenant, if any. */
+    guarantorName: text(),
+    guarantorIdNumber: text(),
+    guarantorPhone: text(),
+    guarantorAddress: text(),
     signedOn: date({ mode: "string" }).notNull(),
     startOn: date({ mode: "string" }).notNull(),
     durationMonths: integer().notNull(),
@@ -270,5 +275,37 @@ export const leaseInspection = pgTable(
       foreignColumns: [file.organizationId, file.id],
     }),
     check("lease_inspection_keys", sql`${t.keysCount} is null or ${t.keysCount} >= 0`),
+  ],
+);
+
+/**
+ * A rent revision (indexation, renegotiation): from a period of the lease on, the monthly rent
+ * and charges provision change. The schedule takes, for each period, the latest revision
+ * effective by its first day. Append-only.
+ */
+export const leaseRevision = pgTable(
+  "lease_revision",
+  {
+    id: id(),
+    organizationId: organizationId(),
+    leaseId: uuid().notNull(),
+    effectiveOn: date({ mode: "string" }).notNull(),
+    monthlyRent: money().notNull(),
+    monthlyCharges: money()
+      .notNull()
+      .default(sql`0`),
+    reason: text().notNull(),
+    createdBy: userRef().notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    unique().on(t.organizationId, t.id),
+    unique("lease_revision_day_key").on(t.organizationId, t.leaseId, t.effectiveOn),
+    foreignKey({
+      name: "lease_revision_lease_fk",
+      columns: [t.organizationId, t.leaseId],
+      foreignColumns: [lease.organizationId, lease.id],
+    }),
+    check("lease_revision_amounts", sql`${t.monthlyRent} > 0 and ${t.monthlyCharges} >= 0`),
   ],
 );

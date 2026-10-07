@@ -1925,7 +1925,11 @@
       "frequency": "Paiement",
       "deposit": "Dépôt de garantie (DA)",
       "notes": "Remarques",
-      "tenantWhatsappOptIn": "Le locataire accepte les notifications WhatsApp (quittances)"
+      "tenantWhatsappOptIn": "Le locataire accepte les notifications WhatsApp (quittances)",
+      "guarantorName": "Nom de la caution",
+      "guarantorIdNumber": "NIN de la caution",
+      "guarantorPhone": "Téléphone de la caution",
+      "guarantorAddress": "Adresse de la caution"
     },
     "form": {
       "unitAndTenant": "Lot et locataire",
@@ -1936,7 +1940,8 @@
       "term": "Du {from} au {to}",
       "morePeriods": "{count, plural, one {et # autre échéance} other {et # autres échéances}}",
       "previewHint": "Indiquez le début, la durée et le loyer pour voir les échéances.",
-      "submit": "Enregistrer le bail"
+      "submit": "Enregistrer le bail",
+      "guarantor": "Caution (garant)"
     },
     "payment": {
       "open": {
@@ -2059,7 +2064,24 @@
       "retentionReason": "Indiquez le motif de la retenue.",
       "beforeEnd": "Le solde ne peut précéder la fin du bail.",
       "noItems": "Ajoutez au moins un élément.",
-      "inspectionRecorded": "Cet état des lieux est déjà enregistré."
+      "inspectionRecorded": "Cet état des lieux est déjà enregistré.",
+      "revisionPeriod": "Choisissez le premier jour d'une échéance du bail, après la première.",
+      "revisionOrder": "Une révision existe déjà à cette date ou après."
+    },
+    "guarantor": "Caution",
+    "revise": {
+      "open": "Réviser le loyer",
+      "title": "Réviser le loyer",
+      "description": "Loyer actuel : {rent} par mois. Le nouveau loyer s'applique à partir de l'échéance choisie ; les quittances déjà émises ne changent pas.",
+      "effectiveOn": "À partir de l'échéance du",
+      "index": "Indexation (%)",
+      "reason": "Motif (indexation, accord…)",
+      "submit": "Réviser",
+      "done": "Loyer révisé."
+    },
+    "revisions": {
+      "inForce": "Loyer en vigueur",
+      "line": "Depuis le {date} : {rent} par mois"
     }
   },
   "audit": {

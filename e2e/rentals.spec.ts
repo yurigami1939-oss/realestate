@@ -22,7 +22,7 @@ test.describe("gestionnaire", () => {
     await page.getByRole("combobox", { name: "Lot" }).click();
     await page.getByRole("option", { name: "D-00-01 · Résidence Les Amandiers" }).click();
     await page.getByLabel("Locataire (nom ou raison sociale)").fill("Zerrouki Amine");
-    await page.getByLabel("Téléphone").fill("0555 12 34 56");
+    await page.getByLabel("Téléphone", { exact: true }).fill("0555 12 34 56");
     await page.getByLabel("Loyer mensuel (DA)").fill("38 000");
     await page.getByLabel("Dépôt de garantie (DA)").fill("76 000");
     await expect(page.getByTestId("lease-preview")).toContainText("et 8 autres échéances");
@@ -75,6 +75,26 @@ test.describe("gestionnaire", () => {
     await dialog.getByLabel("Motif de la retenue").fill("Nettoyage");
     await dialog.getByRole("button", { name: "Solder le dépôt" }).click();
     await expect(page.getByTestId("lease-deposit")).toContainText("Soldé le");
+  });
+
+  test("indexes a rent; the pharmacy's second year is already revised", async ({ page }) => {
+    await page.goto("/fr/rentals");
+    const leases = page.getByTestId("leases");
+    await leases.locator('[data-unit="Y-00-02"]').getByRole("link").first().click();
+    await expect(page.getByTestId("lease-terms")).toContainText("Loyer en vigueur");
+    await expect(page.getByTestId("lease-revisions")).toContainText("Indexation annuelle de 3 %");
+
+    await page.goto("/fr/rentals");
+    await leases.locator('[data-unit="D-03-03"]').getByRole("link").first().click();
+    await expect(page.getByTestId("lease-guarantor")).toContainText("Hamidi Rachid");
+    await page.getByRole("button", { name: "Réviser le loyer" }).click();
+    const dialog = page.getByRole("dialog");
+    await dialog.getByLabel("Indexation (%)").fill("2");
+    await expect(dialog.getByLabel("Loyer mensuel (DA)")).toHaveValue("35700,00");
+    await dialog.getByLabel("Motif (indexation, accord…)").fill("Indexation convenue");
+    await dialog.getByRole("button", { name: "Réviser", exact: true }).click();
+    await expect(page.getByText("Loyer révisé.")).toBeVisible();
+    await expect(page.getByTestId("lease-revisions")).toContainText("Indexation convenue");
   });
 
   test("follows the overdue rents", async ({ page }) => {

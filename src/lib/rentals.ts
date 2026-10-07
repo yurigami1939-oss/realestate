@@ -58,10 +58,33 @@ export type RentPeriod = {
   dueOn: CalendarDate;
 };
 
+/** A rent revision: from `effectiveOn` (a period's first day) on, the new monthly amounts. */
+export type RentRevision = {
+  effectiveOn: CalendarDate;
+  monthlyRent: Centimes;
+  monthlyCharges: Centimes;
+};
+
+/** The monthly amounts in force on a day: the latest revision effective by then, else the lease's. */
+export function rentOn(
+  terms: { monthlyRent: Centimes; monthlyCharges: Centimes; revisions?: readonly RentRevision[] },
+  day: CalendarDate,
+): { monthlyRent: Centimes; monthlyCharges: Centimes } {
+  let current = { monthlyRent: terms.monthlyRent, monthlyCharges: terms.monthlyCharges };
+  for (const revision of [...(terms.revisions ?? [])].sort((a, b) =>
+    a.effectiveOn < b.effectiveOn ? -1 : 1,
+  )) {
+    if (revision.effectiveOn > day) break;
+    current = { monthlyRent: revision.monthlyRent, monthlyCharges: revision.monthlyCharges };
+  }
+  return current;
+}
+
 /**
  * Rent periods of a lease: from its start, `frequency` months each (the last one shorter when
  * the duration is not a multiple), each due on its first day for its months of rent and
- * charges. A lease ended early keeps only the periods that started by its last day.
+ * charges — at the amounts in force on that day (`revisions`). A lease ended early keeps only
+ * the periods that started by its last day.
  */
 export function buildRentPeriods(input: {
   startOn: CalendarDate;
@@ -70,6 +93,7 @@ export function buildRentPeriods(input: {
   monthlyRent: Centimes;
   monthlyCharges: Centimes;
   endedOn?: CalendarDate | null;
+  revisions?: readonly RentRevision[];
 }): RentPeriod[] {
   const step = monthsPerPeriod[input.frequency];
   const periods: RentPeriod[] = [];
@@ -77,8 +101,9 @@ export function buildRentPeriods(input: {
     const months = Math.min(step, input.durationMonths - first);
     const fromOn = addMonths(input.startOn, first);
     if (input.endedOn && fromOn > input.endedOn) break;
-    const rent = input.monthlyRent * BigInt(months);
-    const charges = input.monthlyCharges * BigInt(months);
+    const inForce = rentOn(input, fromOn);
+    const rent = inForce.monthlyRent * BigInt(months);
+    const charges = inForce.monthlyCharges * BigInt(months);
     periods.push({
       position: periods.length + 1,
       fromOn,

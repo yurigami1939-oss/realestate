@@ -3,10 +3,10 @@ import "server-only";
 import { and, eq, inArray, sql } from "drizzle-orm";
 
 import type { Tx } from "@/db/client";
-import { rentPayment } from "@/db/schema";
+import { leaseRevision, rentPayment } from "@/db/schema";
 import type { CalendarDate } from "@/lib/dates";
 import type { Centimes } from "@/lib/money";
-import { buildRentPeriods, type RentFrequency } from "@/lib/rentals";
+import { buildRentPeriods, type RentFrequency, type RentRevision } from "@/lib/rentals";
 import { computeStatement } from "@/lib/statement";
 
 const NO_PENALTY = { monthlyRateBp: 0, graceDays: 0, capBp: 0 };
@@ -18,7 +18,32 @@ export type LeaseTerms = {
   monthlyRent: Centimes;
   monthlyCharges: Centimes;
   endedOn: CalendarDate | null;
+  /** Rent revisions, from `leaseRevisions` (none = the lease's amounts throughout). */
+  revisions?: readonly RentRevision[];
 };
+
+/** The rent revisions of these leases, by lease, oldest first. */
+export async function leaseRevisions(
+  tx: Tx,
+  leaseIds: string[],
+): Promise<Map<string, RentRevision[]>> {
+  const byLease = new Map<string, RentRevision[]>();
+  if (leaseIds.length === 0) return byLease;
+  const rows = await tx
+    .select({
+      leaseId: leaseRevision.leaseId,
+      effectiveOn: leaseRevision.effectiveOn,
+      monthlyRent: leaseRevision.monthlyRent,
+      monthlyCharges: leaseRevision.monthlyCharges,
+    })
+    .from(leaseRevision)
+    .where(inArray(leaseRevision.leaseId, leaseIds))
+    .orderBy(leaseRevision.effectiveOn);
+  for (const { leaseId, ...revision } of rows) {
+    byLease.set(leaseId, [...(byLease.get(leaseId) ?? []), revision]);
+  }
+  return byLease;
+}
 
 /** Valid payments of these leases, totalled per lease: rent and deposit apart. */
 export async function leasePaid(

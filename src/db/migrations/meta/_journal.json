@@ -386,6 +386,13 @@
       "when": 1791321194003,
       "tag": "0054_residence_checks",
       "breakpoints": true
+    },
+    {
+      "idx": 55,
+      "version": "7",
+      "when": 1791322197053,
+      "tag": "0055_lease_revisions",
+      "breakpoints": true
     }
   ]
 }
