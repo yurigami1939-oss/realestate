@@ -2637,7 +2637,8 @@
       "staff": "Personnel",
       "assemblies": "Assemblées générales",
       "announcements": "Annonces",
-      "checks": "Contrôles"
+      "checks": "Contrôles",
+      "meters": "Compteurs"
     }
   },
   "charges": {
@@ -2672,7 +2673,8 @@
       "share": "Tantièmes",
       "equal": "Parts égales",
       "per_building": "Par bâtiment",
-      "custom": "Lots choisis"
+      "custom": "Lots choisis",
+      "consumption": "Consommation (compteurs d'eau)"
     },
     "weighting": {
       "share": "Selon les tantièmes",
@@ -2686,7 +2688,8 @@
       "share": "Tous les lots, selon leurs tantièmes",
       "equal": "Tous les lots, à parts égales",
       "per_building": "Bâtiment {building}, {weighting}",
-      "custom": "{count, plural, one {# lot} other {# lots}}, {weighting}"
+      "custom": "{count, plural, one {# lot} other {# lots}}, {weighting}",
+      "consumption": "Les lots relevés, selon leur consommation d'eau"
     },
     "budget": {
       "title": "Budget {year}",
@@ -2972,6 +2975,25 @@
         "pastStart": "La première échéance ne peut être passée.",
         "planExists": "Un échéancier est déjà en cours.",
         "aboveOverdue": "Le montant ne peut dépasser les impayés du lot."
+      }
+    },
+    "meters": {
+      "title": "Compteurs d'eau",
+      "description": "Relevez les compteurs individuels avant d'émettre les appels : une catégorie répartie « selon la consommation » partage sa part entre les lots selon l'eau consommée entre leurs deux derniers relevés (les lots relevés une seule fois n'y participent pas).",
+      "readOn": "Date du relevé",
+      "save": "Enregistrer le relevé",
+      "saved": "{count, plural, one {# compteur relevé} other {# compteurs relevés}}.",
+      "unit": "Lot",
+      "previous": "Relevé précédent (m³)",
+      "last": "Dernier relevé (m³)",
+      "consumption": "Consommation",
+      "newReading": "Nouvel index (m³)",
+      "readingOf": "Index du compteur du lot {code}",
+      "cubicMetres": "{value} m³",
+      "errors": {
+        "reading": "Index invalide (m³, trois décimales au plus).",
+        "backwards": "Un index ne peut être inférieur au relevé précédent ni supérieur au suivant.",
+        "nothingRead": "Aucun index saisi."
       }
     }
   },

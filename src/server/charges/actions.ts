@@ -17,9 +17,12 @@ import {
   createRepaymentPlan,
   openRecovery,
 } from "./recovery";
+import { deleteMeterReading, saveMeterReadings } from "./meters";
 import { issueWorksCall } from "./works";
 import {
   addRecoveryStepSchema,
+  deleteMeterReadingSchema,
+  saveMeterReadingsSchema,
   budgetIdSchema,
   cancelRepaymentPlanSchema,
   closeRecoverySchema,
@@ -120,4 +123,13 @@ export const cancelRepaymentPlanAction = defineAction(
 export const closeRecoveryAction = defineAction(
   { input: closeRecoverySchema, ...remind },
   (input, ctx) => mutation(() => closeRecovery(ctx, input)),
+);
+
+export const saveMeterReadingsAction = defineAction(
+  { input: saveMeterReadingsSchema, permission: "charge:create" },
+  (input, ctx) => mutation(() => saveMeterReadings(ctx, input)),
+);
+export const deleteMeterReadingAction = defineAction(
+  { input: deleteMeterReadingSchema, permission: "charge:create" },
+  (input, ctx) => mutation(() => deleteMeterReading(ctx, input)),
 );

@@ -22,6 +22,7 @@ import { assertCan, type TenantCtx } from "@/server/auth/session";
 import { loadResidence } from "@/server/residences/service";
 
 import { mainCoOwners, RESERVE_LABEL, writeCalls } from "./calls";
+import { unitConsumptions } from "./meters";
 import type { issueWorksCallSchema } from "./schemas";
 
 type In<S extends z.ZodType> = z.output<S>;
@@ -108,9 +109,10 @@ export async function issueWorksCall(ctx: TenantCtx, input: In<typeof issueWorks
       .select({ unitId: chargeCategoryUnit.unitId })
       .from(chargeCategoryUnit)
       .where(inArray(chargeCategoryUnit.categoryId, [category.id]));
+    const consumptions = await unitConsumptions(tx, home.id, input.issuedOn);
     // The whole amount at once: a « yearly » part of an « annual » amount, no reserve fund.
     const split = buildChargeCalls({
-      units,
+      units: units.map((u) => ({ ...u, consumption: consumptions.get(u.unitId) ?? null })),
       categories: [
         {
           ...category,

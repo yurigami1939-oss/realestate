@@ -27,7 +27,14 @@ export const MAX_SHARE_BASIS = 1_000_000;
  * How a charge category is split over the units: by tantièmes, equally, over the units of one
  * building, or over an explicit list of units (CLAUDE.md §7 Residence charges).
  */
-export const distributionKeys = ["share", "equal", "per_building", "custom"] as const;
+/** `consumption`: by each unit's water consumption between its two latest meter readings. */
+export const distributionKeys = [
+  "share",
+  "equal",
+  "per_building",
+  "custom",
+  "consumption",
+] as const;
 export type DistributionKey = (typeof distributionKeys)[number];
 
 /** Weight of each unit for the `per_building` and `custom` keys. */

@@ -44,6 +44,7 @@ import { issueChargePeriod } from "@/server/charges/calls";
 import { createChargeCategory } from "@/server/charges/categories";
 import { issueChargeReminder } from "@/server/charges/collections";
 import { recordChargePayment } from "@/server/charges/payments";
+import { saveMeterReadings } from "@/server/charges/meters";
 import { addRecoveryStep, openRecovery } from "@/server/charges/recovery";
 import { getWorksCallChoices, issueWorksCall } from "@/server/charges/works";
 import { getChargePeriod } from "@/server/charges/queries";
@@ -55,6 +56,7 @@ import {
   issueWorksCallSchema,
   recordChargePaymentSchema,
   saveBudgetSchema,
+  saveMeterReadingsSchema,
 } from "@/server/charges/schemas";
 import {
   createBuildingSchema,
@@ -1027,6 +1029,38 @@ export async function seedResidences(actors: Actors) {
   );
   const { categories, budgetId } = await seedCharges(manager, residenceId, unitIds);
   await seedCalls(actors, residenceId, budgetId, unitIds);
+  // Individual water meters, read last quarter and this week: the water bills are split by
+  // consumption (an « Eau froide » category with the consumption key, outside the budget).
+  await createChargeCategory(
+    manager,
+    createChargeCategorySchema.parse({
+      residenceId,
+      name: "Eau froide (compteurs individuels)",
+      nameAr: "الماء البارد (عدادات فردية)",
+      key: "consumption",
+      weighting: "share",
+      buildingId: "",
+      unitIds: [],
+    }),
+  );
+  const meterUnits = [...new Set(coOwners.map((c) => need(unitIds, c.unit)))];
+  for (const [offset, base] of [
+    [-95, 100],
+    [-5, 130],
+  ] as const) {
+    await saveMeterReadings(
+      manager,
+      saveMeterReadingsSchema.parse({
+        residenceId,
+        readOn: addDays(todayInAlgiers(), offset),
+        readings: meterUnits.map((unitId, index) => ({
+          unitId,
+          // Each household used between 18 and 30 m³ over the quarter.
+          reading: String(base + index * 7 + (offset === -5 ? (index % 4) * 4 - 12 : 0)),
+        })),
+      }),
+    );
+  }
   // The co-owner of Y-02-03, reminded today, gets a recovery file (the e2e agrees a plan).
   const { id: recoveryId } = await openRecovery(manager, {
     residenceId,

@@ -13,7 +13,26 @@ import {
   type DistributionWeighting,
 } from "./residences";
 
-export type ChargeUnit = { unitId: string; buildingId: string; share: number };
+export type ChargeUnit = {
+  unitId: string;
+  buildingId: string;
+  share: number;
+  /** Water consumed between its two latest meter readings, litres (null: not read twice). */
+  consumption?: bigint | null;
+};
+
+/**
+ * Litres consumed between two meter indexes in m³ ("1234.567"), compared as exact decimals;
+ * never negative.
+ */
+export function consumptionLitres(previous: string, current: string): bigint {
+  const litres = (index: string) => {
+    const [whole = "0", fraction = ""] = index.trim().split(".");
+    return BigInt(whole) * 1000n + BigInt(fraction.padEnd(3, "0").slice(0, 3) || "0");
+  };
+  const used = litres(current) - litres(previous);
+  return used > 0n ? used : 0n;
+}
 
 export type ChargeCategory = {
   id: string;
@@ -41,13 +60,19 @@ export function categoryWeights(
         return u.buildingId === category.buildingId;
       case "custom":
         return category.unitIds.includes(u.unitId);
+      case "consumption":
+        // Only the units whose meter was read twice.
+        return u.consumption !== undefined && u.consumption !== null;
     }
   });
   const byShare =
     category.key === "share" ||
     ((category.key === "per_building" || category.key === "custom") &&
       category.weighting === "share");
-  return concerned.map((u) => ({ unitId: u.unitId, weight: byShare ? BigInt(u.share) : 1n }));
+  return concerned.map((u) => ({
+    unitId: u.unitId,
+    weight: category.key === "consumption" ? (u.consumption ?? 0n) : byShare ? BigInt(u.share) : 1n,
+  }));
 }
 
 /** Part `index` (1-based) of an annual amount called in equal parts at `frequency`. */

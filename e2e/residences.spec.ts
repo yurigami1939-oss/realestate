@@ -78,6 +78,28 @@ test.describe("gestionnaire", () => {
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("Étanchéité : second acompte");
   });
 
+  test("reads the water meters and splits the water bill by consumption", async ({ page }) => {
+    await openResidence(page);
+    await page.getByRole("link", { name: "Compteurs", exact: true }).click();
+    const meters = page.getByTestId("meter-readings");
+    // Read last quarter and this week (src/db/seed/residences.ts).
+    await expect(meters.locator('[data-unit="Y-01-01"]')).toContainText("m³");
+    await meters.getByLabel("Index du compteur du lot Y-01-01").fill("300");
+    await page.getByRole("button", { name: "Enregistrer le relevé" }).click();
+    await expect(page.getByText("1 compteur relevé.")).toBeVisible();
+
+    await page.getByRole("link", { name: "Appels de charges" }).click();
+    await page.getByRole("button", { name: "Appel de fonds travaux" }).click();
+    const dialog = page.getByRole("dialog");
+    await dialog.getByLabel("Objet de l'appel").fill("Facture d'eau du trimestre");
+    await dialog.getByLabel("Catégorie (clé de répartition)").click();
+    await page.getByRole("option", { name: "Eau froide (compteurs individuels)" }).click();
+    await dialog.getByLabel("Montant total (DA)").fill("60 000");
+    await dialog.getByRole("button", { name: "Émettre des appels" }).click();
+    await expect(page.getByText(/^\d+ appels émis\.$/)).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Facture d'eau du trimestre");
+  });
+
   test("collects an overdue co-owner's charges against a numbered receipt", async ({ page }) => {
     await page.goto("/fr/residences/overdue");
     const overdue = page.getByTestId("overdue-charges");

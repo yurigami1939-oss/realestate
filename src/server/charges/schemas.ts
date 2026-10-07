@@ -169,3 +169,27 @@ export const createRepaymentPlanSchema = z.object({
 export const cancelRepaymentPlanSchema = z.object({ planId: z.uuid(), reason: requiredText(300) });
 
 export const closeRecoverySchema = z.object({ recoveryId: z.uuid(), reason: requiredText(300) });
+
+/** A meter index in m³ ("1 234,567"); blank = not read. Kept as a decimal string. */
+const meterText = () =>
+  z
+    .string()
+    .trim()
+    .transform((value, ctx) => {
+      if (value === "") return null;
+      const normalized = value.replace(/\s/g, "").replace(",", ".");
+      if (!/^\d{1,9}(\.\d{1,3})?$/.test(normalized)) {
+        ctx.addIssue({ code: "custom", message: "charges.meters.errors.reading" });
+        return z.NEVER;
+      }
+      return normalized;
+    });
+
+/** A campaign of water meter readings on a day (each unit read, or left blank). */
+export const saveMeterReadingsSchema = z.object({
+  residenceId: z.uuid(),
+  readOn: dateText(),
+  readings: z.array(z.object({ unitId: z.uuid(), reading: meterText() })).max(500),
+});
+
+export const deleteMeterReadingSchema = z.object({ readingId: z.uuid() });

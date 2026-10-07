@@ -9,6 +9,7 @@ const sections = [
   { key: "charges", path: "/charges", permission: "charge:read" },
   { key: "calls", path: "/calls", permission: "charge:read" },
   { key: "accounts", path: "/accounts", permission: "charge:read" },
+  { key: "meters", path: "/meters", permission: "charge:read" },
   { key: "expenses", path: "/expenses", permission: "supplier:read" },
   { key: "report", path: "/report", permission: "charge:read" },
   { key: "staff", path: "/staff", permission: "staff:read" },

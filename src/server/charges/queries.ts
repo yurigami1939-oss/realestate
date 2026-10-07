@@ -186,7 +186,7 @@ export async function getCallsSetup(ctx: TenantCtx, residenceId: string) {
     const toIssue = [];
     for (const b of approved) {
       if (!b.frequency || b.reserveFundBp === null) continue;
-      const input = await loadSplitInput(tx, residenceId, b.id);
+      const input = await loadSplitInput(tx, residenceId, b.id, today);
       for (let index = 1; index <= callsPerYear[b.frequency]; index += 1) {
         const issued = periods.some(
           (p) => p.budgetId === b.id && p.periodIndex === index && p.status === "issued",

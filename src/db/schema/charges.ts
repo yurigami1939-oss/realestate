@@ -5,6 +5,7 @@ import {
   foreignKey,
   index,
   integer,
+  numeric,
   jsonb,
   pgEnum,
   pgTable,
@@ -462,5 +463,35 @@ export const chargeReminder = pgTable(
     }),
     index().on(t.organizationId, t.residenceId, t.unitId),
     check("charge_reminder_overdue", sql`${t.overdue} > 0`),
+  ],
+);
+
+/**
+ * Index of a unit's water meter on a day (CLAUDE.md §7 Residence charges), in m³: a category
+ * with the `consumption` key splits its part by each unit's consumption between its two latest
+ * readings. One reading per unit and day; readings never go down.
+ */
+export const meterReading = pgTable(
+  "meter_reading",
+  {
+    id: id(),
+    organizationId: organizationId(),
+    residenceId: uuid().notNull(),
+    unitId: uuid().notNull(),
+    readOn: date({ mode: "string" }).notNull(),
+    /** The meter's index, m³ (three decimals). */
+    reading: numeric({ precision: 12, scale: 3 }).notNull(),
+    createdBy: userRef().notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    unique().on(t.organizationId, t.id),
+    unique("meter_reading_unit_day").on(t.organizationId, t.residenceId, t.unitId, t.readOn),
+    foreignKey({
+      name: "meter_reading_unit_fk",
+      columns: [t.residenceId, t.unitId],
+      foreignColumns: [residenceUnit.residenceId, residenceUnit.unitId],
+    }),
+    check("meter_reading_positive", sql`${t.reading} >= 0`),
   ],
 );

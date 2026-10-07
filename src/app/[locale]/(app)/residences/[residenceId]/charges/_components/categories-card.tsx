@@ -24,6 +24,7 @@ export function CategoriesCard({ setup, editable }: { setup: ChargesSetup; edita
     switch (c.key) {
       case "share":
       case "equal":
+      case "consumption":
         return t(`keyDescription.${c.key}`);
       case "per_building":
         return t("keyDescription.per_building", { building: c.buildingCode ?? "—", weighting });

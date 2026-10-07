@@ -23,7 +23,7 @@ import {
   type ChargeCategory,
   type ChargeUnit,
 } from "@/lib/charges";
-import { fromAlgiersDateTime, todayInAlgiers } from "@/lib/dates";
+import { type CalendarDate, fromAlgiersDateTime, todayInAlgiers } from "@/lib/dates";
 import type { Centimes } from "@/lib/money";
 import { callsPerYear } from "@/lib/residences";
 import { AppError } from "@/lib/result";
@@ -34,6 +34,7 @@ import { currentResident, loadResidence } from "@/server/residences/service";
 import { notifyChargeCall } from "@/server/whatsapp/notify";
 
 import { loadBudget } from "./budgets";
+import { unitConsumptions } from "./meters";
 import type { cancelChargePeriodSchema, issueChargePeriodSchema } from "./schemas";
 
 type In<S extends z.ZodType> = z.output<S>;
@@ -44,11 +45,15 @@ const invalid = (field: string, messageKey: string) =>
 /** Label of the reserve fund line on calls (documents are bilingual). */
 export const RESERVE_LABEL = { fr: "Fonds de réserve", ar: "صندوق الاحتياط" };
 
-/** Units of a residence and the categories of a budget with their annual amounts. */
+/**
+ * Units of a residence (with their water consumption on `onDay`) and the categories of a budget
+ * with their annual amounts.
+ */
 export async function loadSplitInput(
   tx: Tx,
   residenceId: string,
   budgetId: string,
+  onDay: CalendarDate,
 ): Promise<{ units: ChargeUnit[]; categories: (ChargeCategory & { annual: Centimes })[] }> {
   const units = await tx
     .select({
@@ -86,8 +91,9 @@ export async function loadSplitInput(
               lines.map((l) => l.id),
             ),
           );
+  const consumptions = await unitConsumptions(tx, residenceId, onDay);
   return {
-    units,
+    units: units.map((u) => ({ ...u, consumption: consumptions.get(u.unitId) ?? null })),
     categories: lines.map((l) => ({
       ...l,
       unitIds: custom.filter((c) => c.categoryId === l.id).map((c) => c.unitId),
@@ -231,7 +237,7 @@ export async function issueChargePeriod(ctx: TenantCtx, input: In<typeof issueCh
     if (live) throw new AppError("CONFLICT", "charges.errors.periodIssued");
 
     const split = buildChargeCalls({
-      ...(await loadSplitInput(tx, home.id, source.id)),
+      ...(await loadSplitInput(tx, home.id, source.id, input.issuedOn)),
       frequency: source.frequency,
       periodIndex,
       reserveFundBp: source.reserveFundBp,
