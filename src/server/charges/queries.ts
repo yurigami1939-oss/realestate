@@ -157,6 +157,9 @@ export async function getCallsSetup(ctx: TenantCtx, residenceId: string) {
         year: chargePeriod.year,
         frequency: chargePeriod.frequency,
         periodIndex: chargePeriod.periodIndex,
+        kind: chargePeriod.kind,
+        title: chargePeriod.title,
+        titleAr: chargePeriod.titleAr,
         issuedOn: chargePeriod.issuedOn,
         dueOn: chargePeriod.dueOn,
         total: chargePeriod.total,
@@ -167,11 +170,7 @@ export async function getCallsSetup(ctx: TenantCtx, residenceId: string) {
       })
       .from(chargePeriod)
       .where(eq(chargePeriod.residenceId, residenceId))
-      .orderBy(
-        desc(chargePeriod.year),
-        desc(chargePeriod.periodIndex),
-        desc(chargePeriod.issuedAt),
-      );
+      .orderBy(desc(chargePeriod.issuedOn), desc(chargePeriod.issuedAt));
 
     const approved = await tx
       .select({

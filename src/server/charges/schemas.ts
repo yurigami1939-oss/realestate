@@ -73,6 +73,21 @@ export const issueChargePeriodSchema = z.object({
   dueOn: dateText(),
 });
 
+/**
+ * An exceptional call (works voted by the assembly): what it pays for, the category whose key
+ * splits it, the amount, the issue and due days, and the resolution that voted it (optional).
+ */
+export const issueWorksCallSchema = z.object({
+  residenceId: z.uuid(),
+  title: requiredText(160),
+  titleAr: optionalText(160),
+  categoryId: z.uuid(),
+  amount: moneyText().refine((v) => v > 0n, "validation.amount"),
+  issuedOn: dateText(),
+  dueOn: dateText(),
+  resolutionId: z.union([z.uuid(), z.literal("")]).transform((v) => (v === "" ? null : v)),
+});
+
 /** Voids the calls of a period (wrong budget, wrong co-owners…); it can then be issued again. */
 export const cancelChargePeriodSchema = z.object({
   periodId: z.uuid(),

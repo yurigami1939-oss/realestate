@@ -155,7 +155,9 @@ export default async function UnitAccountPage({
                         />
                       </TableCell>
                       <TableCell>
-                        {tp(l.frequency, { year: l.year, index: l.periodIndex })}
+                        {l.frequency && l.periodIndex
+                          ? tp(l.frequency, { year: l.year, index: l.periodIndex })
+                          : l.title}
                       </TableCell>
                       <TableCell dir="ltr" className="text-start">
                         {l.dueOn ? formatDate(l.dueOn) : "—"}

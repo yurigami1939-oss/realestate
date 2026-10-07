@@ -25,6 +25,8 @@ export async function liveCalls(tx: Tx, residenceId: string, unitIds?: string[])
       year: chargePeriod.year,
       frequency: chargePeriod.frequency,
       periodIndex: chargePeriod.periodIndex,
+      title: chargePeriod.title,
+      titleAr: chargePeriod.titleAr,
     })
     .from(chargeCall)
     .innerJoin(chargePeriod, eq(chargePeriod.id, chargeCall.periodId))

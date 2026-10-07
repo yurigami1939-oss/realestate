@@ -20,10 +20,12 @@ import { formatDZD } from "@/lib/money";
 import { can } from "@/lib/permissions";
 import { requirePermission } from "@/server/auth/page-guard";
 import { getCallsSetup } from "@/server/charges/queries";
+import { getWorksCallChoices } from "@/server/charges/works";
 
 import { ResidenceNav } from "../_components/residence-nav";
 
 import { IssueDialog } from "./_components/issue-dialog";
+import { WorksCallDialog } from "./_components/works-call-dialog";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("charges.calls");
@@ -43,6 +45,7 @@ export default async function ResidenceCallsPage({
   const tr = await getTranslations("residences");
   const moneyLocale = (await getLocale()) === "ar" ? "ar" : "fr";
   const canIssue = can(ctx.roles, "charge:create");
+  const works = canIssue ? await getWorksCallChoices(ctx, residenceId) : null;
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
@@ -55,14 +58,25 @@ export default async function ResidenceCallsPage({
       <Card>
         <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
           <CardTitle className="text-base">{t("title")}</CardTitle>
-          {canIssue && setup.toIssue.length > 0 ? (
-            <IssueDialog
-              residenceId={residenceId}
-              toIssue={setup.toIssue}
-              today={todayInAlgiers()}
-              callDueDays={setup.residence.callDueDays}
-            />
-          ) : null}
+          <div className="flex flex-wrap gap-2">
+            {works && works.categories.length > 0 ? (
+              <WorksCallDialog
+                residenceId={residenceId}
+                categories={works.categories}
+                resolutions={works.resolutions}
+                today={todayInAlgiers()}
+                callDueDays={setup.residence.callDueDays}
+              />
+            ) : null}
+            {canIssue && setup.toIssue.length > 0 ? (
+              <IssueDialog
+                residenceId={residenceId}
+                toIssue={setup.toIssue}
+                today={todayInAlgiers()}
+                callDueDays={setup.residence.callDueDays}
+              />
+            ) : null}
+          </div>
         </CardHeader>
         <CardContent className="space-y-3">
           {canIssue && setup.toIssue.length === 0 ? (
@@ -91,7 +105,9 @@ export default async function ResidenceCallsPage({
                           href={`/residences/${residenceId}/calls/${p.id}`}
                           className="font-medium hover:underline"
                         >
-                          {tp(p.frequency, { year: p.year, index: p.periodIndex })}
+                          {p.frequency && p.periodIndex
+                            ? tp(p.frequency, { year: p.year, index: p.periodIndex })
+                            : p.title}
                         </Link>
                       </TableCell>
                       <TableCell dir="ltr" className="text-start">

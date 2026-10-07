@@ -42,7 +42,10 @@ export default async function ChargePeriodPage({
   const tr = await getTranslations("residences");
   const moneyLocale = (await getLocale()) === "ar" ? "ar" : "fr";
   const money = (v: bigint) => formatDZD(v, moneyLocale);
-  const label = tp(period.frequency, { year: period.year, index: period.periodIndex });
+  const label =
+    period.frequency && period.periodIndex
+      ? tp(period.frequency, { year: period.year, index: period.periodIndex })
+      : (period.title ?? "");
   const live = period.status === "issued";
 
   return (

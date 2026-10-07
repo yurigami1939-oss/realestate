@@ -44,11 +44,13 @@ import { issueChargePeriod } from "@/server/charges/calls";
 import { createChargeCategory } from "@/server/charges/categories";
 import { issueChargeReminder } from "@/server/charges/collections";
 import { recordChargePayment } from "@/server/charges/payments";
+import { getWorksCallChoices, issueWorksCall } from "@/server/charges/works";
 import { getChargePeriod } from "@/server/charges/queries";
 import {
   createChargeCategorySchema,
   issueChargePeriodSchema,
   issueChargeReminderSchema,
+  issueWorksCallSchema,
   recordChargePaymentSchema,
   saveBudgetSchema,
 } from "@/server/charges/schemas";
@@ -787,7 +789,7 @@ async function seedAssemblies(
     "absolute",
   );
   await conveneAssembly(manager, extraordinary);
-  return { extraordinaryOn: addDays(today, 21) };
+  return { extraordinaryOn: addDays(today, 21), terraceResolution: agenda[3] };
 }
 
 /** The upcoming assembly (pinned), a water cut, a draft and a withdrawn one. */
@@ -915,6 +917,44 @@ async function seedChecks(manager: TenantCtx, residenceId: string, lifts: string
   });
 }
 
+/**
+ * The terrace's waterproofing voted at the last ordinary assembly, called at once from the
+ * co-owners by tantièmes (an exceptional call, ADC-numbered like the others).
+ */
+async function seedWorksCall(manager: TenantCtx, residenceId: string, resolutionId?: string) {
+  const today = todayInAlgiers();
+  const { id: categoryId } = await createChargeCategory(
+    manager,
+    createChargeCategorySchema.parse({
+      residenceId,
+      name: "Travaux de la terrasse",
+      nameAr: "أشغال السطح",
+      key: "share",
+      weighting: "share",
+      buildingId: "",
+      unitIds: [],
+    }),
+  );
+  const voted = resolutionId
+    ? (await getWorksCallChoices(manager, residenceId)).resolutions.some(
+        (r) => r.id === resolutionId,
+      )
+    : false;
+  await issueWorksCall(
+    manager,
+    issueWorksCallSchema.parse({
+      residenceId,
+      title: "Travaux d'étanchéité de la terrasse",
+      titleAr: "أشغال عزل السطح",
+      categoryId,
+      amount: "1 400 000",
+      issuedOn: addDays(today, -10),
+      dueOn: addDays(today, 20),
+      resolutionId: voted ? resolutionId : "",
+    }),
+  );
+}
+
 export async function seedResidences(actors: Actors) {
   const { owner, manager } = actors;
   const { projectId, unitIds } = await seedBuilding(owner);
@@ -989,7 +1029,12 @@ export async function seedResidences(actors: Actors) {
   await seedChecks(manager, residenceId, lifts);
   const { guard } = await seedStaff(manager, residenceId, categories);
   await seedTickets(manager, residenceId, unitIds, { lifts, guard });
-  const { extraordinaryOn } = await seedAssemblies(manager, residenceId, unitIds);
+  const { extraordinaryOn, terraceResolution } = await seedAssemblies(
+    manager,
+    residenceId,
+    unitIds,
+  );
+  await seedWorksCall(manager, residenceId, terraceResolution);
   await seedAnnouncements(manager, residenceId, extraordinaryOn);
   return residenceId;
 }

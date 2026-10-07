@@ -18,7 +18,7 @@ import {
   user,
 } from "@/db/schema";
 import { withTenant } from "@/db/tenant";
-import { periodLabels } from "@/lib/charges";
+import { callPeriodLabels } from "@/lib/charges";
 import { formatDate } from "@/lib/dates";
 import { paymentMethodLabels } from "@/pdf/payment-methods";
 import { type ReceiptData, receiptHtml } from "@/pdf/receipt";
@@ -79,7 +79,7 @@ export async function loadChargeCallData(
       unitCode: row.unitCode,
       share: row.share,
       shareBasis: row.shareBasis,
-      period: periodLabels(row.period.frequency, row.period.year, row.period.periodIndex),
+      period: callPeriodLabels(row.period),
       year: row.period.year,
       addressee: c.addresseeName
         ? { name: c.addresseeName, nameAr: c.addresseeNameAr, address: c.addresseeAddress }

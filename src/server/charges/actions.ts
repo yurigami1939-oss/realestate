@@ -10,6 +10,7 @@ import { createChargeCategory, deleteChargeCategory, updateChargeCategory } from
 import { issueChargeReminder } from "./collections";
 import { requestChargeDocument } from "./document-requests";
 import { cancelChargePayment, clearChargeCheque, recordChargePayment } from "./payments";
+import { issueWorksCall } from "./works";
 import {
   budgetIdSchema,
   cancelChargePaymentSchema,
@@ -19,6 +20,7 @@ import {
   createChargeCategorySchema,
   issueChargePeriodSchema,
   issueChargeReminderSchema,
+  issueWorksCallSchema,
   recordChargePaymentSchema,
   requestChargeDocumentSchema,
   saveBudgetSchema,
@@ -55,6 +57,10 @@ export const approveBudgetAction = defineAction(
 export const issueChargePeriodAction = defineAction(
   { input: issueChargePeriodSchema, permission: "charge:create" },
   (input, ctx) => mutation(() => issueChargePeriod(ctx, input)),
+);
+export const issueWorksCallAction = defineAction(
+  { input: issueWorksCallSchema, permission: "charge:create" },
+  (input, ctx) => mutation(() => issueWorksCall(ctx, input)),
 );
 export const cancelChargePeriodAction = defineAction(
   { input: cancelChargePeriodSchema, permission: "charge:cancel" },

@@ -27,6 +27,7 @@ import {
   timestamps,
   userRef,
 } from "./_columns";
+import { assemblyResolution } from "./assemblies";
 import { file } from "./files";
 import { building } from "./inventory";
 import { chargeFrequency, residence, residenceUnit, resident } from "./residences";
@@ -37,6 +38,8 @@ export const distributionKey = pgEnum("distribution_key", distributionKeys);
 export const distributionWeighting = pgEnum("distribution_weighting", distributionWeightings);
 export const budgetStatus = pgEnum("budget_status", budgetStatuses);
 export const chargePeriodStatus = pgEnum("charge_period_status", ["issued", "cancelled"]);
+/** A period of the approved budget, or an exceptional call (works voted by the assembly). */
+export const chargePeriodKind = pgEnum("charge_period_kind", ["budget", "works"]);
 
 /**
  * Catégorie de charges of a residence (water tank, common electricity, lift…) with its
@@ -187,10 +190,18 @@ export const chargePeriod = pgTable(
     id: id(),
     organizationId: organizationId(),
     residenceId: uuid().notNull(),
-    budgetId: uuid().notNull(),
+    kind: chargePeriodKind().notNull().default("budget"),
+    /** A budget period: its budget, frequency and rank; null for an exceptional call. */
+    budgetId: uuid(),
     year: integer().notNull(),
-    frequency: chargeFrequency().notNull(),
-    periodIndex: integer().notNull(),
+    frequency: chargeFrequency(),
+    periodIndex: integer(),
+    /** An exceptional call: what it pays for, the charge category whose key splits it, and
+     * the assembly resolution that voted it (optional). */
+    title: text(),
+    titleAr: text(),
+    categoryId: uuid(),
+    resolutionId: uuid(),
     issuedOn: date({ mode: "string" }).notNull(),
     dueOn: date({ mode: "string" }).notNull(),
     /** Sum of the calls, reserve fund included, and the reserve fund part. */
@@ -212,6 +223,21 @@ export const chargePeriod = pgTable(
       columns: [t.organizationId, t.residenceId, t.budgetId],
       foreignColumns: [budget.organizationId, budget.residenceId, budget.id],
     }),
+    foreignKey({
+      name: "charge_period_category_fk",
+      columns: [t.organizationId, t.categoryId],
+      foreignColumns: [chargeCategory.organizationId, chargeCategory.id],
+    }),
+    foreignKey({
+      name: "charge_period_resolution_fk",
+      columns: [t.organizationId, t.resolutionId],
+      foreignColumns: [assemblyResolution.organizationId, assemblyResolution.id],
+    }),
+    check(
+      "charge_period_kind_fields",
+      sql`(${t.kind} = 'budget' and ${t.budgetId} is not null and ${t.frequency} is not null and ${t.periodIndex} is not null)
+        or (${t.kind} = 'works' and ${t.title} is not null and ${t.categoryId} is not null)`,
+    ),
     uniqueIndex("charge_period_live_key")
       .on(t.organizationId, t.budgetId, t.periodIndex)
       .where(sql`${t.status} = 'issued'`),

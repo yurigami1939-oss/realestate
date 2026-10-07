@@ -104,8 +104,11 @@ test.describe("acquéreur et copropriétaire", () => {
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(
       "Résidence El Yasmine · Y-01-01",
     );
-    // Both quarters called so far are paid.
-    await expect(page.getByTestId("portal-calls").getByRole("row")).toHaveCount(3);
+    // Both quarters called so far are paid; the terrace works voted in assembly are called.
+    await expect(page.getByTestId("portal-calls").getByRole("row")).toHaveCount(4);
+    await expect(page.getByTestId("portal-calls")).toContainText(
+      "Travaux d'étanchéité de la terrasse",
+    );
     await expect(page.getByTestId("portal-calls")).not.toContainText("En retard");
 
     await page.getByRole("link", { name: "Annonces" }).click();

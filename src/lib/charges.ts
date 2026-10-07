@@ -222,3 +222,17 @@ export function periodLabels(
       return { fr: `Année ${year}`, ar: `سنة ${year}` };
   }
 }
+
+/** A call's period as printed: the budget period's name, else the exceptional call's title. */
+export function callPeriodLabels(period: {
+  frequency: ChargeFrequency | null;
+  year: number;
+  periodIndex: number | null;
+  title: string | null;
+  titleAr: string | null;
+}): { fr: string; ar: string } {
+  if (period.frequency && period.periodIndex) {
+    return periodLabels(period.frequency, period.year, period.periodIndex);
+  }
+  return { fr: period.title ?? "", ar: period.titleAr ?? period.title ?? "" };
+}

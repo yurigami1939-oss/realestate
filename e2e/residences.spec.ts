@@ -39,6 +39,23 @@ test.describe("gestionnaire", () => {
     }).toPass({ timeout: 120_000 });
   });
 
+  test("calls the co-owners for works voted by the assembly", async ({ page }) => {
+    await openResidence(page);
+    await page.getByRole("link", { name: "Appels de charges" }).click();
+    await expect(page.getByTestId("charge-periods")).toContainText(
+      "Travaux d'étanchéité de la terrasse",
+    );
+    await page.getByRole("button", { name: "Appel de fonds travaux" }).click();
+    const dialog = page.getByRole("dialog");
+    await dialog.getByLabel("Objet de l'appel").fill("Étanchéité : second acompte");
+    await dialog.getByLabel("Catégorie (clé de répartition)").click();
+    await page.getByRole("option", { name: "Travaux de la terrasse" }).click();
+    await dialog.getByLabel("Montant total (DA)").fill("700 000");
+    await dialog.getByRole("button", { name: "Émettre des appels" }).click();
+    await expect(page.getByText(/^\d+ appels émis\.$/)).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Étanchéité : second acompte");
+  });
+
   test("collects an overdue co-owner's charges against a numbered receipt", async ({ page }) => {
     await page.goto("/fr/residences/overdue");
     const overdue = page.getByTestId("overdue-charges");

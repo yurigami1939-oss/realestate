@@ -47,7 +47,13 @@ export function SelectField<T extends FieldValues>({
   description,
   options,
   emptyLabel,
-}: BaseProps<T> & { options: Option[]; emptyLabel?: string }) {
+  onValueChange,
+}: BaseProps<T> & {
+  options: Option[];
+  emptyLabel?: string;
+  /** Called after react-hook-form has recorded the new value. */
+  onValueChange?: (value: string) => void;
+}) {
   return (
     <Controller
       control={control}
@@ -58,7 +64,11 @@ export function SelectField<T extends FieldValues>({
           <Select
             name={field.name}
             value={field.value ? String(field.value) : emptyLabel ? NONE : ""}
-            onValueChange={(value) => field.onChange(value === NONE ? "" : value)}
+            onValueChange={(value) => {
+              const next = value === NONE ? "" : value;
+              field.onChange(next);
+              onValueChange?.(next);
+            }}
           >
             <SelectTrigger id={field.name} aria-invalid={fieldState.invalid} className="w-full">
               <SelectValue />

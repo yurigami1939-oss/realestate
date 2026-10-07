@@ -2640,7 +2640,8 @@
       "cannotSplit": "Une partie des charges ne peut pas être répartie : vérifiez les clés et les tantièmes.",
       "nothingToCall": "Rien à appeler pour cette période.",
       "periodCancelled": "Cette période est déjà annulée.",
-      "nothingOverdue": "Aucun appel n'est en retard sur ce lot."
+      "nothingOverdue": "Aucun appel n'est en retard sur ce lot.",
+      "resolutionNotAdopted": "Cette résolution n'a pas été adoptée par une assemblée clôturée de la résidence."
     },
     "period": {
       "monthly": "{index, select, 1 {Janvier} 2 {Février} 3 {Mars} 4 {Avril} 5 {Mai} 6 {Juin} 7 {Juillet} 8 {Août} 9 {Septembre} 10 {Octobre} 11 {Novembre} other {Décembre}} {year}",
@@ -2798,6 +2799,21 @@
         "balance": "Solde",
         "hint": "Toutes années confondues. L'encaissé suit les paiements de chaque appel ; les travaux sont les factures payées sur le fonds de réserve."
       }
+    },
+    "works": {
+      "open": "Appel de fonds travaux",
+      "title": "Appel de fonds exceptionnel",
+      "description": "Des travaux votés en assemblée générale (ou une dépense exceptionnelle), appelés en une fois auprès des copropriétaires.",
+      "resolution": "Résolution votée",
+      "noResolution": "Sans résolution",
+      "resolutionLine": "AG du {date}, résolution {position} : {title}",
+      "fields": {
+        "title": "Objet de l'appel",
+        "titleAr": "Objet (arabe)",
+        "category": "Catégorie (clé de répartition)",
+        "amount": "Montant total (DA)"
+      },
+      "hint": "Le montant est réparti sur les lots selon la clé de la catégorie choisie (tantièmes, parts égales, bâtiment ou liste de lots) ; il compte dans le budget réalisé de cette catégorie."
     }
   },
   "suppliers": {

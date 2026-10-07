@@ -8,7 +8,7 @@ import { chargeReminder, member, residence, residenceUnit, unit, user } from "@/
 import { withTenant } from "@/db/tenant";
 import { env } from "@/env";
 import { enqueueInTx } from "@/jobs/enqueue";
-import { periodLabels } from "@/lib/charges";
+import { callPeriodLabels } from "@/lib/charges";
 import { type CalendarDate, todayInAlgiers } from "@/lib/dates";
 import { parseRoles } from "@/lib/permissions";
 import { AppError } from "@/lib/result";
@@ -139,7 +139,7 @@ export async function issueChargeReminder(
         ? [
             {
               number: line.number,
-              period: periodLabels(line.frequency, line.year, line.periodIndex),
+              period: callPeriodLabels(line),
               dueOn: line.dueOn,
               remaining: line.remaining.toString(),
               daysLate: line.daysLate,

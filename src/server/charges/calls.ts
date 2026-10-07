@@ -17,7 +17,12 @@ import {
 } from "@/db/schema";
 import { withTenant } from "@/db/tenant";
 import { enqueueInTx } from "@/jobs/enqueue";
-import { buildChargeCalls, type ChargeCategory, type ChargeUnit } from "@/lib/charges";
+import {
+  buildChargeCalls,
+  type ChargeCallDraft,
+  type ChargeCategory,
+  type ChargeUnit,
+} from "@/lib/charges";
 import { fromAlgiersDateTime, todayInAlgiers } from "@/lib/dates";
 import type { Centimes } from "@/lib/money";
 import { callsPerYear } from "@/lib/residences";
@@ -119,6 +124,82 @@ export async function mainCoOwners(tx: Tx, residenceId: string, day: string) {
 }
 
 /**
+ * Writes the calls of an issued period: one numbered call ADC-… per unit with its lines,
+ * addressed to its main co-owner on the issue day; its PDF job and WhatsApp notice are queued
+ * in the same transaction.
+ */
+export async function writeCalls(
+  tx: Tx,
+  ctx: TenantCtx,
+  input: {
+    residenceId: string;
+    periodId: string;
+    calls: ChargeCallDraft[];
+    owners: Awaited<ReturnType<typeof mainCoOwners>>;
+    issuedOn: string;
+    dueOn: string;
+  },
+) {
+  // Numbers follow the Algiers year of the issue day.
+  const issuedAt = fromAlgiersDateTime(`${input.issuedOn}T12:00`) ?? new Date();
+  for (const call of input.calls) {
+    const owner = input.owners.get(call.unitId);
+    const { number } = await nextDocumentNumber(tx, ctx, "charge_call", issuedAt);
+    const [row] = await tx
+      .insert(chargeCall)
+      .values({
+        organizationId: ctx.orgId,
+        residenceId: input.residenceId,
+        periodId: input.periodId,
+        unitId: call.unitId,
+        number,
+        dueOn: input.dueOn,
+        amount: call.amount,
+        reserve: call.reserve,
+        residentId: owner?.id ?? null,
+        addresseeName: owner ? `${owner.lastName} ${owner.firstName}` : null,
+        addresseeNameAr: owner
+          ? [owner.lastNameAr, owner.firstNameAr].filter(Boolean).join(" ") || null
+          : null,
+        addresseeAddress: owner?.address ?? null,
+      })
+      .returning({ id: chargeCall.id });
+    if (!row) throw new Error("writeCalls: no call returned");
+    await tx.insert(chargeCallLine).values(
+      call.lines.map((line, index) => ({
+        organizationId: ctx.orgId,
+        callId: row.id,
+        position: index + 1,
+        categoryId: line.categoryId,
+        label: line.label,
+        labelAr: line.labelAr,
+        amount: line.amount,
+      })),
+    );
+    await enqueueInTx(
+      tx,
+      "pdf.document",
+      { organizationId: ctx.orgId, kind: "charge_call", id: row.id },
+      { singletonKey: `charge_call:${row.id}` },
+    );
+    await notifyChargeCall(tx, ctx, {
+      residenceId: input.residenceId,
+      unitId: call.unitId,
+      number,
+      amount: call.amount,
+      dueOn: input.dueOn,
+      owner: owner
+        ? {
+            phone: owner.phone,
+            name: `${owner.firstName} ${owner.lastName}`.trim(),
+            optIn: owner.whatsappOptIn,
+          }
+        : null,
+    });
+  }
+}
+
+/**
  * Issues the charge calls of one period of an approved budget (CLAUDE.md §7 Residence
  * charges): one numbered call ADC-… per unit with something to pay, addressed to its main
  * co-owner on the issue day, with its lines; PDFs are rendered by the worker. Audited.
@@ -179,63 +260,14 @@ export async function issueChargePeriod(ctx: TenantCtx, input: In<typeof issueCh
       .returning({ id: chargePeriod.id });
     if (!period) throw new Error("issueChargePeriod: no period returned");
 
-    // Numbers follow the Algiers year of the issue day.
-    const issuedAt = fromAlgiersDateTime(`${input.issuedOn}T12:00`) ?? new Date();
-    for (const call of split.calls) {
-      const owner = owners.get(call.unitId);
-      const { number } = await nextDocumentNumber(tx, ctx, "charge_call", issuedAt);
-      const [row] = await tx
-        .insert(chargeCall)
-        .values({
-          organizationId: ctx.orgId,
-          residenceId: home.id,
-          periodId: period.id,
-          unitId: call.unitId,
-          number,
-          dueOn: input.dueOn,
-          amount: call.amount,
-          reserve: call.reserve,
-          residentId: owner?.id ?? null,
-          addresseeName: owner ? `${owner.lastName} ${owner.firstName}` : null,
-          addresseeNameAr: owner
-            ? [owner.lastNameAr, owner.firstNameAr].filter(Boolean).join(" ") || null
-            : null,
-          addresseeAddress: owner?.address ?? null,
-        })
-        .returning({ id: chargeCall.id });
-      if (!row) throw new Error("issueChargePeriod: no call returned");
-      await tx.insert(chargeCallLine).values(
-        call.lines.map((line, index) => ({
-          organizationId: ctx.orgId,
-          callId: row.id,
-          position: index + 1,
-          categoryId: line.categoryId,
-          label: line.label,
-          labelAr: line.labelAr,
-          amount: line.amount,
-        })),
-      );
-      await enqueueInTx(
-        tx,
-        "pdf.document",
-        { organizationId: ctx.orgId, kind: "charge_call", id: row.id },
-        { singletonKey: `charge_call:${row.id}` },
-      );
-      await notifyChargeCall(tx, ctx, {
-        residenceId: home.id,
-        unitId: call.unitId,
-        number,
-        amount: call.amount,
-        dueOn: input.dueOn,
-        owner: owner
-          ? {
-              phone: owner.phone,
-              name: `${owner.firstName} ${owner.lastName}`.trim(),
-              optIn: owner.whatsappOptIn,
-            }
-          : null,
-      });
-    }
+    await writeCalls(tx, ctx, {
+      residenceId: home.id,
+      periodId: period.id,
+      calls: split.calls,
+      owners,
+      issuedOn: input.issuedOn,
+      dueOn: input.dueOn,
+    });
 
     await recordAudit(tx, ctx, {
       actorUserId: ctx.userId,

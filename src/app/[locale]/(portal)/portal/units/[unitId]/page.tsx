@@ -150,7 +150,9 @@ export default async function PortalUnitPage({
                   {statement.lines.map((line) => (
                     <TableRow key={line.id}>
                       <TableCell className="whitespace-normal">
-                        {tp(line.frequency, { year: line.year, index: line.periodIndex })}
+                        {line.frequency && line.periodIndex
+                          ? tp(line.frequency, { year: line.year, index: line.periodIndex })
+                          : line.title}
                       </TableCell>
                       <TableCell>{line.dueOn ? formatDate(line.dueOn) : "—"}</TableCell>
                       <TableCell className="text-end tabular-nums" dir="ltr">
