@@ -21,6 +21,7 @@ import type { Centimes } from "@/lib/money";
 import { ageingBucket, ageingBuckets, monthsOfPeriod } from "@/lib/reports";
 import { computeStatement } from "@/lib/statement";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
+import { saleAnnexes } from "@/server/sales/annexes";
 
 import type { ReportParams } from "./schemas";
 
@@ -120,6 +121,11 @@ export async function getReports(ctx: TenantCtx, params: ReportParams) {
       string,
       { projectName: string; typology: string; count: number; value: Centimes; area: number }
     >();
+    // A sale's annexes (parking, cellar…) at their list price are not its main unit's m².
+    const annexes = await saleAnnexes(
+      tx,
+      live.map((s) => s.id),
+    );
     for (const s of live) {
       const typology = s.typology ?? s.type;
       const key = `${s.projectName}|${typology}`;
@@ -131,7 +137,8 @@ export async function getReports(ctx: TenantCtx, params: ReportParams) {
         area: 0,
       };
       group.count += 1;
-      group.value += s.price;
+      const annexValue = (annexes.get(s.id) ?? []).reduce((sum, a) => sum + a.listPrice, 0n);
+      group.value += s.price > annexValue ? s.price - annexValue : 0n;
       group.area += s.area ? Number(s.area) : 0;
       groups.set(key, group);
     }

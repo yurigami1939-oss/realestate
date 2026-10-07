@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, asc, desc, eq, ilike, inArray, isNull, or, sql, type SQL } from "drizzle-orm";
+import { and, asc, desc, eq, exists, ilike, inArray, isNull, or, sql, type SQL } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 
 import type { Tx } from "@/db/client";
@@ -15,6 +15,7 @@ import {
   paymentPlan,
   project,
   reservation,
+  reservationAnnex,
   reservationBuyer,
   unit,
   user,
@@ -30,6 +31,7 @@ import { visibleBuyers } from "@/server/buyers/access";
 import { loadSalesSettings } from "@/server/organizations/settings";
 
 import { visibleSales } from "./access";
+import { saleAnnexes } from "./annexes";
 import { countMissingDocuments } from "./reservations";
 import { SALES_PAGE_SIZE, type SaleListParams } from "./schemas";
 
@@ -250,9 +252,11 @@ export async function loadSale(tx: Tx, orgId: string, reservationId: string, ctx
     capBp: settings.penaltyCapBp,
   });
   const { reservation: r, ...rest } = row;
+  const annexes = (await saleAnnexes(tx, [reservationId])).get(reservationId) ?? [];
   return {
     ...r,
     ...rest,
+    annexes,
     buyers,
     installments,
     statement,
@@ -331,7 +335,22 @@ export async function getUnitSale(ctx: TenantCtx, unitId: string) {
       .from(reservation)
       .where(
         and(
-          eq(reservation.unitId, unitId),
+          or(
+            eq(reservation.unitId, unitId),
+            // An annex unit (parking, cellar…) links to the sale it belongs to.
+            exists(
+              tx
+                .select({ id: reservationAnnex.id })
+                .from(reservationAnnex)
+                .where(
+                  and(
+                    eq(reservationAnnex.reservationId, reservation.id),
+                    eq(reservationAnnex.unitId, unitId),
+                    isNull(reservationAnnex.releasedAt),
+                  ),
+                ),
+            ),
+          ),
           inArray(reservation.status, ["reserved", "sold"]),
           visibleSales(ctx),
         ),

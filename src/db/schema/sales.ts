@@ -550,6 +550,43 @@ export const reservation = pgTable(
   ],
 );
 
+/**
+ * Lots annexes of a sale (CLAUDE.md §7 Reservations and VSP): a parking, a cellar… sold in the
+ * same contract as the main unit (`reservation.unit_id`), with its list price at signing. A unit
+ * is the annex of one live sale at most; a withdrawn sale releases it (`released_at`). Rows are
+ * never edited otherwise nor deleted (grants).
+ */
+export const reservationAnnex = pgTable(
+  "reservation_annex",
+  {
+    id: id(),
+    organizationId: organizationId(),
+    reservationId: uuid().notNull(),
+    unitId: uuid().notNull(),
+    listPrice: money().notNull(),
+    releasedAt: instant(),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    unique().on(t.organizationId, t.id),
+    foreignKey({
+      name: "reservation_annex_reservation_fk",
+      columns: [t.organizationId, t.reservationId],
+      foreignColumns: [reservation.organizationId, reservation.id],
+    }),
+    foreignKey({
+      name: "reservation_annex_unit_fk",
+      columns: [t.organizationId, t.unitId],
+      foreignColumns: [unit.organizationId, unit.id],
+    }),
+    uniqueIndex("reservation_annex_live_key")
+      .on(t.organizationId, t.unitId)
+      .where(sql`${t.releasedAt} is null`),
+    index().on(t.organizationId, t.reservationId),
+    check("reservation_annex_price", sql`${t.listPrice} >= 0`),
+  ],
+);
+
 /** Buyers of a reservation (co-acquéreurs); position 1 is the main buyer. */
 export const reservationBuyer = pgTable(
   "reservation_buyer",

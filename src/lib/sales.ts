@@ -143,3 +143,6 @@ export type CommissionStatus = (typeof commissionStatuses)[number];
 
 /** A reservation has 1 to 3 buyers (co-acquéreurs, e.g. spouses); the first is the main one. */
 export const MAX_BUYERS_PER_SALE = 3;
+
+/** Annex units (parking, cellar…) sold in the same contract as the main unit, at most. */
+export const MAX_ANNEXES_PER_SALE = 4;

@@ -13,6 +13,7 @@ import { AppError } from "@/lib/result";
 import { recordAudit } from "@/server/audit/record-audit";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
 import { transitionUnit } from "@/server/inventory/transition-unit";
+import { moveAnnexes } from "@/server/sales/annexes";
 import { nextDocumentNumber } from "@/server/numbering/next-document-number";
 import { addSaleBuyersAsCoOwners, hasCurrentCoOwner } from "@/server/residences/service";
 import { paidTotals } from "@/server/sales/sale-queries";
@@ -264,20 +265,26 @@ export async function signHandover(ctx: TenantCtx, input: In<typeof signHandover
       refType: "handover",
       refId: row.id,
     });
+    const annexes = await moveAnnexes(tx, ctx, sale.id, "delivered", {
+      refType: "handover",
+      refId: row.id,
+    });
 
-    // The new owners join the residence the unit belongs to, if any.
+    // The new owners join the residence the unit (and its annexes) belongs to, if any.
     let coOwners = 0;
-    const [member] = await tx
-      .select({ residenceId: residenceUnit.residenceId })
-      .from(residenceUnit)
-      .where(eq(residenceUnit.unitId, sale.unitId));
-    if (member && !(await hasCurrentCoOwner(tx, sale.unitId, input.signedOn))) {
-      coOwners = await addSaleBuyersAsCoOwners(tx, ctx, {
-        residenceId: member.residenceId,
-        unitId: sale.unitId,
-        saleId: sale.id,
-        sinceOn: input.signedOn,
-      });
+    for (const unitId of [sale.unitId, ...annexes.map((a) => a.unitId)]) {
+      const [member] = await tx
+        .select({ residenceId: residenceUnit.residenceId })
+        .from(residenceUnit)
+        .where(eq(residenceUnit.unitId, unitId));
+      if (member && !(await hasCurrentCoOwner(tx, unitId, input.signedOn))) {
+        coOwners += await addSaleBuyersAsCoOwners(tx, ctx, {
+          residenceId: member.residenceId,
+          unitId,
+          saleId: sale.id,
+          sinceOn: input.signedOn,
+        });
+      }
     }
 
     await recordAudit(tx, ctx, {

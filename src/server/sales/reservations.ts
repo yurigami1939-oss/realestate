@@ -12,6 +12,7 @@ import {
   lead,
   project,
   reservation,
+  reservationAnnex,
   reservationBuyer,
   unit,
   unitOption,
@@ -38,6 +39,7 @@ import { assertDiscountAllowed } from "@/server/discounts/service";
 import { earnPartnerCommission } from "@/server/partners/service";
 import { checkUpload, discardFile, storeFile, type Upload } from "@/server/files/service";
 import { transitionUnit } from "@/server/inventory/transition-unit";
+import { loadAnnexUnits, moveAnnexes } from "@/server/sales/annexes";
 import { nextDocumentNumber } from "@/server/numbering/next-document-number";
 import { loadSalesSettings } from "@/server/organizations/settings";
 import { loadMilestones, loadPaymentPlans } from "@/server/payment-plans/queries";
@@ -123,7 +125,13 @@ export async function createReservation(
     }
     if (target.listPrice === null)
       throw new AppError("CONFLICT", "quotations.errors.unitNotPriced");
-    if (input.discount > target.listPrice) {
+    // Annex units sold in the same contract: their list prices add to the main unit's.
+    const annexes = await loadAnnexUnits(tx, input.annexUnitIds, {
+      mainUnitId: input.unitId,
+      projectId: target.projectId,
+    });
+    const listPrice = annexes.reduce((sum, a) => sum + a.listPrice, target.listPrice);
+    if (input.discount > listPrice) {
       throw invalid("discount", "quotations.errors.discountTooHigh");
     }
 
@@ -148,7 +156,7 @@ export async function createReservation(
       input.unitId,
     );
 
-    const price = netPrice(target.listPrice, input.discount);
+    const price = netPrice(listPrice, input.discount);
     const lines = buildSchedule(price, plan.steps, input.reservedOn, milestones);
     const { number } = await nextDocumentNumber(tx, ctx, "reservation");
 
@@ -162,7 +170,7 @@ export async function createReservation(
         leadId,
         commercialUserId,
         paymentPlanId: plan.id,
-        listPrice: target.listPrice,
+        listPrice,
         discount: input.discount,
         price,
         reservedOn: input.reservedOn,
@@ -223,6 +231,18 @@ export async function createReservation(
       refType: "reservation",
       refId: row.id,
     });
+    for (const annex of annexes) {
+      await tx.insert(reservationAnnex).values({
+        organizationId: ctx.orgId,
+        reservationId: row.id,
+        unitId: annex.id,
+        listPrice: annex.listPrice,
+      });
+      await transitionUnit(tx, ctx, annex.id, "reserved", {
+        refType: "reservation",
+        refId: row.id,
+      });
+    }
     if (leadRow) {
       if (option) {
         await recordLeadActivity(tx, ctx, leadRow.id, "option_ended", {
@@ -246,9 +266,10 @@ export async function createReservation(
       after: {
         number,
         unit: target.code,
+        annexes: annexes.map((a) => a.code),
         buyers: input.buyerIds,
         plan: plan.name,
-        listPrice: target.listPrice,
+        listPrice,
         discount: input.discount,
         price,
         reservedOn: input.reservedOn,
@@ -399,6 +420,7 @@ export async function recordSale(ctx: TenantCtx, input: In<typeof recordSaleSche
       refType: "reservation",
       refId: current.id,
     });
+    await moveAnnexes(tx, ctx, current.id, "sold", { refType: "reservation", refId: current.id });
 
     let commissionAmount: bigint | null = null;
     if (current.commercialUserId) {

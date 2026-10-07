@@ -177,6 +177,27 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
         </Link>
       ),
     },
+    ...(sale.annexes.length > 0
+      ? [
+          {
+            label: t("sales.annexes.title"),
+            value: (
+              <span className="flex flex-col items-end gap-0.5" data-testid="sale-annexes">
+                {sale.annexes.map((a) => (
+                  <Link
+                    key={a.unitId}
+                    href={`/projects/${sale.projectId}/units/${a.unitId}`}
+                    className="hover:underline"
+                  >
+                    <bdi dir="ltr">{a.code}</bdi> · {t(`inventory.unitType.${a.type}`)} ·{" "}
+                    <bdi dir="ltr">{money(a.listPrice)}</bdi>
+                  </Link>
+                ))}
+              </span>
+            ),
+          },
+        ]
+      : []),
     { label: t("sales.detail.project"), value: `${sale.projectName} · ${sale.buildingName}` },
     { label: t("sales.detail.listPrice"), value: <bdi dir="ltr">{money(sale.listPrice)}</bdi> },
     ...(sale.discount > 0n

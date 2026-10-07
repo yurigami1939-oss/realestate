@@ -36,6 +36,7 @@ import { listUnitAccounts } from "@/server/charges/queries";
 import { getBudgetReport } from "@/server/charges/report";
 import { listConditions as leadConditions } from "@/server/crm/queries";
 import { listLeases } from "@/server/rentals/queries";
+import { saleAnnexes } from "@/server/sales/annexes";
 import { visibleSales } from "@/server/sales/access";
 import { buyerNames, paidTotals, searchCondition as saleSearch } from "@/server/sales/sale-queries";
 import { listInvoices } from "@/server/suppliers/queries";
@@ -327,6 +328,7 @@ async function sales(
     const ids = rows.map((r) => r.id);
     const paid = await paidTotals(tx, ids);
     const names = await buyerNames(tx, ids);
+    const annexes = await saleAnnexes(tx, ids);
     const lines =
       ids.length === 0
         ? []
@@ -377,7 +379,8 @@ async function sales(
               t(`sales.status.${r.status}`),
               names.get(r.id) ?? "",
               r.projectName,
-              r.unitCode,
+              // The main unit, then its annexes (parking, cellar…).
+              [r.unitCode, ...(annexes.get(r.id) ?? []).map((a) => a.code)].join(" + "),
               r.listPrice,
               r.price,
               paid.get(r.id) ?? 0n,

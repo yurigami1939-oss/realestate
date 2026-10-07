@@ -45,13 +45,16 @@ import {
   type ScheduleLine,
 } from "@/lib/payment-plans";
 import { formatPhone } from "@/lib/phone";
-import { MAX_BUYERS_PER_SALE, type VspLimits } from "@/lib/sales";
+import { MAX_ANNEXES_PER_SALE, MAX_BUYERS_PER_SALE, type VspLimits } from "@/lib/sales";
 import type { PaymentSetups } from "@/server/payment-plans/queries";
 import { createReservationAction } from "@/server/sales/actions";
 import type { ReservableUnit } from "@/server/sales/queries";
 import { createReservationSchema } from "@/server/sales/schemas";
 
 type Values = z.input<typeof createReservationSchema>;
+
+/** Unit types usually sold as annexes of a flat (offered first). */
+const isAnnexType = (type: string) => type === "parking" || type === "storage";
 
 export type BuyerChoice = {
   id: string;
@@ -90,6 +93,7 @@ export function ReservationForm({
 }) {
   const t = useTranslations("sales");
   const tq = useTranslations("quotations");
+  const ti = useTranslations("inventory.unitType");
   const tp = useTranslations("paymentPlans");
   const tc = useTranslations("common");
   const td = useTranslations("discounts");
@@ -110,6 +114,7 @@ export function ReservationForm({
     resolver: zodResolver(createReservationSchema),
     defaultValues: {
       unitId: preselected?.id ?? "",
+      annexUnitIds: [],
       buyerIds: [defaults.buyerId],
       paymentPlanId: defaultPlan(preselected?.projectId ?? projects[0]?.id ?? ""),
       discount: "",
@@ -119,17 +124,26 @@ export function ReservationForm({
       notes: "",
     },
   });
-  const [unitId, buyerIds, planId, discount, reservedOn] = useWatch({
+  const [unitId, annexUnitIds, buyerIds, planId, discount, reservedOn] = useWatch({
     control: form.control,
-    name: ["unitId", "buyerIds", "paymentPlanId", "discount", "reservedOn"],
+    name: ["unitId", "annexUnitIds", "buyerIds", "paymentPlanId", "discount", "reservedOn"],
   });
 
   const setup = setups[projectId];
   const projectUnits = units.filter((u) => u.projectId === projectId);
   const unit = projectUnits.find((u) => u.id === unitId);
+  // Annex units: available units of the project besides the main one (parking, cellar first).
+  const annexChoices = projectUnits
+    .filter((u) => u.status === "available" && u.id !== unitId)
+    .sort((a, b) => Number(isAnnexType(b.type)) - Number(isAnnexType(a.type)));
+  const annexes = (annexUnitIds ?? []).flatMap((id) => {
+    const found = projectUnits.find((u) => u.id === id);
+    return found ? [found] : [];
+  });
+  const listPrice = unit ? annexes.reduce((sum, a) => sum + a.listPrice, unit.listPrice) : null;
   const plan = setup?.plans.find((p) => p.id === planId);
   const parsedDiscount = !discount?.trim() ? 0n : parseDZD(discount);
-  const price = unit ? netPrice(unit.listPrice, parsedDiscount ?? 0n) : null;
+  const price = listPrice !== null ? netPrice(listPrice, parsedDiscount ?? 0n) : null;
   const signingOn = /^\d{4}-\d{2}-\d{2}$/.test(reservedOn) ? reservedOn : today;
   const lines =
     unit && plan && price !== null && price >= 0n
@@ -183,6 +197,7 @@ export function ReservationForm({
               onValueChange={(value) => {
                 setProjectId(value);
                 form.setValue("unitId", "");
+                form.setValue("annexUnitIds", []);
                 form.setValue("paymentPlanId", defaultPlan(value));
               }}
             >
@@ -225,6 +240,72 @@ export function ReservationForm({
                 ) : null}
               </Field>
             )}
+          />
+
+          <Controller
+            control={form.control}
+            name="annexUnitIds"
+            render={({ field, fieldState }) => {
+              const ids = field.value ?? [];
+              return (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel>{t("annexes.title")}</FieldLabel>
+                  <div className="space-y-2" data-testid="annex-units">
+                    {ids.map((id, index) => (
+                      <div key={index} className="flex items-center gap-2">
+                        <Select
+                          value={id}
+                          onValueChange={(v) =>
+                            field.onChange(ids.map((current, i) => (i === index ? v : current)))
+                          }
+                        >
+                          <SelectTrigger
+                            className="w-full min-w-0"
+                            aria-label={t("annexes.unit", { index: index + 1 })}
+                          >
+                            <SelectValue placeholder={tq("chooseUnit")} />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {annexChoices
+                              .filter((u) => u.id === id || !ids.includes(u.id))
+                              .map((u) => (
+                                <SelectItem key={u.id} value={u.id}>
+                                  {u.code} · {ti(u.type)} · {money(u.listPrice)}
+                                </SelectItem>
+                              ))}
+                          </SelectContent>
+                        </Select>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          aria-label={t("annexes.remove")}
+                          onClick={() => field.onChange(ids.filter((_, i) => i !== index))}
+                        >
+                          <X />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                  {ids.length < MAX_ANNEXES_PER_SALE && annexChoices.length > ids.length ? (
+                    <div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => field.onChange([...ids, ""])}
+                      >
+                        <Plus data-icon="inline-start" />
+                        {t("annexes.add")}
+                      </Button>
+                    </div>
+                  ) : null}
+                  {fieldState.error?.message ? (
+                    <FieldError errors={[{ message: translate(fieldState.error.message) }]} />
+                  ) : null}
+                </Field>
+              );
+            }}
           />
 
           <Controller
@@ -377,7 +458,7 @@ export function ReservationForm({
             <dl className="grid gap-2 text-sm sm:grid-cols-2">
               <div className="flex justify-between gap-2 rounded-md border p-2">
                 <dt className="text-muted-foreground">{tq("listPrice")}</dt>
-                <dd dir="ltr">{money(unit.listPrice)}</dd>
+                <dd dir="ltr">{money(listPrice ?? unit.listPrice)}</dd>
               </div>
               <div className="flex justify-between gap-2 rounded-md border p-2 font-semibold">
                 <dt>{tq("net")}</dt>

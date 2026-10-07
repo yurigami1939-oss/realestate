@@ -42,12 +42,17 @@ test.describe("commercial and cashier", () => {
       ),
     ).toBeVisible();
     await expect(page.getByTestId("reservation-schedule").getByRole("row")).toHaveCount(6);
+    // A parking in the same contract: its price adds to the flat's.
+    await page.getByRole("button", { name: "Ajouter un lot annexe (parking, cave…)" }).click();
+    await page.getByRole("combobox", { name: "Lot annexe 1" }).click();
+    await page.getByRole("option", { name: /^A-S1-03 · Parking \/ box · / }).click();
     await page.getByRole("button", { name: "Enregistrer la réservation" }).click();
     const heading = page.getByRole("heading", { level: 1 });
     await expect(heading).toHaveText(/^Réservation RES-\d{4}-\d{6}$/);
     const number = ((await heading.textContent()) ?? "").replace("Réservation ", "");
     await expect(page.getByTestId("sale-statement").getByRole("row")).toHaveCount(5);
     await expect(page.getByTestId("missing-documents")).toBeVisible();
+    await expect(page.getByTestId("sale-annexes")).toContainText("A-S1-03");
     // The worker renders the reservation sheet; commercials do not record payments.
     await expect(page.getByRole("link", { name: `${number}.pdf` })).toBeVisible({
       timeout: 30_000,

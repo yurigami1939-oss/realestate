@@ -5,6 +5,7 @@ import {
   bankLoanStatuses,
   counterPaymentMethods,
   financingSources,
+  MAX_ANNEXES_PER_SALE,
   MAX_BUYERS_PER_SALE,
   withdrawalKinds,
 } from "@/lib/sales";
@@ -44,6 +45,8 @@ const buyerIdsField = () =>
 
 export const createReservationSchema = z.object({
   unitId: z.uuid(),
+  /** Annex units of the same project sold in the same contract (parking, cellar…). */
+  annexUnitIds: z.array(z.uuid()).max(MAX_ANNEXES_PER_SALE).default([]),
   buyerIds: buyerIdsField(),
   paymentPlanId: z.uuid(),
   /** Only managers may discount (CLAUDE.md §12); "" = none. */

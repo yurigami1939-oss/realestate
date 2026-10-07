@@ -29,6 +29,7 @@ import { isUuid } from "@/lib/ids";
 import { computeStatement } from "@/lib/statement";
 import { latestProgress, loadReports } from "@/server/construction/queries";
 import { loadMilestones } from "@/server/payment-plans/queries";
+import { saleAnnexes } from "@/server/sales/annexes";
 import { paidTotals } from "@/server/sales/sale-queries";
 
 import { type PortalCtx, portalScope } from "./context";
@@ -261,7 +262,9 @@ export async function getPortalSale(ctx: PortalCtx, saleId: string) {
       .from(certificate)
       .where(eq(certificate.reservationId, row.id))
       .orderBy(desc(certificate.issuedAt));
+    const annexes = (await saleAnnexes(tx, [row.id])).get(row.id) ?? [];
     return {
+      annexes,
       ...row,
       buyers,
       statement,

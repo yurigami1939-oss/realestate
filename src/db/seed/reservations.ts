@@ -301,6 +301,8 @@ export async function seedSales(actors: Actors, ids: Ids) {
     by: TenantCtx,
     spec: {
       unit: string;
+      /** Annex units sold in the same contract (parking, cellar…). */
+      annexes?: string[];
       buyers: string[];
       plan: string;
       discount?: string;
@@ -312,6 +314,7 @@ export async function seedSales(actors: Actors, ids: Ids) {
       by,
       createReservationSchema.parse({
         unitId: need(ids.units, spec.unit),
+        annexUnitIds: (spec.annexes ?? []).map((code) => need(ids.units, code)),
         buyerIds: spec.buyers,
         paymentPlanId: spec.plan,
         discount: spec.discount ?? "",
@@ -408,9 +411,11 @@ export async function seedSales(actors: Actors, ids: Ids) {
   });
   await pay(houdaSale.id, (houdaSale.installments[0]?.amount ?? 0n) / 2n, 40, "Houda Meziane");
 
-  // 3. Djamel and Samia Benchikh: discounted, 24-month plan, cheque awaiting clearance.
+  // 3. Djamel and Samia Benchikh: the flat and a parking in one contract, discounted, 24-month
+  // plan, cheque awaiting clearance.
   const djamelSale = await reserve(manager, {
     unit: "A-08-01",
+    annexes: ["A-S1-02"],
     buyers: [djamel, djamelSpouse],
     plan: instalmentPlan,
     discount: "600 000",

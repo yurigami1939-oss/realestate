@@ -1486,6 +1486,18 @@
         "duplicate": "Chaque source ne figure qu'une fois.",
         "abovePrice": "Le plan ne peut dépasser le prix de vente."
       }
+    },
+    "annexes": {
+      "title": "Lots annexes",
+      "unit": "Lot annexe {index}",
+      "add": "Ajouter un lot annexe (parking, cave…)",
+      "remove": "Retirer ce lot annexe",
+      "errors": {
+        "duplicate": "Chaque lot ne figure qu'une fois, en dehors du lot principal.",
+        "otherProject": "Un lot annexe doit appartenir au même projet.",
+        "notAvailable": "Ce lot annexe n'est plus disponible.",
+        "notPriced": "Ce lot annexe n'a pas de prix."
+      }
     }
   },
   "payments": {
@@ -3648,7 +3660,8 @@
       "deliveryDueOn": "Livraison prévue au contrat : {date}",
       "warranties": "Garantie de parfait achèvement jusqu'au {completion} · bon fonctionnement jusqu'au {functioning} · décennale jusqu'au {tenYear}",
       "amendment": "Avenant n° {number} du {date} (nouvel échéancier)",
-      "formalNotice": "Mise en demeure du {date}"
+      "formalNotice": "Mise en demeure du {date}",
+      "annexes": "avec {codes}"
     },
     "pendingDocument": "en préparation",
     "unit": {

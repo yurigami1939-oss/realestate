@@ -57,6 +57,8 @@ export type CertificateSnapshot = {
     livingArea: string | null;
     usableArea: string | null;
   };
+  /** Annex units sold with it (parking, cellar…); absent on certificates issued before. */
+  annexes?: { code: string; type: string }[];
   project: { name: string; address: string | null; commune: string | null; wilaya: string | null };
   totals: { paid: string; remaining: string; due: string; overdue: string };
   installments: {

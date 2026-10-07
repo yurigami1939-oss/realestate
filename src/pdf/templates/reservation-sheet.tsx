@@ -53,6 +53,16 @@ function dueLabel(line: Sale["installments"][number]): { fr: string; ar: string 
 }
 
 /** Internal bilingual reservation sheet for the notary (CLAUDE.md §12) — not the legal contract. */
+/** Annex unit types as printed (French · Arabic). */
+const annexTypes: Record<string, string> = {
+  parking: "Parking · موقف",
+  storage: "Cave · قبو",
+  commercial: "Local · محل",
+  office: "Bureau · مكتب",
+  apartment: "Appartement · شقة",
+  villa: "Villa · فيلا",
+};
+
 export function ReservationSheetTemplate({
   sale,
   company,
@@ -138,6 +148,18 @@ export function ReservationSheetTemplate({
           {sale.unitTypology ? ` · ${sale.unitTypology}` : ""}
           {sale.unitLivingArea ? ` · ${sale.unitLivingArea.replace(".", ",")} m²` : ""}
         </div>
+        {sale.annexes.length > 0 ? (
+          <div>
+            Lots annexes · <span lang="ar">الملحقات</span> :{" "}
+            {sale.annexes.map((a, index) => (
+              <span key={a.unitId}>
+                {index > 0 ? ", " : ""}
+                {annexTypes[a.type] ?? a.type} <b dir="ltr">{a.code}</b> (
+                <span dir="ltr">{money(a.listPrice)}</span>)
+              </span>
+            ))}
+          </div>
+        ) : null}
       </div>
 
       <div className="box">

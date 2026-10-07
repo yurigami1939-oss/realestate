@@ -24,6 +24,7 @@ import { recordAudit } from "@/server/audit/record-audit";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
 import { recordLeadActivity } from "@/server/crm/activity";
 import { transitionUnit } from "@/server/inventory/transition-unit";
+import { moveAnnexes } from "@/server/sales/annexes";
 import { loadSalesSettings } from "@/server/organizations/settings";
 import { cancelPartnerCommission } from "@/server/partners/service";
 import { resolvePaymentAccount } from "@/server/treasury/service";
@@ -223,6 +224,14 @@ export async function decideWithdrawal(ctx: TenantCtx, input: In<typeof decideWi
       refType: "reservation",
       refId: sale.id,
     });
+    await moveAnnexes(
+      tx,
+      ctx,
+      sale.id,
+      "available",
+      { reason: row.reason, refType: "reservation", refId: sale.id },
+      { release: true },
+    );
     if (sale.leadId) {
       await recordLeadActivity(
         tx,

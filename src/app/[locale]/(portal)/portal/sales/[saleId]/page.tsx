@@ -89,6 +89,9 @@ export default async function PortalSalePage({
             sale.buildingName,
             sale.unitTypology,
             area ? `${area.replace(".", ",")} m²` : null,
+            sale.annexes.length > 0
+              ? t("annexes", { codes: sale.annexes.map((a) => a.code).join(", ") })
+              : null,
             t("reserved", { number: sale.number, date: formatDate(sale.reservedOn) }),
           ]
             .filter(Boolean)

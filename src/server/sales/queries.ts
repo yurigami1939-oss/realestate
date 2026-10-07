@@ -6,7 +6,7 @@ import { alias } from "drizzle-orm/pg-core";
 import { lead, project, unit, unitOption, user } from "@/db/schema";
 import { withTenant } from "@/db/tenant";
 import { isUuid } from "@/lib/ids";
-import type { Typology, UnitStatus } from "@/lib/inventory";
+import type { Typology, UnitStatus, UnitType } from "@/lib/inventory";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
 import { visibleLeads } from "@/server/crm/access";
 
@@ -77,6 +77,7 @@ export type LeadOptionRow = Awaited<ReturnType<typeof listLeadOptions>>[number];
 export type ReservableUnit = {
   id: string;
   code: string;
+  type: UnitType;
   typology: Typology | null;
   status: UnitStatus;
   listPrice: bigint;
@@ -97,6 +98,7 @@ export async function listReservableUnits(ctx: TenantCtx): Promise<ReservableUni
       .select({
         id: unit.id,
         code: unit.code,
+        type: unit.type,
         typology: unit.typology,
         status: unit.status,
         listPrice: unit.listPrice,

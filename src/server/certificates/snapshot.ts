@@ -20,6 +20,7 @@ import type { Centimes } from "@/lib/money";
 import { computeStatement } from "@/lib/statement";
 import { latestProgress } from "@/server/construction/queries";
 import { loadMilestones } from "@/server/payment-plans/queries";
+import { saleAnnexes } from "@/server/sales/annexes";
 
 const NO_PENALTIES = { monthlyRateBp: 0, graceDays: 0, capBp: 0 };
 
@@ -122,6 +123,10 @@ export async function certificateSnapshot(
       saleSignedOn: sale.saleSignedOn,
       saleNotary: sale.saleNotary,
     },
+    annexes: ((await saleAnnexes(tx, [sale.id])).get(sale.id) ?? []).map((a) => ({
+      code: a.code,
+      type: a.type,
+    })),
     unit: {
       code: row.unitCode,
       type: row.unitType,

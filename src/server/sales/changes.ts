@@ -25,6 +25,7 @@ import { assertCan, type TenantCtx } from "@/server/auth/session";
 import { loadVisibleBuyer } from "@/server/buyers/access";
 import { discardFile } from "@/server/files/service";
 import { transitionUnit } from "@/server/inventory/transition-unit";
+import { saleAnnexes } from "@/server/sales/annexes";
 
 import { loadVisibleReservation } from "./access";
 import { paidTotals } from "./sale-queries";
@@ -168,10 +169,13 @@ export async function swapUnit(ctx: TenantCtx, input: In<typeof swapUnitSchema>)
     if (target.listPrice === null) {
       throw new AppError("CONFLICT", "quotations.errors.unitNotPriced");
     }
-    if (input.discount > target.listPrice) {
+    // The sale's annexes stay with it: their list prices add to the new unit's.
+    const annexes = (await saleAnnexes(tx, [sale.id])).get(sale.id) ?? [];
+    const listPrice = annexes.reduce((sum, a) => sum + a.listPrice, target.listPrice);
+    if (input.discount > listPrice) {
       throw invalid("discount", "quotations.errors.discountTooHigh");
     }
-    const price = netPrice(target.listPrice, input.discount);
+    const price = netPrice(listPrice, input.discount);
     const paid = (await paidTotals(tx, [sale.id])).get(sale.id) ?? 0n;
     if (paid > price) throw new AppError("CONFLICT", "sales.swap.errors.paidAbovePrice");
 
@@ -213,7 +217,7 @@ export async function swapUnit(ctx: TenantCtx, input: In<typeof swapUnitSchema>)
       .update(reservation)
       .set({
         unitId: input.unitId,
-        listPrice: target.listPrice,
+        listPrice,
         discount: input.discount,
         price,
       })

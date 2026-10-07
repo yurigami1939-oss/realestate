@@ -166,6 +166,21 @@ function UnitFr({
         {u.code}
       </b>{" "}
       ({details})
+      {data.annexes && data.annexes.length > 0 ? (
+        <>
+          {" "}
+          et ses annexes{" "}
+          {data.annexes.map((a, index) => (
+            <span key={a.code}>
+              {index > 0 ? ", " : ""}
+              {unitTypes[a.type]?.fr ?? a.type}{" "}
+              <b dir="ltr" className="code">
+                {a.code}
+              </b>
+            </span>
+          ))}
+        </>
+      ) : null}
       {short ? null : (
         <>
           {" "}
@@ -194,6 +209,21 @@ function UnitAr({ data, short = false }: { data: CertificateSnapshot; short?: bo
         {u.code}
       </bdi>{" "}
       (<bdi>{details}</bdi>)
+      {data.annexes && data.annexes.length > 0 ? (
+        <>
+          {" "}
+          وملحقاتها{" "}
+          {data.annexes.map((a, index) => (
+            <span key={a.code}>
+              {index > 0 ? "، " : ""}
+              {unitTypes[a.type]?.ar ?? a.type}{" "}
+              <bdi dir="ltr" className="code">
+                {a.code}
+              </bdi>
+            </span>
+          ))}
+        </>
+      ) : null}
       {short ? null : (
         <>
           {" "}

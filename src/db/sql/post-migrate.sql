@@ -118,6 +118,9 @@ GRANT UPDATE (pdf_file_id) ON public.certificate TO realestate_app;
 -- After-sale history: transfers and unit swaps are append-only; withdrawals are never deleted.
 REVOKE UPDATE, DELETE, TRUNCATE ON public.reservation_transfer FROM realestate_app;
 REVOKE UPDATE, DELETE, TRUNCATE ON public.unit_swap FROM realestate_app;
+-- Annex units of a sale: released (withdrawn sale), never edited otherwise nor deleted.
+REVOKE UPDATE, DELETE, TRUNCATE ON public.reservation_annex FROM realestate_app;
+GRANT UPDATE (released_at) ON public.reservation_annex TO realestate_app;
 REVOKE DELETE, TRUNCATE ON public.withdrawal FROM realestate_app;
 -- Charge calls are issued once: a period only changes when it is cancelled (with a reason),
 -- its calls only get their PDF link, their lines never change.
