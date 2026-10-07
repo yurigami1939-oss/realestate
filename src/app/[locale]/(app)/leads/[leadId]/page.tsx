@@ -13,7 +13,9 @@ import {
   type DiscountUnitChoice,
   RequestDiscountDialog,
 } from "@/components/discounts/discount-dialogs";
+import { ExportButton } from "@/components/exports/export-button";
 import { ConfirmAction } from "@/components/forms/confirm-action";
+import { AnonymizeLeadDialog } from "@/components/privacy/anonymize-lead-dialog";
 import { type OptionUnitChoice, PlaceOptionDialog } from "@/components/sales/option-dialogs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -23,6 +25,7 @@ import { toLocale } from "@/i18n/locales";
 import { formatDate, formatDateTime, todayInAlgiers } from "@/lib/dates";
 import { formatDZD } from "@/lib/money";
 import { can } from "@/lib/permissions";
+import { ANONYMIZED_NAME } from "@/lib/privacy";
 import { quotationState } from "@/lib/quotations";
 import { cn } from "@/lib/utils";
 import { requirePermission } from "@/server/auth/page-guard";
@@ -96,6 +99,7 @@ export default async function LeadPage({ params }: PageProps<"/[locale]/leads/[l
   const t = await getTranslations("crm");
   const tc = await getTranslations("common");
   const tb = await getTranslations("buyers");
+  const tp = await getTranslations("privacy");
   const editable = can(ctx.roles, "lead:update");
 
   return (
@@ -142,6 +146,14 @@ export default async function LeadPage({ params }: PageProps<"/[locale]/leads/[l
                 assignedTo={lead.assignedTo}
                 owners={owners}
               />
+            ) : null}
+            {can(ctx.roles, "personal_data:export") ? (
+              <ExportButton kind="person" params={{ lead: lead.id }} label={tp("export")} />
+            ) : null}
+            {can(ctx.roles, "personal_data:erase") &&
+            buyers.length === 0 &&
+            lead.fullName !== ANONYMIZED_NAME ? (
+              <AnonymizeLeadDialog leadId={lead.id} />
             ) : null}
             {can(ctx.roles, "lead:delete") ? (
               <ConfirmAction

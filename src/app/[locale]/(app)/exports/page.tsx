@@ -33,7 +33,11 @@ export default async function ExportsPage({ params }: PageProps<"/[locale]/expor
 
   // The ledger is exported from each account's page.
   const sections: (
-    { key: Exclude<ExportKind, "ledger" | "report">; control: React.ReactNode } | false
+    | {
+        key: Exclude<ExportKind, "ledger" | "report" | "person">;
+        control: React.ReactNode;
+      }
+    | false
   )[] = [
     allowed("payment:read") && {
       key: "collections",

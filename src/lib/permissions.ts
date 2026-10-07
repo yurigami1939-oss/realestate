@@ -97,6 +97,11 @@ export const statement = {
   cost: ["read", "update", "pay"],
   /** Management reports: sales by period, project and typology, commercials, receivables, stock. */
   report: ["read"],
+  /**
+   * Individuals' rights (Loi 18-07): `export` what is held about a buyer or a prospect, `erase`
+   * (anonymize) a prospect who never bought.
+   */
+  personal_data: ["export", "erase"],
 } as const;
 
 export const ac = createAccessControl(statement);
@@ -144,6 +149,7 @@ export const roles = {
     treasury: ["read", "update", "count"],
     cost: ["read", "update", "pay"],
     report: ["read"],
+    personal_data: ["export", "erase"],
   }),
   sales_manager: ac.newRole({
     inventory: ["read"],
@@ -175,6 +181,7 @@ export const roles = {
     lease: ["read", "update"],
     notification: ["read"],
     report: ["read"],
+    personal_data: ["export", "erase"],
   }),
   sales_agent: ac.newRole({
     inventory: ["read"],

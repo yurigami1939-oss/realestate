@@ -6,6 +6,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { PageHeader } from "@/components/app-shell/page-header";
 import { PhoneActions, PhoneText } from "@/components/crm/phone";
+import { ExportButton } from "@/components/exports/export-button";
 import { PortalAccessControl } from "@/components/portal/portal-access";
 import { SaleStatusBadge } from "@/components/sales/badges";
 import { Badge } from "@/components/ui/badge";
@@ -44,6 +45,7 @@ export default async function BuyerPage({ params }: PageProps<"/[locale]/buyers/
   const civility = buyer.civility ? `${t(`civility.${buyer.civility}`)} ` : "";
   const sales = can(ctx.roles, "sale:read") ? await listBuyerSales(ctx, buyer.id) : null;
   const ts = await getTranslations("sales");
+  const tp = await getTranslations("privacy");
   const money = (v: bigint) => formatDZD(v, toLocale(locale));
   const portal = {
     access: (await getPortalAccess(ctx, [{ kind: "buyer", id: buyer.id }])).get(buyer.id) ?? null,
@@ -79,6 +81,9 @@ export default async function BuyerPage({ params }: PageProps<"/[locale]/buyers/
                   {tc("edit")}
                 </Link>
               </Button>
+            ) : null}
+            {can(ctx.roles, "personal_data:export") ? (
+              <ExportButton kind="person" params={{ buyer: buyer.id }} label={tp("export")} />
             ) : null}
           </>
         }

@@ -5081,5 +5081,43 @@
       "cashShort": "Écarts de caisse (manquants)",
       "cashOver": "Écarts de caisse (excédents)"
     }
+  },
+  "privacy": {
+    "export": "Données personnelles (Excel)",
+    "anonymize": "Anonymiser",
+    "anonymizeTitle": "Anonymiser ce prospect ?",
+    "anonymizeDescription": "Droit à l'effacement (loi 18-07) : son nom, ses téléphones, son e-mail, sa ville et les notes de son suivi sont supprimés définitivement ; la source, l'étape et les dates restent pour les statistiques.",
+    "reason": "Motif (demande de la personne, durée de conservation dépassée…)",
+    "anonymized": "Prospect anonymisé.",
+    "sheets": {
+      "identity": "Identité",
+      "documents": "Pièces",
+      "sales": "Ventes",
+      "payments": "Paiements",
+      "messages": "Messages WhatsApp",
+      "timeline": "Historique",
+      "visits": "Visites et relances",
+      "quotations": "Devis"
+    },
+    "columns": {
+      "field": "Donnée",
+      "value": "Valeur",
+      "document": "Pièce",
+      "status": "État",
+      "note": "Remarque",
+      "number": "Numéro",
+      "unit": "Lot",
+      "date": "Date",
+      "amount": "Montant",
+      "sale": "Vente",
+      "method": "Mode",
+      "message": "Message",
+      "event": "Événement"
+    },
+    "errors": {
+      "onePerson": "Choisissez un acquéreur ou un prospect.",
+      "alreadyAnonymized": "Ce prospect est déjà anonymisé.",
+      "leadHasBuyer": "Un dossier acquéreur provient de ce prospect : ses données sont conservées avec ses contrats."
+    }
   }
 }

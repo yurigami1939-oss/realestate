@@ -126,6 +126,27 @@ test.describe("directrice commerciale", () => {
     await expect(page.locator("main")).toContainText("Le client préfère un F3");
   });
 
+  test("exports a prospect's data, then erases them at their request", async ({ page }) => {
+    await page.goto("/fr/leads?q=Farida");
+    await page.getByRole("link", { name: "Farida Laïb" }).first().click();
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Farida Laïb");
+    const [download] = await Promise.all([
+      page.waitForEvent("download"),
+      page.getByTestId("export-person").click(),
+    ]);
+    expect(download.suggestedFilename()).toMatch(/^donnees-.+-loi-18-07\.xlsx$/);
+
+    await page.getByRole("button", { name: "Anonymiser" }).click();
+    const dialog = page.getByRole("dialog");
+    await dialog
+      .getByLabel("Motif (demande de la personne, durée de conservation dépassée…)")
+      .fill("Demande reçue par courriel");
+    await dialog.getByRole("button", { name: "Anonymiser" }).click();
+    await expect(page.getByText("Prospect anonymisé.")).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Prospect anonymisé");
+    await expect(page.getByRole("button", { name: "Anonymiser" })).toHaveCount(0);
+  });
+
   test("sets monthly targets", async ({ page }) => {
     await page.goto("/fr/targets");
     await page.getByLabel("Visites effectuées Yacine Belkacem").fill("15");

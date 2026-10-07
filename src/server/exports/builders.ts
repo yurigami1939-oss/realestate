@@ -38,6 +38,7 @@ import { listLeases } from "@/server/rentals/queries";
 import { visibleSales } from "@/server/sales/access";
 import { buyerNames, paidTotals, searchCondition as saleSearch } from "@/server/sales/sale-queries";
 import { listInvoices } from "@/server/suppliers/queries";
+import { personExport } from "@/server/privacy/service";
 import { getReports } from "@/server/reports/queries";
 import { getAccountLedger } from "@/server/treasury/queries";
 
@@ -1149,4 +1150,5 @@ export const builders: { [K in ExportKind]: Builder<K> } = {
   ledger,
   report,
   accounting,
+  person: personExport,
 };

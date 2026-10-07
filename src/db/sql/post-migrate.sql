@@ -45,6 +45,8 @@ REVOKE UPDATE, DELETE, TRUNCATE ON public.audit_log FROM realestate_app;
 REVOKE UPDATE, DELETE, TRUNCATE ON public.unit_status_history FROM realestate_app;
 REVOKE UPDATE, DELETE, TRUNCATE ON public.unit_price_history FROM realestate_app;
 REVOKE UPDATE, DELETE, TRUNCATE ON public.lead_activity FROM realestate_app;
+-- Erasing a prospect (Loi 18-07) clears the details of its timeline; the events stay.
+GRANT UPDATE (data) ON public.lead_activity TO realestate_app;
 REVOKE UPDATE, DELETE, TRUNCATE ON public.quotation_line FROM realestate_app;
 -- Issued documents are cancelled, never deleted (status, PDF link and cancellation are updated).
 REVOKE DELETE, TRUNCATE ON public.quotation FROM realestate_app;
