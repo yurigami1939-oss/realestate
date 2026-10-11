@@ -23,4 +23,5 @@ export * from "./staff";
 export * from "./suppliers";
 export * from "./tickets";
 export * from "./treasury";
+export * from "./sms";
 export * from "./whatsapp";

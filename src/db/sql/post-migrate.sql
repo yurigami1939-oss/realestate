@@ -165,3 +165,5 @@ GRANT UPDATE (pdf_file_id) ON public.lease_inspection TO realestate_app;
 REVOKE DELETE, TRUNCATE ON public.online_payment FROM realestate_app;
 -- The WhatsApp log is kept: messages are never deleted (their status follows Meta's webhook).
 REVOKE DELETE, TRUNCATE ON public.whatsapp_message FROM realestate_app;
+-- SMS messages are kept (sent or failed), never deleted.
+REVOKE DELETE, TRUNCATE ON public.sms_message FROM realestate_app;

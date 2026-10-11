@@ -26,7 +26,10 @@ import {
   whatsappNumber,
   whatsappTemplates,
 } from "@/lib/whatsapp";
+import { smsText } from "@/lib/sms";
 import { currentResident } from "@/server/residences/service";
+import { loadSmsAccount, sendsSms } from "@/server/sms/account";
+import { queueSms } from "@/server/sms/service";
 
 import { companyName, loadWhatsappAccount, templateFor } from "./account";
 
@@ -41,10 +44,11 @@ type Message = {
 /**
  * Queues one template message per recipient who agreed and has a WhatsApp number (each number
  * once), in the caller's transaction: it exists only if the event commits, and the worker sends
- * it (`whatsapp.send`). `build` only runs when the organization sends this kind (WhatsApp is off
- * by default: one query). A message whose parameters do not fit its template is logged as
- * failed, never sent (Meta would refuse it) — the event itself always goes through. Returns the
- * number of messages queued.
+ * it (`whatsapp.send`). When the organization also sends this kind by SMS (CLAUDE.md §7 SMS),
+ * the recipients WhatsApp did not reach get the same text by SMS (`sms.send`). `build` only
+ * runs when one of the channels sends this kind (both are off by default: two queries). A
+ * message whose parameters do not fit its template is logged as failed, never sent (Meta would
+ * refuse it) — the event itself always goes through. Returns the number of messages queued.
  */
 export async function queueWhatsapp(
   tx: Tx,
@@ -54,43 +58,58 @@ export async function queueWhatsapp(
 ): Promise<number> {
   const account = await loadWhatsappAccount(tx, scope.orgId);
   const template = account ? templateFor(account, kind) : null;
-  if (!account || !template) return 0;
+  const sms = await loadSmsAccount(tx, scope.orgId);
+  const bySms = sendsSms(sms, kind);
+  if ((!account || !template) && !bySms) return 0;
   const message = await build(await companyName(tx, scope.orgId));
   const seen = new Set<string>();
-  for (const recipient of message.recipients) {
-    const to = recipient.optIn ? whatsappNumber(recipient.phone) : null;
-    if (!to || seen.has(to)) continue;
-    seen.add(to);
-    const params = message.params(account.language, recipient).map((p) => templateParam(p));
-    const fits = params.length === templateParamCount(whatsappTemplates[kind]);
-    const [row] = await tx
-      .insert(whatsappMessage)
-      .values({
-        organizationId: scope.orgId,
-        kind,
-        recipient: to,
-        recipientName: recipient.name,
-        template,
-        language: account.language,
-        params,
-        refType: message.ref.type,
-        refId: message.ref.id,
-        ...(fits ? {} : { status: "failed" as const, error: "parameters", failedAt: new Date() }),
-      })
-      .returning({ id: whatsappMessage.id });
-    if (!row) throw new Error("queueWhatsapp: no row returned");
-    if (!fits) {
-      console.error(`[whatsapp] ${kind}: ${params.length} parameters, template expects others`);
-      continue;
+  if (account && template) {
+    for (const recipient of message.recipients) {
+      const to = recipient.optIn ? whatsappNumber(recipient.phone) : null;
+      if (!to || seen.has(to)) continue;
+      seen.add(to);
+      const params = message.params(account.language, recipient).map((p) => templateParam(p));
+      const fits = params.length === templateParamCount(whatsappTemplates[kind]);
+      const [row] = await tx
+        .insert(whatsappMessage)
+        .values({
+          organizationId: scope.orgId,
+          kind,
+          recipient: to,
+          recipientName: recipient.name,
+          template,
+          language: account.language,
+          params,
+          refType: message.ref.type,
+          refId: message.ref.id,
+          ...(fits ? {} : { status: "failed" as const, error: "parameters", failedAt: new Date() }),
+        })
+        .returning({ id: whatsappMessage.id });
+      if (!row) throw new Error("queueWhatsapp: no row returned");
+      if (!fits) {
+        console.error(`[whatsapp] ${kind}: ${params.length} parameters, template expects others`);
+        continue;
+      }
+      await enqueueInTx(
+        tx,
+        "whatsapp.send",
+        { organizationId: scope.orgId, messageId: row.id },
+        { singletonKey: `whatsapp:${row.id}` },
+      );
     }
-    await enqueueInTx(
-      tx,
-      "whatsapp.send",
-      { organizationId: scope.orgId, messageId: row.id },
-      { singletonKey: `whatsapp:${row.id}` },
-    );
   }
-  return seen.size;
+  if (!sms || !bySms) return seen.size;
+  // The same notification by SMS to those WhatsApp did not reach.
+  const rest = message.recipients.flatMap((recipient) => {
+    const reached = recipient.optIn ? whatsappNumber(recipient.phone) : null;
+    if (!recipient.phone || (reached && seen.has(reached))) return [];
+    const params = message.params(sms.language, recipient).map((p) => templateParam(p));
+    return [
+      { phone: recipient.phone, name: recipient.name, text: smsText(kind, sms.language, params) },
+    ];
+  });
+  const texted = await queueSms(tx, scope, { kind, ref: message.ref, recipients: rest });
+  return seen.size + texted.length;
 }
 
 const fullName = (p: { firstName: string; lastName: string }) =>

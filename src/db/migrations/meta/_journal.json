@@ -498,6 +498,13 @@
       "when": 1791706599043,
       "tag": "0070_management_mandates",
       "breakpoints": true
+    },
+    {
+      "idx": 71,
+      "version": "7",
+      "when": 1791708981995,
+      "tag": "0071_sms_notifications",
+      "breakpoints": true
     }
   ]
 }

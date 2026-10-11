@@ -33,6 +33,8 @@ export const queues = {
    * throttling, then failed.
    */
   "whatsapp.send": { retryLimit: 5, retryDelay: 60, retryBackoff: true, expireInSeconds: 60 },
+  /** One SMS through the organization's gateway; retried while it is unreachable or throttling. */
+  "sms.send": { retryLimit: 5, retryDelay: 60, retryBackoff: true, expireInSeconds: 60 },
   "online_payment.check": {
     retryLimit: 6,
     retryDelay: 600,
@@ -95,4 +97,5 @@ export type JobPayloads = {
   "reminders.digest": { organizationId: string; date: string };
   "online_payment.check": { organizationId: string; onlinePaymentId: string };
   "whatsapp.send": { organizationId: string; messageId: string };
+  "sms.send": { organizationId: string; messageId: string };
 };

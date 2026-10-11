@@ -297,7 +297,9 @@
     "leadCapture": "Capture de prospects",
     "partners": "Agences et apporteurs",
     "group": "Vue groupe",
-    "security": "Sécurité"
+    "security": "Sécurité",
+    "smsLog": "Messages SMS",
+    "smsSettings": "SMS"
   },
   "shell": {
     "organizations": "Sociétés",
@@ -5606,6 +5608,85 @@
       "negativeNet": "Les retenues dépassent les loyers moins les honoraires.",
       "notIssued": "Ce relevé n'est plus à reverser.",
       "paidBeforeIssue": "Le reversement ne peut précéder le relevé."
+    }
+  },
+  "sms": {
+    "title": "Messages SMS",
+    "description": "Les notifications envoyées par SMS aux acquéreurs, résidents et locataires que WhatsApp n'atteint pas, et les numéros qui n'en veulent plus.",
+    "count": "{count, plural, =0 {Aucun message} one {# message} other {# messages}}",
+    "empty": "Aucun SMS envoyé.",
+    "testMessage": "Message d'essai",
+    "segments": "{count, plural, one {# SMS} other {# SMS (message long)}}",
+    "columns": {
+      "date": "Date",
+      "recipient": "Destinataire",
+      "text": "Texte",
+      "status": "État",
+      "record": "Dossier"
+    },
+    "filters": {
+      "status": "État",
+      "allStatuses": "Tous les états",
+      "kind": "Notification",
+      "allKinds": "Toutes les notifications"
+    },
+    "status": {
+      "queued": "En file",
+      "sent": "Envoyé",
+      "failed": "Échec"
+    },
+    "settings": {
+      "title": "Notifications par SMS",
+      "description": "Le compte SMS de la société (offre « SMS Pro » de Mobilis, Djezzy ou Ooredoo, ou un agrégateur) : les mêmes notifications que WhatsApp, envoyées par SMS à ceux qui ne les reçoivent pas sur WhatsApp.",
+      "enabled": "Envoyer des SMS",
+      "provider": "Opérateur ou prestataire",
+      "providers": {
+        "mobilis": "Mobilis",
+        "djezzy": "Djezzy",
+        "ooredoo": "Ooredoo",
+        "other": "Autre prestataire"
+      },
+      "sender": "Nom d'expéditeur",
+      "senderHint": "Tel qu'enregistré chez l'opérateur (3 à 11 lettres ou chiffres).",
+      "apiUrl": "Adresse de la passerelle (API)",
+      "apiUrlHint": "Fournie par le prestataire.",
+      "apiKey": "Clé d'API",
+      "apiKeySaved": "Une clé est enregistrée ; laissez vide pour la garder.",
+      "language": "Langue des messages",
+      "kinds": "Notifications envoyées par SMS",
+      "kindsHint": "Chaque destinataire reçoit le message une fois : par WhatsApp s'il y a consenti, sinon par SMS sur son mobile (jamais aux numéros qui ont demandé l'arrêt).",
+      "save": "Enregistrer",
+      "saved": "Compte SMS enregistré.",
+      "standIn": "Sans adresse de passerelle, les SMS partent vers la passerelle de démonstration intégrée (environnement de développement) : rien n'est réellement envoyé.",
+      "protocol": "Protocole : POST [adresse]/messages, jeton « Bearer » = la clé d'API, corps JSON avec from, to et text, réponse avec id. Il sera adapté à l'API de votre prestataire dès sa documentation reçue."
+    },
+    "test": {
+      "open": "Envoyer un SMS d'essai",
+      "title": "SMS d'essai",
+      "description": "Un message d'essai à un numéro, pour vérifier le compte (il apparaît dans le journal).",
+      "phone": "Mobile",
+      "submit": "Envoyer",
+      "sent": "SMS d'essai mis en file."
+    },
+    "optOut": {
+      "cardTitle": "Numéros sans SMS",
+      "cardDescription": "Les personnes qui ont demandé à ne plus recevoir de SMS (« STOP »).",
+      "empty": "Aucun numéro.",
+      "open": "Ajouter un numéro",
+      "title": "Ne plus envoyer de SMS",
+      "description": "Plus aucun SMS ne partira vers ce numéro.",
+      "phone": "Mobile",
+      "reason": "Motif (appel, courrier…)",
+      "submit": "Ajouter",
+      "added": "Numéro ajouté : plus de SMS.",
+      "remove": "Retirer",
+      "removed": "Numéro retiré : les SMS reprennent."
+    },
+    "errors": {
+      "url": "Adresse invalide (https://…).",
+      "sender": "3 à 11 lettres, chiffres, points ou tirets.",
+      "disabled": "Activez d'abord l'envoi de SMS.",
+      "notMobile": "Ce numéro n'est pas un mobile, ou il a demandé l'arrêt des SMS."
     }
   }
 }

@@ -24,6 +24,7 @@ import {
   Landmark,
   LayoutDashboard,
   MessageCircle,
+  MessageSquareText,
   Percent,
   PhoneCall,
   ScrollText,
@@ -88,6 +89,8 @@ type NavKey =
   | "paymentGateway"
   | "whatsappLog"
   | "whatsappSettings"
+  | "smsLog"
+  | "smsSettings"
   | "exports"
   | "imports"
   | "treasury"
@@ -123,6 +126,7 @@ const mainNav: NavItem[] = [
     icon: MessageCircle,
     permission: "notification:read",
   },
+  { href: "/sms", key: "smsLog", icon: MessageSquareText, permission: "notification:read" },
 ];
 const salesNav: NavItem[] = [
   { href: "/leads", key: "leads", icon: Contact, permission: "lead:read" },
@@ -184,6 +188,12 @@ const settingsNav: NavItem[] = [
     href: "/settings/whatsapp",
     key: "whatsappSettings",
     icon: MessageCircle,
+    permission: "organization:update",
+  },
+  {
+    href: "/settings/sms",
+    key: "smsSettings",
+    icon: MessageSquareText,
     permission: "organization:update",
   },
   { href: "/exports", key: "exports", icon: FileSpreadsheet },

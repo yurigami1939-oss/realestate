@@ -83,8 +83,8 @@ export const statement = {
   handover: ["read", "update"],
   /** Rentals (module 5): leases of the units the promoter keeps, their end and renewal. */
   lease: ["read", "update"],
-  /** The log of the WhatsApp messages sent to buyers, residents and tenants. */
-  notification: ["read"],
+  /** The log of the WhatsApp and SMS messages sent; `update`: numbers that asked for no SMS. */
+  notification: ["read", "update"],
   /**
    * Cash desks and bank accounts: `read` balances and ledgers, `update` accounts and manual
    * movements (expenses, transfers…), `count` the cash (arrêté de caisse).
@@ -147,7 +147,7 @@ export const roles = {
     construction: ["read", "update"],
     handover: ["read", "update"],
     lease: ["read", "update"],
-    notification: ["read"],
+    notification: ["read", "update"],
     treasury: ["read", "update", "count"],
     cost: ["read", "update", "pay"],
     report: ["read"],
@@ -182,7 +182,7 @@ export const roles = {
     construction: ["read"],
     handover: ["read", "update"],
     lease: ["read", "update"],
-    notification: ["read"],
+    notification: ["read", "update"],
     report: ["read"],
     personal_data: ["export", "erase"],
   }),
@@ -240,7 +240,7 @@ export const roles = {
     construction: ["read"],
     handover: ["read"],
     lease: ["read", "update"],
-    notification: ["read"],
+    notification: ["read", "update"],
   }),
   /**
    * Responsable technique (module 4): construction follow-up and deliveries, the contractors'
