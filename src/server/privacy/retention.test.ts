@@ -77,7 +77,7 @@ describe("retention periods", () => {
 
     // Off by default: a run a year from now changes nothing.
     const later = addMonths(today, 13);
-    expect(await applyRetention(team.orgId, later)).toEqual({ leads: 0, messages: 0 });
+    expect(await applyRetention(team.orgId, later)).toEqual({ leads: 0, messages: 0, visitors: 0 });
 
     await expect(
       savePrivacySettings(
@@ -93,14 +93,16 @@ describe("retention periods", () => {
     expect(await getPrivacySettings(team.owner)).toEqual({
       leadRetentionMonths: 12,
       messageRetentionMonths: 12,
+      visitorRetentionMonths: 0,
     });
     // Within the period, nothing yet.
     expect(await applyRetention(team.orgId, addMonths(today, 11))).toEqual({
       leads: 0,
       messages: 0,
+      visitors: 0,
     });
     // Past it: the prospect who never bought is anonymized, the buyer's and the won one stay.
-    expect(await applyRetention(team.orgId, later)).toEqual({ leads: 1, messages: 2 });
+    expect(await applyRetention(team.orgId, later)).toEqual({ leads: 1, messages: 2, visitors: 0 });
     const leads = await withTenant(team.owner, (tx) =>
       tx.select({ id: lead.id, fullName: lead.fullName, phone: lead.phone }).from(lead),
     );
@@ -118,7 +120,7 @@ describe("retention periods", () => {
     const [sms] = await withTenant(team.owner, (tx) => tx.select().from(smsMessage));
     expect(sms).toMatchObject({ recipient: ERASED_RECIPIENT, text: "" });
     // Idempotent.
-    expect(await applyRetention(team.orgId, later)).toEqual({ leads: 0, messages: 0 });
+    expect(await applyRetention(team.orgId, later)).toEqual({ leads: 0, messages: 0, visitors: 0 });
 
     const audits = await withTenant(team.owner, (tx) =>
       tx

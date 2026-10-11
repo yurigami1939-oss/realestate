@@ -210,6 +210,7 @@ describe("push devices", () => {
       from: "18:00",
       to: "22:00",
       who: "Cherif Mohamed",
+      visitor: "Karim Ouali",
     };
     for (const kind of pushKinds) {
       for (const locale of ["fr", "ar"] as const) {

@@ -575,6 +575,13 @@
       "when": 1791747239439,
       "tag": "0081_common_rooms",
       "breakpoints": true
+    },
+    {
+      "idx": 82,
+      "version": "7",
+      "when": 1791756520162,
+      "tag": "0082_visitors",
+      "breakpoints": true
     }
   ]
 }

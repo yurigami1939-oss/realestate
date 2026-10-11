@@ -28,6 +28,7 @@ export function PrivacySettingsForm({ current }: { current: PrivacySettings }) {
     defaultValues: {
       leadRetentionMonths: months(current.leadRetentionMonths),
       messageRetentionMonths: months(current.messageRetentionMonths),
+      visitorRetentionMonths: months(current.visitorRetentionMonths),
     },
   });
   return (
@@ -58,6 +59,15 @@ export function PrivacySettingsForm({ current }: { current: PrivacySettings }) {
                 name="messageRetentionMonths"
                 label={t("messageRetentionMonths")}
                 description={t("messageRetentionHint")}
+                inputMode="numeric"
+                placeholder="0"
+                dir="ltr"
+              />
+              <TextField
+                control={form.control}
+                name="visitorRetentionMonths"
+                label={t("visitorRetentionMonths")}
+                description={t("visitorRetentionHint")}
                 inputMode="numeric"
                 placeholder="0"
                 dir="ltr"

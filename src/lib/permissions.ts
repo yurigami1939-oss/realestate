@@ -75,6 +75,11 @@ export const statement = {
   assembly: ["read", "update"],
   /** Announcements to the residents of a residence (notices, portal). */
   announcement: ["read", "update"],
+  /**
+   * Visitors of a residence: `read` the register, `update` record arrivals and unannounced
+   * visitors (the gérant, the gestionnaire, or a guard's custom role).
+   */
+  visitor: ["read", "update"],
   /** Inviting buyers and co-owners / occupants to the portal (and withdrawing their access). */
   portal: ["invite"],
   /** Construction follow-up (module 4): progress reports per project, progress per building, photos. */
@@ -143,6 +148,7 @@ export const roles = {
     ticket: ["read", "create", "update"],
     assembly: ["read", "update"],
     announcement: ["read", "update"],
+    visitor: ["read", "update"],
     portal: ["invite"],
     construction: ["read", "update"],
     handover: ["read", "update"],
@@ -236,6 +242,7 @@ export const roles = {
     ticket: ["read", "create", "update"],
     assembly: ["read", "update"],
     announcement: ["read", "update"],
+    visitor: ["read", "update"],
     portal: ["invite"],
     construction: ["read"],
     handover: ["read"],

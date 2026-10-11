@@ -11,13 +11,19 @@ export const ANONYMIZED_NAME = "Prospect anonymisé";
 /**
  * Retention periods in months (0 = not applied automatically): prospects who never bought,
  * anonymized that long after their last activity; the phone numbers and texts of the WhatsApp
- * and SMS logs, erased that long after sending.
+ * and SMS logs, erased that long after sending; the names in the residences' visitor
+ * registers, erased that long after the visit.
  */
-export type PrivacySettings = { leadRetentionMonths: number; messageRetentionMonths: number };
+export type PrivacySettings = {
+  leadRetentionMonths: number;
+  messageRetentionMonths: number;
+  visitorRetentionMonths: number;
+};
 
 export const defaultPrivacySettings: PrivacySettings = {
   leadRetentionMonths: 0,
   messageRetentionMonths: 0,
+  visitorRetentionMonths: 0,
 };
 
 /** The saved settings over the defaults. */
@@ -46,6 +52,7 @@ export const processingActivities = [
   { key: "owners", retention: null },
   { key: "payments", retention: null },
   { key: "notifications", retention: "messageRetentionMonths" },
+  { key: "visitors", retention: "visitorRetentionMonths" },
   { key: "push", retention: null },
   { key: "staff", retention: null },
   { key: "accounts", retention: null },

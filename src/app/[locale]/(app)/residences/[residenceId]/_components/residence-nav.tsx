@@ -15,6 +15,7 @@ const sections = [
   { key: "staff", path: "/staff", permission: "staff:read" },
   { key: "checks", path: "/checks", permission: "residence:read" },
   { key: "rooms", path: "/rooms", permission: "residence:read" },
+  { key: "visitors", path: "/visitors", permission: "visitor:read" },
   { key: "assemblies", path: "/assemblies", permission: "assembly:read" },
   { key: "announcements", path: "/announcements", permission: "announcement:read" },
 ] as const satisfies readonly { key: string; path: string; permission: Permission }[];

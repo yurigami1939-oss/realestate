@@ -12,6 +12,7 @@ export const residentPushKinds = [
   "ticket_status",
   "claim_closed",
   "room_decided",
+  "visitor_arrived",
 ] as const;
 
 /** To staff: what waits for them. */

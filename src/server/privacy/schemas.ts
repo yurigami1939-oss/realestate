@@ -11,4 +11,5 @@ export const anonymizeLeadSchema = z.object({ leadId: z.uuid(), reason: required
 export const privacySettingsSchema = z.object({
   leadRetentionMonths: optionalIntText(0, MAX_RETENTION_MONTHS).transform((v) => v ?? 0),
   messageRetentionMonths: optionalIntText(0, MAX_RETENTION_MONTHS).transform((v) => v ?? 0),
+  visitorRetentionMonths: optionalIntText(0, MAX_RETENTION_MONTHS).transform((v) => v ?? 0),
 });

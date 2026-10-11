@@ -2734,7 +2734,8 @@
       "announcements": "Annonces",
       "checks": "Contrôles",
       "meters": "Compteurs",
-      "rooms": "Salles communes"
+      "rooms": "Salles communes",
+      "visitors": "Visiteurs"
     },
     "council": {
       "member": "Conseil syndical",
@@ -3726,7 +3727,8 @@
         "payments": "Paiements",
         "documents": "Mon dossier",
         "notifications": "Notifications",
-        "rooms": "Salles"
+        "rooms": "Salles",
+        "visitors": "Visiteurs"
       }
     },
     "home": {
@@ -5530,7 +5532,9 @@
       "messageRetentionMonths": "Journaux WhatsApp et SMS (mois)",
       "messageRetentionHint": "Passé ce délai, le numéro et le texte des messages sont effacés. Vide ou 0 = jamais.",
       "save": "Enregistrer",
-      "saved": "Durées de conservation enregistrées."
+      "saved": "Durées de conservation enregistrées.",
+      "visitorRetentionMonths": "Registre des visiteurs (mois)",
+      "visitorRetentionHint": "Passé ce délai après la visite, le nom du visiteur et la remarque sont effacés. Vide ou 0 = jamais."
     },
     "register": {
       "title": "Registre des traitements",
@@ -5625,6 +5629,14 @@
           "basis": "Consentement : activées sur chaque appareil par la personne, désactivées à tout moment.",
           "recipients": "Le service push du navigateur (Google, Mozilla, Apple, Microsoft), qui ne lit pas le contenu, chiffré pour l'appareil.",
           "retention": "Jusqu'à la désactivation, l'expiration de l'abonnement ou le départ de la personne."
+        },
+        "visitors": {
+          "name": "Registre des visiteurs",
+          "purpose": "Sécurité de la résidence : les visiteurs annoncés par les résidents et les arrivées enregistrées à l'entrée.",
+          "data": "Nom du visiteur, nombre de personnes, lot et résident visités, jour et heure d'arrivée, code d'accès.",
+          "basis": "Intérêt légitime de la copropriété (sécurité de l'immeuble), à valider.",
+          "recipients": "Le gestionnaire et le gardien de la résidence ; le résident visité.",
+          "retention": "Noms effacés après la durée réglée ci-dessus."
         }
       }
     },
@@ -5929,7 +5941,8 @@
       "treasury": "Trésorerie",
       "cost": "Coûts de construction",
       "report": "Rapports",
-      "personal_data": "Données personnelles"
+      "personal_data": "Données personnelles",
+      "visitor": "Visiteurs des résidences"
     },
     "actions": {
       "read": "Consulter",
@@ -6096,6 +6109,10 @@
       "room_decided": {
         "title": "{approved, select, yes {Réservation confirmée} other {Réservation refusée}}",
         "body": "{room} : {day}, {from} – {to}."
+      },
+      "visitor_arrived": {
+        "title": "Votre visiteur est arrivé",
+        "body": "{visitor} à {time}."
       }
     }
   },
@@ -6222,5 +6239,56 @@
     },
     "approveDescription": "Le créneau est confirmé ; le résident est prévenu.",
     "cancelDescription": "Le créneau est libéré ; le résident le voit dans son espace."
+  },
+  "visitors": {
+    "title": "Visiteurs",
+    "portalTitle": "Mes visiteurs",
+    "description": "Le registre des visiteurs : ceux que les résidents annoncent avec un code à donner à l'entrée, ceux qui arrivent sans être annoncés.",
+    "portalDescription": "Annoncez vos visiteurs : donnez-leur le code à présenter à l'entrée ; vous êtes prévenu de leur arrivée.",
+    "fields": {
+      "day": "Jour",
+      "code": "Code",
+      "visitorName": "Visiteur",
+      "unit": "Lot",
+      "hostName": "Reçu par",
+      "people": "Personnes",
+      "note": "Remarque",
+      "expectedOn": "Jour de la visite"
+    },
+    "search": "Rechercher",
+    "dayTitle": "Visiteurs du {date}",
+    "empty": "Aucun visiteur ce jour.",
+    "status": {
+      "expected": "Attendu",
+      "arrived": "Arrivé",
+      "cancelled": "Annulé"
+    },
+    "arrivedAt": "Arrivé à {time}",
+    "arrived": "Arrivé",
+    "arrivedTitle": "Enregistrer l'arrivée ?",
+    "arrivedDescription": "Le résident qui l'attend en est prévenu.",
+    "recorded": "Arrivée enregistrée.",
+    "log": "Visiteur non annoncé",
+    "logTitle": "Enregistrer un visiteur non annoncé",
+    "commonAreas": "Parties communes",
+    "announce": "Annoncer un visiteur",
+    "announceTitle": "Annoncer un visiteur",
+    "announceDescription": "Un code est créé pour ce jour : donnez-le à votre visiteur, il le présentera à l'entrée.",
+    "announced": "Visiteur annoncé : code {code}.",
+    "mine": "Mes visiteurs annoncés",
+    "noneAnnounced": "Aucun visiteur annoncé.",
+    "codeLine": "Code à présenter :",
+    "cancel": "Annuler",
+    "cancelTitle": "Annuler ce visiteur ?",
+    "cancelDescription": "Son code ne sera plus valable.",
+    "cancelled": "Visiteur annulé.",
+    "errors": {
+      "past": "Ce jour est passé.",
+      "tooFar": "Annonce possible jusqu'à 30 jours à l'avance.",
+      "tooMany": "Vous avez déjà annoncé 10 visiteurs ce jour-là.",
+      "notExpected": "Ce visiteur n'est plus attendu.",
+      "notToday": "Ce visiteur est attendu un autre jour.",
+      "unit": "Ce lot n'appartient pas à la résidence."
+    }
   }
 }

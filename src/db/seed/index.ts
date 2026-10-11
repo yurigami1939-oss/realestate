@@ -28,6 +28,7 @@ import { seedRooms } from "./rooms";
 import { seedPaymentPlans, seedQuotations } from "./sales";
 import { seedSms } from "./sms";
 import { seedThirdPartyBuilding } from "./third-party";
+import { seedVisitors } from "./visitors";
 
 /** Refuses anything but a local database: seeding wipes data. */
 export function assertLocalDatabase(url: string): void {
@@ -139,6 +140,12 @@ export async function seedDemo(): Promise<void> {
       },
       { units: unitIds, plans },
     );
+    await seedVisitors(ctx("propertyManager", ["property_manager"]), {
+      userId: userIds.get("resident") ?? "",
+      orgId: created.id,
+      name: "Mohamed Cherif",
+      locale: "fr",
+    });
     const technical = ctx("technicalManager", ["technical_manager"]);
     const amandiers = await seedDeliveries({
       owner: ctx("owner", ["owner"]),

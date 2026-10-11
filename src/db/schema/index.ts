@@ -30,3 +30,4 @@ export * from "./tickets";
 export * from "./treasury";
 export * from "./sms";
 export * from "./whatsapp";
+export * from "./visitors";

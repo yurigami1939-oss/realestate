@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, eq, lt, ne, notExists, sql } from "drizzle-orm";
+import { and, eq, isNull, lt, ne, notExists, sql } from "drizzle-orm";
 import type { z } from "zod";
 
 import { db, type Tx } from "@/db/client";
@@ -11,6 +11,7 @@ import {
   organization,
   organizationSetting,
   smsMessage,
+  visitorPass,
   whatsappMessage,
 } from "@/db/schema";
 import { withTenant } from "@/db/tenant";
@@ -82,6 +83,7 @@ export async function applyRetention(orgId: string, today: CalendarDate) {
     const settings = await loadPrivacySettings(tx, orgId);
     let leads = 0;
     let messages = 0;
+    let visitors = 0;
 
     const leadCutoff = retentionCutoff(today, settings.leadRetentionMonths);
     if (leadCutoff) {
@@ -141,7 +143,17 @@ export async function applyRetention(orgId: string, today: CalendarDate) {
       messages = whatsapp.length + sms.length;
     }
 
-    if (leads + messages > 0) {
+    const visitorCutoff = retentionCutoff(today, settings.visitorRetentionMonths);
+    if (visitorCutoff) {
+      const erased = await tx
+        .update(visitorPass)
+        .set({ visitorName: ERASED_RECIPIENT, note: null, erasedAt: new Date() })
+        .where(and(isNull(visitorPass.erasedAt), lt(visitorPass.expectedOn, visitorCutoff)))
+        .returning({ id: visitorPass.id });
+      visitors = erased.length;
+    }
+
+    if (leads + messages + visitors > 0) {
       await recordAudit(
         tx,
         { orgId },
@@ -150,11 +162,11 @@ export async function applyRetention(orgId: string, today: CalendarDate) {
           action: "organization.retention",
           entityType: "organization",
           entityId: orgId,
-          after: { day: today, leads, messages, ...settings },
+          after: { day: today, leads, messages, visitors, ...settings },
         },
       );
     }
-    return { leads, messages };
+    return { leads, messages, visitors };
   });
 }
 

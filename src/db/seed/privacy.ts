@@ -10,6 +10,10 @@ import { privacySettingsSchema } from "@/server/privacy/schemas";
 export async function seedPrivacy(owner: TenantCtx) {
   await savePrivacySettings(
     owner,
-    privacySettingsSchema.parse({ leadRetentionMonths: "36", messageRetentionMonths: "24" }),
+    privacySettingsSchema.parse({
+      leadRetentionMonths: "36",
+      messageRetentionMonths: "24",
+      visitorRetentionMonths: "12",
+    }),
   );
 }
