@@ -2,13 +2,14 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslations } from "next-intl";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import type { z } from "zod";
 
 import { applyFieldErrors } from "@/components/forms/apply-field-errors";
 import { CheckboxField, SelectField, TextareaField } from "@/components/forms/fields";
 import { TextField } from "@/components/forms/text-field";
+import { COMMUNE_OPTIONS, CommuneOptions } from "@/components/forms/commune-options";
 import { WILAYA_OPTIONS, WilayaOptions } from "@/components/forms/wilaya-options";
 import { useAction } from "@/components/forms/use-action";
 import { Button } from "@/components/ui/button";
@@ -71,6 +72,7 @@ export function BuyerForm({
     resolver: zodResolver(createBuyerSchema),
     defaultValues,
   });
+  const wilaya = useWatch({ control: form.control, name: "wilaya" });
   type Name = Exclude<
     keyof BuyerFormValues,
     "leadId" | "whatsappOptIn" | "marketingConsent" | "ownsHome" | "previousHousingAid"
@@ -172,10 +174,11 @@ export function BuyerForm({
             />
             {field("address")}
             <div className="grid gap-4 sm:grid-cols-2">
-              {field("commune")}
+              {field("commune", { list: COMMUNE_OPTIONS })}
               {field("wilaya", { list: WILAYA_OPTIONS })}
             </div>
             <WilayaOptions />
+            <CommuneOptions wilaya={wilaya} />
 
             <FieldSeparator>{t("sections.situation")}</FieldSeparator>
             <div className="grid gap-4 sm:grid-cols-3">

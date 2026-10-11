@@ -2,13 +2,14 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslations } from "next-intl";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import type { z } from "zod";
 
 import { applyFieldErrors } from "@/components/forms/apply-field-errors";
 import { SelectField, TextareaField } from "@/components/forms/fields";
 import { TextField } from "@/components/forms/text-field";
+import { COMMUNE_OPTIONS, CommuneOptions } from "@/components/forms/commune-options";
 import { WILAYA_OPTIONS, WilayaOptions } from "@/components/forms/wilaya-options";
 import { useAction } from "@/components/forms/use-action";
 import { Button } from "@/components/ui/button";
@@ -40,6 +41,7 @@ export function ResidenceForm({
     resolver: zodResolver(createResidenceSchema),
     defaultValues,
   });
+  const wilaya = useWatch({ control: form.control, name: "wilaya" });
   const f = (key: Exclude<keyof ResidenceFormValues, "notes"> | "notes") => t(`fields.${key}`);
 
   async function onSubmit(values: ResidenceFormValues) {
@@ -83,7 +85,13 @@ export function ResidenceForm({
             <TextField control={form.control} name="name" label={f("name")} />
             <TextField control={form.control} name="address" label={f("address")} />
             <div className="grid gap-4 sm:grid-cols-2">
-              <TextField control={form.control} name="commune" label={f("commune")} />
+              <TextField
+                control={form.control}
+                name="commune"
+                label={f("commune")}
+                list={COMMUNE_OPTIONS}
+              />
+              <CommuneOptions wilaya={wilaya} />
               <TextField
                 control={form.control}
                 name="wilaya"

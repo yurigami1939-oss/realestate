@@ -13,6 +13,7 @@ import {
   removeMemberSchema,
   updateMemberRolesSchema,
 } from "./schemas";
+import { listCommunes } from "./communes";
 import { cancelInvitation, inviteMember, removeMember, updateMemberRoles } from "./service";
 import { removeCompanyLogo, updateCompanySettings } from "./settings";
 
@@ -66,4 +67,9 @@ export const updateCompanySettingsAction = defineAction(
     // The name shows in the shell (org switcher, header) on every page.
     revalidatePath("/[locale]", "layout");
   },
+);
+
+/** The communes already named in the organization's records (address fields' suggestions). */
+export const listCommunesAction = defineAction({ input: z.object({}) }, (_input, ctx) =>
+  listCommunes(ctx),
 );

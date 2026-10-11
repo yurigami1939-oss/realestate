@@ -63,3 +63,28 @@ export const wilayas = [
   { code: "57", fr: "El M'Ghair", ar: "المغير" },
   { code: "58", fr: "El Meniaa", ar: "المنيعة" },
 ] as const;
+
+/** Lower case, accents and punctuation removed: « Béjaïa », « bejaia » and « BEJAIA » match. */
+const fold = (value: string) =>
+  value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}]+/gu, " ")
+    .trim();
+
+/**
+ * The code of a wilaya as typed in an address field (« 16 - Alger », « Alger », « 16 »,
+ * « الجزائر »), or null when it is not one of the 58.
+ */
+export function wilayaCode(value: string | null | undefined): string | null {
+  const typed = fold(value ?? "");
+  if (typed === "") return null;
+  const number = /^(\d{1,2})\b/.exec(typed)?.[1];
+  if (number) {
+    const code = number.padStart(2, "0");
+    if (wilayas.some((w) => w.code === code)) return code;
+  }
+  const name = typed.replace(/^\d+\s*/, "");
+  return wilayas.find((w) => fold(w.fr) === name || fold(w.ar) === name)?.code ?? null;
+}

@@ -11,6 +11,7 @@ import type { AppErrorShape } from "@/lib/result";
 import { applyFieldErrors } from "@/components/forms/apply-field-errors";
 import { CheckboxField, SelectField, TextareaField } from "@/components/forms/fields";
 import { TextField } from "@/components/forms/text-field";
+import { COMMUNE_OPTIONS, CommuneOptions } from "@/components/forms/commune-options";
 import { WILAYA_OPTIONS, WilayaOptions } from "@/components/forms/wilaya-options";
 import { useAction } from "@/components/forms/use-action";
 import { Button } from "@/components/ui/button";
@@ -60,6 +61,7 @@ export function ProjectForm({
   const f = (key: keyof ProjectFormValues) => t(`projects.fields.${key}`);
   // A third party's building is delivered and never sold: no status, program or permit.
   const thirdParty = useWatch({ control: form.control, name: "thirdParty" }) === true;
+  const wilaya = useWatch({ control: form.control, name: "wilaya" });
   const onError = (error: AppErrorShape) =>
     applyFieldErrors(form, error, { "inventory.errors.codeTaken": "code" });
 
@@ -139,7 +141,13 @@ export function ProjectForm({
             )}
             <TextField control={form.control} name="address" label={f("address")} />
             <div className="grid gap-4 sm:grid-cols-2">
-              <TextField control={form.control} name="commune" label={f("commune")} />
+              <TextField
+                control={form.control}
+                name="commune"
+                label={f("commune")}
+                list={COMMUNE_OPTIONS}
+              />
+              <CommuneOptions wilaya={wilaya} />
               <TextField
                 control={form.control}
                 name="wilaya"
