@@ -2639,6 +2639,13 @@
       "announcements": "Annonces",
       "checks": "Contrôles",
       "meters": "Compteurs"
+    },
+    "council": {
+      "member": "Conseil syndical",
+      "saved": "Conseil syndical mis à jour.",
+      "errors": {
+        "notCoOwner": "Seul un copropriétaire actuel siège au conseil syndical."
+      }
     }
   },
   "charges": {
@@ -3638,7 +3645,8 @@
       "leaseStatus": {
         "active": "En cours",
         "ended": "Terminé"
-      }
+      },
+      "council": "Comptes de la résidence (conseil syndical)"
     },
     "errors": {
       "noEmail": "Ce dossier n'a pas d'adresse e-mail.",
@@ -3824,6 +3832,29 @@
         "check_in": "État des lieux d'entrée du {date}",
         "check_out": "État des lieux de sortie du {date}"
       }
+    },
+    "council": {
+      "title": "Conseil syndical",
+      "description": "Comptes de la résidence pour l'année {year}, tels que tenus par le syndic.",
+      "years": "Années",
+      "budget": "Budget et dépenses par catégorie",
+      "category": "Catégorie",
+      "budgeted": "Budget",
+      "called": "Appelé",
+      "spent": "Dépensé",
+      "variance": "Écart",
+      "total": "Total",
+      "reserve": "Fonds de réserve",
+      "reserveCalled": "Appelé",
+      "reserveCollected": "Encaissé",
+      "reserveSpent": "Dépensé en travaux",
+      "reserveBalance": "Solde",
+      "invoices": "Factures des fournisseurs",
+      "noInvoices": "Aucune facture cette année.",
+      "fromReserve": "fonds de réserve",
+      "paidOn": "Payée le {date}",
+      "unpaid": "Non payée",
+      "scan": "Facture scannée"
     }
   },
   "onlinePayments": {

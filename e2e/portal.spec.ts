@@ -92,6 +92,17 @@ test.describe("acquéreur et copropriétaire", () => {
     await expect(page.getByTestId("portal-requests")).toContainText("Réponse : Prête à l'accueil.");
   });
 
+  test("reads the residence's accounts as a member of its council", async ({ page }) => {
+    await page.goto("/fr/portal");
+    await page
+      .getByTestId("portal-units")
+      .getByRole("link", { name: "Comptes de la résidence (conseil syndical)" })
+      .click();
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Résidence El Yasmine");
+    await expect(page.getByTestId("council-budget")).toContainText("Gardiennage");
+    await expect(page.getByTestId("council-reserve")).toContainText("Solde");
+  });
+
   test("follows their charges, announcements, tickets and assemblies", async ({
     page,
     browser,

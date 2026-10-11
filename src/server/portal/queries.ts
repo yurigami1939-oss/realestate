@@ -45,6 +45,7 @@ export async function getPortalOverview(ctx: PortalCtx) {
             .select({
               residentId: resident.id,
               kind: resident.kind,
+              councilMember: resident.councilMember,
               unitId: unit.id,
               unitCode: unit.code,
               residenceId: residence.id,

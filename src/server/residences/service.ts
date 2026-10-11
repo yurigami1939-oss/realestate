@@ -23,6 +23,7 @@ import { assertCan, type TenantCtx } from "@/server/auth/session";
 
 import type {
   addResidentSchema,
+  councilMemberSchema,
   createResidenceSchema,
   endResidentSchema,
   saveSharesSchema,
@@ -473,5 +474,43 @@ export async function importSaleBuyers(ctx: TenantCtx, residenceId: string) {
       if (added > 0) unitsDone += 1;
     }
     return { units: unitsDone, coOwners };
+  });
+}
+
+/**
+ * Puts a current co-owner on the residents' council, or takes them off (`residence:update`):
+ * council members read the residence's accounts from the portal (CLAUDE.md §7 Residence
+ * charges). Audited `resident.council` on the residence.
+ */
+export async function setCouncilMember(ctx: TenantCtx, input: In<typeof councilMemberSchema>) {
+  assertCan(ctx, "residence:update");
+  await withTenant(ctx, async (tx) => {
+    const [row] = await tx
+      .select({
+        residenceId: resident.residenceId,
+        kind: resident.kind,
+        untilOn: resident.untilOn,
+        councilMember: resident.councilMember,
+      })
+      .from(resident)
+      .where(eq(resident.id, input.residentId))
+      .for("update");
+    if (!row) throw new AppError("NOT_FOUND");
+    if (row.kind !== "co_owner" || (row.untilOn !== null && row.untilOn < todayInAlgiers())) {
+      throw new AppError("CONFLICT", "residences.council.errors.notCoOwner");
+    }
+    await loadResidence(tx, row.residenceId);
+    await tx
+      .update(resident)
+      .set({ councilMember: input.member })
+      .where(eq(resident.id, input.residentId));
+    await recordAudit(tx, ctx, {
+      actorUserId: ctx.userId,
+      action: "resident.council",
+      entityType: "residence",
+      entityId: row.residenceId,
+      before: { residentId: input.residentId, member: row.councilMember },
+      after: { residentId: input.residentId, member: input.member },
+    });
   });
 }

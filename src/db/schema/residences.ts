@@ -106,6 +106,8 @@ export const resident = pgTable(
     kind: residentKind().notNull(),
     /** Main co-owner of the unit (calls are addressed to them first). */
     isMain: boolean().notNull().default(false),
+    /** A co-owner elected to the residents' council (conseil syndical): reads the accounts. */
+    councilMember: boolean().notNull().default(false),
     lastName: text().notNull(),
     firstName: text().notNull(),
     lastNameAr: text(),

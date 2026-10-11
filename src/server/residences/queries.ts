@@ -114,6 +114,7 @@ export async function listUnitResidents(ctx: TenantCtx, residenceId: string, uni
         firstNameAr: resident.firstNameAr,
         phone: resident.phone,
         whatsappOptIn: resident.whatsappOptIn,
+        councilMember: resident.councilMember,
         email: resident.email,
         sinceOn: resident.sinceOn,
         untilOn: resident.untilOn,

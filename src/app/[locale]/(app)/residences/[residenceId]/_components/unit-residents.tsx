@@ -30,7 +30,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatDate } from "@/lib/dates";
 import { residentKinds } from "@/lib/residences";
-import { addResidentAction, endResidentAction } from "@/server/residences/actions";
+import {
+  addResidentAction,
+  endResidentAction,
+  setCouncilMemberAction,
+} from "@/server/residences/actions";
 import type { PortalAccess } from "@/server/portal/invitations";
 import type { UnitResident } from "@/server/residences/queries";
 import { addResidentSchema } from "@/server/residences/schemas";
@@ -99,6 +103,42 @@ function ResidentWhatsapp({
       />
       <Label htmlFor={id} className="text-xs font-normal">
         {t("whatsapp")}
+      </Label>
+    </div>
+  );
+}
+
+/** A current co-owner on the residents' council (reads the accounts on the portal), or not. */
+function CouncilMember({
+  residentId,
+  member,
+  editable,
+}: {
+  residentId: string;
+  member: boolean;
+  editable: boolean;
+}) {
+  const t = useTranslations("residences.council");
+  const save = useAction(setCouncilMemberAction);
+  if (!editable) {
+    return member ? <Badge variant="secondary">{t("member")}</Badge> : null;
+  }
+  const id = `council-${residentId}`;
+  return (
+    <div className="flex items-center gap-1.5">
+      <Checkbox
+        id={id}
+        checked={member}
+        disabled={save.pending}
+        onCheckedChange={(checked) =>
+          void save.run(
+            { residentId, member: checked === true },
+            { onSuccess: () => toast.success(t("saved")) },
+          )
+        }
+      />
+      <Label htmlFor={id} className="text-xs font-normal">
+        {t("member")}
       </Label>
     </div>
   );
@@ -199,6 +239,13 @@ export function UnitResidents({
                           optIn={r.whatsappOptIn}
                           editable={editable}
                         />
+                        {r.kind === "co_owner" ? (
+                          <CouncilMember
+                            residentId={r.id}
+                            member={r.councilMember}
+                            editable={editable}
+                          />
+                        ) : null}
                         <PortalAccessControl
                           target={{ kind: "resident", id: r.id }}
                           email={r.email}

@@ -6,6 +6,7 @@ import type { Tx } from "@/db/client";
 import { handover } from "@/db/schema";
 
 import { portalScope } from "./context";
+import { isPortalCouncilInvoice } from "./council";
 import { isPortalLease } from "./leases";
 import { portalCanReadResidenceFile } from "./residences";
 import { isPortalReport, isPortalSale } from "./sales";
@@ -35,6 +36,9 @@ export async function portalCanRead(
       const { buyerIds } = await portalScope(tx, { userId });
       return buyerIds.includes(stored.entityId);
     }
+    case "supplier_invoice":
+      // The residents' council reads the scans of its residence's invoices.
+      return isPortalCouncilInvoice(tx, userId, stored.entityId);
     case "lease":
       // A tenant's quittances, deposit receipts, inspection reports and signed lease.
       return isPortalLease(tx, userId, stored.entityId);

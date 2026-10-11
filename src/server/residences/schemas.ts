@@ -64,3 +64,6 @@ export const endResidentSchema = z.object({
 });
 
 export const RESIDENCES_PAGE_SIZE = 50;
+
+/** A current co-owner joins or leaves the residents' council (conseil syndical). */
+export const councilMemberSchema = z.object({ residentId: z.uuid(), member: z.boolean() });

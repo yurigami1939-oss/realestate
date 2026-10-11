@@ -84,6 +84,16 @@ export default async function PortalHomePage({ params }: PageProps<"/[locale]/po
                     </CardTitle>
                     <Badge variant="outline">{t(`kind.${u.kind}`)}</Badge>
                   </CardHeader>
+                  {u.kind === "co_owner" && u.councilMember ? (
+                    <CardContent className="text-sm">
+                      <Link
+                        href={`/portal/council/${u.residenceId}`}
+                        className="font-medium hover:underline"
+                      >
+                        {t("council")}
+                      </Link>
+                    </CardContent>
+                  ) : null}
                 </Card>
               </li>
             ))}

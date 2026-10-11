@@ -1,0 +1,1 @@
+ALTER TABLE "resident" ADD COLUMN "council_member" boolean DEFAULT false NOT NULL;

@@ -6,6 +6,7 @@ import { defineAction } from "@/server/action";
 
 import {
   addResidentSchema,
+  councilMemberSchema,
   createResidenceSchema,
   endResidentSchema,
   residenceIdSchema,
@@ -19,6 +20,7 @@ import {
   endResident,
   importSaleBuyers,
   saveShares,
+  setCouncilMember,
   updateResidence,
 } from "./service";
 
@@ -52,6 +54,10 @@ export const importSaleBuyersAction = defineAction(
 export const addResidentAction = defineAction(
   { input: addResidentSchema, permission: "residence:update" },
   (input, ctx) => mutation(() => addResident(ctx, input)),
+);
+export const setCouncilMemberAction = defineAction(
+  { input: councilMemberSchema, permission: "residence:update" },
+  (input, ctx) => mutation(() => setCouncilMember(ctx, input)),
 );
 export const endResidentAction = defineAction(
   { input: endResidentSchema, permission: "residence:update" },

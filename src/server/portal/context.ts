@@ -62,6 +62,7 @@ export async function portalScope(tx: Tx, ctx: Pick<PortalCtx, "userId">) {
             residenceId: resident.residenceId,
             unitId: resident.unitId,
             kind: resident.kind,
+            councilMember: resident.councilMember,
           })
           .from(resident)
           .where(and(inArray(resident.id, residentIds), currentResident(todayInAlgiers())));

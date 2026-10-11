@@ -8,10 +8,10 @@
  * their pay, tickets, a closed general assembly with its PV, an upcoming one and announcements.
  * Dated relative to today (Algiers); their PDFs render when `pnpm worker` runs.
  */
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import type { z } from "zod";
 
-import { generalAssembly } from "@/db/schema";
+import { generalAssembly, resident } from "@/db/schema";
 import { withTenant } from "@/db/tenant";
 import type { Majority } from "@/lib/assemblies";
 import { addDays, addMonths, fromAlgiersDateTime, todayInAlgiers } from "@/lib/dates";
@@ -70,7 +70,12 @@ import { blockUnit, createBuilding, createProject, createUnit } from "@/server/i
 import { createCheckSchema, recordVisitSchema } from "@/server/maintenance/schemas";
 import { createCheck, recordVisit } from "@/server/maintenance/service";
 import { addResidentSchema, createResidenceSchema } from "@/server/residences/schemas";
-import { addResident, createResidence, distributeSharesByArea } from "@/server/residences/service";
+import {
+  addResident,
+  createResidence,
+  distributeSharesByArea,
+  setCouncilMember,
+} from "@/server/residences/service";
 import { saveAttendance as saveStaffAttendance } from "@/server/staff/attendance";
 import { payStaff, savePay } from "@/server/staff/pay";
 import {
@@ -1061,6 +1066,21 @@ export async function seedResidences(actors: Actors) {
       }),
     );
   }
+  // Mohamed Cherif (the demo resident account) sits on the residents' council.
+  const [councillor] = await withTenant(manager, (tx) =>
+    tx
+      .select({ id: resident.id })
+      .from(resident)
+      .where(
+        and(
+          eq(resident.residenceId, residenceId),
+          eq(resident.kind, "co_owner"),
+          eq(resident.email, "acquereur@demo.test"),
+        ),
+      ),
+  );
+  if (!councillor) throw new Error("seed: the council's co-owner missing");
+  await setCouncilMember(manager, { residentId: councillor.id, member: true });
   // The co-owner of Y-02-03, reminded today, gets a recovery file (the e2e agrees a plan).
   const { id: recoveryId } = await openRecovery(manager, {
     residenceId,
