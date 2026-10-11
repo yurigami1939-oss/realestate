@@ -158,3 +158,26 @@ test.describe("directrice commerciale", () => {
     ).toContainText("/ 15");
   });
 });
+
+test.describe("gérant", () => {
+  test.use({ storageState: authFile("owner") });
+
+  test("keeps the retention periods and the register of processing", async ({ page }) => {
+    await page.goto("/fr/dashboard");
+    await page.getByRole("link", { name: "Données personnelles" }).click();
+    await expect(page.getByLabel("Prospects sans achat (mois sans activité)")).toHaveValue("36");
+    const register = page.getByTestId("processing-register");
+    await expect(register.locator('[data-activity="prospects"]')).toContainText(
+      "Appliquée automatiquement : 36 mois.",
+    );
+    await expect(register.locator('[data-activity="sales"]')).toContainText("Exécution du contrat");
+    await page.getByLabel("Journaux WhatsApp et SMS (mois)").fill("12");
+    await page.getByRole("button", { name: "Enregistrer" }).click();
+    await expect(page.getByText("Durées de conservation enregistrées.")).toBeVisible();
+    await expect(register.locator('[data-activity="notifications"]')).toContainText(
+      "Appliquée automatiquement : 12 mois.",
+    );
+    await page.goto("/ar/settings/privacy");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("المعطيات الشخصية");
+  });
+});

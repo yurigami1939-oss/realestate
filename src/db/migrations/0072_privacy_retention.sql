@@ -1,0 +1,1 @@
+ALTER TABLE "organization_setting" ADD COLUMN "privacy_settings" jsonb DEFAULT '{}'::jsonb NOT NULL;

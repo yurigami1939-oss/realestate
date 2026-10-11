@@ -16,6 +16,7 @@ import { WhatsappLogFilters, WhatsappStatusBadge } from "@/components/whatsapp/w
 import { Link } from "@/i18n/navigation";
 import { toLocale } from "@/i18n/locales";
 import { formatDateTime } from "@/lib/dates";
+import { ERASED_RECIPIENT } from "@/lib/privacy";
 import { requirePermission } from "@/server/auth/page-guard";
 import { listWhatsappMessages, WHATSAPP_LOG_PAGE_SIZE } from "@/server/whatsapp/queries";
 import { whatsappLogParams } from "@/server/whatsapp/schemas";
@@ -87,7 +88,11 @@ export default async function WhatsappLogPage({
                     <TableCell className="whitespace-normal">
                       {m.recipientName}
                       <div className="text-xs text-muted-foreground">
-                        <PhoneText value={`+${m.recipient}`} />
+                        {m.recipient === ERASED_RECIPIENT ? (
+                          "—"
+                        ) : (
+                          <PhoneText value={`+${m.recipient}`} />
+                        )}
                       </div>
                     </TableCell>
                     <TableCell className="whitespace-normal">

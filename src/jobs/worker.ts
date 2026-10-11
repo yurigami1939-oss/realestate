@@ -10,6 +10,7 @@ import { env } from "@/env";
 import { handleCheckOnlinePayment } from "./handlers/check-online-payment";
 import { handleExpireOption } from "./handlers/expire-option";
 import { handleIssuePaymentCalls } from "./handlers/issue-payment-calls";
+import { handleDailyPrivacy, handleRetention } from "./handlers/privacy";
 import { handleDailyReminders, handleOverdueDigest } from "./handlers/reminders";
 import { handleRenderDocument } from "./handlers/render-document";
 import { handleSendEmail } from "./handlers/send-email";
@@ -35,8 +36,10 @@ await boss.work("reminders.digest", { batchSize: 1 }, handleOverdueDigest);
 await boss.work("online_payment.check", { batchSize: 1 }, handleCheckOnlinePayment);
 await boss.work("whatsapp.send", { batchSize: 1 }, handleSendWhatsapp);
 await boss.work("sms.send", { batchSize: 1 }, handleSendSms);
+await boss.work("privacy.daily", { batchSize: 1 }, handleDailyPrivacy);
+await boss.work("privacy.retention", { batchSize: 1 }, handleRetention);
 console.log(
-  "[worker] started: email.send, pdf.document, option.expire, payment_call.issue, reminders, online_payment.check, whatsapp.send, sms.send",
+  "[worker] started: email.send, pdf.document, option.expire, payment_call.issue, reminders, online_payment.check, whatsapp.send, sms.send, privacy",
 );
 
 let stopping = false;

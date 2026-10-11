@@ -25,16 +25,20 @@ export const queues = {
    */
   "reminders.digest": { retryLimit: 3, retryDelay: 60, retryBackoff: true, expireInSeconds: 300 },
   /**
-   * Settles an online payment the payer left on the gateway's page (scheduled after its
-   * session); retried every 10 minutes while the gateway still has it in progress.
-   */
-  /**
    * Sends one WhatsApp template message (Cloud API); retried while Meta is unreachable or
    * throttling, then failed.
    */
   "whatsapp.send": { retryLimit: 5, retryDelay: 60, retryBackoff: true, expireInSeconds: 60 },
   /** One SMS through the organization's gateway; retried while it is unreachable or throttling. */
   "sms.send": { retryLimit: 5, retryDelay: 60, retryBackoff: true, expireInSeconds: 60 },
+  /** Cron (03:00 Algiers): fans out one retention job per organization (Loi 18-07). */
+  "privacy.daily": { retryLimit: 3, retryDelay: 60, retryBackoff: true, expireInSeconds: 300 },
+  /** Applies one organization's retention periods (idempotent). */
+  "privacy.retention": { retryLimit: 3, retryDelay: 60, retryBackoff: true, expireInSeconds: 300 },
+  /**
+   * Settles an online payment the payer left on the gateway's page (scheduled after its
+   * session); retried every 10 minutes while the gateway still has it in progress.
+   */
   "online_payment.check": {
     retryLimit: 6,
     retryDelay: 600,
@@ -46,6 +50,7 @@ export const queues = {
 /** Recurring jobs, installed by `pnpm db:migrate` (pg-boss cron, Algiers time). */
 export const schedules = [
   { queue: "reminders.daily", cron: "0 8 * * *", tz: "Africa/Algiers" },
+  { queue: "privacy.daily", cron: "0 3 * * *", tz: "Africa/Algiers" },
 ] as const satisfies readonly { queue: QueueName; cron: string; tz: string }[];
 
 export type QueueName = keyof typeof queues;
@@ -98,4 +103,6 @@ export type JobPayloads = {
   "online_payment.check": { organizationId: string; onlinePaymentId: string };
   "whatsapp.send": { organizationId: string; messageId: string };
   "sms.send": { organizationId: string; messageId: string };
+  "privacy.daily": Record<string, never>;
+  "privacy.retention": { organizationId: string; date: string };
 };

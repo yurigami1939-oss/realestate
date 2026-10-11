@@ -10,6 +10,7 @@ import {
   Contact,
   CreditCard,
   FileSignature,
+  FileLock2,
   FileSpreadsheet,
   FileUp,
   Handshake,
@@ -91,6 +92,7 @@ type NavKey =
   | "whatsappSettings"
   | "smsLog"
   | "smsSettings"
+  | "privacy"
   | "exports"
   | "imports"
   | "treasury"
@@ -194,6 +196,12 @@ const settingsNav: NavItem[] = [
     href: "/settings/sms",
     key: "smsSettings",
     icon: MessageSquareText,
+    permission: "organization:update",
+  },
+  {
+    href: "/settings/privacy",
+    key: "privacy",
+    icon: FileLock2,
     permission: "organization:update",
   },
   { href: "/exports", key: "exports", icon: FileSpreadsheet },

@@ -17,6 +17,7 @@ import { seedObligations } from "./obligations";
 import { seedOnlinePayments } from "./online-payments";
 import { seedWhatsapp } from "./whatsapp";
 import { seedPortal } from "./portal";
+import { seedPrivacy } from "./privacy";
 import { seedHousingAid } from "./housing-aid";
 import { seedRentals } from "./rentals";
 import { seedSales } from "./reservations";
@@ -159,5 +160,6 @@ export async function seedDemo(): Promise<void> {
     // Last: the business data above was recorded before WhatsApp, without messages.
     await seedWhatsapp(ctx("owner", ["owner"]));
     await seedSms(ctx("owner", ["owner"]));
+    await seedPrivacy(ctx("owner", ["owner"]));
   }
 }

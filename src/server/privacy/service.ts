@@ -3,6 +3,7 @@ import "server-only";
 import { and, asc, desc, eq, inArray, isNull } from "drizzle-orm";
 import type { z } from "zod";
 
+import type { Tx } from "@/db/client";
 import {
   buyer,
   buyerDocument,
@@ -286,6 +287,29 @@ export async function personExport(
 }
 
 /**
+ * What erasing a prospect clears (the right to erasure and the retention period): its name,
+ * phones, e-mail, city and notes, the notes of its visits, follow-ups and timeline.
+ */
+export async function eraseLead(tx: Tx, leadId: string) {
+  await tx
+    .update(lead)
+    .set({
+      fullName: ANONYMIZED_NAME,
+      phone: `anonyme-${leadId.slice(0, 8)}`,
+      phone2: null,
+      email: null,
+      city: null,
+      notes: null,
+      lostNote: null,
+      sourceDetail: null,
+    })
+    .where(eq(lead.id, leadId));
+  await tx.update(visit).set({ notes: null, outcome: null }).where(eq(visit.leadId, leadId));
+  await tx.update(followUp).set({ note: null, outcome: null }).where(eq(followUp.leadId, leadId));
+  await tx.update(leadActivity).set({ data: null }).where(eq(leadActivity.leadId, leadId));
+}
+
+/**
  * Erases a prospect who never became a buyer (Loi 18-07, right to erasure; `personal_data:erase`):
  * the name becomes « Prospect anonymisé », the phone, e-mail, city and notes go, as do the
  * notes of its visits, follow-ups and timeline; what is not personal (source, stage, dates,
@@ -305,25 +329,7 @@ export async function anonymizeLead(ctx: TenantCtx, input: In<typeof anonymizeLe
       .where(and(eq(buyer.leadId, found.id), isNull(buyer.deletedAt)))
       .limit(1);
     if (linked) throw new AppError("CONFLICT", "privacy.errors.leadHasBuyer");
-    await tx
-      .update(lead)
-      .set({
-        fullName: ANONYMIZED_NAME,
-        phone: `anonyme-${found.id.slice(0, 8)}`,
-        phone2: null,
-        email: null,
-        city: null,
-        notes: null,
-        lostNote: null,
-        sourceDetail: null,
-      })
-      .where(eq(lead.id, found.id));
-    await tx.update(visit).set({ notes: null, outcome: null }).where(eq(visit.leadId, found.id));
-    await tx
-      .update(followUp)
-      .set({ note: null, outcome: null })
-      .where(eq(followUp.leadId, found.id));
-    await tx.update(leadActivity).set({ data: null }).where(eq(leadActivity.leadId, found.id));
+    await eraseLead(tx, found.id);
     await recordAudit(tx, ctx, {
       actorUserId: ctx.userId,
       action: "lead.anonymize",

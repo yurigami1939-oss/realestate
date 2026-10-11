@@ -505,6 +505,13 @@
       "when": 1791708981995,
       "tag": "0071_sms_notifications",
       "breakpoints": true
+    },
+    {
+      "idx": 72,
+      "version": "7",
+      "when": 1791717458615,
+      "tag": "0072_privacy_retention",
+      "breakpoints": true
     }
   ]
 }

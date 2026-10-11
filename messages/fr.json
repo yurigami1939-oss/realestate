@@ -299,7 +299,8 @@
     "group": "Vue groupe",
     "security": "Sécurité",
     "smsLog": "Messages SMS",
-    "smsSettings": "SMS"
+    "smsSettings": "SMS",
+    "privacy": "Données personnelles"
   },
   "shell": {
     "organizations": "Sociétés",
@@ -5463,6 +5464,104 @@
       "onePerson": "Choisissez un acquéreur ou un prospect.",
       "alreadyAnonymized": "Ce prospect est déjà anonymisé.",
       "leadHasBuyer": "Un dossier acquéreur provient de ce prospect : ses données sont conservées avec ses contrats."
+    },
+    "settings": {
+      "title": "Données personnelles",
+      "description": "Loi 18-07 : les durées de conservation que l'application applique chaque nuit, et le registre des traitements qu'elle effectue pour la société.",
+      "leadRetentionMonths": "Prospects sans achat (mois sans activité)",
+      "leadRetentionHint": "Passé ce délai, le prospect est anonymisé (statistiques conservées). Vide ou 0 = jamais automatiquement.",
+      "messageRetentionMonths": "Journaux WhatsApp et SMS (mois)",
+      "messageRetentionHint": "Passé ce délai, le numéro et le texte des messages sont effacés. Vide ou 0 = jamais.",
+      "save": "Enregistrer",
+      "saved": "Durées de conservation enregistrées."
+    },
+    "register": {
+      "title": "Registre des traitements",
+      "description": "Traitements de données personnelles effectués par {company} au moyen de l'application, à joindre à sa déclaration auprès de l'ANPDP.",
+      "automatic": "Appliquée automatiquement : {months} mois.",
+      "notSet": "Aucune durée réglée : conservées jusqu'à effacement.",
+      "note": "Les bases légales et durées indiquées sont à valider avec votre conseil juridique avant la déclaration.",
+      "fields": {
+        "purpose": "Finalité",
+        "data": "Données",
+        "basis": "Base légale",
+        "recipients": "Destinataires",
+        "retention": "Conservation"
+      },
+      "activities": {
+        "prospects": {
+          "name": "Prospection commerciale",
+          "purpose": "Suivi des prospects, visites, relances et devis.",
+          "data": "Nom, téléphones, e-mail, ville, projet et typologies recherchés, budget, mode de financement, notes.",
+          "basis": "Consentement du prospect (demande de contact) et intérêt légitime de la société.",
+          "recipients": "Équipe commerciale ; agences et apporteurs pour les prospects qu'ils amènent.",
+          "retention": "Jusqu'à la demande d'effacement ou la durée réglée ci-dessus."
+        },
+        "sales": {
+          "name": "Ventes sur plans et acquéreurs",
+          "purpose": "Réservations, VSP, échéanciers, encaissements, attestations, livraison.",
+          "data": "Identité, NIN, date et lieu de naissance, adresse, profession, situation familiale, pièces du dossier, revenus du ménage (LPA), paiements.",
+          "basis": "Exécution du contrat ; obligations légales (Loi 11-04).",
+          "recipients": "Services commercial, comptable et technique ; notaire, banque et CNL sur demande de l'acquéreur.",
+          "retention": "Durée du contrat puis durée légale de conservation des pièces comptables et contractuelles."
+        },
+        "residents": {
+          "name": "Gestion de résidence (syndic)",
+          "purpose": "Copropriétaires et occupants, appels de charges, recouvrement, assemblées, réclamations.",
+          "data": "Identité, coordonnées, lot et tantièmes, comptes de charges, votes, réclamations.",
+          "basis": "Exécution du mandat de syndic et du règlement de copropriété.",
+          "recipients": "Gestionnaire, comptable, conseil syndical (comptes de la résidence).",
+          "retention": "Durée du mandat puis durée légale de conservation des pièces comptables."
+        },
+        "rentals": {
+          "name": "Locations",
+          "purpose": "Baux, quittances, états des lieux, dépôts de garantie.",
+          "data": "Identité du locataire et de sa caution, NIN ou RC, coordonnées, paiements.",
+          "basis": "Exécution du bail ; obligations fiscales (enregistrement).",
+          "recipients": "Gestionnaire, caisse, comptable ; propriétaire mandant pour ses lots.",
+          "retention": "Durée du bail puis durée légale de conservation des pièces comptables."
+        },
+        "owners": {
+          "name": "Gestion pour compte de propriétaires",
+          "purpose": "Mandats de gestion, relevés de gérance, reversements.",
+          "data": "Identité du propriétaire, coordonnées, RIB, loyers encaissés pour son compte.",
+          "basis": "Exécution du mandat de gestion.",
+          "recipients": "Gestionnaire, comptable.",
+          "retention": "Durée du mandat puis durée légale de conservation des pièces comptables."
+        },
+        "payments": {
+          "name": "Paiements en ligne",
+          "purpose": "Paiement par carte CIB / Edahabia des échéances, charges et loyers.",
+          "data": "Montant, numéro de commande, carte masquée, code d'autorisation (aucun numéro de carte n'est conservé).",
+          "basis": "Exécution du contrat.",
+          "recipients": "SATIM et la banque de la société.",
+          "retention": "Durée légale de conservation des pièces comptables."
+        },
+        "notifications": {
+          "name": "Notifications WhatsApp et SMS",
+          "purpose": "Avis de paiement, appels, relances, rendez-vous, annonces.",
+          "data": "Nom, numéro de mobile, texte du message, statut d'envoi.",
+          "basis": "Consentement (WhatsApp) ; exécution du contrat (SMS), avec droit d'opposition (« STOP »).",
+          "recipients": "Meta (WhatsApp Business) ; l'opérateur ou l'agrégateur SMS.",
+          "retention": "Journal conservé jusqu'à la durée réglée ci-dessus."
+        },
+        "staff": {
+          "name": "Personnel des résidences",
+          "purpose": "Pointage, avances et paie des agents.",
+          "data": "Identité, fonction, salaire, absences, avances.",
+          "basis": "Exécution du contrat de travail ; obligations légales.",
+          "recipients": "Gestionnaire, comptable.",
+          "retention": "Durée légale de conservation des documents de paie."
+        },
+        "accounts": {
+          "name": "Comptes des utilisateurs et journal d'audit",
+          "purpose": "Accès à l'application (équipe et espace client), sécurité, traçabilité des opérations.",
+          "data": "Nom, e-mail, rôles, double authentification, connexions, actions enregistrées.",
+          "basis": "Intérêt légitime (sécurité) ; obligations légales de traçabilité.",
+          "recipients": "Gérant et comptable (journal d'audit).",
+          "retention": "Durée du compte ; journal d'audit conservé (inaltérable)."
+        }
+      }
     }
   },
   "housingAid": {
