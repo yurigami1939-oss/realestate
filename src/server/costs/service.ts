@@ -11,6 +11,7 @@ import { todayInAlgiers } from "@/lib/dates";
 import { AppError } from "@/lib/result";
 import { recordAudit } from "@/server/audit/record-audit";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
+import { thirdPartyRefused } from "@/server/inventory/third-party";
 import { checkUpload, discardFile, storeFile, type Upload } from "@/server/files/service";
 import { resolvePaymentAccount } from "@/server/treasury/service";
 
@@ -40,10 +41,12 @@ const assertNotFuture = (day: string, field: string) => {
 
 async function loadProject(tx: Tx, projectId: string) {
   const [row] = await tx
-    .select({ id: project.id })
+    .select({ id: project.id, thirdParty: project.thirdParty })
     .from(project)
     .where(and(eq(project.id, projectId), isNull(project.deletedAt)));
   if (!row) throw new AppError("NOT_FOUND");
+  // A third party's building has no construction costs of the organization.
+  if (row.thirdParty) throw thirdPartyRefused();
   return row;
 }
 

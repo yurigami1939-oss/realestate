@@ -7,6 +7,7 @@ import { lead, member, project, unit } from "@/db/schema";
 import { can, parseRoles } from "@/lib/permissions";
 import { AppError } from "@/lib/result";
 import type { TenantCtx } from "@/server/auth/session";
+import { forSale } from "@/server/inventory/third-party";
 
 /** Managers see every lead; a commercial sees the leads assigned to them (CLAUDE.md §12). */
 export const seesAllLeads = (ctx: Pick<TenantCtx, "roles">) => can(ctx.roles, "lead:read_all");
@@ -51,7 +52,7 @@ export async function assertLiveProject(tx: Tx, projectId: string, field = "proj
   const [row] = await tx
     .select({ id: project.id })
     .from(project)
-    .where(and(eq(project.id, projectId), isNull(project.deletedAt)));
+    .where(and(eq(project.id, projectId), isNull(project.deletedAt), forSale));
   if (!row) throw invalid(field, "crm.errors.projectNotFound");
 }
 

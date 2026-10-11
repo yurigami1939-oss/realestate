@@ -26,7 +26,9 @@ export default async function ImportsPage({ params }: PageProps<"/[locale]/impor
   const ctx = await requireTenantCtx();
   const t = await getTranslations("imports");
   const allowed = (...permissions: Permission[]) => permissions.every((p) => can(ctx.roles, p));
-  const projects = allowed("unit:create") ? await listProjectOptions(ctx) : [];
+  const projects = allowed("unit:create")
+    ? await listProjectOptions(ctx, { thirdParty: true })
+    : [];
   const residences = allowed("residence:update") ? await listResidences(ctx) : [];
 
   const sections: ({ key: ImportKind; control: React.ReactNode } | false)[] = [

@@ -10,6 +10,7 @@ import { assertCan, type TenantCtx } from "@/server/auth/session";
 import { seesAllLeads } from "@/server/crm/access";
 import { createLead } from "@/server/crm/leads";
 import { createLeadSchema } from "@/server/crm/schemas";
+import { forSale } from "@/server/inventory/third-party";
 
 import { type ImportPlan, issuesOf, type TemplateSheet } from "./plan";
 import {
@@ -152,7 +153,7 @@ export async function prepareLeads(ctx: TenantCtx, workbook: Workbook): Promise<
     projects: await tx
       .select({ id: project.id, code: project.code })
       .from(project)
-      .where(isNull(project.deletedAt)),
+      .where(and(isNull(project.deletedAt), forSale)),
     members: await tx
       .select({ userId: member.userId, email: user.email })
       .from(member)

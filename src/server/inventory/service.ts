@@ -5,7 +5,15 @@ import type { z } from "zod";
 
 import type { Tx } from "@/db/client";
 import { isUniqueViolation } from "@/db/errors";
-import { building, project, unit, unitPriceHistory, unitStatusHistory } from "@/db/schema";
+import {
+  building,
+  project,
+  residence,
+  residenceUnit,
+  unit,
+  unitPriceHistory,
+  unitStatusHistory,
+} from "@/db/schema";
 import { withTenant } from "@/db/tenant";
 import { defaultUnitCode } from "@/lib/inventory";
 import { AppError } from "@/lib/result";
@@ -26,6 +34,7 @@ import type {
   updateUnitPriceSchema,
   updateUnitSchema,
 } from "./schemas";
+import { assertSaleUnit } from "./third-party";
 import { transitionUnit } from "./transition-unit";
 
 type In<S extends z.ZodType> = z.output<S>;
@@ -59,6 +68,53 @@ function assertFloorInBuilding(floor: number, b: { lowestFloor: number; topFloor
   }
 }
 
+/** A third party's building is delivered and sold on no program (CLAUDE.md §7). */
+function thirdPartyValues<T extends { status: string; housingProgram: string }>(
+  values: T,
+  thirdParty: boolean,
+): T {
+  return thirdParty ? ({ ...values, status: "delivered", housingProgram: "free" } as T) : values;
+}
+
+/** The project of a live building, with whether it is a third party's. */
+async function buildingProject(tx: Tx, buildingId: string) {
+  const parent = await getLiveBuilding(tx, buildingId);
+  const [owner] = await tx
+    .select({ thirdParty: project.thirdParty })
+    .from(project)
+    .where(eq(project.id, parent.projectId));
+  return { ...parent, thirdParty: owner?.thirdParty ?? false };
+}
+
+/**
+ * Units added to a third party's building join its residence when it has exactly one (the
+ * building is set up for it; its units are never sold).
+ */
+async function joinThirdPartyResidence(
+  tx: Tx,
+  orgId: string,
+  projectId: string,
+  units: { id: string; share: number | null }[],
+) {
+  if (units.length === 0) return;
+  const homes = await tx
+    .select({ id: residence.id })
+    .from(residence)
+    .where(and(eq(residence.projectId, projectId), isNull(residence.deletedAt)));
+  const [home] = homes;
+  if (!home || homes.length > 1) return;
+  await tx
+    .insert(residenceUnit)
+    .values(
+      units.map((u) => ({
+        organizationId: orgId,
+        residenceId: home.id,
+        unitId: u.id,
+        share: u.share ?? 0,
+      })),
+    );
+}
+
 async function liveUnitCount(tx: Tx, where: ReturnType<typeof eq>) {
   const [row] = await tx
     .select({ n: count() })
@@ -75,7 +131,11 @@ export async function createProject(ctx: TenantCtx, input: In<typeof createProje
     uniqueCode(async () => {
       const [row] = await tx
         .insert(project)
-        .values({ ...input, organizationId: ctx.orgId, createdBy: ctx.userId })
+        .values({
+          ...thirdPartyValues(input, input.thirdParty),
+          organizationId: ctx.orgId,
+          createdBy: ctx.userId,
+        })
         .returning({ id: project.id });
       if (!row) throw new AppError("UNEXPECTED");
       return row;
@@ -85,17 +145,21 @@ export async function createProject(ctx: TenantCtx, input: In<typeof createProje
 
 export async function updateProject(ctx: TenantCtx, input: In<typeof updateProjectSchema>) {
   assertCan(ctx, "project:update");
-  const { projectId, ...values } = input;
-  await withTenant(ctx, (tx) =>
-    uniqueCode(async () => {
-      const updated = await tx
+  // Whether a project is a third party's building is fixed at its creation.
+  const { projectId, thirdParty: _fixed, ...values } = input;
+  await withTenant(ctx, async (tx) => {
+    const [current] = await tx
+      .select({ thirdParty: project.thirdParty })
+      .from(project)
+      .where(and(eq(project.id, projectId), isNull(project.deletedAt)));
+    if (!current) throw new AppError("NOT_FOUND");
+    await uniqueCode(() =>
+      tx
         .update(project)
-        .set(values)
-        .where(and(eq(project.id, projectId), isNull(project.deletedAt)))
-        .returning({ id: project.id });
-      if (updated.length === 0) throw new AppError("NOT_FOUND");
-    }),
-  );
+        .set(thirdPartyValues(values, current.thirdParty))
+        .where(eq(project.id, projectId)),
+    );
+  });
 }
 
 /** Soft delete; only an empty project (no units) can be deleted. */
@@ -181,13 +245,16 @@ export async function createUnit(ctx: TenantCtx, input: In<typeof createUnitSche
   return withTenant(
     ctx,
     async (tx) => {
-      const parent = await getLiveBuilding(tx, input.buildingId);
+      const parent = await buildingProject(tx, input.buildingId);
       assertFloorInBuilding(input.floor, parent);
+      // A third party's units are delivered from the start: never for sale.
+      const status = parent.thirdParty ? ("delivered" as const) : ("available" as const);
       const created = await uniqueCode(async () => {
         const [row] = await tx
           .insert(unit)
           .values({
             ...input,
+            status,
             organizationId: ctx.orgId,
             projectId: parent.projectId,
             createdBy: ctx.userId,
@@ -200,9 +267,14 @@ export async function createUnit(ctx: TenantCtx, input: In<typeof createUnitSche
         organizationId: ctx.orgId,
         unitId: created.id,
         fromStatus: null,
-        toStatus: "available",
+        toStatus: status,
         actorUserId: ctx.userId,
       });
+      if (parent.thirdParty) {
+        await joinThirdPartyResidence(tx, ctx.orgId, parent.projectId, [
+          { id: created.id, share: input.share },
+        ]);
+      }
       return created;
     },
     outer,
@@ -253,7 +325,8 @@ export async function deleteUnit(ctx: TenantCtx, input: In<typeof deleteUnitSche
 export async function generateUnits(ctx: TenantCtx, input: In<typeof generateUnitsSchema>) {
   assertCan(ctx, "unit:create");
   return withTenant(ctx, async (tx) => {
-    const parent = await getLiveBuilding(tx, input.buildingId);
+    const parent = await buildingProject(tx, input.buildingId);
+    const status = parent.thirdParty ? ("delivered" as const) : ("available" as const);
     assertFloorInBuilding(input.fromFloor, parent);
     assertFloorInBuilding(input.toFloor, parent);
 
@@ -293,6 +366,7 @@ export async function generateUnits(ctx: TenantCtx, input: In<typeof generateUni
             type: input.type,
             typology: input.typology,
             livingArea: input.livingArea,
+            status,
             createdBy: ctx.userId,
           })),
         )
@@ -302,10 +376,18 @@ export async function generateUnits(ctx: TenantCtx, input: In<typeof generateUni
           organizationId: ctx.orgId,
           unitId: r.id,
           fromStatus: null,
-          toStatus: "available" as const,
+          toStatus: status,
           actorUserId: ctx.userId,
         })),
       );
+      if (parent.thirdParty) {
+        await joinThirdPartyResidence(
+          tx,
+          ctx.orgId,
+          parent.projectId,
+          rows.map((r) => ({ id: r.id, share: null })),
+        );
+      }
     }
     return { created: toCreate.length, skipped: planned.length - toCreate.length };
   });
@@ -357,6 +439,7 @@ export async function updateUnitPrice(
         .where(and(eq(unit.id, input.unitId), isNull(unit.deletedAt)))
         .for("update");
       if (!current) throw new AppError("NOT_FOUND");
+      await assertSaleUnit(tx, input.unitId);
       if (current.listPrice === input.price) return;
 
       await tx.update(unit).set({ listPrice: input.price }).where(eq(unit.id, input.unitId));

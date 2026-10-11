@@ -13,6 +13,7 @@ import { parseRoles } from "@/lib/permissions";
 import { AppError } from "@/lib/result";
 import { recordAudit } from "@/server/audit/record-audit";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
+import { forSale } from "@/server/inventory/third-party";
 
 import { assertLiveProject } from "./access";
 import { createLead } from "./leads";
@@ -158,7 +159,9 @@ export async function captureLead(
       const [found] = await tx
         .select({ id: project.id })
         .from(project)
-        .where(and(eq(project.code, input.project.toUpperCase()), isNull(project.deletedAt)));
+        .where(
+          and(eq(project.code, input.project.toUpperCase()), isNull(project.deletedAt), forSale),
+        );
       projectId = found?.id ?? projectId;
     }
     const created = await createLead(

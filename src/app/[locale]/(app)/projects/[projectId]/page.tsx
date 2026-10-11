@@ -1,4 +1,14 @@
-import { CalendarRange, Coins, Grid3x3, HardHat, Pencil, Tags, Trash2 } from "lucide-react";
+import {
+  Building2,
+  CalendarRange,
+  Coins,
+  Grid3x3,
+  HardHat,
+  Pencil,
+  Plus,
+  Tags,
+  Trash2,
+} from "lucide-react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -45,6 +55,8 @@ export default async function ProjectPage({ params }: PageProps<"/[locale]/proje
   const tk = await getTranslations("costs");
   const canEdit = can(ctx.roles, "project:update");
   const documents = await listProjectDocuments(ctx, project.id);
+  // A third party's building is only managed: nothing of the sales side (CLAUDE.md §7).
+  const forSale = !project.thirdParty;
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
@@ -57,24 +69,31 @@ export default async function ProjectPage({ params }: PageProps<"/[locale]/proje
               {project.code}
             </Badge>
             <ProjectStatusBadge status={project.status} />
+            {project.thirdParty ? (
+              <Badge variant="outline">{t("projects.thirdParty")}</Badge>
+            ) : null}
           </>
         }
         actions={
           <>
             <ExportButton kind="units" params={{ project: project.id }} />
-            <Button asChild variant="outline">
-              <Link href={`/projects/${project.id}/price-lists`}>
-                <Tags data-icon="inline-start" />
-                {t("priceLists.title")}
-              </Link>
-            </Button>
-            <Button asChild variant="outline">
-              <Link href={`/projects/${project.id}/payment-plans`}>
-                <CalendarRange data-icon="inline-start" />
-                {tp("title")}
-              </Link>
-            </Button>
-            {can(ctx.roles, "cost:read") ? (
+            {forSale ? (
+              <Button asChild variant="outline">
+                <Link href={`/projects/${project.id}/price-lists`}>
+                  <Tags data-icon="inline-start" />
+                  {t("priceLists.title")}
+                </Link>
+              </Button>
+            ) : null}
+            {forSale ? (
+              <Button asChild variant="outline">
+                <Link href={`/projects/${project.id}/payment-plans`}>
+                  <CalendarRange data-icon="inline-start" />
+                  {tp("title")}
+                </Link>
+              </Button>
+            ) : null}
+            {forSale && can(ctx.roles, "cost:read") ? (
               <Button asChild variant="outline">
                 <Link href={`/projects/${project.id}/costs`}>
                   <Coins data-icon="inline-start" />
@@ -82,7 +101,7 @@ export default async function ProjectPage({ params }: PageProps<"/[locale]/proje
                 </Link>
               </Button>
             ) : null}
-            {can(ctx.roles, "construction:read") ? (
+            {forSale && can(ctx.roles, "construction:read") ? (
               <Button asChild variant="outline">
                 <Link href={`/construction/${project.id}`}>
                   <HardHat data-icon="inline-start" />
@@ -124,6 +143,37 @@ export default async function ProjectPage({ params }: PageProps<"/[locale]/proje
           </CardContent>
         </Card>
       </div>
+
+      {project.thirdParty || project.residences.length > 0 ? (
+        <Card data-testid="project-residences">
+          <CardHeader>
+            <CardTitle className="text-base">{t("projects.residences")}</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm">
+            {project.thirdParty ? (
+              <p className="text-muted-foreground">{t("projects.thirdPartyHint")}</p>
+            ) : null}
+            <div className="flex flex-wrap gap-2">
+              {project.residences.map((r) => (
+                <Button key={r.id} asChild variant="outline" size="sm">
+                  <Link href={`/residences/${r.id}`}>
+                    <Building2 data-icon="inline-start" />
+                    {r.name}
+                  </Link>
+                </Button>
+              ))}
+              {project.residences.length === 0 && can(ctx.roles, "residence:create") ? (
+                <Button asChild size="sm">
+                  <Link href={`/residences/new?project=${project.id}`}>
+                    <Plus data-icon="inline-start" />
+                    {t("projects.createResidence")}
+                  </Link>
+                </Button>
+              ) : null}
+            </div>
+          </CardContent>
+        </Card>
+      ) : null}
 
       <section className="space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-2">

@@ -12,6 +12,8 @@ import { AppError } from "@/lib/result";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
 import { loadMilestones, loadPaymentPlans } from "@/server/payment-plans/queries";
 
+import { assertSaleUnit } from "./third-party";
+
 /**
  * Fiche du lot for a prospect (`inventory:read`, CLAUDE.md §7 Inventory): the unit with its
  * asking price and the project's default payment plan as today. The same day's sheet is
@@ -32,6 +34,7 @@ export async function issueUnitSheet(ctx: TenantCtx, input: { unitId: string }) 
       .from(unit)
       .where(and(eq(unit.id, input.unitId), isNull(unit.deletedAt)));
     if (!target) throw new AppError("NOT_FOUND");
+    await assertSaleUnit(tx, target.id);
     const [latest] = await tx
       .select({
         id: unitSheet.id,

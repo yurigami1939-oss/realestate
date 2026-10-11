@@ -15,6 +15,7 @@ import { withTenant } from "@/db/tenant";
 import { isUuid } from "@/lib/ids";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
 import { loadMilestones } from "@/server/payment-plans/queries";
+import { forSale } from "@/server/inventory/third-party";
 
 import { REPORT_PHOTO_ENTITY } from "./service";
 
@@ -143,7 +144,7 @@ export async function listConstructionOverview(ctx: TenantCtx) {
         plannedDeliveryOn: project.plannedDeliveryOn,
       })
       .from(project)
-      .where(isNull(project.deletedAt))
+      .where(and(isNull(project.deletedAt), forSale))
       .orderBy(asc(project.name));
     const ids = projects.map((p) => p.id);
     if (ids.length === 0) return [];
@@ -211,7 +212,7 @@ export async function getProjectConstruction(
         plannedDeliveryOn: project.plannedDeliveryOn,
       })
       .from(project)
-      .where(and(eq(project.id, projectId), isNull(project.deletedAt)));
+      .where(and(eq(project.id, projectId), isNull(project.deletedAt), forSale));
     if (!row) return null;
     const progress = await latestProgress(tx, [projectId]);
     const buildings = (await liveBuildings(tx, [projectId])).map((b) => ({

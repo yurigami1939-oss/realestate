@@ -22,6 +22,7 @@ import { seedSales } from "./reservations";
 import { seedBankStatement, seedTreasuryAccounts, seedTreasuryMovements } from "./treasury";
 import { seedResidences } from "./residences";
 import { seedPaymentPlans, seedQuotations } from "./sales";
+import { seedThirdPartyBuilding } from "./third-party";
 
 /** Refuses anything but a local database: seeding wipes data. */
 export function assertLocalDatabase(url: string): void {
@@ -118,6 +119,10 @@ export async function seedDemo(): Promise<void> {
       owner: ctx("owner", ["owner"]),
       manager: ctx("propertyManager", ["property_manager"]),
       cashier: ctx("cashier", ["cashier"]),
+    });
+    await seedThirdPartyBuilding({
+      owner: ctx("owner", ["owner"]),
+      manager: ctx("propertyManager", ["property_manager"]),
     });
     await seedPortal(
       {

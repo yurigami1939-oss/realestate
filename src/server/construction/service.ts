@@ -9,6 +9,7 @@ import { withTenant } from "@/db/tenant";
 import { todayInAlgiers } from "@/lib/dates";
 import { AppError } from "@/lib/result";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
+import { thirdPartyRefused } from "@/server/inventory/third-party";
 import { checkUpload, discardFile, storeFile, type Upload } from "@/server/files/service";
 
 import {
@@ -96,10 +97,11 @@ export async function createConstructionReport(
   const { projectId, progress, ...fields } = input;
   return withTenant(ctx, async (tx) => {
     const [target] = await tx
-      .select({ id: project.id })
+      .select({ id: project.id, thirdParty: project.thirdParty })
       .from(project)
       .where(and(eq(project.id, projectId), isNull(project.deletedAt)));
     if (!target) throw new AppError("NOT_FOUND");
+    if (target.thirdParty) throw thirdPartyRefused();
     const rows = await progressRows(tx, projectId, progress);
     const [row] = await tx
       .insert(constructionReport)

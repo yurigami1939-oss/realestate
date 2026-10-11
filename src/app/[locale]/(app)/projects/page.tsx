@@ -1,5 +1,6 @@
 import { MapPin, Plus } from "lucide-react";
 import type { Metadata } from "next";
+import { useTranslations } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { PageHeader } from "@/components/app-shell/page-header";
@@ -56,6 +57,7 @@ export default async function ProjectsPage({ params }: PageProps<"/[locale]/proj
 }
 
 function ProjectCard({ project }: { project: ProjectListItem }) {
+  const t = useTranslations("inventory.projects");
   const location = [project.commune, project.wilaya].filter(Boolean).join(", ");
   return (
     <Link href={`/projects/${project.id}`} className="group rounded-xl focus-visible:outline-2">
@@ -69,6 +71,7 @@ function ProjectCard({ project }: { project: ProjectListItem }) {
           </div>
           <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
             <ProjectStatusBadge status={project.status} />
+            {project.thirdParty ? <Badge variant="outline">{t("thirdParty")}</Badge> : null}
             {location ? (
               <span className="flex items-center gap-1">
                 <MapPin className="size-3.5" aria-hidden />

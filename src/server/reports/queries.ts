@@ -22,6 +22,7 @@ import { ageingBucket, ageingBuckets, monthsOfPeriod } from "@/lib/reports";
 import { computeStatement } from "@/lib/statement";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
 import { saleAnnexes } from "@/server/sales/annexes";
+import { forSale } from "@/server/inventory/third-party";
 
 import type { ReportParams } from "./schemas";
 
@@ -48,7 +49,7 @@ export async function getReports(ctx: TenantCtx, params: ReportParams) {
     const projects = await tx
       .select({ id: project.id, name: project.name })
       .from(project)
-      .where(isNull(project.deletedAt))
+      .where(and(isNull(project.deletedAt), forSale))
       .orderBy(project.name);
 
     // Sales signed in the period (withdrawn ones counted apart).
@@ -276,6 +277,7 @@ export async function getReports(ctx: TenantCtx, params: ReportParams) {
         and(
           isNull(unit.deletedAt),
           isNull(project.deletedAt),
+          forSale,
           ne(unit.status, "rented"),
           projectId ? eq(unit.projectId, projectId) : undefined,
         ),

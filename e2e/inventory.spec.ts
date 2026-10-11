@@ -145,3 +145,52 @@ test.describe("commercial", () => {
     await expect(page.getByTestId("unit-price")).toHaveAttribute("dir", "ltr");
   });
 });
+
+test.describe("gérant", () => {
+  test.use({ storageState: authFile("owner") });
+
+  test("sets up a building managed for a third party, never for sale", async ({ page }) => {
+    await page.goto("/fr/projects/new");
+    await page.getByLabel("Nom").fill("Immeuble Les Acacias");
+    await page.getByLabel("Code", { exact: true }).fill("acac");
+    await page.getByLabel("Immeuble d'un tiers (géré en syndic, jamais vendu)").check();
+    // Delivered and never sold: no status, program or building permit to give.
+    await expect(page.getByLabel("État")).toHaveCount(0);
+    await expect(page.getByLabel("Programme")).toHaveCount(0);
+    await page.getByRole("button", { name: "Créer" }).click();
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Immeuble Les Acacias");
+    await expect(page.getByText("Immeuble d'un tiers", { exact: true })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Grilles de prix" })).toHaveCount(0);
+
+    await page.getByRole("button", { name: "Ajouter un bâtiment" }).click();
+    const buildingDialog = page.getByRole("dialog");
+    await buildingDialog.getByLabel("Code", { exact: true }).fill("A");
+    await buildingDialog.getByLabel("Nom").fill("Bloc A");
+    await buildingDialog.getByLabel("Niveau le plus bas").fill("0");
+    await buildingDialog.getByLabel("Dernier étage").fill("2");
+    await buildingDialog.getByRole("button", { name: "Créer" }).click();
+    await page.getByRole("link", { name: "Voir la grille" }).click();
+    await page.getByRole("button", { name: "Générer des lots" }).click();
+    await page.getByRole("dialog").getByLabel("Lots par étage").fill("2");
+    await page.getByRole("dialog").getByRole("button", { name: "Générer" }).click();
+    await expect(page.getByText("4 lots créés · 0 ignoré(s).")).toBeVisible();
+    // Its units are delivered from the start: no price, no sale.
+    const grid = page.getByTestId("unit-grid");
+    await expect(grid.locator('[data-status="delivered"]')).toHaveCount(4);
+    await page.getByRole("link", { name: /^A-01-01/ }).click();
+    await expect(page.getByTestId("unit-third-party")).toBeVisible();
+    await expect(page.getByTestId("unit-price")).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Modifier le prix" })).toHaveCount(0);
+
+    // Its residence takes its units.
+    await page.getByRole("link", { name: "Immeuble Les Acacias" }).click();
+    await page
+      .getByTestId("project-residences")
+      .getByRole("link", { name: "Créer la résidence" })
+      .click();
+    await page.getByLabel("Nom").fill("Résidence Les Acacias");
+    await page.getByRole("button", { name: "Créer" }).click();
+    await expect(page.getByText("Résidence créée avec 4 lots.")).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Résidence Les Acacias");
+  });
+});

@@ -179,13 +179,14 @@ export async function prepareUnits(
   const report = issuesOf(unitsSheet, issues);
   const warn = issuesOf(unitsSheet, warnings);
   const rows = sheetRows(workbook, unitsSheet.name, unitsSheet.columns, issues);
-  const { buildings, existing } = await withTenant(ctx, async (tx) => {
+  const { thirdParty, buildings, existing } = await withTenant(ctx, async (tx) => {
     const [owner] = await tx
-      .select({ id: project.id })
+      .select({ id: project.id, thirdParty: project.thirdParty })
       .from(project)
       .where(and(eq(project.id, options.projectId), isNull(project.deletedAt)));
     if (!owner) throw new AppError("NOT_FOUND");
     return {
+      thirdParty: owner.thirdParty,
       buildings: await tx
         .select()
         .from(building)
@@ -276,6 +277,13 @@ export async function prepareUnits(
       price = amount.data;
     }
     ready.push({ input: parsed.data, price, blocked: text(cells.blocked ?? null) });
+  }
+  // A third party's building is never sold: no prices, no blocks (CLAUDE.md §7).
+  if (thirdParty && ready.some((r) => r.price !== null)) {
+    report.at(null, "price", "inventory.errors.thirdParty");
+  }
+  if (thirdParty && ready.some((r) => r.blocked !== "")) {
+    report.at(null, "blocked", "inventory.errors.thirdParty");
   }
   if (ready.some((r) => r.price !== null) && !can(ctx.roles, "price:update")) {
     report.at(null, "price", "errors.FORBIDDEN");

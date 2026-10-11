@@ -32,6 +32,8 @@ export const projectFields = z.object({
   status: z.enum(projectStatuses),
   /** Free market or logement promotionnel aidé (LPA checks on its sales). */
   housingProgram: z.enum(housingPrograms).default("free"),
+  /** A third party's building, managed as syndic only: fixed at creation (CLAUDE.md §7). */
+  thirdParty: z.boolean().default(false),
   address: optionalText(300),
   wilaya: optionalText(80),
   commune: optionalText(80),

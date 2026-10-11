@@ -37,6 +37,7 @@ import { countLateDeliveries, loadDocumentAlerts } from "@/server/obligations/qu
 import { loadEndingLeases, loadOverdueRents } from "@/server/rentals/queries";
 import { visibleSales } from "@/server/sales/access";
 import { paidTotals } from "@/server/sales/sale-queries";
+import { forSale } from "@/server/inventory/third-party";
 
 const money = (expr: ReturnType<typeof sql>) =>
   sql<string>`coalesce(${expr}, 0)::text`.mapWith((v: string) => BigInt(v));
@@ -70,7 +71,7 @@ async function stock(tx: Tx) {
     })
     .from(project)
     .leftJoin(unit, and(eq(unit.projectId, project.id), isNull(unit.deletedAt)))
-    .where(isNull(project.deletedAt))
+    .where(and(isNull(project.deletedAt), forSale))
     .groupBy(project.id)
     .orderBy(asc(project.name));
   const sum = (key: "units" | "available" | "engaged" | "sold" | "unavailable") =>

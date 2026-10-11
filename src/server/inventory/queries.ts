@@ -8,6 +8,7 @@ import {
   priceList,
   priceListItem,
   project,
+  residence,
   unit,
   unitPriceHistory,
   unitStatusHistory,
@@ -16,6 +17,8 @@ import {
 import { withTenant } from "@/db/tenant";
 import { isUuid } from "@/lib/ids";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
+
+import { forSale } from "./third-party";
 
 /** Unit counts by commercial state, computed over live units joined as `unit`. */
 const unitStats = {
@@ -53,6 +56,7 @@ export async function listProjects(ctx: TenantCtx) {
         code: project.code,
         name: project.name,
         status: project.status,
+        thirdParty: project.thirdParty,
         wilaya: project.wilaya,
         commune: project.commune,
         plannedDeliveryOn: project.plannedDeliveryOn,
@@ -104,7 +108,14 @@ export async function getProject(ctx: TenantCtx, projectId: string) {
       { units: 0, available: 0, engaged: 0, sold: 0, unavailable: 0 },
     );
 
-    return { ...row, buildings, totals };
+    // The residences set up on it (a third party's building is managed through one).
+    const residences = await tx
+      .select({ id: residence.id, name: residence.name })
+      .from(residence)
+      .where(and(eq(residence.projectId, projectId), isNull(residence.deletedAt)))
+      .orderBy(asc(residence.name));
+
+    return { ...row, buildings, totals, residences };
   });
 }
 
@@ -184,6 +195,7 @@ export async function getUnit(ctx: TenantCtx, unitId: string) {
         buildingName: building.name,
         projectCode: project.code,
         projectName: project.name,
+        thirdParty: project.thirdParty,
       })
       .from(unit)
       .innerJoin(building, eq(building.id, unit.buildingId))
@@ -239,6 +251,7 @@ export async function getUnit(ctx: TenantCtx, unitId: string) {
       buildingName: row.buildingName,
       projectCode: row.projectCode,
       projectName: row.projectName,
+      thirdParty: row.thirdParty,
       statusHistory,
       priceHistory,
       floorPlan,
@@ -319,14 +332,22 @@ export async function getPriceList(ctx: TenantCtx, priceListId: string) {
 
 export type PriceListDetail = NonNullable<Awaited<ReturnType<typeof getPriceList>>>;
 
-/** Live projects for selects (CRM interest, visits, quotations). */
-export async function listProjectOptions(ctx: TenantCtx) {
+/**
+ * Live projects for selects (CRM interest, visits, quotations). Third parties' buildings are
+ * left out unless asked for (residences, units import): they are never sold.
+ */
+export async function listProjectOptions(ctx: TenantCtx, options: { thirdParty?: boolean } = {}) {
   assertCan(ctx, "inventory:read");
   return withTenant(ctx, (tx) =>
     tx
-      .select({ id: project.id, code: project.code, name: project.name })
+      .select({
+        id: project.id,
+        code: project.code,
+        name: project.name,
+        thirdParty: project.thirdParty,
+      })
       .from(project)
-      .where(isNull(project.deletedAt))
+      .where(and(isNull(project.deletedAt), options.thirdParty ? undefined : forSale))
       .orderBy(asc(project.name)),
   );
 }

@@ -15,6 +15,7 @@ import {
 import { withTenant } from "@/db/tenant";
 import { AppError } from "@/lib/result";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
+import { thirdPartyRefused } from "@/server/inventory/third-party";
 
 import type {
   createPaymentPlanSchema,
@@ -28,11 +29,13 @@ type In<S extends z.ZodType> = z.output<S>;
 
 async function assertLiveProject(tx: Tx, projectId: string) {
   const [row] = await tx
-    .select({ id: project.id })
+    .select({ id: project.id, thirdParty: project.thirdParty })
     .from(project)
     .where(and(eq(project.id, projectId), isNull(project.deletedAt)))
     .for("update");
   if (!row) throw new AppError("NOT_FOUND");
+  // A third party's building is never sold: no plans, no milestones.
+  if (row.thirdParty) throw thirdPartyRefused();
 }
 
 const liveMilestones = (tx: Tx, projectId: string) =>

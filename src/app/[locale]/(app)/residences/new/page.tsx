@@ -14,11 +14,21 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: t("newTitle") };
 }
 
-export default async function NewResidencePage({ params }: PageProps<"/[locale]/residences/new">) {
+export default async function NewResidencePage({
+  params,
+  searchParams,
+}: PageProps<"/[locale]/residences/new">) {
   setRequestLocale(toLocale((await params).locale));
   const ctx = await requirePermission("residence:create");
-  const projects = await listProjectOptions(ctx);
+  // Third parties' buildings are set up for their residence (CLAUDE.md §7).
+  const options = await listProjectOptions(ctx, { thirdParty: true });
   const t = await getTranslations("residences");
+  const projects = options.map((p) => ({
+    id: p.id,
+    name: p.thirdParty ? t("thirdPartyOption", { name: p.name }) : p.name,
+  }));
+  const asked = (await searchParams).project;
+  const chosen = projects.find((p) => p.id === asked) ?? projects[0];
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
@@ -26,7 +36,7 @@ export default async function NewResidencePage({ params }: PageProps<"/[locale]/
       <ResidenceForm
         projects={projects}
         defaultValues={{
-          projectId: projects[0]?.id ?? "",
+          projectId: chosen?.id ?? "",
           name: "",
           address: "",
           commune: "",

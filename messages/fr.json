@@ -413,8 +413,13 @@
         "launchedOn": "Lancement",
         "plannedDeliveryOn": "Livraison prévue",
         "description": "Description",
-        "housingProgram": "Programme"
-      }
+        "housingProgram": "Programme",
+        "thirdParty": "Immeuble d'un tiers (géré en syndic, jamais vendu)"
+      },
+      "thirdParty": "Immeuble d'un tiers",
+      "thirdPartyHint": "Immeuble géré en syndic pour le compte de ses copropriétaires : ses lots sont livrés et ne sont jamais mis en vente (ni prix, ni échéancier, ni suivi de chantier).",
+      "residences": "Résidence",
+      "createResidence": "Créer la résidence"
     },
     "buildings": {
       "title": "Bâtiments",
@@ -566,7 +571,8 @@
       "floorOutOfRange": "Niveau hors du bâtiment.",
       "unitsOutsideFloors": "Des lots existent en dehors de ces niveaux.",
       "priceListNotDraft": "Cette grille n'est plus modifiable.",
-      "unitNotInProject": "Un lot n'appartient pas à ce projet."
+      "unitNotInProject": "Un lot n'appartient pas à ce projet.",
+      "thirdParty": "Immeuble d'un tiers : ses lots ne sont jamais vendus."
     },
     "sheet": {
       "title": "Fiche du lot",
@@ -2646,7 +2652,8 @@
       "errors": {
         "notCoOwner": "Seul un copropriétaire actuel siège au conseil syndical."
       }
-    }
+    },
+    "thirdPartyOption": "{name} (immeuble d'un tiers)"
   },
   "charges": {
     "title": "Charges et budget",

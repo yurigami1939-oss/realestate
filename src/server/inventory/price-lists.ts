@@ -11,6 +11,7 @@ import { recordAudit } from "@/server/audit/record-audit";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
 
 import type { createPriceListSchema, priceListIdSchema, setPriceListItemsSchema } from "./schemas";
+import { thirdPartyRefused } from "./third-party";
 
 type In<S extends z.ZodType> = z.output<S>;
 
@@ -35,11 +36,12 @@ export async function createPriceList(ctx: TenantCtx, input: In<typeof createPri
   return withTenant(ctx, async (tx) => {
     // Serializes version numbering per project.
     const [parent] = await tx
-      .select({ id: project.id })
+      .select({ id: project.id, thirdParty: project.thirdParty })
       .from(project)
       .where(and(eq(project.id, input.projectId), isNull(project.deletedAt)))
       .for("update");
     if (!parent) throw new AppError("NOT_FOUND");
+    if (parent.thirdParty) throw thirdPartyRefused();
 
     const [last] = await tx
       .select({ version: max(priceList.version) })

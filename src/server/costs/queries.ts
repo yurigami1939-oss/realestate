@@ -30,6 +30,7 @@ import { isUuid } from "@/lib/ids";
 import type { Centimes } from "@/lib/money";
 import { computeStatement } from "@/lib/statement";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
+import { forSale } from "@/server/inventory/third-party";
 
 const NO_PENALTIES = { monthlyRateBp: 0, graceDays: 0, capBp: 0 };
 /** Months shown in the cash-flow forecast. */
@@ -105,7 +106,7 @@ export async function getProjectCosts(ctx: TenantCtx, projectId: string) {
     const [owner] = await tx
       .select({ id: project.id, name: project.name, code: project.code })
       .from(project)
-      .where(and(eq(project.id, projectId), isNull(project.deletedAt)));
+      .where(and(eq(project.id, projectId), isNull(project.deletedAt), forSale));
     if (!owner) return null;
     const budget = await tx
       .select()

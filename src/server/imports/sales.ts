@@ -1,6 +1,6 @@
 import "server-only";
 
-import { eq, isNull } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 
 import {
   buyer,
@@ -26,6 +26,7 @@ import { assertCan, type TenantCtx } from "@/server/auth/session";
 import { transitionUnit } from "@/server/inventory/transition-unit";
 import { nextDocumentNumber } from "@/server/numbering/next-document-number";
 import { loadSalesSettings } from "@/server/organizations/settings";
+import { forSale } from "@/server/inventory/third-party";
 
 import { IMPORT_REASON, type ImportPlan, issuesOf, type TemplateSheet } from "./plan";
 import {
@@ -371,7 +372,7 @@ export async function prepareSales(ctx: TenantCtx, workbook: Workbook): Promise<
     projects: await tx
       .select({ id: project.id, code: project.code, plannedDeliveryOn: project.plannedDeliveryOn })
       .from(project)
-      .where(isNull(project.deletedAt)),
+      .where(and(isNull(project.deletedAt), forSale)),
     units: await tx
       .select({ id: unit.id, code: unit.code, projectId: unit.projectId, status: unit.status })
       .from(unit)

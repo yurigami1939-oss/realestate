@@ -1,0 +1,1 @@
+ALTER TABLE "project" ADD COLUMN "third_party" boolean DEFAULT false NOT NULL;

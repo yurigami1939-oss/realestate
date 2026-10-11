@@ -73,6 +73,8 @@ export default async function UnitPage({
   const tc = await getTranslations("common");
   const tr = await getTranslations("rentals.unit");
   const deletable = unit.status === "available" || unit.status === "blocked";
+  // A third party's unit is only managed: no price, sale or prospect's sheet (CLAUDE.md §7).
+  const forSale = !unit.thirdParty;
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
@@ -102,7 +104,7 @@ export default async function UnitPage({
                 </Link>
               </Button>
             ) : null}
-            {can(ctx.roles, "price:update") ? (
+            {forSale && can(ctx.roles, "price:update") ? (
               <ChangePriceDialog
                 unitId={unit.id}
                 code={unit.code}
@@ -140,7 +142,18 @@ export default async function UnitPage({
       <div className="grid gap-6 lg:grid-cols-3">
         <UnitDetails unit={unit} />
         <div className="space-y-6">
-          <PriceCard unit={unit} />
+          {forSale ? (
+            <PriceCard unit={unit} />
+          ) : (
+            <Card data-testid="unit-third-party">
+              <CardHeader>
+                <CardTitle className="text-base">{t("projects.thirdParty")}</CardTitle>
+              </CardHeader>
+              <CardContent className="text-sm text-muted-foreground">
+                {t("projects.thirdPartyHint")}
+              </CardContent>
+            </Card>
+          )}
           {lease ? (
             <Card data-testid="unit-lease">
               <CardHeader>
@@ -159,30 +172,34 @@ export default async function UnitPage({
               </CardContent>
             </Card>
           ) : null}
-          <UnitSaleCard
-            unitId={unit.id}
-            code={unit.code}
-            status={unit.status}
-            option={option}
-            sale={sale}
-            leads={leads}
-            optionHours={optionHours}
-            canSell={canSell}
-            priced={unit.listPrice !== null}
-          />
+          {forSale ? (
+            <UnitSaleCard
+              unitId={unit.id}
+              code={unit.code}
+              status={unit.status}
+              option={option}
+              sale={sale}
+              leads={leads}
+              optionHours={optionHours}
+              canSell={canSell}
+              priced={unit.listPrice !== null}
+            />
+          ) : null}
           <FloorPlanCard
             unitId={unit.id}
             code={unit.code}
             plan={unit.floorPlan}
             editable={can(ctx.roles, "unit:update")}
           />
-          <UnitSheetsCard unitId={unit.id} sheets={await listUnitSheets(ctx, unit.id)} />
+          {forSale ? (
+            <UnitSheetsCard unitId={unit.id} sheets={await listUnitSheets(ctx, unit.id)} />
+          ) : null}
         </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
         <StatusHistory unit={unit} />
-        <PriceHistory unit={unit} />
+        {forSale ? <PriceHistory unit={unit} /> : null}
       </div>
     </div>
   );

@@ -2,14 +2,14 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslations } from "next-intl";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import type { z } from "zod";
 
 import type { AppErrorShape } from "@/lib/result";
 
 import { applyFieldErrors } from "@/components/forms/apply-field-errors";
-import { SelectField, TextareaField } from "@/components/forms/fields";
+import { CheckboxField, SelectField, TextareaField } from "@/components/forms/fields";
 import { TextField } from "@/components/forms/text-field";
 import { WILAYA_OPTIONS, WilayaOptions } from "@/components/forms/wilaya-options";
 import { useAction } from "@/components/forms/use-action";
@@ -29,6 +29,7 @@ export const emptyProject: ProjectFormValues = {
   name: "",
   status: "planning",
   housingProgram: "free",
+  thirdParty: false,
   address: "",
   wilaya: "",
   commune: "",
@@ -57,6 +58,8 @@ export function ProjectForm({
     defaultValues,
   });
   const f = (key: keyof ProjectFormValues) => t(`projects.fields.${key}`);
+  // A third party's building is delivered and never sold: no status, program or permit.
+  const thirdParty = useWatch({ control: form.control, name: "thirdParty" }) === true;
   const onError = (error: AppErrorShape) =>
     applyFieldErrors(form, error, { "inventory.errors.codeTaken": "code" });
 
@@ -105,23 +108,35 @@ export function ProjectForm({
                 autoCapitalize="characters"
               />
             </div>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <SelectField
-                control={form.control}
-                name="status"
-                label={f("status")}
-                options={projectStatuses.map((s) => ({ value: s, label: t(`projectStatus.${s}`) }))}
-              />
-              <SelectField
-                control={form.control}
-                name="housingProgram"
-                label={f("housingProgram")}
-                options={housingPrograms.map((p) => ({
-                  value: p,
-                  label: t(`housingProgram.${p}`),
-                }))}
-              />
-            </div>
+            {projectId ? (
+              thirdParty ? (
+                <p className="text-sm text-muted-foreground">{t("projects.thirdPartyHint")}</p>
+              ) : null
+            ) : (
+              <CheckboxField control={form.control} name="thirdParty" label={f("thirdParty")} />
+            )}
+            {thirdParty ? null : (
+              <div className="grid gap-4 sm:grid-cols-2">
+                <SelectField
+                  control={form.control}
+                  name="status"
+                  label={f("status")}
+                  options={projectStatuses.map((s) => ({
+                    value: s,
+                    label: t(`projectStatus.${s}`),
+                  }))}
+                />
+                <SelectField
+                  control={form.control}
+                  name="housingProgram"
+                  label={f("housingProgram")}
+                  options={housingPrograms.map((p) => ({
+                    value: p,
+                    label: t(`housingProgram.${p}`),
+                  }))}
+                />
+              </div>
+            )}
             <TextField control={form.control} name="address" label={f("address")} />
             <div className="grid gap-4 sm:grid-cols-2">
               <TextField control={form.control} name="commune" label={f("commune")} />
@@ -133,34 +148,38 @@ export function ProjectForm({
               />
               <WilayaOptions />
             </div>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <TextField
-                control={form.control}
-                name="buildingPermitNumber"
-                label={f("buildingPermitNumber")}
-                dir="ltr"
-              />
-              <TextField
-                control={form.control}
-                name="buildingPermitDate"
-                label={f("buildingPermitDate")}
-                type="date"
-              />
-            </div>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <TextField
-                control={form.control}
-                name="launchedOn"
-                label={f("launchedOn")}
-                type="date"
-              />
-              <TextField
-                control={form.control}
-                name="plannedDeliveryOn"
-                label={f("plannedDeliveryOn")}
-                type="date"
-              />
-            </div>
+            {thirdParty ? null : (
+              <>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <TextField
+                    control={form.control}
+                    name="buildingPermitNumber"
+                    label={f("buildingPermitNumber")}
+                    dir="ltr"
+                  />
+                  <TextField
+                    control={form.control}
+                    name="buildingPermitDate"
+                    label={f("buildingPermitDate")}
+                    type="date"
+                  />
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <TextField
+                    control={form.control}
+                    name="launchedOn"
+                    label={f("launchedOn")}
+                    type="date"
+                  />
+                  <TextField
+                    control={form.control}
+                    name="plannedDeliveryOn"
+                    label={f("plannedDeliveryOn")}
+                    type="date"
+                  />
+                </div>
+              </>
+            )}
             <TextareaField control={form.control} name="description" label={f("description")} />
             <div className="flex gap-2">
               <Button type="submit" disabled={create.pending || update.pending}>

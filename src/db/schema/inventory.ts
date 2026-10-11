@@ -66,6 +66,11 @@ export const project = pgTable(
     status: projectStatus().notNull().default("planning"),
     /** Free market, or logement promotionnel aidé (CNL aid, eligibility checks). */
     housingProgram: housingProgram().notNull().default("free"),
+    /**
+     * A building the organization did not build and only manages as syndic (CLAUDE.md §7
+     * Residence charges): delivered, its units never for sale.
+     */
+    thirdParty: boolean().notNull().default(false),
     address: text(),
     wilaya: text(),
     commune: text(),
