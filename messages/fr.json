@@ -6056,5 +6056,32 @@
         "body": "Vous recevrez sur cet appareil les notifications de {company}."
       }
     }
+  },
+  "acquisitionCosts": {
+    "title": "Frais d'acquisition estimés",
+    "help": "Les devis estiment, à titre indicatif, ce que l'acquéreur paiera en plus du prix : les honoraires du notaire selon son barème par tranches, la TVA sur ces honoraires, les droits d'enregistrement, la publicité foncière et des frais fixes (timbres, copies). Renseignez les taux en vigueur avec votre notaire ; rien n'est imprimé tant que tout est à zéro.",
+    "notaryScale": "Barème du notaire (par tranches du prix)",
+    "upTo": "Tranche {index} : jusqu'à (DA)",
+    "above": "Au-delà",
+    "rate": "Tranche {index} : taux (%)",
+    "addTranche": "Ajouter une tranche",
+    "duties": "Taxes et frais",
+    "notaryVat": "TVA sur les honoraires (%)",
+    "registration": "Droits d'enregistrement (% du prix)",
+    "publication": "Publicité foncière (% du prix)",
+    "fixedFees": "Frais fixes (DA)",
+    "saved": "Frais d'acquisition enregistrés.",
+    "estimate": "Frais d'acquisition estimés",
+    "notaryFees": "Honoraires du notaire",
+    "notaryVatAmount": "TVA sur les honoraires",
+    "registrationAmount": "Droits d'enregistrement",
+    "publicationAmount": "Publicité foncière",
+    "fixedFeesAmount": "Frais fixes",
+    "total": "Total des frais",
+    "grandTotal": "Coût total estimé (prix et frais)",
+    "indicative": "Estimation indicative au barème réglé par la société ; le notaire établit le décompte définitif.",
+    "errors": {
+      "tranches": "Les plafonds des tranches doivent être croissants, une seule tranche « au-delà », en dernier."
+    }
   }
 }

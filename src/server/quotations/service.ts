@@ -6,6 +6,7 @@ import type { z } from "zod";
 import { quotation, quotationLine, unit } from "@/db/schema";
 import { withTenant } from "@/db/tenant";
 import { enqueueInTx } from "@/jobs/enqueue";
+import { estimateAcquisitionCosts, storeAcquisitionCosts } from "@/lib/acquisition-costs";
 import { addDays, todayInAlgiers } from "@/lib/dates";
 import { buildSchedule, netPrice } from "@/lib/payment-plans";
 import { AppError } from "@/lib/result";
@@ -80,6 +81,7 @@ export async function issueQuotation(ctx: TenantCtx, input: In<typeof issueQuota
     const signingOn = todayInAlgiers(issuedAt);
     const price = netPrice(target.listPrice, input.discount);
     const lines = buildSchedule(price, plan.steps, signingOn, milestones);
+    const costs = estimateAcquisitionCosts(price, company.acquisitionCosts);
     const { number } = await nextDocumentNumber(tx, ctx, "quotation", issuedAt);
 
     const [row] = await tx
@@ -96,6 +98,7 @@ export async function issueQuotation(ctx: TenantCtx, input: In<typeof issueQuota
         price,
         issuedAt,
         signingOn,
+        acquisitionCosts: costs ? storeAcquisitionCosts(costs) : null,
         validUntil: addDays(signingOn, company.quotationValidityDays),
         issuedBy: ctx.userId,
         notes: input.notes,

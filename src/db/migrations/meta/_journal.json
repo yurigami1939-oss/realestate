@@ -540,6 +540,13 @@
       "when": 1791727291226,
       "tag": "0076_push_subscriptions",
       "breakpoints": true
+    },
+    {
+      "idx": 77,
+      "version": "7",
+      "when": 1791739224029,
+      "tag": "0077_acquisition_costs",
+      "breakpoints": true
     }
   ]
 }

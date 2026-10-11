@@ -31,6 +31,8 @@ tfoot td{font-weight:700;border-bottom:none}
 .net{font-size:14pt;font-weight:700}
 .words{margin-top:4pt}
 .notice{margin-top:12pt;border-top:1pt solid #a3a3a3;padding-top:6pt}
+.costs{margin-top:8pt}
+.costs p{margin:4pt 0 0}
 `;
 
 type Doc = QuotationDocument;
@@ -51,6 +53,55 @@ function dueLabel(line: Doc["lines"][number]): { fr: string; ar: string | null }
   return date
     ? { fr: `${name} (prévu le ${date})`, ar: `متوقع في ${date}` }
     : { fr: name, ar: null };
+}
+
+/** The buyer's estimated acquisition costs, as frozen at issue (indicative). */
+function CostsBox({ costs, price }: { costs: NonNullable<Doc["costs"]>; price: bigint }) {
+  const money = (v: bigint) => formatDZD(v, "fr");
+  const rows = [
+    { fr: "Honoraires du notaire", ar: "أتعاب الموثق", value: costs.notaryFees },
+    { fr: "TVA sur les honoraires", ar: "الرسم على القيمة المضافة", value: costs.notaryVat },
+    { fr: "Droits d’enregistrement", ar: "حقوق التسجيل", value: costs.registration },
+    { fr: "Publicité foncière", ar: "الإشهار العقاري", value: costs.publication },
+    { fr: "Frais fixes", ar: "مصاريف ثابتة", value: costs.fixedFees },
+  ].filter((row) => row.value > 0n);
+  return (
+    <div className="box costs" data-costs="">
+      <h2>
+        <span>Frais d’acquisition estimés</span>
+        <span dir="rtl" lang="ar">
+          مصاريف الاقتناء التقديرية
+        </span>
+      </h2>
+      {rows.map((row) => (
+        <div className="kv" key={row.fr}>
+          <span>
+            {row.fr} · <span lang="ar">{row.ar}</span>
+          </span>
+          <span dir="ltr">{money(row.value)}</span>
+        </div>
+      ))}
+      <div className="kv">
+        <b>
+          Total des frais · <span lang="ar">مجموع المصاريف</span>
+        </b>
+        <b dir="ltr">{money(costs.total)}</b>
+      </div>
+      <div className="kv">
+        <b>
+          Coût total estimé · <span lang="ar">التكلفة الإجمالية التقديرية</span>
+        </b>
+        <b dir="ltr">{money(price + costs.total)}</b>
+      </div>
+      <p className="muted">
+        Estimation indicative au barème réglé par la société ; le notaire établit le décompte
+        définitif.
+      </p>
+      <p className="muted" dir="rtl" lang="ar">
+        تقدير إرشادي حسب الجدول الذي ضبطته الشركة؛ يعد الموثق الحساب النهائي.
+      </p>
+    </div>
+  );
 }
 
 const area = (value: string | null) => (value ? `${value.replace(".", ",")} m²` : "—");
@@ -151,6 +202,8 @@ export function QuotationTemplate({ doc }: { doc: Doc }) {
           أي: {amountInWordsAr(doc.price)}.
         </p>
       </div>
+
+      {doc.costs ? <CostsBox costs={doc.costs} price={doc.price} /> : null}
 
       <table>
         <thead>

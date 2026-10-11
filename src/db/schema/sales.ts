@@ -17,6 +17,10 @@ import {
 } from "drizzle-orm/pg-core";
 
 import type { TaxSettings } from "../../lib/accounting";
+import type {
+  StoredAcquisitionCosts,
+  StoredAcquisitionCostSettings,
+} from "../../lib/acquisition-costs";
 import type { StoredHousingAid } from "../../lib/housing-aid";
 import type { DocumentTexts } from "../../lib/document-texts";
 import type { PrivacySettings } from "../../lib/privacy";
@@ -114,6 +118,11 @@ export const organizationSetting = pgTable(
     /** Accounting export: when sales are booked, VAT rates, stamp duty (CLAUDE.md §7 Treasury). */
     taxSettings: jsonb()
       .$type<Partial<TaxSettings>>()
+      .notNull()
+      .default(sql`'{}'::jsonb`),
+    /** Quotations: the notary's scale and the duties a buyer's costs are estimated with. */
+    acquisitionCosts: jsonb()
+      .$type<StoredAcquisitionCostSettings>()
       .notNull()
       .default(sql`'{}'::jsonb`),
     /** The organization's wording printed on its documents, per kind (FR / AR). */
@@ -285,6 +294,8 @@ export const quotation = pgTable(
     issuedAt: instant().notNull().defaultNow(),
     /** Assumed signing date of the schedule (Algiers day of issue). */
     signingOn: date({ mode: "string" }).notNull(),
+    /** The buyer's acquisition costs estimated at issue (none when the organization set none). */
+    acquisitionCosts: jsonb().$type<StoredAcquisitionCosts>(),
     validUntil: date({ mode: "string" }).notNull(),
     issuedBy: userRef().notNull(),
     notes: text(),

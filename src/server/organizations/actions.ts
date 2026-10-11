@@ -7,6 +7,7 @@ import { z } from "zod";
 import { defineAction } from "@/server/action";
 
 import {
+  acquisitionCostsSchema,
   archiveCustomRoleSchema,
   assignCustomRoleSchema,
   cancelInvitationSchema,
@@ -26,7 +27,12 @@ import {
   updateCustomRole,
 } from "./custom-roles";
 import { cancelInvitation, inviteMember, removeMember, updateMemberRoles } from "./service";
-import { removeCompanyLogo, saveDocumentTexts, updateCompanySettings } from "./settings";
+import {
+  removeCompanyLogo,
+  saveAcquisitionCosts,
+  saveDocumentTexts,
+  updateCompanySettings,
+} from "./settings";
 
 const MEMBERS_PAGE = "/[locale]/settings/members";
 
@@ -119,6 +125,14 @@ export const assignCustomRoleAction = defineAction(
     await assignCustomRole(ctx, await headers(), input);
     revalidatePath(MEMBERS_PAGE, "page");
     revalidatePath(ROLES_PAGE, "page");
+  },
+);
+
+export const saveAcquisitionCostsAction = defineAction(
+  { input: acquisitionCostsSchema, permission: "organization:update" },
+  async (input, ctx) => {
+    await saveAcquisitionCosts(ctx, input);
+    revalidatePath("/[locale]/settings/company", "page");
   },
 );
 

@@ -4,8 +4,18 @@ import { and, asc, desc, eq } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 
 import type { Tx } from "@/db/client";
-import { building, lead, project, quotation, quotationLine, unit, user } from "@/db/schema";
+import {
+  building,
+  lead,
+  organizationSetting,
+  project,
+  quotation,
+  quotationLine,
+  unit,
+  user,
+} from "@/db/schema";
 import { withTenant } from "@/db/tenant";
+import { acquisitionCostSettings, readAcquisitionCosts } from "@/lib/acquisition-costs";
 import { isUuid } from "@/lib/ids";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
 import { visibleLeads } from "@/server/crm/access";
@@ -57,7 +67,8 @@ async function loadQuotation(tx: Tx, quotationId: string, ctx?: TenantCtx) {
     .where(eq(quotationLine.quotationId, quotationId))
     .orderBy(asc(quotationLine.position));
   const { quotation: q, ...rest } = row;
-  return { ...q, ...rest, lines };
+  const costs = q.acquisitionCosts ? readAcquisitionCosts(q.acquisitionCosts) : null;
+  return { ...q, ...rest, costs, lines };
 }
 
 /** Quotation page: details and lines, for a lead the member may see. */
@@ -68,6 +79,18 @@ export async function getQuotation(ctx: TenantCtx, quotationId: string) {
 }
 
 export type QuotationDetail = NonNullable<Awaited<ReturnType<typeof getQuotation>>>;
+
+/** The figures the quotation form estimates a buyer's acquisition costs with. */
+export async function getAcquisitionCostSettings(ctx: TenantCtx) {
+  assertCan(ctx, "quotation:create");
+  const [row] = await withTenant(ctx, (tx) =>
+    tx
+      .select({ costs: organizationSetting.acquisitionCosts })
+      .from(organizationSetting)
+      .where(eq(organizationSetting.organizationId, ctx.orgId)),
+  );
+  return acquisitionCostSettings(row?.costs);
+}
 
 /** For the PDF job (no member context): the quotation plus the company's legal identity. */
 export async function loadQuotationDocument(tx: Tx, orgId: string, quotationId: string) {

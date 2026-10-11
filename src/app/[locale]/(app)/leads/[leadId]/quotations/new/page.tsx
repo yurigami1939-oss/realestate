@@ -10,6 +10,7 @@ import { getLead } from "@/server/crm/queries";
 import { listApprovedDiscounts } from "@/server/discounts/queries";
 import { listProjectOptions, listUnitChoices } from "@/server/inventory/queries";
 import { listPaymentSetups } from "@/server/payment-plans/queries";
+import { getAcquisitionCostSettings } from "@/server/quotations/queries";
 
 import { QuotationForm, type QuotableUnit } from "./_components/quotation-form";
 
@@ -43,6 +44,7 @@ export default async function NewQuotationPage({
   const setups = await listPaymentSetups(ctx);
   const canDiscount = can(ctx, "quotation:discount");
   const approvedDiscounts = canDiscount ? [] : await listApprovedDiscounts(ctx, [lead.id]);
+  const acquisitionCosts = await getAcquisitionCostSettings(ctx);
   const t = await getTranslations();
 
   return (
@@ -62,6 +64,7 @@ export default async function NewQuotationPage({
         setups={setups}
         canDiscount={canDiscount}
         approvedDiscounts={approvedDiscounts}
+        acquisitionCosts={acquisitionCosts}
       />
     </div>
   );

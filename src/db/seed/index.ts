@@ -6,6 +6,7 @@ import type { Role } from "@/lib/permissions";
 import { auth } from "@/server/auth/auth";
 import type { TenantCtx } from "@/server/auth/session";
 
+import { seedAcquisitionCosts } from "./acquisition-costs";
 import { seedConstruction } from "./construction";
 import { seedCosts } from "./costs";
 import { DEMO_PASSWORD, demoOrganizations, demoUsers } from "./demo";
@@ -97,6 +98,7 @@ export async function seedDemo(): Promise<void> {
       salesManager,
     });
     await seedObligations(ctx("owner", ["owner"]), projectIds);
+    await seedAcquisitionCosts(ctx("owner", ["owner"]));
     // Before any payment: every seeded collection lands on its method's default account.
     await seedTreasuryAccounts(ctx("owner", ["owner"]));
     const plans = await seedPaymentPlans(salesManager, projectIds);

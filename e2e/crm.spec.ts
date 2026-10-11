@@ -59,9 +59,12 @@ test.describe("commercial", () => {
     await page.getByRole("combobox", { name: "Lot" }).click();
     await page.getByRole("option", { name: /^A-06-02 · F3/ }).click();
     await expect(page.getByTestId("quotation-schedule").getByRole("row")).toHaveCount(6);
+    // The buyer's costs estimated with the company's figures (seeded as an example).
+    await expect(page.getByTestId("acquisition-costs")).toContainText("Honoraires du notaire");
     await page.getByRole("button", { name: "Émettre le devis" }).click();
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(/^Devis DEV-\d{4}-\d{6}$/);
     await expect(page.getByTestId("quotation-lines").getByRole("row")).toHaveCount(6);
+    await expect(page.getByTestId("acquisition-costs")).toContainText("Coût total estimé");
 
     // The worker renders the PDF; the page refreshes until the link appears.
     const download = page.getByRole("link", { name: "Télécharger le PDF" });

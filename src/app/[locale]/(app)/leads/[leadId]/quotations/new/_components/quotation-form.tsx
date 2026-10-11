@@ -6,6 +6,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { useTranslateKey } from "@/components/forms/text-field";
+import { AcquisitionCostsList } from "@/components/quotations/acquisition-costs-card";
 import { useAction } from "@/components/forms/use-action";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -29,6 +30,7 @@ import {
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { useRouter } from "@/i18n/navigation";
+import { type AcquisitionCostSettings, estimateAcquisitionCosts } from "@/lib/acquisition-costs";
 import { formatDate, todayInAlgiers } from "@/lib/dates";
 import { formatDZD, parseDZD } from "@/lib/money";
 import { buildSchedule, formatShare, netPrice, type ScheduleLine } from "@/lib/payment-plans";
@@ -56,6 +58,7 @@ export function QuotationForm({
   setups,
   canDiscount,
   approvedDiscounts,
+  acquisitionCosts,
 }: {
   leadId: string;
   defaultProjectId: string | null;
@@ -65,10 +68,13 @@ export function QuotationForm({
   canDiscount: boolean;
   /** Discounts approved for this lead, per unit (commercials). */
   approvedDiscounts: { unitId: string; amount: bigint }[];
+  /** The organization's figures for the buyer's estimated costs. */
+  acquisitionCosts: AcquisitionCostSettings;
 }) {
   const t = useTranslations("quotations");
   const tp = useTranslations("paymentPlans");
   const td = useTranslations("discounts");
+  const tc = useTranslations("acquisitionCosts");
   const translate = useTranslateKey();
   const locale = useLocale() === "ar" ? "ar" : "fr";
   const router = useRouter();
@@ -101,6 +107,7 @@ export function QuotationForm({
           ? "discounts.errors.aboveApproved"
           : null;
   const price = unit ? netPrice(unit.listPrice, parsedDiscount ?? 0n) : null;
+  const costs = price !== null ? estimateAcquisitionCosts(price, acquisitionCosts) : null;
   const lines =
     unit && plan && price !== null
       ? buildSchedule(price, plan.steps, todayInAlgiers(), setup?.milestones ?? [])
@@ -296,6 +303,12 @@ export function QuotationForm({
                 </TableRow>
               </TableFooter>
             </Table>
+          ) : null}
+          {costs && price !== null ? (
+            <div className="space-y-2">
+              <h3 className="text-sm font-medium">{tc("estimate")}</h3>
+              <AcquisitionCostsList costs={costs} price={price} />
+            </div>
           ) : null}
         </CardContent>
       </Card>

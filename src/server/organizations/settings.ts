@@ -6,6 +6,7 @@ import type { z } from "zod";
 import type { Tx } from "@/db/client";
 import { file, organization, organizationSetting } from "@/db/schema";
 import { withTenant } from "@/db/tenant";
+import { acquisitionCostSettings, storeAcquisitionCostSettings } from "@/lib/acquisition-costs";
 import { type DocumentTexts, storedDocumentTexts } from "@/lib/document-texts";
 import { AppError } from "@/lib/result";
 import { salesSettingDefaults, type SalesSettings, type VspLimits } from "@/lib/sales";
@@ -14,7 +15,7 @@ import { assertCan, type TenantCtx } from "@/server/auth/session";
 import { checkUpload, discardFile, storeFile, type Upload } from "@/server/files/service";
 import { getObjectBytes } from "@/server/files/storage";
 
-import type { companySettingsSchema, documentTextsSchema } from "./schemas";
+import type { acquisitionCostsSchema, companySettingsSchema, documentTextsSchema } from "./schemas";
 
 export const DEFAULT_QUOTATION_VALIDITY_DAYS = 15;
 
@@ -76,6 +77,7 @@ export async function loadCompanyProfile(tx: Tx, orgId: string) {
       fgcmpiNumber: organizationSetting.fgcmpiNumber,
       emailDocuments: organizationSetting.emailDocuments,
       documentTexts: organizationSetting.documentTexts,
+      acquisitionCosts: organizationSetting.acquisitionCosts,
     })
     .from(organizationSetting)
     .where(eq(organizationSetting.organizationId, orgId));
@@ -86,6 +88,7 @@ export async function loadCompanyProfile(tx: Tx, orgId: string) {
     fgcmpiNumber: setting?.fgcmpiNumber ?? null,
     emailDocuments: setting?.emailDocuments ?? false,
     documentTexts: setting?.documentTexts ?? {},
+    acquisitionCosts: acquisitionCostSettings(setting?.acquisitionCosts),
   };
 }
 
@@ -277,6 +280,45 @@ export async function getSalesSettings(ctx: TenantCtx) {
  * The organization's wording on its documents (gérant, `organization:update`): printed on the
  * documents issued afterwards. Audited `organization.document_texts`.
  */
+/**
+ * The notary's scale and duties quotations estimate a buyer's costs with (gérant); audited.
+ * Quotations already issued keep the estimate they printed.
+ */
+export async function saveAcquisitionCosts(
+  ctx: TenantCtx,
+  input: z.output<typeof acquisitionCostsSchema>,
+) {
+  assertCan(ctx, "organization:update");
+  const stored = storeAcquisitionCostSettings({
+    notaryTranches: input.tranches.map((t) => ({ upTo: t.upTo, rateBp: t.rate })),
+    notaryVatBp: input.notaryVat ?? 0,
+    registrationBp: input.registration ?? 0,
+    publicationBp: input.publication ?? 0,
+    fixedFees: input.fixedFees ?? 0n,
+  });
+  await withTenant(ctx, async (tx) => {
+    const [before] = await tx
+      .select({ costs: organizationSetting.acquisitionCosts })
+      .from(organizationSetting)
+      .where(eq(organizationSetting.organizationId, ctx.orgId));
+    await tx
+      .insert(organizationSetting)
+      .values({ organizationId: ctx.orgId, acquisitionCosts: stored, updatedBy: ctx.userId })
+      .onConflictDoUpdate({
+        target: organizationSetting.organizationId,
+        set: { acquisitionCosts: stored, updatedBy: ctx.userId, updatedAt: new Date() },
+      });
+    await recordAudit(tx, ctx, {
+      actorUserId: ctx.userId,
+      action: "organization.acquisition_costs",
+      entityType: "organization",
+      entityId: ctx.orgId,
+      before: before?.costs ?? {},
+      after: stored,
+    });
+  });
+}
+
 export async function saveDocumentTexts(
   ctx: TenantCtx,
   input: z.output<typeof documentTextsSchema>,

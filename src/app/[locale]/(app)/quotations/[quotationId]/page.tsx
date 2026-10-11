@@ -5,6 +5,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { PageHeader } from "@/components/app-shell/page-header";
 import { PhoneText } from "@/components/crm/phone";
+import { AcquisitionCostsCard } from "@/components/quotations/acquisition-costs-card";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -79,6 +80,7 @@ export default async function QuotationPage({
       )}
       <Summary q={q} />
       <Schedule q={q} />
+      {q.costs ? <AcquisitionCostsCard costs={q.costs} price={q.price} /> : null}
     </div>
   );
 }

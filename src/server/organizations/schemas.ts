@@ -3,7 +3,14 @@ import { z } from "zod";
 
 import { type DocumentTextKind, documentTextKinds, MAX_DOCUMENT_TEXT } from "@/lib/document-texts";
 import { grantablePermissions, isGrantablePermission, staffRoles } from "@/lib/permissions";
-import { intText, optionalPercentText, optionalText, percentText, requiredText } from "@/lib/zod";
+import {
+  intText,
+  optionalMoneyText,
+  optionalPercentText,
+  optionalText,
+  percentText,
+  requiredText,
+} from "@/lib/zod";
 
 /** Staff roles only: the portal role is given by a portal invitation from a record. */
 const staffRole = z.enum(staffRoles, { error: "validation.staffRole" });
@@ -83,6 +90,34 @@ const documentText = z.object({
   fr: z.string().trim().max(MAX_DOCUMENT_TEXT, "validation.tooLong").default(""),
   ar: z.string().trim().max(MAX_DOCUMENT_TEXT, "validation.tooLong").default(""),
 });
+/**
+ * The figures a buyer's acquisition costs are estimated with (quotations): the notary's scale by
+ * tranches (a blank ceiling = the rest of the price, last), VAT on the fees, duties, fixed costs.
+ */
+export const acquisitionCostsSchema = z
+  .object({
+    tranches: z.array(z.object({ upTo: optionalMoneyText(), rate: percentText(0, 20) })).max(10),
+    notaryVat: optionalPercentText(0, 100),
+    registration: optionalPercentText(0, 100),
+    publication: optionalPercentText(0, 100),
+    fixedFees: optionalMoneyText(),
+  })
+  .superRefine((v, ctx) => {
+    const ceilings = v.tranches.map((t) => t.upTo);
+    const ordered = ceilings.every((upTo, i) => {
+      const previous = i === 0 ? 0n : ceilings[i - 1];
+      if (upTo === null) return i === ceilings.length - 1;
+      return previous !== null && previous !== undefined && upTo > previous;
+    });
+    if (!ordered) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["tranches"],
+        message: "acquisitionCosts.errors.tranches",
+      });
+    }
+  });
+
 export const documentTextsSchema = z.object({
   texts: z.object(
     Object.fromEntries(documentTextKinds.map((kind) => [kind, documentText.optional()])) as Record<

@@ -3,6 +3,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { PageHeader } from "@/components/app-shell/page-header";
 import { HousingAidForm } from "@/components/housing-aid/housing-aid-form";
+import { AcquisitionCostsForm } from "@/components/settings/acquisition-costs-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toLocale } from "@/i18n/locales";
 import { formatPercentInput, toDecimalString } from "@/lib/money";
@@ -25,6 +26,9 @@ export default async function CompanyPage({ params }: PageProps<"/[locale]/setti
   const aid = await getHousingAidSettings(ctx);
   const t = await getTranslations("company");
   const th = await getTranslations("housingAid");
+  const ta = await getTranslations("acquisitionCosts");
+  const costs = settings.acquisitionCosts;
+  const rate = (bp: number) => (bp === 0 ? "" : formatPercentInput(bp));
   const amount = (v: bigint) => toDecimalString(v).replace(".", ",");
   const limit = (bp: number | undefined) => (bp === undefined ? "" : formatPercentInput(bp));
 
@@ -64,6 +68,25 @@ export default async function CompanyPage({ params }: PageProps<"/[locale]/setti
           vspLimitCompletion: limit(settings.vspLimits.completion),
         }}
       />
+      <Card data-testid="acquisition-costs-settings">
+        <CardHeader>
+          <CardTitle className="text-base">{ta("title")}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <AcquisitionCostsForm
+            defaultValues={{
+              tranches: costs.notaryTranches.map((tranche) => ({
+                upTo: tranche.upTo === null ? "" : amount(tranche.upTo),
+                rate: formatPercentInput(tranche.rateBp),
+              })),
+              notaryVat: rate(costs.notaryVatBp),
+              registration: rate(costs.registrationBp),
+              publication: rate(costs.publicationBp),
+              fixedFees: costs.fixedFees > 0n ? amount(costs.fixedFees) : "",
+            }}
+          />
+        </CardContent>
+      </Card>
       <Card data-testid="housing-aid">
         <CardHeader>
           <CardTitle className="text-base">{th("title")}</CardTitle>
