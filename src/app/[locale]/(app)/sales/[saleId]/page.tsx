@@ -10,6 +10,7 @@ import { FinancingDialog } from "@/components/sales/financing-dialog";
 import { InstallmentStateBadge, SaleStatusBadge } from "@/components/sales/badges";
 import { IssueCertificateDialog } from "@/components/certificates/issue-certificate-dialog";
 import { DocumentPdf, PendingDocumentsRefresher } from "@/components/sales/document-pdf";
+import { SignatureList } from "@/components/signatures/signature-list";
 import { RescheduleDialog } from "@/components/sales/reschedule-dialog";
 import { VspWarnings } from "@/components/sales/vsp-warnings";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -46,6 +47,7 @@ import { listAccountChoices } from "@/server/treasury/queries";
 import { getSalesSettings } from "@/server/organizations/settings";
 import { getProjectPaymentSetup } from "@/server/payment-plans/queries";
 import { listSaleAmendments } from "@/server/sales/amendments";
+import { listSignatures } from "@/server/signatures/queries";
 import { listSaleBankLoans } from "@/server/sales/bank-loans";
 import { getSaleHousingAid } from "@/server/housing-aid/service";
 import { getSaleFinancing } from "@/server/sales/financing";
@@ -90,6 +92,11 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
   const calls = await listSalePaymentCalls(ctx, saleId);
   const reminders = await listSaleReminders(ctx, saleId);
   const amendments = await listSaleAmendments(ctx, saleId);
+  const amendmentSignatures = await listSignatures(
+    ctx,
+    "schedule_amendment",
+    amendments.map((a) => a.id),
+  );
   const withdrawals = await listSaleWithdrawals(ctx, saleId);
   const { loans, disbursed } = await listSaleBankLoans(ctx, saleId);
   const certificates = await listSaleCertificates(ctx, saleId);
@@ -875,6 +882,7 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
                           })}
                         />
                         <span className="block text-xs text-muted-foreground">{a.reason}</span>
+                        <SignatureList signatures={amendmentSignatures.get(a.id)} />
                       </div>
                     ))}
                   </div>

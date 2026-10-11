@@ -554,6 +554,13 @@
       "when": 1791741694214,
       "tag": "0078_foreign_currency_payments",
       "breakpoints": true
+    },
+    {
+      "idx": 79,
+      "version": "7",
+      "when": 1791743280823,
+      "tag": "0079_e_signatures",
+      "breakpoints": true
     }
   ]
 }

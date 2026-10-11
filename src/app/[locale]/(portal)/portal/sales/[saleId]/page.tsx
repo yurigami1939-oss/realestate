@@ -10,6 +10,7 @@ import { PortalStatementButton } from "@/components/certificates/portal-statemen
 import { PortalRequestDialog } from "@/components/portal/request-dialog";
 import { PortalClaimDialog, WarrantyClaimBadge } from "@/components/handovers/warranty-dialogs";
 import { PortalDocument } from "@/components/portal/portal-document";
+import { SignDocument } from "@/components/portal/sign-document";
 import { PendingDocumentsRefresher } from "@/components/sales/document-pdf";
 import { InstallmentStateBadge, SaleStatusBadge } from "@/components/sales/badges";
 import { Badge } from "@/components/ui/badge";
@@ -32,6 +33,7 @@ import { cn } from "@/lib/utils";
 import { getPortalPaymentOptions } from "@/server/online-payments/queries";
 import { requirePortalCtx } from "@/server/portal/page-guard";
 import { getPortalSale } from "@/server/portal/sales";
+import { listMySignatures } from "@/server/signatures/queries";
 import { listSalePortalRequests } from "@/server/requests/service";
 import { listPortalWarrantyClaims } from "@/server/handovers/warranty";
 
@@ -50,6 +52,11 @@ export default async function PortalSalePage({
   const ctx = await requirePortalCtx();
   const sale = await getPortalSale(ctx, saleId);
   if (!sale) notFound();
+  const signed = await listMySignatures(
+    ctx,
+    "schedule_amendment",
+    sale.amendments.map((a) => a.id),
+  );
   const t = await getTranslations("portal.sale");
   const ts = await getTranslations("sales.statement");
   const tm = await getTranslations("payments.method");
@@ -272,14 +279,21 @@ export default async function PortalSalePage({
               <PortalDocument fileId={sale.deedFileId} label={t("deed")} />
             </div>
           ) : null}
-          {sale.amendments.map((a) => (
-            <div key={a.id}>
-              <PortalDocument
-                fileId={a.pdfFileId}
-                label={t("amendment", { number: a.sequence, date: formatDate(a.signedOn) })}
-              />
-            </div>
-          ))}
+          {sale.amendments.map((a) => {
+            const label = t("amendment", { number: a.sequence, date: formatDate(a.signedOn) });
+            return (
+              <div key={a.id} className="flex flex-wrap items-center gap-2">
+                <PortalDocument fileId={a.pdfFileId} label={label} />
+                <SignDocument
+                  documentType="schedule_amendment"
+                  documentId={a.id}
+                  fileId={a.pdfFileId}
+                  label={label}
+                  signedAt={signed.get(a.id) ?? null}
+                />
+              </div>
+            );
+          })}
           {sale.calls.map((c) => (
             <div key={c.id} className="flex flex-wrap items-center gap-2">
               <PortalDocument

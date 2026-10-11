@@ -252,6 +252,15 @@
         "rent_receipt": "votre quittance de loyer",
         "deposit_receipt": "votre reçu de dépôt de garantie"
       }
+    },
+    "signatureCode": {
+      "subject": "Votre code de signature",
+      "body": "Voici le code pour signer {document} ({organization}) depuis votre espace client :",
+      "notice": "Valable {minutes} minutes. Si vous n'avez rien demandé, ignorez cet e-mail : rien n'est signé sans ce code.",
+      "documents": {
+        "schedule_amendment": "l'avenant n° {number} à la réservation {reference}",
+        "lease_inspection": "{kind, select, check_in {l'état des lieux d'entrée} other {l'état des lieux de sortie}} du bail {reference}"
+      }
     }
   },
   "nav": {
@@ -6090,6 +6099,30 @@
     "indicative": "Estimation indicative au barème réglé par la société ; le notaire établit le décompte définitif.",
     "errors": {
       "tranches": "Les plafonds des tranches doivent être croissants, une seule tranche « au-delà », en dernier."
+    }
+  },
+  "signatures": {
+    "sign": "Signer électroniquement",
+    "title": "Signer électroniquement",
+    "explanation": "Votre signature électronique approuve ce document tel qu'il est enregistré. Un code à usage unique vous est envoyé par e-mail ; la date, l'adresse de connexion et l'empreinte du document sont conservées comme preuve (signature électronique simple, loi 15-04).",
+    "readFirst": "Lisez le document avant de le signer :",
+    "sendCode": "Recevoir le code par e-mail",
+    "resend": "Renvoyer un code",
+    "codeSent": "Code envoyé à {email}, valable {minutes} minutes.",
+    "code": "Code reçu (6 chiffres)",
+    "confirm": "Signer",
+    "signed": "Document signé.",
+    "signedOn": "Signé électroniquement le {date}",
+    "signedBy": "Signé électroniquement par {name} le {date}",
+    "fingerprint": "Empreinte SHA-256 : {hash}",
+    "errors": {
+      "noPdf": "Le document n'est pas encore prêt : réessayez dans un instant.",
+      "alreadySigned": "Vous avez déjà signé ce document.",
+      "tooManyCodes": "Trop de codes demandés : réessayez dans une heure.",
+      "wrongCode": "Code incorrect.",
+      "codeExpired": "Code expiré ou absent : demandez-en un nouveau.",
+      "codeLocked": "Trop d'essais : demandez un nouveau code.",
+      "codeFormat": "Le code compte 6 chiffres."
     }
   }
 }

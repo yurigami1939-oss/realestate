@@ -5,6 +5,7 @@ import { createTranslator } from "next-intl";
 import type { EmailMessage } from "@/jobs/queues";
 import { formatDate } from "@/lib/dates";
 import { formatDZD } from "@/lib/money";
+import type { SignableDocument } from "@/lib/signatures";
 
 import ar from "../../../messages/ar.json";
 import fr from "../../../messages/fr.json";
@@ -32,16 +33,21 @@ function section(locale: "fr" | "ar", kind: EmailKind, values: Values, url: stri
   return { subject: t("subject", values), html, text };
 }
 
-/** One email, French then Arabic: the recipient's language is not known yet. */
-function bilingual(kind: EmailKind, to: string, values: Values, url: string): EmailMessage {
-  const frPart = section("fr", kind, values, url);
-  const arPart = section("ar", kind, values, url);
+type Part = { subject: string; html: string; text: string };
+
+/** French then Arabic in one message. */
+function combine(to: string, frPart: Part, arPart: Part): EmailMessage {
   return {
     to,
     subject: `${frPart.subject} · ${arPart.subject}`,
     html: `<!doctype html><html><body style="font-family:Arial,Helvetica,sans-serif;font-size:15px;color:#171717;max-width:560px;margin:0 auto;padding:24px">${frPart.html}<hr style="border:none;border-top:1px solid #e5e5e5;margin:0 0 32px">${arPart.html}</body></html>`,
     text: `${frPart.text}\n\n---\n\n${arPart.text}`,
   };
+}
+
+/** One email, French then Arabic: the recipient's language is not known yet. */
+function bilingual(kind: EmailKind, to: string, values: Values, url: string): EmailMessage {
+  return combine(to, section("fr", kind, values, url), section("ar", kind, values, url));
 }
 
 export function invitationEmail(input: {
@@ -416,4 +422,48 @@ export function clientDocumentEmail(input: {
     text: `${frPart.text}\n\n---\n\n${arPart.text}`,
     attachments: [input.attachment],
   };
+}
+
+/**
+ * The one-time code that signs a document from the portal (CLAUDE.md §7 Electronic signature):
+ * French then Arabic, the code in large figures, no link.
+ */
+export function signatureCodeEmail(input: {
+  to: string;
+  code: string;
+  /** The document: its kind and what names it (number, sale or lease, inspection kind). */
+  document: { type: SignableDocument; number: string; reference: string; kind: string };
+  organization: string;
+  minutes: number;
+}): EmailMessage {
+  const part = (locale: "fr" | "ar"): Part => {
+    const t = createTranslator({
+      locale,
+      messages: catalogs[locale],
+      namespace: "emails.signatureCode",
+    });
+    const values = {
+      document: t(`documents.${input.document.type}`, {
+        number: input.document.number,
+        reference: input.document.reference,
+        kind: input.document.kind,
+      }),
+      organization: input.organization,
+      minutes: String(input.minutes),
+    };
+    const dir = locale === "ar" ? "rtl" : "ltr";
+    const body = t("body", values);
+    const notice = t("notice", values);
+    return {
+      subject: t("subject", values),
+      html: `
+    <div dir="${dir}" lang="${locale}" style="text-align:${dir === "rtl" ? "right" : "left"};margin:0 0 32px">
+      <p style="margin:0 0 12px">${escapeHtml(body)}</p>
+      <p dir="ltr" style="font-size:28px;font-weight:700;letter-spacing:6px;margin:16px 0">${escapeHtml(input.code)}</p>
+      <p style="margin:0 0 12px;color:#525252">${escapeHtml(notice)}</p>
+    </div>`,
+      text: `${body}\n${input.code}\n${notice}`,
+    };
+  };
+  return combine(input.to, part("fr"), part("ar"));
 }

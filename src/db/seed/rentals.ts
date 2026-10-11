@@ -296,6 +296,21 @@ export async function seedRentals(actors: Actors) {
     (l) => l.dueOn <= today,
   );
   await payPeriods(actors, cherif, due?.length ?? 0, "Mohamed Cherif");
+  // Its entry inspection, for the tenant to sign from the portal.
+  await inspect(
+    actors,
+    cherif,
+    "check_in",
+    addDays(today, -40),
+    [
+      { element: "Entrée", condition: "good" },
+      { element: "Séjour", condition: "good" },
+      { element: "Cuisine", condition: "good" },
+      { element: "Chambre", condition: "good" },
+      { element: "Salle de bain", condition: "fair", notes: "Joint de la baignoire à refaire" },
+    ],
+    { electricity: "000218", water: "0031", keys: "2" },
+  );
   const [tenant] = await withTenant(actors.manager, (tx) =>
     tx
       .select({ occupantId: leaseTable.occupantId })

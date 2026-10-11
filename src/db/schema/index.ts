@@ -22,6 +22,7 @@ export * from "./push";
 export * from "./residences";
 export * from "./roles";
 export * from "./sales";
+export * from "./signatures";
 export * from "./staff";
 export * from "./suppliers";
 export * from "./tickets";

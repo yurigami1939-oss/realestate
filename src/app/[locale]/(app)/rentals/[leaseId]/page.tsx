@@ -20,6 +20,7 @@ import {
   SettleDepositDialog,
 } from "@/components/rentals/lease-dialogs";
 import { InspectionPdf, LeaseStateBadge, RentReceiptPdf } from "@/components/rentals/rentals-ui";
+import { SignatureList } from "@/components/signatures/signature-list";
 import { InstallmentStateBadge } from "@/components/sales/badges";
 import { PendingDocumentsRefresher } from "@/components/sales/document-pdf";
 import { Badge } from "@/components/ui/badge";
@@ -41,6 +42,7 @@ import { formatDZD, toDecimalString } from "@/lib/money";
 import { can } from "@/lib/permissions";
 import { requirePermission } from "@/server/auth/page-guard";
 import { getLease } from "@/server/rentals/queries";
+import { listSignatures } from "@/server/signatures/queries";
 import { listAccountChoices } from "@/server/treasury/queries";
 
 import { ContractScan } from "./_components/contract-scan";
@@ -66,6 +68,11 @@ export default async function LeasePage({ params }: PageProps<"/[locale]/rentals
   const accounts = can(ctx, "payment:create") ? await listAccountChoices(ctx) : [];
   const lease = await getLease(ctx, leaseId);
   if (!lease) notFound();
+  const inspectionSignatures = await listSignatures(
+    ctx,
+    "lease_inspection",
+    lease.inspections.map((i) => i.id),
+  );
   const t = await getTranslations("rentals");
   const tp = await getTranslations("payments");
   const tc = await getTranslations("common");
@@ -511,11 +518,14 @@ export default async function LeasePage({ params }: PageProps<"/[locale]/rentals
                   <div>
                     <div className="font-medium">{t(`inspection.kind.${kind}`)}</div>
                     {inspection ? (
-                      <InspectionPdf
-                        fileId={inspection.pdfFileId}
-                        inspectionId={inspection.id}
-                        label={t("inspection.pdf", { date: formatDate(inspection.inspectedOn) })}
-                      />
+                      <>
+                        <InspectionPdf
+                          fileId={inspection.pdfFileId}
+                          inspectionId={inspection.id}
+                          label={t("inspection.pdf", { date: formatDate(inspection.inspectedOn) })}
+                        />
+                        <SignatureList signatures={inspectionSignatures.get(inspection.id)} />
+                      </>
                     ) : (
                       <div className="text-muted-foreground">{t("inspection.none")}</div>
                     )}

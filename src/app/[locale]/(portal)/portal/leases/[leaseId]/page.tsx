@@ -5,6 +5,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { PayOnlineDialog } from "@/components/online-payments/pay-online-dialog";
 import { PortalDocument } from "@/components/portal/portal-document";
+import { SignDocument } from "@/components/portal/sign-document";
 import { InstallmentStateBadge } from "@/components/sales/badges";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,6 +25,7 @@ import { onlinePaymentOffer } from "@/lib/online-payments";
 import { cn } from "@/lib/utils";
 import { getPortalPaymentOptions } from "@/server/online-payments/queries";
 import { getPortalLease } from "@/server/portal/leases";
+import { listMySignatures } from "@/server/signatures/queries";
 import { requirePortalCtx } from "@/server/portal/page-guard";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -41,6 +43,11 @@ export default async function PortalLeasePage({
   const ctx = await requirePortalCtx();
   const lease = await getPortalLease(ctx, leaseId);
   if (!lease) notFound();
+  const signed = await listMySignatures(
+    ctx,
+    "lease_inspection",
+    lease.inspections.map((i) => i.id),
+  );
   const t = await getTranslations("portal.lease");
   const tr = await getTranslations("rentals");
   const tm = await getTranslations("payments.method");
@@ -220,13 +227,21 @@ export default async function PortalLeasePage({
             <CardTitle className="text-base">{t("inspections")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
-            {lease.inspections.map((i) => (
-              <PortalDocument
-                key={i.id}
-                fileId={i.pdfFileId}
-                label={t(`inspection.${i.kind}`, { date: formatDate(i.inspectedOn) })}
-              />
-            ))}
+            {lease.inspections.map((i) => {
+              const label = t(`inspection.${i.kind}`, { date: formatDate(i.inspectedOn) });
+              return (
+                <div key={i.id} className="flex flex-wrap items-center gap-2">
+                  <PortalDocument fileId={i.pdfFileId} label={label} />
+                  <SignDocument
+                    documentType="lease_inspection"
+                    documentId={i.id}
+                    fileId={i.pdfFileId}
+                    label={label}
+                    signedAt={signed.get(i.id) ?? null}
+                  />
+                </div>
+              );
+            })}
           </CardContent>
         </Card>
       ) : null}
