@@ -55,6 +55,7 @@ export default async function EditLeadPage({ params }: PageProps<"/[locale]/lead
           notes: lead.notes ?? "",
           assignedTo: "",
           partnerId: lead.partnerId ?? "",
+          marketingConsent: lead.marketingConsent,
         }}
         partners={await listPartnerChoices(ctx)}
       />

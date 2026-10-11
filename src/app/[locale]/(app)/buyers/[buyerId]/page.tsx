@@ -6,6 +6,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { PageHeader } from "@/components/app-shell/page-header";
 import { PhoneActions, PhoneText } from "@/components/crm/phone";
+import { PersonPrivacyCard } from "@/components/privacy/person-privacy-card";
 import { ExportButton } from "@/components/exports/export-button";
 import { PortalAccessControl } from "@/components/portal/portal-access";
 import { SaleStatusBadge } from "@/components/sales/badges";
@@ -22,6 +23,7 @@ import { requirePermission } from "@/server/auth/page-guard";
 import { getBuyer, type BuyerDetail } from "@/server/buyers/queries";
 import { getPortalAccess, type PortalAccess } from "@/server/portal/invitations";
 import { listBuyerSales } from "@/server/sales/sale-queries";
+import { getPersonPrivacy } from "@/server/privacy/consents";
 
 import { DocumentsChecklist } from "./_components/documents-checklist";
 
@@ -47,6 +49,7 @@ export default async function BuyerPage({ params }: PageProps<"/[locale]/buyers/
   const ts = await getTranslations("sales");
   const tp = await getTranslations("privacy");
   const money = (v: bigint) => formatDZD(v, toLocale(locale));
+  const privacy = await getPersonPrivacy(ctx, { type: "buyer", id: buyer.id });
   const portal = {
     access: (await getPortalAccess(ctx, [{ kind: "buyer", id: buyer.id }])).get(buyer.id) ?? null,
     editable: editable && can(ctx.roles, "portal:invite"),
@@ -147,6 +150,7 @@ export default async function BuyerPage({ params }: PageProps<"/[locale]/buyers/
           <DocumentsChecklist buyerId={buyer.id} documents={buyer.documents} editable={editable} />
         </CardContent>
       </Card>
+      {privacy ? <PersonPrivacyCard privacy={privacy} /> : null}
     </div>
   );
 }
@@ -250,6 +254,16 @@ function ContactCard({
             {
               label: t("fields.phone2"),
               value: buyer.phone2 ? <PhoneText value={buyer.phone2} /> : null,
+            },
+            {
+              label: t("fields.consents"),
+              value:
+                [
+                  buyer.whatsappOptIn ? t("consent.whatsapp") : null,
+                  buyer.marketingConsent ? t("consent.marketing") : null,
+                ]
+                  .filter(Boolean)
+                  .join(" · ") || null,
             },
             {
               label: t("fields.email"),

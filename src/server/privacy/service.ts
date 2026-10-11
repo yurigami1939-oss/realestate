@@ -28,8 +28,9 @@ import { assertCan, type TenantCtx } from "@/server/auth/session";
 import { loadVisibleBuyer } from "@/server/buyers/access";
 import { loadVisibleLead } from "@/server/crm/access";
 import type { ExportResult, Translate } from "@/server/exports/builders";
-import { exportFileName } from "@/server/exports/xlsx";
+import { type ExportSheet, exportFileName } from "@/server/exports/xlsx";
 
+import { accessHistory, consentHistory } from "./consents";
 import type { anonymizeLeadSchema } from "./schemas";
 
 type In<S extends z.ZodType> = z.output<S>;
@@ -205,6 +206,11 @@ export async function personExport(
               t(`whatsapp.status.${m.status}`),
             ]),
           },
+          ...privacySheets(
+            t,
+            await consentHistory(tx, { type: "buyer", id: found.id }),
+            await accessHistory(tx, "buyer", found.id),
+          ),
         ],
       };
     }
@@ -281,9 +287,50 @@ export async function personExport(
           ],
           rows: quotations.map((q) => [q.number, q.createdAt, q.netPrice]),
         },
+        ...privacySheets(
+          t,
+          await consentHistory(tx, { type: "lead", id: found.id }),
+          await accessHistory(tx, "lead", found.id),
+        ),
       ],
     };
   });
+}
+
+/** The consents given or withdrawn and who opened the file, the last two sheets. */
+function privacySheets(
+  t: Translate,
+  consents: Awaited<ReturnType<typeof consentHistory>>,
+  accesses: Awaited<ReturnType<typeof accessHistory>>,
+): ExportSheet[] {
+  return [
+    {
+      name: t("privacy.sheets.consents"),
+      columns: [
+        { header: t("privacy.columns.date"), kind: "datetime" },
+        { header: t("privacy.columns.purpose"), width: 24 },
+        { header: t("privacy.columns.consent"), width: 14 },
+        { header: t("privacy.columns.source"), width: 20 },
+        { header: t("privacy.columns.by"), width: 24 },
+      ],
+      rows: consents.map((c) => [
+        c.createdAt,
+        t(`privacy.person.purpose.${c.purpose}`),
+        t(c.granted ? "privacy.columns.granted" : "privacy.columns.withdrawn"),
+        t(`privacy.person.source.${c.source}`),
+        c.actorName ?? c.detail,
+      ]),
+    },
+    {
+      name: t("privacy.sheets.accesses"),
+      columns: [
+        { header: t("privacy.columns.date"), kind: "date" },
+        { header: t("privacy.columns.by"), width: 24 },
+        { header: t("privacy.columns.times"), kind: "integer" },
+      ],
+      rows: accesses.map((a) => [a.day, a.userName, a.count]),
+    },
+  ];
 }
 
 /**

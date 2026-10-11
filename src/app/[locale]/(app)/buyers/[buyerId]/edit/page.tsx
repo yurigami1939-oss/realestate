@@ -55,6 +55,7 @@ export default async function EditBuyerPage({
           phone: formatPhone(b.phone),
           phone2: b.phone2 ? formatPhone(b.phone2) : "",
           whatsappOptIn: b.whatsappOptIn,
+          marketingConsent: b.marketingConsent,
           email: text(b.email),
           address: text(b.address),
           commune: text(b.commune),

@@ -33,6 +33,7 @@ import {
 } from "@/lib/rentals";
 import { loadTaxSettings } from "@/server/accounting/tax";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
+import { recordAccess } from "@/server/privacy/consents";
 
 import { leaseExtras, leasePaid, rentStatement } from "./accounts";
 import { settlementChoices } from "./settlements";
@@ -152,6 +153,7 @@ export async function getLease(ctx: TenantCtx, leaseId: string) {
       .where(eq(lease.id, leaseId));
     if (!row) return null;
     const l = row.lease;
+    await recordAccess(tx, ctx, "lease", l.id);
     const payments = await tx
       .select({
         id: rentPayment.id,

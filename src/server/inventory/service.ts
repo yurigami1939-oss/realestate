@@ -103,16 +103,14 @@ async function joinThirdPartyResidence(
     .where(and(eq(residence.projectId, projectId), isNull(residence.deletedAt)));
   const [home] = homes;
   if (!home || homes.length > 1) return;
-  await tx
-    .insert(residenceUnit)
-    .values(
-      units.map((u) => ({
-        organizationId: orgId,
-        residenceId: home.id,
-        unitId: u.id,
-        share: u.share ?? 0,
-      })),
-    );
+  await tx.insert(residenceUnit).values(
+    units.map((u) => ({
+      organizationId: orgId,
+      residenceId: home.id,
+      unitId: u.id,
+      share: u.share ?? 0,
+    })),
+  );
 }
 
 async function liveUnitCount(tx: Tx, where: ReturnType<typeof eq>) {

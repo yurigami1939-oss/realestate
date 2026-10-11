@@ -9,6 +9,7 @@ import { isUuid } from "@/lib/ids";
 import { phoneSearchDigits } from "@/lib/phone";
 import { buyerDocumentKinds, requiredBuyerDocuments } from "@/lib/sales";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
+import { recordAccess } from "@/server/privacy/consents";
 
 import { visibleBuyers } from "./access";
 import { BUYERS_PAGE_SIZE, type BuyerListParams } from "./schemas";
@@ -86,6 +87,7 @@ export async function getBuyer(ctx: TenantCtx, buyerId: string) {
       .leftJoin(owner, eq(owner.id, buyer.ownerUserId))
       .where(and(eq(buyer.id, buyerId), isNull(buyer.deletedAt), visibleBuyers(ctx)));
     if (!row) return null;
+    await recordAccess(tx, ctx, "buyer", row.buyer.id);
     const rows = await tx
       .select({
         kind: buyerDocument.kind,

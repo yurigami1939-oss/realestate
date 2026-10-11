@@ -38,6 +38,8 @@ export const buyerFields = z.object({
   phone2: optionalPhoneText(),
   /** Consent to WhatsApp notifications on `phone` (CLAUDE.md §7 WhatsApp). */
   whatsappOptIn: z.boolean().default(false),
+  /** Agreed to receive commercial offers (CLAUDE.md §7 Personal data). */
+  marketingConsent: z.boolean().default(false),
   email: optionalEmailText(),
   address: optionalText(300),
   commune: optionalText(80),

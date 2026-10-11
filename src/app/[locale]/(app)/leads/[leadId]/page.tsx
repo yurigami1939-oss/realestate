@@ -39,6 +39,7 @@ import { listProjectOptions, listUnitChoices } from "@/server/inventory/queries"
 import { getSalesSettings } from "@/server/organizations/settings";
 import { listLeadQuotations } from "@/server/quotations/queries";
 import { listLeadOptions, type LeadOptionRow } from "@/server/sales/queries";
+import { getPersonPrivacy } from "@/server/privacy/consents";
 
 import {
   CompleteFollowUpDialog,
@@ -47,6 +48,7 @@ import {
   ScheduleVisitDialog,
   type UnitChoice,
 } from "@/components/crm/activity-dialogs";
+import { PersonPrivacyCard } from "@/components/privacy/person-privacy-card";
 import { AssignDialog, StageDialog } from "./_components/lead-dialogs";
 import { NoteForm } from "./_components/note-form";
 import { Timeline } from "./_components/timeline";
@@ -76,6 +78,7 @@ export default async function LeadPage({ params }: PageProps<"/[locale]/leads/[l
   const options = await listLeadOptions(ctx, lead.id);
   const canSell = can(ctx.roles, "sale:create");
   const { optionHours } = await getSalesSettings(ctx);
+  const privacy = await getPersonPrivacy(ctx, { type: "lead", id: lead.id });
   const projectNames = new Map(projects.map((p) => [p.id, p.name]));
   const availableUnits: OptionUnitChoice[] = units.flatMap((u) =>
     u.status === "available"
@@ -219,6 +222,7 @@ export default async function LeadPage({ params }: PageProps<"/[locale]/leads/[l
           </CardContent>
         </Card>
       </div>
+      {privacy ? <PersonPrivacyCard privacy={privacy} /> : null}
     </div>
   );
 }

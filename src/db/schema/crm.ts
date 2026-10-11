@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import {
+  boolean,
   check,
   date,
   foreignKey,
@@ -106,6 +107,8 @@ export const lead = pgTable(
     assignedTo: userRef(),
     /** The agency or introducer who brought the lead (its commission at the VSP). */
     partnerId: uuid(),
+    /** Agreed to receive commercial offers; history in `consent_event`. */
+    marketingConsent: boolean().notNull().default(false),
     mergedIntoId: uuid(),
     lastActivityAt: instant().notNull().defaultNow(),
     ...timestamps(),

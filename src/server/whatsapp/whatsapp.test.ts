@@ -3,7 +3,7 @@ import { createHmac } from "node:crypto";
 import { and, eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
-import { auditLog, buyer, whatsappAccount, whatsappMessage } from "@/db/schema";
+import { auditLog, buyer, consentEvent, whatsappAccount, whatsappMessage } from "@/db/schema";
 import { withTenant } from "@/db/tenant";
 import { stopEnqueue } from "@/jobs/enqueue";
 import { addDays, todayInAlgiers } from "@/lib/dates";
@@ -351,6 +351,13 @@ describe("WhatsApp webhook", () => {
       tx.select({ optIn: buyer.whatsappOptIn }).from(buyer).where(eq(buyer.phone, "+213661501234")),
     );
     expect(buyers).toEqual([{ optIn: false }]);
+    // The withdrawal is kept as proof, with the number it came from.
+    const events = await withTenant(team.owner, (tx) =>
+      tx.select().from(consentEvent).where(eq(consentEvent.source, "stop_reply")),
+    );
+    expect(events).toMatchObject([
+      { subjectType: "buyer", purpose: "whatsapp", granted: false, detail: "+213661501234" },
+    ]);
   });
 });
 

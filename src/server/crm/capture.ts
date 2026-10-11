@@ -180,8 +180,10 @@ export async function captureLead(
         financing: "",
         notes: input.message ?? "",
         assignedTo: "",
+        marketingConsent: input.consent,
       }),
       tx,
+      { consentSource: "capture" },
     );
     return { id: created.id, duplicate: created.duplicates > 0 };
   });

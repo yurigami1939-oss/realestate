@@ -7,8 +7,10 @@ import type { Tx } from "@/db/client";
 import { followUp, lead, visit } from "@/db/schema";
 import { withTenant } from "@/db/tenant";
 import { advanceStage } from "@/lib/crm";
+import type { ConsentSource } from "@/lib/privacy";
 import { recordAudit } from "@/server/audit/record-audit";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
+import { recordConsentChanges } from "@/server/privacy/consents";
 
 import { assertLeadOwner, assertLiveProject, loadVisibleLead, seesAllLeads } from "./access";
 import { recordLeadActivity } from "./activity";
@@ -46,6 +48,8 @@ export async function createLead(
   input: In<typeof createLeadSchema>,
   /** An open tenant transaction to join (a data import's). */
   outer?: Tx,
+  /** How the consents were given (a website's capture key). */
+  options: { consentSource?: ConsentSource } = {},
 ) {
   assertCan(ctx, "lead:create");
   return withTenant(
@@ -63,6 +67,14 @@ export async function createLead(
         .returning({ id: lead.id });
       if (!row) throw new Error("createLead: no row returned");
       await recordLeadActivity(tx, ctx, row.id, "created", { source: fields.source });
+      await recordConsentChanges(
+        tx,
+        ctx,
+        { type: "lead", id: row.id },
+        null,
+        { marketing: fields.marketingConsent },
+        options.consentSource,
+      );
       const duplicates = await countDuplicates(tx, [fields.phone, fields.phone2], row.id);
       return { id: row.id, duplicates };
     },
@@ -74,9 +86,16 @@ export async function updateLead(ctx: TenantCtx, input: In<typeof updateLeadSche
   assertCan(ctx, "lead:update");
   return withTenant(ctx, async (tx) => {
     const { leadId, ...fields } = input;
-    await loadVisibleLead(tx, ctx, leadId, { forUpdate: true });
+    const before = await loadVisibleLead(tx, ctx, leadId, { forUpdate: true });
     if (fields.projectId) await assertLiveProject(tx, fields.projectId);
     await tx.update(lead).set(fields).where(eq(lead.id, leadId));
+    await recordConsentChanges(
+      tx,
+      ctx,
+      { type: "lead", id: leadId },
+      { marketing: before.marketingConsent },
+      { marketing: fields.marketingConsent },
+    );
     await recordLeadActivity(tx, ctx, leadId, "updated");
     return { duplicates: await countDuplicates(tx, [fields.phone, fields.phone2], leadId) };
   });

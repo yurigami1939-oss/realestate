@@ -512,6 +512,13 @@
       "when": 1791717458615,
       "tag": "0072_privacy_retention",
       "breakpoints": true
+    },
+    {
+      "idx": 73,
+      "version": "7",
+      "when": 1791719163736,
+      "tag": "0073_consents_and_access",
+      "breakpoints": true
     }
   ]
 }

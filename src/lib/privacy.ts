@@ -54,3 +54,19 @@ export type ProcessingActivity = (typeof processingActivities)[number]["key"];
 
 /** What erased message logs keep in place of the recipient. */
 export const ERASED_RECIPIENT = "—";
+
+/** What a person may agree to: WhatsApp notifications, commercial offers (other projects…). */
+export const consentPurposes = ["whatsapp", "marketing"] as const;
+export type ConsentPurpose = (typeof consentPurposes)[number];
+
+/** How a consent was given or withdrawn: by staff (form, import), a website, a « STOP » reply. */
+export const consentSources = ["staff", "capture", "stop_reply"] as const;
+export type ConsentSource = (typeof consentSources)[number];
+
+/** The records a consent belongs to. */
+export const consentSubjects = ["lead", "buyer", "resident", "lease"] as const;
+export type ConsentSubject = (typeof consentSubjects)[number];
+
+/** The files whose opening is logged (who read a person's data, and when). */
+export const accessSubjects = ["lead", "buyer", "lease", "owner"] as const;
+export type AccessSubject = (typeof accessSubjects)[number];

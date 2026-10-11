@@ -46,6 +46,8 @@ export const leadFields = z.object({
   notes: optionalText(2000),
   /** The agency or introducer who brought the lead. */
   partnerId: optionalId(),
+  /** Agreed to receive commercial offers (CLAUDE.md §7 Personal data). */
+  marketingConsent: z.boolean().default(false),
 });
 
 /** `assignedTo` is only honoured for managers; a commercial's lead is always theirs. */
@@ -173,4 +175,9 @@ export const capturedLeadSchema = z.object({
   message: optionalText(2000),
   /** Where it came from: the form, the campaign (shown on the lead). */
   sourceDetail: optionalText(120),
+  /** The website's « accept commercial offers » box (« oui », « true », 1…). */
+  consent: z
+    .string()
+    .optional()
+    .transform((v) => /^(1|true|oui|yes|on)$/i.test(v?.trim() ?? "")),
 });

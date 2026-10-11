@@ -686,7 +686,8 @@
         "financing": "Financement",
         "notes": "Notes",
         "assignedTo": "Commercial",
-        "partnerId": "Apporté par"
+        "partnerId": "Apporté par",
+        "marketingConsent": "Accepte de recevoir des offres commerciales"
       },
       "sections": {
         "contact": "Contact",
@@ -1074,7 +1075,9 @@
       "whatsappOptIn": "Accepte les notifications WhatsApp sur ce numéro (consentement recueilli)",
       "householdIncome": "Revenus mensuels du ménage (DA)",
       "ownsHome": "Possède déjà un logement",
-      "previousHousingAid": "A déjà bénéficié d'une aide de l'État au logement"
+      "previousHousingAid": "A déjà bénéficié d'une aide de l'État au logement",
+      "marketingConsent": "Accepte de recevoir des offres commerciales (autres projets)",
+      "consents": "Consentements"
     },
     "civility": {
       "mr": "M.",
@@ -1116,6 +1119,10 @@
     },
     "errors": {
       "ninTaken": "Ce NIN est déjà utilisé par un autre acquéreur."
+    },
+    "consent": {
+      "whatsapp": "Notifications WhatsApp",
+      "marketing": "Offres commerciales"
     }
   },
   "sales": {
@@ -5443,7 +5450,9 @@
       "messages": "Messages WhatsApp",
       "timeline": "Historique",
       "visits": "Visites et relances",
-      "quotations": "Devis"
+      "quotations": "Devis",
+      "consents": "Consentements",
+      "accesses": "Consultations"
     },
     "columns": {
       "field": "Donnée",
@@ -5458,7 +5467,14 @@
       "sale": "Vente",
       "method": "Mode",
       "message": "Message",
-      "event": "Événement"
+      "event": "Événement",
+      "purpose": "Objet",
+      "consent": "Consentement",
+      "source": "Origine",
+      "by": "Par",
+      "granted": "Donné",
+      "withdrawn": "Retiré",
+      "times": "Fois"
     },
     "errors": {
       "onePerson": "Choisissez un acquéreur ou un prospect.",
@@ -5561,6 +5577,25 @@
           "recipients": "Gérant et comptable (journal d'audit).",
           "retention": "Durée du compte ; journal d'audit conservé (inaltérable)."
         }
+      }
+    },
+    "person": {
+      "title": "Consentements et consultations",
+      "consents": "Consentements",
+      "noConsent": "Aucun consentement enregistré.",
+      "given": "{purpose} : consentement donné",
+      "withdrawn": "{purpose} : consentement retiré",
+      "accesses": "Consultations du dossier",
+      "noAccess": "Aucune consultation.",
+      "times": "{count, plural, one {# fois} other {# fois}}",
+      "purpose": {
+        "whatsapp": "Notifications WhatsApp",
+        "marketing": "Offres commerciales"
+      },
+      "source": {
+        "staff": "Saisi par l'équipe",
+        "capture": "Formulaire du site",
+        "stop_reply": "Réponse « STOP »"
       }
     }
   },

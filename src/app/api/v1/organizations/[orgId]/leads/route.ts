@@ -14,6 +14,7 @@ const aliases: Record<string, string[]> = {
   project: ["project", "projet"],
   message: ["message", "comments", "commentaire"],
   sourceDetail: ["sourceDetail", "campaign", "campagne", "form_name", "form"],
+  consent: ["consent", "consentement", "optin", "opt_in", "marketing_consent"],
 };
 
 const MAX_BODY_BYTES = 16 * 1024;
@@ -44,6 +45,7 @@ export async function POST(
       for (const name of aliases[field] ?? []) {
         const value = body[name];
         if (typeof value === "string" && value.trim() !== "") return value;
+        if (typeof value === "boolean") return String(value);
       }
       return undefined;
     };

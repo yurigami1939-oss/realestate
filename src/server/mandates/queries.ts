@@ -16,6 +16,7 @@ import { todayInAlgiers } from "@/lib/dates";
 import { isUuid } from "@/lib/ids";
 import { ownerStatementTotals } from "@/lib/mandates";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
+import { recordAccess } from "@/server/privacy/consents";
 
 import { pendingStatementPayments } from "./statements";
 
@@ -63,6 +64,7 @@ export async function getOwner(ctx: TenantCtx, ownerId: string) {
       .from(propertyOwner)
       .where(and(eq(propertyOwner.id, ownerId), isNull(propertyOwner.deletedAt)));
     if (!owner) return null;
+    await recordAccess(tx, ctx, "owner", owner.id);
     const mandates = await tx
       .select({
         id: managementMandate.id,

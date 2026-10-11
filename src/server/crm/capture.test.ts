@@ -2,7 +2,7 @@ import { eq } from "drizzle-orm";
 import { afterAll, describe, expect, it } from "vitest";
 
 import { POST } from "@/app/api/v1/organizations/[orgId]/leads/route";
-import { lead } from "@/db/schema";
+import { consentEvent, lead } from "@/db/schema";
 import { withTenant } from "@/db/tenant";
 import { stopEnqueue } from "@/jobs/enqueue";
 
@@ -45,7 +45,12 @@ describe("lead capture", () => {
     const first = await send(
       team.orgId,
       key,
-      JSON.stringify({ nom: "Samira Boudiaf", telephone: "0661 45 78 12", message: "Un F3" }),
+      JSON.stringify({
+        nom: "Samira Boudiaf",
+        telephone: "0661 45 78 12",
+        message: "Un F3",
+        consentement: true,
+      }),
     );
     expect(first.status).toBe(200);
     const second = await send(
@@ -71,6 +76,7 @@ describe("lead capture", () => {
           assignedTo: lead.assignedTo,
           createdBy: lead.createdBy,
           notes: lead.notes,
+          marketingConsent: lead.marketingConsent,
         })
         .from(lead)
         .where(eq(lead.phone, "+213661457812")),
@@ -85,10 +91,21 @@ describe("lead capture", () => {
           assignedTo: null,
           createdBy: team.manager.userId,
           notes: "Un F3",
+          marketingConsent: true,
         },
-        expect.objectContaining({ source: "facebook", sourceDetail: "Lead Ads octobre" }),
+        expect.objectContaining({
+          source: "facebook",
+          sourceDetail: "Lead Ads octobre",
+          marketingConsent: false,
+        }),
       ]),
     );
+
+    // The website's box ticked: the consent is recorded as given through the form.
+    const consents = await withTenant(team.owner, (tx) => tx.select().from(consentEvent));
+    expect(consents).toMatchObject([
+      { subjectType: "lead", purpose: "marketing", source: "capture" },
+    ]);
 
     expect((await send(team.orgId, key, JSON.stringify({ nom: "Sans téléphone" }))).status).toBe(
       400,

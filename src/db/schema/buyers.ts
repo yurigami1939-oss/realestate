@@ -54,6 +54,8 @@ export const buyer = pgTable(
     phone2: text(),
     /** Agreed to WhatsApp notifications on `phone` (CLAUDE.md §7 WhatsApp). */
     whatsappOptIn: boolean().notNull().default(false),
+    /** Agreed to receive commercial offers (other projects…); history in `consent_event`. */
+    marketingConsent: boolean().notNull().default(false),
     email: text(),
     address: text(),
     commune: text(),

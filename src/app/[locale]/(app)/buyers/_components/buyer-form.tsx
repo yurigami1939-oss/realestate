@@ -39,6 +39,7 @@ export const emptyBuyer: BuyerFormValues = {
   phone: "",
   phone2: "",
   whatsappOptIn: false,
+  marketingConsent: false,
   email: "",
   address: "",
   commune: "",
@@ -72,7 +73,7 @@ export function BuyerForm({
   });
   type Name = Exclude<
     keyof BuyerFormValues,
-    "leadId" | "whatsappOptIn" | "ownsHome" | "previousHousingAid"
+    "leadId" | "whatsappOptIn" | "marketingConsent" | "ownsHome" | "previousHousingAid"
   >;
   type InputExtras = Pick<
     React.ComponentProps<"input">,
@@ -163,6 +164,11 @@ export function BuyerForm({
               control={form.control}
               name="whatsappOptIn"
               label={t("fields.whatsappOptIn")}
+            />
+            <CheckboxField
+              control={form.control}
+              name="marketingConsent"
+              label={t("fields.marketingConsent")}
             />
             {field("address")}
             <div className="grid gap-4 sm:grid-cols-2">

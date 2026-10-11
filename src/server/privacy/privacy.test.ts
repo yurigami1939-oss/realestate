@@ -83,6 +83,8 @@ describe("personal data (Loi 18-07)", () => {
       "privacy.sheets.sales",
       "privacy.sheets.payments",
       "privacy.sheets.messages",
+      "privacy.sheets.consents",
+      "privacy.sheets.accesses",
     ]);
     const identity = sheets[0]?.data ?? [];
     expect(identity).toContainEqual(["buyers.fields.email", "karim@example.test"]);

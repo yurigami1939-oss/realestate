@@ -19,6 +19,7 @@ import { AppError } from "@/lib/result";
 import { isStopReply, whatsappKinds } from "@/lib/whatsapp";
 import { recordAudit } from "@/server/audit/record-audit";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
+import { recordConsentChanges } from "@/server/privacy/consents";
 import { loadResidence } from "@/server/residences/service";
 import { encryptSecret } from "@/server/secrets";
 
@@ -109,7 +110,7 @@ export async function setResidentWhatsapp(
   assertCan(ctx, "residence:update");
   await withTenant(ctx, async (tx) => {
     const [row] = await tx
-      .select({ residenceId: resident.residenceId })
+      .select({ residenceId: resident.residenceId, optIn: resident.whatsappOptIn })
       .from(resident)
       .where(eq(resident.id, input.residentId));
     if (!row) throw new AppError("NOT_FOUND");
@@ -118,6 +119,13 @@ export async function setResidentWhatsapp(
       .update(resident)
       .set({ whatsappOptIn: input.optIn })
       .where(eq(resident.id, input.residentId));
+    await recordConsentChanges(
+      tx,
+      ctx,
+      { type: "resident", id: input.residentId },
+      { whatsapp: row.optIn },
+      { whatsapp: input.optIn },
+    );
   });
 }
 
@@ -229,12 +237,41 @@ export async function receiveWhatsappWebhook(
     }
     const stops = events.replies.filter((r) => isStopReply(r.text)).map((r) => `+${r.from}`);
     if (stops.length > 0) {
-      await tx.update(buyer).set({ whatsappOptIn: false }).where(inArray(buyer.phone, stops));
-      await tx.update(resident).set({ whatsappOptIn: false }).where(inArray(resident.phone, stops));
-      await tx
-        .update(lease)
-        .set({ tenantWhatsappOptIn: false })
-        .where(inArray(lease.tenantPhone, stops));
+      // Each record whose consent the « STOP » withdraws keeps the event as proof.
+      const withdrawn = [
+        ...(
+          await tx
+            .update(buyer)
+            .set({ whatsappOptIn: false })
+            .where(and(inArray(buyer.phone, stops), eq(buyer.whatsappOptIn, true)))
+            .returning({ id: buyer.id, phone: buyer.phone })
+        ).map((r) => ({ type: "buyer" as const, ...r })),
+        ...(
+          await tx
+            .update(resident)
+            .set({ whatsappOptIn: false })
+            .where(and(inArray(resident.phone, stops), eq(resident.whatsappOptIn, true)))
+            .returning({ id: resident.id, phone: resident.phone })
+        ).map((r) => ({ type: "resident" as const, ...r })),
+        ...(
+          await tx
+            .update(lease)
+            .set({ tenantWhatsappOptIn: false })
+            .where(and(inArray(lease.tenantPhone, stops), eq(lease.tenantWhatsappOptIn, true)))
+            .returning({ id: lease.id, phone: lease.tenantPhone })
+        ).map((r) => ({ type: "lease" as const, ...r })),
+      ];
+      for (const record of withdrawn) {
+        await recordConsentChanges(
+          tx,
+          { orgId },
+          { type: record.type, id: record.id },
+          { whatsapp: true },
+          { whatsapp: false },
+          "stop_reply",
+          record.phone,
+        );
+      }
     }
   });
   return true;

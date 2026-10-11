@@ -19,6 +19,7 @@ import { assertCan, type TenantCtx } from "@/server/auth/session";
 import { checkUpload, discardFile, storeFile, type Upload } from "@/server/files/service";
 import { transitionUnit } from "@/server/inventory/transition-unit";
 import { activeMandate } from "@/server/mandates/service";
+import { recordConsentChanges } from "@/server/privacy/consents";
 import { nextDocumentNumber } from "@/server/numbering/next-document-number";
 import { addLeaseOccupant, endLeaseOccupant } from "@/server/residences/service";
 import { notifyRentPayment } from "@/server/whatsapp/notify";
@@ -156,6 +157,9 @@ export async function createLease(ctx: TenantCtx, input: In<typeof createLeaseSc
       sinceOn: input.startOn,
     });
     if (occupantId) await tx.update(lease).set({ occupantId }).where(eq(lease.id, row.id));
+    await recordConsentChanges(tx, ctx, { type: "lease", id: row.id }, null, {
+      whatsapp: input.tenantWhatsappOptIn,
+    });
     await recordAudit(tx, ctx, {
       actorUserId: ctx.userId,
       action: "lease.create",
@@ -192,6 +196,13 @@ export async function updateLease(ctx: TenantCtx, input: In<typeof updateLeaseSc
     }
     const after = { ...tenantValues(input), ...terms };
     await tx.update(lease).set(after).where(eq(lease.id, before.id));
+    await recordConsentChanges(
+      tx,
+      ctx,
+      { type: "lease", id: before.id },
+      { whatsapp: before.tenantWhatsappOptIn },
+      { whatsapp: input.tenantWhatsappOptIn },
+    );
     if (before.occupantId) {
       await tx
         .update(resident)

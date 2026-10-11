@@ -33,6 +33,7 @@ import { isUuid } from "@/lib/ids";
 import { can, parseRoles } from "@/lib/permissions";
 import { phoneSearchDigits } from "@/lib/phone";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
+import { recordAccess } from "@/server/privacy/consents";
 
 import { seesAllLeads, visibleLeads } from "./access";
 import { LEADS_PAGE_SIZE, type LeadListParams } from "./schemas";
@@ -136,6 +137,7 @@ export async function getLead(ctx: TenantCtx, leadId: string) {
       .leftJoin(partner, eq(partner.id, lead.partnerId))
       .where(and(eq(lead.id, leadId), isNull(lead.deletedAt), visibleLeads(ctx)));
     if (!row) return null;
+    await recordAccess(tx, ctx, "lead", row.lead.id);
 
     const merged = await tx.select({ id: lead.id }).from(lead).where(eq(lead.mergedIntoId, leadId));
     const timelineIds = [leadId, ...merged.map((m) => m.id)];

@@ -7,7 +7,12 @@ import { toast } from "sonner";
 import type { z } from "zod";
 
 import { applyFieldErrors } from "@/components/forms/apply-field-errors";
-import { CheckboxGroupField, SelectField, TextareaField } from "@/components/forms/fields";
+import {
+  CheckboxField,
+  CheckboxGroupField,
+  SelectField,
+  TextareaField,
+} from "@/components/forms/fields";
 import { TextField } from "@/components/forms/text-field";
 import { useAction } from "@/components/forms/use-action";
 import { Button } from "@/components/ui/button";
@@ -37,6 +42,7 @@ export const emptyLead: LeadFormValues = {
   notes: "",
   assignedTo: "",
   partnerId: "",
+  marketingConsent: false,
 };
 
 type Option = { id: string; name: string };
@@ -187,6 +193,11 @@ export function LeadForm({
               options={typologies.map((v) => ({ value: v, label: v }))}
             />
             <TextareaField control={form.control} name="notes" label={f("notes")} />
+            <CheckboxField
+              control={form.control}
+              name="marketingConsent"
+              label={f("marketingConsent")}
+            />
             <div className="flex gap-2">
               <Button type="submit" disabled={create.pending || update.pending}>
                 {leadId ? tc("save") : tc("create")}

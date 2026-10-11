@@ -165,5 +165,9 @@ GRANT UPDATE (pdf_file_id) ON public.lease_inspection TO realestate_app;
 REVOKE DELETE, TRUNCATE ON public.online_payment FROM realestate_app;
 -- The WhatsApp log is kept: messages are never deleted (their status follows Meta's webhook).
 REVOKE DELETE, TRUNCATE ON public.whatsapp_message FROM realestate_app;
+-- Loi 18-07: consents are append-only (the proof); the access log only counts further reads.
+REVOKE UPDATE, DELETE, TRUNCATE ON public.consent_event FROM realestate_app;
+REVOKE UPDATE, DELETE, TRUNCATE ON public.data_access FROM realestate_app;
+GRANT UPDATE (last_at, count) ON public.data_access TO realestate_app;
 -- SMS messages are kept (sent or failed), never deleted.
 REVOKE DELETE, TRUNCATE ON public.sms_message FROM realestate_app;

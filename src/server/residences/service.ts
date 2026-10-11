@@ -20,6 +20,7 @@ import { allocate } from "@/lib/money";
 import { AppError } from "@/lib/result";
 import { recordAudit } from "@/server/audit/record-audit";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
+import { recordConsentChanges } from "@/server/privacy/consents";
 
 import type {
   addResidentSchema,
@@ -268,6 +269,9 @@ export async function addResident(ctx: TenantCtx, input: In<typeof addResidentSc
         .values({ ...input, organizationId: ctx.orgId, createdBy: ctx.userId })
         .returning({ id: resident.id });
       if (!row) throw new Error("addResident: no row returned");
+      await recordConsentChanges(tx, ctx, { type: "resident", id: row.id }, null, {
+        whatsapp: input.whatsappOptIn,
+      });
       return { id: row.id };
     },
     outer,

@@ -10,6 +10,7 @@ import { withTenant } from "@/db/tenant";
 import { AppError } from "@/lib/result";
 import type { BuyerDocumentKind } from "@/lib/sales";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
+import { recordConsentChanges } from "@/server/privacy/consents";
 import { loadVisibleLead } from "@/server/crm/access";
 import { checkUpload, discardFile, storeFile, type Upload } from "@/server/files/service";
 
@@ -56,6 +57,10 @@ export async function createBuyer(ctx: TenantCtx, input: In<typeof createBuyerSc
           .returning({ id: buyer.id }),
       );
       if (!row) throw new Error("createBuyer: no row returned");
+      await recordConsentChanges(tx, ctx, { type: "buyer", id: row.id }, null, {
+        whatsapp: fields.whatsappOptIn,
+        marketing: fields.marketingConsent,
+      });
       return { id: row.id };
     },
     outer,
@@ -66,8 +71,15 @@ export async function updateBuyer(ctx: TenantCtx, input: In<typeof updateBuyerSc
   assertCan(ctx, "buyer:update");
   await withTenant(ctx, async (tx) => {
     const { buyerId, ...fields } = input;
-    await loadVisibleBuyer(tx, ctx, buyerId, { forUpdate: true });
+    const before = await loadVisibleBuyer(tx, ctx, buyerId, { forUpdate: true });
     await uniqueNin(() => tx.update(buyer).set(fields).where(eq(buyer.id, buyerId)));
+    await recordConsentChanges(
+      tx,
+      ctx,
+      { type: "buyer", id: buyerId },
+      { whatsapp: before.whatsappOptIn, marketing: before.marketingConsent },
+      { whatsapp: fields.whatsappOptIn, marketing: fields.marketingConsent },
+    );
   });
 }
 

@@ -180,4 +180,20 @@ test.describe("gérant", () => {
     await page.goto("/ar/settings/privacy");
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("المعطيات الشخصية");
   });
+
+  test("records a buyer's consent to commercial offers and sees who read the file", async ({
+    page,
+  }) => {
+    await page.goto("/fr/buyers?q=Lounis");
+    await page.getByRole("link", { name: /Lounis Assia/ }).click();
+    const privacy = page.getByTestId("person-privacy");
+    await expect(privacy).toContainText("Consultations du dossier");
+    await expect(privacy.getByTestId("person-accesses")).toContainText(/\d+ fois/);
+    await page.getByRole("link", { name: "Modifier" }).click();
+    await page.getByLabel("Accepte de recevoir des offres commerciales (autres projets)").check();
+    await page.getByRole("button", { name: "Enregistrer" }).click();
+    await expect(page.getByTestId("person-consents")).toContainText(
+      "Offres commerciales : consentement donné",
+    );
+  });
 });

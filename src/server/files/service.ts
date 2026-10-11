@@ -19,6 +19,7 @@ import { visibleBuyers } from "@/server/buyers/access";
 import { visibleLeads } from "@/server/crm/access";
 import { portalCanRead } from "@/server/portal/files";
 import { visibleSales } from "@/server/sales/access";
+import { recordAccess } from "@/server/privacy/consents";
 
 import { presignDownload, putObject, storageKey } from "./storage";
 
@@ -182,6 +183,8 @@ export async function getFileDownloadUrl(
     }
     const reader = readers[found.entityType];
     if (!reader || !(await reader(tx, ctx, found.entityId))) throw new AppError("FORBIDDEN");
+    // A buyer's documents are personal data: who downloads them is logged (Loi 18-07).
+    if (found.entityType === "buyer") await recordAccess(tx, ctx, "buyer", found.entityId);
     return found;
   });
   return presignDownload({ ...row, disposition });
