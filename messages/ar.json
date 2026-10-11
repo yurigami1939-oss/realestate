@@ -1,10 +1,9 @@
 {
   "metadata": {
-    "title": "PRODUCT_NAME",
+    "title": "Darna",
     "description": "تسيير المشاريع العقارية والإقامات"
   },
   "common": {
-    "appName": "PRODUCT_NAME",
     "language": "اللغة",
     "backHome": "العودة إلى الصفحة الرئيسية",
     "signOut": "تسجيل الخروج",
@@ -170,13 +169,13 @@
   "emails": {
     "invitation": {
       "subject": "دعوة للانضمام إلى {organization}",
-      "body": "يدعوك {inviter} للانضمام إلى {organization} على PRODUCT_NAME.",
+      "body": "يدعوك {inviter} للانضمام إلى {organization} على Darna.",
       "notice": "هذا الرابط صالح لمدة 7 أيام.",
       "cta": "قبول الدعوة"
     },
     "resetPassword": {
       "subject": "إعادة تعيين كلمة المرور",
-      "body": "تم طلب إعادة تعيين كلمة المرور لحسابك على PRODUCT_NAME.",
+      "body": "تم طلب إعادة تعيين كلمة المرور لحسابك على Darna.",
       "notice": "إذا لم تكن أنت من قدّم هذا الطلب، فتجاهل هذا البريد.",
       "cta": "اختيار كلمة مرور جديدة"
     },
@@ -226,7 +225,7 @@
     },
     "portalInvitation": {
       "subject": "فضاء الزبون لدى {organization}",
-      "body": "يدعوك {inviter} إلى فضاء الزبون لدى {organization} على PRODUCT_NAME: مقتنياتك ومدفوعاتك ووثائقك وحياة إقامتك.",
+      "body": "يدعوك {inviter} إلى فضاء الزبون لدى {organization} على Darna: مقتنياتك ومدفوعاتك ووثائقك وحياة إقامتك.",
       "notice": "هذا الرابط صالح لمدة 7 أيام. أنشئ حسابك بهذا البريد الإلكتروني.",
       "cta": "الدخول إلى فضائي"
     },

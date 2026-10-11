@@ -1,4 +1,4 @@
-# CLAUDE.md — <PRODUCT_NAME>
+# CLAUDE.md — Darna
 
 > Permanent source of truth for every session. Read it fully before working.
 > Update **§11 Roadmap** at the end of every session and **§12 Decisions log** whenever a decision is taken.
@@ -126,6 +126,7 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
     │   └── fonts.ts          # next/font/local for the shared font
     ├── components/
     │   ├── ui/               # shadcn/ui primitives (generated; sidebar labels made translatable)
+    │   ├── brand/            # BrandMark, BrandLogo (the app's mark and name)
     │   ├── app-shell/        # sidebar, org switcher, user menu
     │   ├── forms/            # TextField, fields, FormDialog, ConfirmAction, useAction, useTranslateKey
     │   ├── files/            # UploadButton (posts to /api/files)
@@ -1150,6 +1151,7 @@ The WhatsApp message log (`notification:read`) is open to the gérant, the direc
 | 2026-10-11 | **Custom roles (recommended, user delegated)**: a company defines roles as a name, a base staff role and the exact permissions of their holders (not additions to built-in roles): predictable — what is ticked is what the member may do — while the base role keeps Better Auth's membership and the role names other features use (digests, nudges) coherent. Member management (members, invitations, the organization) stays out of custom roles. Permission checks take the member's context everywhere (`can(ctx, …)`), so a custom role reaches the services and the UI alike. |
 | 2026-10-11 | **Common rooms (recommended, user delegated)**: booking by slots within a day (hours and longest booking per room) rather than whole days or a calendar of fixed slots; one approval switch per room (the gestionnaire confirms, or bookings are immediate); free of charge — a fee is a charge call of the residence, not a payment of the booking. Residents see the slots taken but not by whom (privacy between neighbours). |
 | 2026-10-11 | **Visitor management (recommended, user delegated)**: residents announce their visitors from the portal and get a short code to pass on (4 characters without look-alikes, one per pass, valid on its day) rather than QR codes or visitor accounts; the gate — the gestionnaire, or a guard given a custom role with the visitors' rights — finds the pass by its code and records the arrival, and the host hears of it by push; walk-ins are logged by hand. Only a name is kept (no identity document), erased after a period the organization sets (Loi 18-07). |
+| 2026-10-11 | **Product name and mark (recommended, user delegated; to confirm)**: the working name « Darna » (دارنا, « our home ») replaces the placeholder — one constant (`src/lib/brand.ts`) and the catalogs' `metadata.title` — signing the app itself (sign-in pages, browser tab, installed app, e-mails, the authenticator app); organizations keep their own names on their documents. The mark is a white house with an arched door on a system-blue rounded square: an SVG favicon (`src/app/icon.svg`), the `BrandMark` component and the installed app's icons drawn by `scripts/generate-icons.ts` (transparent corners). |
 | 2026-10-11 | **Virtual tours (recommended, user delegated)**: a link to the tour hosted by the promoter's provider (Matterport, Kuula, a 360° video) per project, overridable per unit, rather than hosting 360° media or embedding third-party frames: no storage, no third-party script or cookie on our pages; the printed fiche du lot carries it as a QR code for prospects. |
 | 2026-10-11 | **Electronic signature (recommended, user delegated; legal value to confirm with a lawyer)**: a simple electronic signature with its proof rather than a qualified one — a qualified signature (Loi 15-04) needs certificates from a provider accredited by the AGCE / ANCE, none integrated yet. Buyers and tenants sign from the portal the documents that are theirs and are not passed before a notary (avenants, inspection reports), with a one-time code e-mailed to their account (no SMS provider yet) and the SHA-256 of the stored PDF, the time, address and browser kept append-only; reservations and VSP stay notarial. A provider's qualified signature can replace the code later on the same records. |
 | 2026-10-11 | **Payments from the diaspora (recommended, user delegated)**: a transfer from abroad is recorded like any payment in the dinars the bank credited — what the statement, receipts, treasury and accounting count — with the currency and the amount sent kept beside it, so the receipt states both and the rate actually applied (derived, never typed nor fetched: the bank's rate and fees decide). Transfers only (foreign cash is not legal tender), sales payments only for now (charges and rents can follow); no foreign-currency account or exchange gain is booked. |
@@ -1270,3 +1272,37 @@ Every item of the functional audit (what an Algerian promoter, its syndic and it
   - [x] Virtual tours
   - [x] Booking of common rooms
   - [x] Visitor management
+
+## 14. UI/UX audit backlog (2026-10-11)
+
+Goal (user): a product that feels professional and Apple-like — calm, consistent, legible, fast to read. Findings from screenshots of every area (FR / AR, desktop / phone); worked top to bottom like §13, each item checked when finished.
+
+### Priority 1 — foundations
+- [x] **1. Brand**: the placeholder « PRODUCT_NAME » shows on the sign-in page, the browser tab, e-mails and the authenticator app — a real product name in one place, a brand mark (sign-in, portal, icons).
+- [ ] **2. Design tokens**: one accent color (system blue) for primary actions, links, focus and the current page instead of black; Apple's neutrals (grouped gray canvas, white surfaces, hairline separators, secondary text gray); semantic tones (success, warning, danger, info, purple, pink, teal, gray) as soft tints; light and dark values.
+- [ ] **3. Typography**: the system font for Latin text (SF Pro on Apple devices, Segoe UI on Windows) with IBM Plex Sans Arabic kept for Arabic; one type scale (large title, title, headline, body, footnote) with tight tracking on titles and tabular figures for amounts.
+- [ ] **4. Primitives**: buttons and fields 36 px (filters and dialogs alike), white fields on the gray canvas, cards with a soft shadow instead of a ring, card titles as headlines (158 `text-base` overrides gone), quieter table headers and taller rows, soft pill badges, dialogs with more air.
+- [ ] **5. Semantic colors everywhere**: ~400 raw palette classes (`text-red-700`, `bg-amber-50`…) in 70 files replaced by the tones — one meaning per color, ready for dark mode.
+
+### Priority 2 — navigation and structure
+- [ ] **6. App shell**: a translucent sticky top bar with the page's place (instead of the company name repeated), the sidebar on the canvas with the current page in the accent, quieter group labels, groups that fold.
+- [ ] **7. Settings hub**: the 14 settings entries leave the sidebar for one « Réglages » page with its own grouped navigation (account, company, communication, data and privacy), like System Settings.
+- [ ] **8. Command palette** (⌘K / Ctrl K): go to any page, find a lead, buyer, sale or unit by name or number from anywhere.
+- [ ] **9. Page layout**: every page through `PageHeader` (27 pages without), three content widths instead of five, actions as one primary button plus a « … » menu (lead and project pages show 6–7 buttons in a row), filters with their placeholder shown (« Toutes les étapes » instead of empty boxes).
+
+### Priority 3 — feedback and states
+- [ ] **10. Loading**: skeletons (`loading.tsx`) for the dashboard, lists and records instead of a frozen page (none today).
+- [ ] **11. Errors and empty states**: an error boundary per area with « Réessayer » (none today); empty states with an icon, a sentence and the main action.
+- [ ] **12. Motion**: short, eased transitions (dialogs, sheets, hover, press), `prefers-reduced-motion` honoured; toasts in the new style.
+
+### Priority 4 — key screens
+- [ ] **13. Sign-in and account pages**: brand mark, large title, tall fields, calm background (sign-in, sign-up, two-factor, password reset, invitation, onboarding).
+- [ ] **14. Dashboard**: no boxes inside boxes — KPI tiles with large figures, the to-dos as a grouped list with icons and chevrons, stock bars refined.
+- [ ] **15. Lists**: one toolbar (search, filters, export) above a white table, amounts end-aligned in tabular figures, the whole row opens the record.
+- [ ] **16. Records** (sale, lead, unit, residence, lease): a header with the key facts (status, amounts, people), sections as grouped cards, sub-pages as a segmented control.
+- [ ] **17. Portal (phone first)**: iOS-like — large titles, a bottom tab bar on phones, inset grouped lists with large rows, the home as cards (next installment, balance, latest news).
+
+### Priority 5 — platform
+- [ ] **18. Dark mode**: follows the system, with a light / dark / automatic choice in the user menu.
+- [ ] **19. Accessibility**: secondary text contrast (AA), a visible focus on every control, 44 px touch targets on phones, labels on icon buttons, reduced motion.
+- [ ] **20. Back office on phones**: the main lists (leads, sales, units, payments) as stacked rows instead of wide tables; dialogs as bottom sheets.

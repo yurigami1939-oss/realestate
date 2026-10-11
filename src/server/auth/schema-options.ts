@@ -3,6 +3,7 @@
  * (src/server/auth/auth.ts) and the schema generator config (scripts/auth-schema.config.ts).
  * After changing anything here run `pnpm auth:generate` then `pnpm db:generate`.
  */
+import { BRAND_NAME } from "../../lib/brand";
 
 /** Random UUIDs keep invitation ids unguessable (Better Auth recommendation). */
 export const authIdStrategy = "uuid" as const;
@@ -24,4 +25,4 @@ export const organizationAdditionalFields = {
 } as const;
 
 /** Name shown in the member's authenticator app (two-factor plugin; adds its table). */
-export const TWO_FACTOR_ISSUER = "PRODUCT_NAME";
+export const TWO_FACTOR_ISSUER = BRAND_NAME;

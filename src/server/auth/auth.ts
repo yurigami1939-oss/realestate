@@ -11,6 +11,7 @@ import * as schema from "@/db/schema";
 import { withTenant } from "@/db/tenant";
 import { env } from "@/env";
 import { defaultLocale, isLocale } from "@/i18n/locales";
+import { BRAND_NAME } from "@/lib/brand";
 import { ac, parseRoles, roles } from "@/lib/permissions";
 import { recordAudit } from "@/server/audit/record-audit";
 import { sendEmailLater } from "@/server/email/send-later";
@@ -27,7 +28,7 @@ import {
 const INVITATION_TTL_SECONDS = 7 * 24 * 60 * 60;
 
 export const auth = betterAuth({
-  appName: "PRODUCT_NAME",
+  appName: BRAND_NAME,
   baseURL: env.BETTER_AUTH_URL,
   secret: env.BETTER_AUTH_SECRET,
   database: drizzleAdapter(db, { provider: "pg", schema }),

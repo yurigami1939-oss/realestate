@@ -16,7 +16,7 @@ export const e2eEnv: Record<string, string> = {
   S3_SECRET_ACCESS_KEY: process.env.S3_SECRET_ACCESS_KEY ?? "devsecretkey",
   SMTP_HOST: process.env.SMTP_HOST ?? "localhost",
   SMTP_PORT: process.env.SMTP_PORT ?? "1025",
-  SMTP_FROM: "PRODUCT_NAME <no-reply@example.test>",
+  SMTP_FROM: "Darna <no-reply@example.test>",
   // Production build: the SATIM and WhatsApp stand-ins must be asked for.
   DEV_GATEWAYS: "true",
 };

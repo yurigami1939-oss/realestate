@@ -1,4 +1,4 @@
-# PRODUCT_NAME
+# Darna
 
 Multi-tenant SaaS for Algerian real-estate developers: promotion sales (inventory, CRM, reservations, VSP, payments, receipts) and residence management after delivery. French and Arabic (RTL).
 
