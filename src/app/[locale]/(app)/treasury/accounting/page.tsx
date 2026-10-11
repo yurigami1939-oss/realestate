@@ -79,7 +79,7 @@ export default async function AccountingPage({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {(["sales", "rents", "charges"] as const).map((nature) => (
+                {(["sales", "rents", "charges", "fees"] as const).map((nature) => (
                   <TableRow key={nature}>
                     <TableCell className="whitespace-normal">{t(`g50.${nature}`)}</TableCell>
                     <TableCell className="text-end tabular-nums" dir="ltr">

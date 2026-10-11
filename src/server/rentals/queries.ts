@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, asc, desc, eq, inArray, isNull, lte } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNotNull, isNull, lte, notExists, or } from "drizzle-orm";
 
 import type { Tx } from "@/db/client";
 
@@ -11,7 +11,9 @@ import {
   leaseChargeSettlement,
   leaseInspection,
   leaseRevision,
+  managementMandate,
   project,
+  propertyOwner,
   rentPayment,
   residence,
   resident,
@@ -68,10 +70,13 @@ export async function listLeases(ctx: TenantCtx, filters: LeaseFilters = {}) {
         unitCode: unit.code,
         projectId: project.id,
         projectName: project.name,
+        ownerName: propertyOwner.name,
       })
       .from(lease)
       .innerJoin(unit, eq(unit.id, lease.unitId))
       .innerJoin(project, eq(project.id, lease.projectId))
+      .leftJoin(managementMandate, eq(managementMandate.id, lease.mandateId))
+      .leftJoin(propertyOwner, eq(propertyOwner.id, managementMandate.ownerId))
       .where(
         and(
           status === "all" ? undefined : eq(lease.status, status),
@@ -135,11 +140,15 @@ export async function getLease(ctx: TenantCtx, leaseId: string) {
         usableArea: unit.usableArea,
         buildingName: building.name,
         projectName: project.name,
+        ownerId: propertyOwner.id,
+        ownerName: propertyOwner.name,
       })
       .from(lease)
       .innerJoin(unit, eq(unit.id, lease.unitId))
       .innerJoin(building, eq(building.id, unit.buildingId))
       .innerJoin(project, eq(project.id, lease.projectId))
+      .leftJoin(managementMandate, eq(managementMandate.id, lease.mandateId))
+      .leftJoin(propertyOwner, eq(propertyOwner.id, managementMandate.ownerId))
       .where(eq(lease.id, leaseId));
     if (!row) return null;
     const l = row.lease;
@@ -256,6 +265,7 @@ export async function getLease(ctx: TenantCtx, leaseId: string) {
       area: row.livingArea ?? row.usableArea,
       buildingName: row.buildingName,
       projectName: row.projectName,
+      owner: row.ownerId && row.ownerName ? { id: row.ownerId, name: row.ownerName } : null,
       state: leaseState(l, today),
       registration,
       statement: rentStatement({ ...l, revisions, settlements }, paid.rent, today),
@@ -289,13 +299,32 @@ export async function listLeasableUnits(ctx: TenantCtx) {
         status: unit.status,
         projectName: project.name,
         buildingName: building.name,
+        // A unit let for its owner (management mandate).
+        ownerName: propertyOwner.name,
       })
       .from(unit)
       .innerJoin(project, eq(project.id, unit.projectId))
       .innerJoin(building, eq(building.id, unit.buildingId))
+      .leftJoin(
+        managementMandate,
+        and(eq(managementMandate.unitId, unit.id), eq(managementMandate.status, "active")),
+      )
+      .leftJoin(propertyOwner, eq(propertyOwner.id, managementMandate.ownerId))
       .where(
         and(
-          inArray(unit.status, ["available", "blocked"]),
+          or(
+            inArray(unit.status, ["available", "blocked"]),
+            and(
+              eq(unit.status, "delivered"),
+              isNotNull(managementMandate.id),
+              notExists(
+                tx
+                  .select({ id: lease.id })
+                  .from(lease)
+                  .where(and(eq(lease.unitId, unit.id), eq(lease.status, "active"))),
+              ),
+            ),
+          ),
           isNull(unit.deletedAt),
           isNull(project.deletedAt),
         ),

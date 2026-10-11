@@ -295,6 +295,7 @@ describe("revenue entries and the G50 worksheet", () => {
       vatRentCommercialBp: 1900,
       vatRentResidentialBp: 0,
       stampDutyBp: 100,
+      vatFeesBp: 0,
       leaseRegistrationBp: 0,
       leaseRegistrationDays: 30,
     });

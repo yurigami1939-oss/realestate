@@ -157,6 +157,39 @@ test.describe("gestionnaire", () => {
     await expect(page.getByTestId("rent-tax-totals")).toContainText("Commercial");
   });
 
+  test("reports an owner's rents on a statement and pays them out", async ({ page }) => {
+    // Leila Zerrouki's flat in the third party's building is let for her (management mandate).
+    await page.goto("/fr/rentals");
+    await expect(page.getByTestId("leases").locator('[data-unit="M-01-02"]')).toContainText(
+      "pour Zerrouki Leila",
+    );
+    await page.getByRole("link", { name: "Propriétaires" }).click();
+    await page.getByTestId("owners").getByRole("link", { name: "Zerrouki Leila" }).click();
+    await expect(page.getByTestId("owner-mandates")).toContainText("M-01-02");
+    await expect(page.getByTestId("owner-statements")).toContainText("Reversé");
+    await expect(page.getByTestId("owner-pending")).toContainText("1 loyer encaissé à reverser");
+
+    await page.getByRole("button", { name: "Établir un relevé" }).click();
+    let dialog = page.getByRole("dialog");
+    await expect(dialog.getByTestId("statement-preview")).toContainText("Net à reverser");
+    await dialog.getByRole("button", { name: "Établir un relevé" }).click();
+    await expect(page.getByText(/^Relevé RDG-\d{4}-\d{6} établi\.$/)).toBeVisible();
+    const issued = page
+      .getByTestId("owner-statements")
+      .getByRole("row")
+      .filter({ hasText: "À reverser" });
+    await expectPdf(page, issued.getByRole("link", { name: "Relevé (PDF)" }));
+
+    await issued.getByRole("button", { name: "Reverser" }).click();
+    dialog = page.getByRole("dialog");
+    await dialog.getByLabel("Référence (virement, chèque)").fill("VIR-ZERROUKI-2");
+    await dialog.getByRole("button", { name: "Reverser" }).click();
+    await expect(page.getByText("Reversement enregistré.")).toBeVisible();
+    await expect(
+      page.getByTestId("owner-statements").getByRole("row").filter({ hasText: "À reverser" }),
+    ).toHaveCount(0);
+  });
+
   test("follows the overdue rents", async ({ page }) => {
     await page.goto("/fr/dashboard");
     await page.getByRole("link", { name: "Loyers impayés", exact: true }).click();

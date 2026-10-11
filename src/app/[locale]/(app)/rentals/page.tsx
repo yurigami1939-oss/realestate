@@ -1,4 +1,4 @@
-import { Landmark, Plus } from "lucide-react";
+import { Landmark, Plus, Users } from "lucide-react";
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
@@ -53,6 +53,12 @@ export default async function RentalsPage({
           <>
             <ExportButton kind="leases" params={{ status, project: projectId }} />
             <Button asChild variant="outline">
+              <Link href="/rentals/owners">
+                <Users data-icon="inline-start" />
+                {t("ownersLink")}
+              </Link>
+            </Button>
+            <Button asChild variant="outline">
               <Link href="/rentals/taxes">
                 <Landmark data-icon="inline-start" />
                 {t("taxes.link")}
@@ -98,6 +104,11 @@ export default async function RentalsPage({
                   <TableCell className="whitespace-normal">
                     <bdi dir="ltr">{l.unitCode}</bdi>
                     <div className="text-xs text-muted-foreground">{l.projectName}</div>
+                    {l.ownerName ? (
+                      <div className="text-xs text-muted-foreground">
+                        {t("forOwner", { owner: l.ownerName })}
+                      </div>
+                    ) : null}
                   </TableCell>
                   <TableCell className="whitespace-normal">{l.tenantName}</TableCell>
                   <TableCell className="whitespace-normal">

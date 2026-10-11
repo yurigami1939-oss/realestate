@@ -104,6 +104,16 @@ REVOKE DELETE, TRUNCATE ON public.charge_recovery FROM realestate_app;
 REVOKE UPDATE, DELETE, TRUNCATE ON public.charge_recovery_step FROM realestate_app;
 REVOKE UPDATE, DELETE, TRUNCATE ON public.charge_repayment_plan FROM realestate_app;
 GRANT UPDATE (cancelled_at, cancellation_reason) ON public.charge_repayment_plan TO realestate_app;
+-- Management mandates: owners are archived and mandates ended, never deleted; owner statements
+-- are kept as issued (paid or cancelled, PDF link); a cancelled statement's items are deleted
+-- so its rents are reported again.
+REVOKE DELETE, TRUNCATE ON public.property_owner FROM realestate_app;
+REVOKE DELETE, TRUNCATE ON public.management_mandate FROM realestate_app;
+REVOKE UPDATE, DELETE, TRUNCATE ON public.owner_statement FROM realestate_app;
+GRANT UPDATE (status, paid_on, payment_method, payment_reference, account_id, paid_by,
+  cancelled_at, cancellation_reason, cancelled_by, pdf_file_id)
+  ON public.owner_statement TO realestate_app;
+REVOKE UPDATE, TRUNCATE ON public.owner_statement_item FROM realestate_app;
 -- Partner commissions are paid or cancelled, never deleted.
 REVOKE DELETE, TRUNCATE ON public.partner_commission FROM realestate_app;
 -- Lead capture keys are revoked, never deleted.

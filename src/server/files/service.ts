@@ -78,6 +78,8 @@ const readers: Record<string, Reader> = {
   project_document: async (_tx, ctx) => can(ctx.roles, "inventory:read"),
   // Works contracts and their progress invoices: the construction costs' readers.
   works_contract: async (_tx, ctx) => can(ctx.roles, "cost:read"),
+  // Owner statements (management mandates) are filed under their owner.
+  property_owner: async (_tx, ctx) => can(ctx.roles, "lease:read"),
   // Cheque deposit slips are filed under their account.
   treasury_account: async (_tx, ctx) => can(ctx.roles, "treasury:read"),
   // Site photos of construction progress reports.

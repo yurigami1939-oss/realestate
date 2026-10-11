@@ -12,6 +12,7 @@ import { DEMO_PASSWORD, demoOrganizations, demoUsers } from "./demo";
 import { seedCrm, seedMarketingSpend, seedPartners } from "./crm";
 import { seedDeliveries } from "./deliveries";
 import { seedInventory } from "./inventory";
+import { seedMandates } from "./mandates";
 import { seedObligations } from "./obligations";
 import { seedOnlinePayments } from "./online-payments";
 import { seedWhatsapp } from "./whatsapp";
@@ -143,6 +144,10 @@ export async function seedDemo(): Promise<void> {
     });
     await seedConstruction(technical, new Map([...projectIds, ["AMND", amandiers.projectId]]));
     await seedRentals({
+      manager: ctx("propertyManager", ["property_manager"]),
+      cashier: ctx("cashier", ["cashier"]),
+    });
+    await seedMandates({
       manager: ctx("propertyManager", ["property_manager"]),
       cashier: ctx("cashier", ["cashier"]),
     });

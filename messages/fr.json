@@ -2008,7 +2008,8 @@
       "guarantorName": "Nom de la caution",
       "guarantorIdNumber": "NIN de la caution",
       "guarantorPhone": "Téléphone de la caution",
-      "guarantorAddress": "Adresse de la caution"
+      "guarantorAddress": "Adresse de la caution",
+      "owner": "Propriétaire (mandat)"
     },
     "form": {
       "unitAndTenant": "Lot et locataire",
@@ -2020,7 +2021,8 @@
       "morePeriods": "{count, plural, one {et # autre échéance} other {et # autres échéances}}",
       "previewHint": "Indiquez le début, la durée et le loyer pour voir les échéances.",
       "submit": "Enregistrer le bail",
-      "guarantor": "Caution (garant)"
+      "guarantor": "Caution (garant)",
+      "forOwner": "mandat · {owner}"
     },
     "payment": {
       "open": {
@@ -2242,7 +2244,9 @@
         "registration": "Enregistrement",
         "duty": "Droits d'enregistrement"
       }
-    }
+    },
+    "ownersLink": "Propriétaires",
+    "forOwner": "pour {owner}"
   },
   "audit": {
     "title": "Journal d'audit",
@@ -4525,7 +4529,8 @@
       "advance": "Avance sur salaire",
       "refund": "Remboursement (désistement, résiliation)",
       "deposit_refund": "Restitution de dépôt de garantie",
-      "partner_commission": "Commission d'apporteur"
+      "partner_commission": "Commission d'apporteur",
+      "owner_payout": "Reversement au propriétaire"
     },
     "movements": {
       "record": "Saisir un mouvement",
@@ -5380,7 +5385,9 @@
       "reserveFund": "Fonds de réserve des copropriétaires",
       "vatCollected": "TVA collectée",
       "salesJournal": "Journal des ventes et loyers",
-      "chargesJournal": "Journal des appels de charges"
+      "chargesJournal": "Journal des appels de charges",
+      "owners": "Propriétaires mandants",
+      "managementFees": "Honoraires de gestion"
     },
     "tax": {
       "title": "Écritures de ventes et fiscalité",
@@ -5395,7 +5402,8 @@
       "vatRentResidential": "TVA sur les loyers d'habitation (%)",
       "stampDuty": "Droit de timbre sur les encaissements en espèces (%)",
       "leaseRegistration": "Droits d'enregistrement des baux (% des loyers du bail)",
-      "leaseRegistrationDays": "Délai d'enregistrement d'un bail (jours)"
+      "leaseRegistrationDays": "Délai d'enregistrement d'un bail (jours)",
+      "vatFees": "TVA sur les honoraires de gestion (%)"
     },
     "g50": {
       "title": "Récapitulatif pour la G50",
@@ -5413,7 +5421,8 @@
       "vat": "TVA collectée",
       "cash": "Encaissements en espèces",
       "stampDuty": "Droit de timbre ({rate} %)",
-      "note": "TVA déductible, IRG sur salaires et autres impôts : à compléter par l'expert-comptable."
+      "note": "TVA déductible, IRG sur salaires et autres impôts : à compléter par l'expert-comptable.",
+      "fees": "Honoraires de gestion (mandats)"
     }
   },
   "privacy": {
@@ -5478,6 +5487,125 @@
       "incomeAbove": "Revenus du ménage au-dessus du plafond LPA.",
       "ownsHome": "L'acquéreur déclare posséder déjà un logement.",
       "previousAid": "L'acquéreur déclare avoir déjà bénéficié d'une aide de l'État au logement."
+    }
+  },
+  "mandates": {
+    "title": "Propriétaires en gestion",
+    "description": "Les lots que la société loue pour leurs propriétaires (mandats de gestion) : loyers encaissés pour leur compte, honoraires, relevés de gérance et reversements.",
+    "empty": "Aucun propriétaire.",
+    "columns": {
+      "owner": "Propriétaire",
+      "phone": "Téléphone",
+      "mandates": "Mandats en cours",
+      "unpaid": "À reverser"
+    },
+    "owner": {
+      "new": "Nouveau propriétaire",
+      "newTitle": "Nouveau propriétaire",
+      "editTitle": "Modifier le propriétaire",
+      "edit": "Modifier",
+      "description": "Le propriétaire qui confie ses lots en gestion et le compte où lui reverser ses loyers.",
+      "create": "Créer",
+      "save": "Enregistrer",
+      "created": "Propriétaire créé.",
+      "saved": "Propriétaire mis à jour.",
+      "card": "Propriétaire",
+      "fields": {
+        "name": "Nom ou raison sociale",
+        "nameAr": "Nom (arabe)",
+        "idNumber": "NIN ou RC",
+        "phone": "Téléphone",
+        "email": "E-mail",
+        "address": "Adresse",
+        "bank": "Banque",
+        "rib": "RIB / RIP",
+        "notes": "Remarques"
+      }
+    },
+    "mandate": {
+      "title": "Lots en gestion",
+      "empty": "Aucun lot confié pour l'instant.",
+      "new": "Nouveau mandat",
+      "newTitle": "Mandat de gestion",
+      "description": "Un lot livré à son acquéreur ou d'un immeuble d'un tiers, que la société loue pour son propriétaire contre des honoraires sur les loyers encaissés.",
+      "create": "Créer le mandat",
+      "created": "Mandat créé : le lot peut être loué.",
+      "unit": "Lot",
+      "signedOn": "Signé le",
+      "startOn": "Prend effet le",
+      "feeRate": "Honoraires (% des loyers encaissés)",
+      "notes": "Remarques",
+      "status": {
+        "active": "En cours",
+        "ended": "Terminé"
+      },
+      "line": "Depuis le {from} · honoraires {rate} %",
+      "endedLine": "terminé le {date}",
+      "vacant": "Lot libre : à louer depuis « Nouveau bail ».",
+      "end": "Terminer le mandat",
+      "endTitle": "Terminer le mandat",
+      "endDescription": "Le lot n'est plus loué par la société pour ce propriétaire.",
+      "endedOn": "Date de fin",
+      "reason": "Motif",
+      "ended": "Mandat terminé."
+    },
+    "statement": {
+      "title": "Relevés de gérance",
+      "empty": "Aucun relevé.",
+      "nothingPending": "Aucun loyer à reverser pour l'instant.",
+      "pending": "{count, plural, one {# loyer encaissé} other {# loyers encaissés}} à reverser ({amount}).",
+      "issue": "Établir un relevé",
+      "issueTitle": "Relevé de gérance",
+      "issueDescription": "Les loyers encaissés pour le propriétaire jusqu'à la date choisie et pas encore reversés, moins les honoraires et les retenues saisies ici.",
+      "issued": "Relevé {number} établi.",
+      "periodTo": "Arrêté au",
+      "preview": {
+        "lines": "{count, plural, =0 {Aucun loyer à ce jour} one {# loyer encaissé à ce jour} other {# loyers encaissés à ce jour}}",
+        "fees": "Honoraires de gestion",
+        "deductions": "Autres retenues",
+        "net": "Net à reverser"
+      },
+      "extraLabel": "Retenue (réparation payée pour le propriétaire…)",
+      "extraAmount": "Montant (DA)",
+      "addExtra": "Ajouter une retenue",
+      "removeExtra": "Retirer la retenue",
+      "pay": "Reverser",
+      "payTitle": "Reversement au propriétaire",
+      "payDescription": "Le net du relevé versé au propriétaire depuis une caisse ou un compte.",
+      "paidOn": "Reversé le",
+      "reference": "Référence (virement, chèque)",
+      "paid": "Reversement enregistré.",
+      "cancel": "Annuler le relevé",
+      "cancelTitle": "Annuler le relevé",
+      "cancelDescription": "Ses loyers seront repris sur le prochain relevé.",
+      "reason": "Motif",
+      "cancelled": "Relevé annulé.",
+      "pdf": "Relevé (PDF)",
+      "columns": {
+        "number": "Relevé",
+        "period": "Période",
+        "collected": "Loyers encaissés",
+        "fees": "Honoraires et retenues",
+        "net": "Net",
+        "status": "État"
+      },
+      "status": {
+        "issued": "À reverser",
+        "paid": "Reversé",
+        "cancelled": "Annulé"
+      }
+    },
+    "errors": {
+      "notOwned": "Seul un lot livré à son acquéreur ou d'un immeuble d'un tiers peut être confié en gestion.",
+      "unitTaken": "Ce lot est déjà sous mandat.",
+      "startBeforeSigning": "Le mandat prend effet à sa signature ou après.",
+      "ended": "Ce mandat est déjà terminé.",
+      "endBeforeStart": "Le mandat ne peut finir avant sa prise d'effet.",
+      "leased": "Terminez d'abord le bail en cours sur ce lot.",
+      "nothingToReport": "Aucun loyer à reverser à cette date.",
+      "negativeNet": "Les retenues dépassent les loyers moins les honoraires.",
+      "notIssued": "Ce relevé n'est plus à reverser.",
+      "paidBeforeIssue": "Le reversement ne peut précéder le relevé."
     }
   }
 }

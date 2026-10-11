@@ -18,6 +18,7 @@ import { resolvePaymentAccount } from "@/server/treasury/service";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
 import { checkUpload, discardFile, storeFile, type Upload } from "@/server/files/service";
 import { transitionUnit } from "@/server/inventory/transition-unit";
+import { activeMandate } from "@/server/mandates/service";
 import { nextDocumentNumber } from "@/server/numbering/next-document-number";
 import { addLeaseOccupant, endLeaseOccupant } from "@/server/residences/service";
 import { notifyRentPayment } from "@/server/whatsapp/notify";
@@ -101,8 +102,9 @@ const tenantValues = (input: In<typeof createLeaseSchema> | In<typeof updateLeas
 
 /**
  * Leases a unit the promoter keeps (CLAUDE.md §7 Rentals): an `available` or `blocked` unit,
- * numbered BAL-…, becomes `rented`; in a residence, the tenant becomes the unit's occupant
- * from the start. Audited.
+ * numbered BAL-…, becomes `rented`; or a unit the organization lets for its owner (`delivered`,
+ * under an active management mandate: the lease is the mandate's, the unit keeps its status).
+ * In a residence, the tenant becomes the unit's occupant from the start. Audited.
  */
 export async function createLease(ctx: TenantCtx, input: In<typeof createLeaseSchema>) {
   assertCan(ctx, "lease:update");
@@ -114,8 +116,16 @@ export async function createLease(ctx: TenantCtx, input: In<typeof createLeaseSc
       .where(and(eq(unit.id, input.unitId), isNull(unit.deletedAt)))
       .for("update");
     if (!target) throw invalid("unitId", "rentals.errors.unitNotFound");
-    if (target.status !== "available" && target.status !== "blocked") {
+    const mandate = target.status === "delivered" ? await activeMandate(tx, target.id) : null;
+    if (target.status !== "available" && target.status !== "blocked" && !mandate) {
       throw invalid("unitId", "rentals.errors.unitNotFree");
+    }
+    if (mandate) {
+      const [leased] = await tx
+        .select({ id: lease.id })
+        .from(lease)
+        .where(and(eq(lease.unitId, target.id), eq(lease.status, "active")));
+      if (leased) throw invalid("unitId", "rentals.errors.unitNotFree");
     }
     const { number } = await nextDocumentNumber(tx, ctx, "lease");
     const terms = termsValues(input);
@@ -128,11 +138,15 @@ export async function createLease(ctx: TenantCtx, input: In<typeof createLeaseSc
         number,
         unitId: target.id,
         projectId: target.projectId,
+        mandateId: mandate?.id ?? null,
         createdBy: ctx.userId,
       })
       .returning({ id: lease.id });
     if (!row) throw new Error("createLease: no row returned");
-    await transitionUnit(tx, ctx, target.id, "rented", { refType: "lease", refId: row.id });
+    // A unit let for its owner stays delivered: its status is the sales side's.
+    if (!mandate) {
+      await transitionUnit(tx, ctx, target.id, "rented", { refType: "lease", refId: row.id });
+    }
     const occupantId = await addLeaseOccupant(tx, ctx, {
       unitId: target.id,
       name: input.tenantName,
@@ -224,11 +238,13 @@ export async function endLease(ctx: TenantCtx, input: In<typeof endLeaseSchema>)
         endedBy: ctx.userId,
       })
       .where(eq(lease.id, current.id));
-    await transitionUnit(tx, ctx, current.unitId, "available", {
-      reason: input.reason,
-      refType: "lease",
-      refId: current.id,
-    });
+    if (!current.mandateId) {
+      await transitionUnit(tx, ctx, current.unitId, "available", {
+        reason: input.reason,
+        refType: "lease",
+        refId: current.id,
+      });
+    }
     if (current.occupantId) {
       await endLeaseOccupant(tx, ctx, current.occupantId, input.endedOn);
     }
@@ -288,6 +304,7 @@ export async function renewLease(ctx: TenantCtx, input: In<typeof renewLeaseSche
         depositCarried: current.depositCarried + paid.deposit,
         renewedFromId: current.id,
         occupantId: current.occupantId,
+        mandateId: current.mandateId,
         notes: input.notes,
         createdBy: ctx.userId,
       })

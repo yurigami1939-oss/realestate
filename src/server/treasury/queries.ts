@@ -7,9 +7,11 @@ import {
   cashCount,
   chargePayment,
   lease,
+  ownerStatement,
   partner,
   partnerCommission,
   payment,
+  propertyOwner,
   receipt,
   reservation,
   residence,
@@ -126,6 +128,7 @@ export type LedgerLine = {
     | "refund"
     | "deposit_refund"
     | "partner_commission"
+    | "owner_payout"
     | MovementKind;
   label: string;
   /** Receipt number, movement reference… */
@@ -404,6 +407,30 @@ export async function ledgerLines(
       ),
     );
 
+  // Owner statements paid out (management mandates).
+  const ownerPayouts = await tx
+    .select({
+      id: ownerStatement.id,
+      ownerId: ownerStatement.ownerId,
+      on: ownerStatement.paidOn,
+      at: ownerStatement.createdAt,
+      amount: ownerStatement.net,
+      method: ownerStatement.paymentMethod,
+      reference: ownerStatement.paymentReference,
+      number: ownerStatement.number,
+      name: propertyOwner.name,
+    })
+    .from(ownerStatement)
+    .innerJoin(propertyOwner, eq(propertyOwner.id, ownerStatement.ownerId))
+    .where(
+      and(
+        eq(ownerStatement.accountId, account.id),
+        eq(ownerStatement.status, "paid"),
+        gte(ownerStatement.paidOn, start),
+        lte(ownerStatement.paidOn, to),
+      ),
+    );
+
   const partnerPaid = await tx
     .select({
       id: partnerCommission.id,
@@ -481,6 +508,20 @@ export async function ledgerLines(
       amountOut: r.amount,
       movementId: null,
       href: `/sales/${r.saleId}`,
+      pendingCheque: false,
+    })),
+    ...ownerPayouts.map((o) => ({
+      key: `owner_payout:${o.id}`,
+      on: o.on ?? start,
+      at: o.at,
+      source: "owner_payout" as const,
+      label: `${o.number} · ${o.name}`,
+      reference: o.reference,
+      method: o.method,
+      amountIn: 0n,
+      amountOut: o.amount,
+      movementId: null,
+      href: `/rentals/owners/${o.ownerId}`,
       pendingCheque: false,
     })),
     ...depositRefunds.map((d) => ({

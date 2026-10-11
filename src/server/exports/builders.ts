@@ -1080,7 +1080,7 @@ async function accounting(
           { header: t("accounting.g50.columns.ttc"), kind: "money" },
         ],
         rows: [
-          ...(["sales", "rents", "charges"] as const).map((nature) => [
+          ...(["sales", "rents", "charges", "fees"] as const).map((nature) => [
             t(`accounting.g50.${nature}`),
             found.g50[nature].ht,
             found.g50[nature].vat,

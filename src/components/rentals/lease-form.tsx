@@ -153,7 +153,7 @@ export function LeaseForm({
                   emptyLabel={t("form.chooseUnit")}
                   options={units.map((u) => ({
                     value: u.id,
-                    label: `${u.code} · ${u.projectName}${u.status === "blocked" ? ` · ${t("form.kept")}` : ""}`,
+                    label: `${u.code} · ${u.projectName}${u.status === "blocked" ? ` · ${t("form.kept")}` : ""}${u.ownerName ? ` · ${t("form.forOwner", { owner: u.ownerName })}` : ""}`,
                   }))}
                 />
               )}

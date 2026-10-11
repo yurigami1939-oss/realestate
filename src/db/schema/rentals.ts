@@ -15,6 +15,7 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 
+import { mandateStatuses, ownerStatementStatuses, type StatementExtra } from "../../lib/mandates";
 import {
   type InspectionCondition,
   inspectionKinds,
@@ -24,7 +25,16 @@ import {
   rentPaymentKinds,
 } from "../../lib/rentals";
 
-import { createdAt, id, instant, money, organizationId, timestamps, userRef } from "./_columns";
+import {
+  createdAt,
+  id,
+  instant,
+  money,
+  organizationId,
+  softDelete,
+  timestamps,
+  userRef,
+} from "./_columns";
 import { file } from "./files";
 import { project, unit } from "./inventory";
 import { resident } from "./residences";
@@ -35,6 +45,82 @@ export const leaseKind = pgEnum("lease_kind", leaseKinds);
 export const leaseStatus = pgEnum("lease_status", leaseStatuses);
 export const rentFrequency = pgEnum("rent_frequency", rentFrequencies);
 export const rentPaymentKind = pgEnum("rent_payment_kind", rentPaymentKinds);
+export const mandateStatus = pgEnum("mandate_status", mandateStatuses);
+export const ownerStatementStatus = pgEnum("owner_statement_status", ownerStatementStatuses);
+
+/**
+ * Propriétaire mandant (CLAUDE.md §7 Rentals): an owner who entrusts the organization with
+ * letting units it does not own; its bank details receive the payouts.
+ */
+export const propertyOwner = pgTable(
+  "property_owner",
+  {
+    id: id(),
+    organizationId: organizationId(),
+    name: text().notNull(),
+    nameAr: text(),
+    /** NIN of a person, RC number of a company. */
+    idNumber: text(),
+    phone: text().notNull(),
+    email: text(),
+    address: text(),
+    bank: text(),
+    /** RIB / RIP the payouts are transferred to. */
+    rib: text(),
+    notes: text(),
+    ...timestamps(),
+    ...softDelete(),
+  },
+  (t) => [unique().on(t.organizationId, t.id), index().on(t.organizationId, t.name)],
+);
+
+/**
+ * Mandat de gestion: one owner's unit let by the organization from `start_on`, its fees a rate
+ * of the rents collected. One active mandate per unit; ended, never deleted.
+ */
+export const managementMandate = pgTable(
+  "management_mandate",
+  {
+    id: id(),
+    organizationId: organizationId(),
+    ownerId: uuid().notNull(),
+    unitId: uuid().notNull(),
+    signedOn: date({ mode: "string" }).notNull(),
+    startOn: date({ mode: "string" }).notNull(),
+    /** Management fees, basis points of the rents collected. */
+    feeRateBp: integer().notNull(),
+    status: mandateStatus().notNull().default("active"),
+    endedOn: date({ mode: "string" }),
+    endReason: text(),
+    endedBy: userRef(),
+    notes: text(),
+    ...timestamps(),
+  },
+  (t) => [
+    unique().on(t.organizationId, t.id),
+    foreignKey({
+      name: "management_mandate_owner_fk",
+      columns: [t.organizationId, t.ownerId],
+      foreignColumns: [propertyOwner.organizationId, propertyOwner.id],
+    }),
+    foreignKey({
+      name: "management_mandate_unit_fk",
+      columns: [t.organizationId, t.unitId],
+      foreignColumns: [unit.organizationId, unit.id],
+    }),
+    uniqueIndex("management_mandate_active_unit")
+      .on(t.organizationId, t.unitId)
+      .where(sql`${t.status} = 'active'`),
+    index().on(t.organizationId, t.ownerId),
+    check("management_mandate_fee", sql`${t.feeRateBp} between 0 and 3000`),
+    check("management_mandate_start", sql`${t.startOn} >= ${t.signedOn}`),
+    check(
+      "management_mandate_ended",
+      sql`(${t.status} = 'ended') = (${t.endedOn} is not null and ${t.endReason} is not null)
+        and (${t.endedOn} is null or ${t.endedOn} >= ${t.startOn})`,
+    ),
+  ],
+);
 
 /**
  * Bail (module 5): a unit the promoter still owns, rented to a tenant (person or company) for
@@ -110,6 +196,8 @@ export const lease = pgTable(
     registrationDuty: money(),
     /** The tenant as occupant of the unit when it belongs to a residence (portal, tickets). */
     occupantId: uuid(),
+    /** A unit let for its owner (management mandate): the rents are the owner's. */
+    mandateId: uuid(),
     notes: text(),
     ...timestamps(),
   },
@@ -125,6 +213,11 @@ export const lease = pgTable(
       name: "lease_unit_fk",
       columns: [t.organizationId, t.unitId],
       foreignColumns: [unit.organizationId, unit.id],
+    }),
+    foreignKey({
+      name: "lease_mandate_fk",
+      columns: [t.organizationId, t.mandateId],
+      foreignColumns: [managementMandate.organizationId, managementMandate.id],
     }),
     foreignKey({
       name: "lease_project_fk",
@@ -363,5 +456,123 @@ export const leaseChargeSettlement = pgTable(
       "lease_charge_settlement_amounts",
       sql`${t.provisions} >= 0 and ${t.actual} >= 0 and ${t.balance} = ${t.actual} - ${t.provisions}`,
     ),
+  ],
+);
+
+/**
+ * Relevé de gérance (`RDG-`): the rents collected for an owner up to `period_to` and not
+ * reported yet (and the reversals of reported ones cancelled since), less the fees at each
+ * mandate's rate and other deductions; the net is paid out from an account. Lines frozen at
+ * issue; cancelled with a reason while unpaid.
+ */
+export const ownerStatement = pgTable(
+  "owner_statement",
+  {
+    id: id(),
+    organizationId: organizationId(),
+    number: text().notNull(),
+    ownerId: uuid().notNull(),
+    periodFrom: date({ mode: "string" }),
+    periodTo: date({ mode: "string" }).notNull(),
+    issuedOn: date({ mode: "string" }).notNull(),
+    collected: money().notNull(),
+    fees: money().notNull(),
+    deductions: money().notNull(),
+    net: money().notNull(),
+    /** Each rent (or reversal) with its fee, as printed (amounts as centime strings). */
+    lines: jsonb()
+      .$type<
+        {
+          leaseNumber: string;
+          tenantName: string;
+          unitCode: string;
+          receiptNumber: string;
+          paidOn: string;
+          amount: string;
+          feeRateBp: number;
+          fee: string;
+          reversal: boolean;
+        }[]
+      >()
+      .notNull(),
+    /** Other deductions (repairs paid for the owner…), amounts as centime strings. */
+    extras: jsonb()
+      .$type<(Omit<StatementExtra, "amount"> & { amount: string })[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
+    status: ownerStatementStatus().notNull().default("issued"),
+    paidOn: date({ mode: "string" }),
+    paymentMethod: paymentMethod(),
+    paymentReference: text(),
+    /** The cash desk or account the payout left (CLAUDE.md §7 Treasury). */
+    accountId: uuid(),
+    paidBy: userRef(),
+    cancelledAt: instant(),
+    cancellationReason: text(),
+    cancelledBy: userRef(),
+    pdfFileId: uuid(),
+    createdBy: userRef().notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    unique().on(t.organizationId, t.id),
+    unique().on(t.organizationId, t.number),
+    foreignKey({
+      name: "owner_statement_owner_fk",
+      columns: [t.organizationId, t.ownerId],
+      foreignColumns: [propertyOwner.organizationId, propertyOwner.id],
+    }),
+    foreignKey({
+      name: "owner_statement_account_fk",
+      columns: [t.organizationId, t.accountId],
+      foreignColumns: [treasuryAccount.organizationId, treasuryAccount.id],
+    }),
+    foreignKey({
+      name: "owner_statement_pdf_fk",
+      columns: [t.organizationId, t.pdfFileId],
+      foreignColumns: [file.organizationId, file.id],
+    }),
+    index().on(t.organizationId, t.ownerId),
+    check(
+      "owner_statement_amounts",
+      sql`${t.net} = ${t.collected} - ${t.fees} - ${t.deductions} and ${t.net} >= 0
+        and ${t.deductions} >= 0`,
+    ),
+    check(
+      "owner_statement_paid",
+      sql`(${t.status} = 'paid') = (${t.paidOn} is not null and ${t.paymentMethod} is not null)`,
+    ),
+    check(
+      "owner_statement_cancelled",
+      sql`(${t.status} = 'cancelled') = (${t.cancelledAt} is not null and ${t.cancellationReason} is not null)`,
+    ),
+  ],
+);
+
+/**
+ * The rent payments a statement reported or reversed (`reversal`): each at most once per kind
+ * among live statements; a cancelled statement's items are deleted.
+ */
+export const ownerStatementItem = pgTable(
+  "owner_statement_item",
+  {
+    organizationId: organizationId(),
+    statementId: uuid().notNull(),
+    rentPaymentId: uuid().notNull(),
+    reversal: boolean().notNull().default(false),
+  },
+  (t) => [
+    unique("owner_statement_item_once").on(t.organizationId, t.rentPaymentId, t.reversal),
+    index().on(t.organizationId, t.statementId),
+    foreignKey({
+      name: "owner_statement_item_statement_fk",
+      columns: [t.organizationId, t.statementId],
+      foreignColumns: [ownerStatement.organizationId, ownerStatement.id],
+    }),
+    foreignKey({
+      name: "owner_statement_item_payment_fk",
+      columns: [t.organizationId, t.rentPaymentId],
+      foreignColumns: [rentPayment.organizationId, rentPayment.id],
+    }),
   ],
 );

@@ -11,7 +11,9 @@ import {
   handover,
   lease,
   leaseChargeSettlement,
+  ownerStatement,
   payment,
+  propertyOwner,
   rentPayment,
   reservation,
   reservationBuyer,
@@ -41,6 +43,8 @@ export type G50Figures = {
   sales: RevenueTotals;
   rents: RevenueTotals;
   charges: RevenueTotals;
+  /** Management fees on the owner statements (management mandates). */
+  fees: RevenueTotals;
   vat: Centimes;
   cash: Centimes;
   stampDuty: Centimes;
@@ -95,6 +99,7 @@ export async function revenueEntries(
   const sales = zero();
   const rents = zero();
   const charges = zero();
+  const fees = zero();
   const add = (totals: RevenueTotals, ttc: Centimes, ht: Centimes, vat: Centimes, sign: bigint) => {
     totals.ttc += sign * ttc;
     totals.ht += sign * ht;
@@ -243,6 +248,18 @@ export async function revenueEntries(
     const periods = buildRentPeriods({ ...row, revisions: revisions.get(row.id) });
     for (const period of periods) {
       if (!inPeriod(period.dueOn, from, to)) continue;
+      // A unit let for its owner: the rent is the owner's (the tenant against its account).
+      if (row.mandateId) {
+        entries.push({
+          journal: codes.chargesJournal,
+          on: period.dueOn,
+          piece: row.number,
+          label: `Loyer ${period.fromOn} – ${period.toOn} · ${row.tenantName} (mandat)`,
+          receivable: codes.tenants,
+          credits: [{ account: codes.owners, amount: period.amount }],
+        });
+        continue;
+      }
       const { ht, vat } = vatSplit(period.amount, rentVat(row.kind));
       entries.push({
         journal: codes.salesJournal,
@@ -275,28 +292,78 @@ export async function revenueEntries(
     const owner = byLease.get(settlement.leaseId);
     if (!owner || settlement.balance === 0n) continue;
     const amount = settlement.balance > 0n ? settlement.balance : -settlement.balance;
-    const { ht, vat } = vatSplit(amount, rentVat(owner.kind));
+    // A mandated lease's charges are the owner's: no revenue, no VAT.
+    const mandated = owner.mandateId !== null;
+    const { ht, vat } = mandated ? { ht: amount, vat: 0n } : vatSplit(amount, rentVat(owner.kind));
     // A balance due is revenue; a credit in the tenant's favour reduces it.
     const credit = settlement.balance < 0n;
     const base = {
-      journal: codes.salesJournal,
+      journal: mandated ? codes.chargesJournal : codes.salesJournal,
       piece: owner.number,
       receivable: codes.tenants,
-      credits: [
-        { account: codes.rentRevenue, amount: ht },
-        { account: codes.vatCollected, amount: vat },
-      ],
+      credits: mandated
+        ? [{ account: codes.owners, amount }]
+        : [
+            { account: codes.rentRevenue, amount: ht },
+            { account: codes.vatCollected, amount: vat },
+          ],
     };
+    const tally = mandated ? zero() : rents;
     const label = `Régularisation des charges ${settlement.year} · ${owner.tenantName}`;
     const madeOn = toCalendarDate(settlement.createdAt);
     if (inPeriod(madeOn, from, to)) {
       entries.push({ ...base, on: madeOn, label, reversal: credit });
-      add(rents, amount, ht, vat, credit ? -1n : 1n);
+      add(tally, amount, ht, vat, credit ? -1n : 1n);
     }
     const cancelledOn = settlement.cancelledAt ? toCalendarDate(settlement.cancelledAt) : null;
     if (cancelledOn && inPeriod(cancelledOn, from, to)) {
       entries.push({ ...base, on: cancelledOn, label: `Annulation · ${label}`, reversal: !credit });
-      add(rents, amount, ht, vat, credit ? 1n : -1n);
+      add(tally, amount, ht, vat, credit ? 1n : -1n);
+    }
+  }
+
+  // ── Management fees (owner statements) ──────────────────────────────────────
+  // Each statement's fees when issued — the owner's account against the fees and their VAT —
+  // reversed when it is cancelled.
+  const statements = await tx
+    .select({
+      number: ownerStatement.number,
+      issuedOn: ownerStatement.issuedOn,
+      fees: ownerStatement.fees,
+      cancelledAt: ownerStatement.cancelledAt,
+      ownerName: propertyOwner.name,
+    })
+    .from(ownerStatement)
+    .innerJoin(propertyOwner, eq(propertyOwner.id, ownerStatement.ownerId))
+    .where(lte(ownerStatement.issuedOn, to));
+  for (const statement of statements) {
+    if (statement.fees === 0n) continue;
+    const amount = statement.fees > 0n ? statement.fees : -statement.fees;
+    const { ht, vat } = vatSplit(amount, tax.vatFeesBp);
+    const negative = statement.fees < 0n;
+    const base = {
+      journal: codes.salesJournal,
+      piece: statement.number,
+      receivable: codes.owners,
+      credits: [
+        { account: codes.managementFees, amount: ht },
+        { account: codes.vatCollected, amount: vat },
+      ],
+    };
+    const label = `Honoraires de gestion · ${statement.ownerName}`;
+    if (inPeriod(statement.issuedOn, from, to)) {
+      entries.push({ ...base, on: statement.issuedOn, label, reversal: negative });
+      add(fees, amount, ht, vat, negative ? -1n : 1n);
+    }
+    const cancelledOn = statement.cancelledAt ? toCalendarDate(statement.cancelledAt) : null;
+    if (cancelledOn && inPeriod(cancelledOn, from, to)) {
+      entries.push({
+        ...base,
+        on: cancelledOn,
+        label: `Annulation · ${label}`,
+        reversal: !negative,
+      });
+      add(fees, amount, ht, vat, negative ? 1n : -1n);
     }
   }
 
@@ -321,7 +388,8 @@ export async function revenueEntries(
       sales,
       rents,
       charges,
-      vat: sales.vat + rents.vat,
+      fees,
+      vat: sales.vat + rents.vat + fees.vat,
       cash,
       stampDuty: applyRate(cash, tax.stampDutyBp),
       stampDutyBp: tax.stampDutyBp,

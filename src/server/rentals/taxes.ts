@@ -28,7 +28,8 @@ const zero = (): Totals => ({ due: 0n, ht: 0n, vat: 0n, collected: 0n, duty: 0n 
  * per lease, what fell due in the year — the rent periods starting in it and the charges
  * settlements made in it (a credit deducted), as in the accounting export — split into HT and
  * VAT at the organization's rate for its kind, the rent collected in the year, and its
- * registration (day, duties). Totals per lease kind. Nothing is declared by the app.
+ * registration (day, duties). Totals per lease kind. Leases under a management mandate are
+ * left out (their rents are their owners'). Nothing is declared by the app.
  */
 export async function getRentalTaxes(ctx: TenantCtx, year: number) {
   assertCan(ctx, "lease:read");
@@ -94,6 +95,8 @@ export async function getRentalTaxes(ctx: TenantCtx, year: number) {
 
     const inYear = (day: string) => day >= from && day <= to;
     const rows = leases.flatMap(({ lease: l, unitCode, projectName }) => {
+      // A unit let for its owner: its rents are the owner's, not the organization's.
+      if (l.mandateId) return [];
       const periods = buildRentPeriods({ ...l, revisions: revisions.get(l.id) }).filter((p) =>
         inYear(p.dueOn),
       );

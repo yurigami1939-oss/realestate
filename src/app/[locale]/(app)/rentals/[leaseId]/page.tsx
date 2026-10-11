@@ -106,6 +106,18 @@ export default async function LeasePage({ params }: PageProps<"/[locale]/rentals
     lease.inForce.monthlyCharges !== lease.monthlyCharges;
 
   const terms: { label: string; value: React.ReactNode }[] = [
+    ...(lease.owner
+      ? [
+          {
+            label: t("fields.owner"),
+            value: (
+              <Link href={`/rentals/owners/${lease.owner.id}`} className="hover:underline">
+                {lease.owner.name}
+              </Link>
+            ),
+          },
+        ]
+      : []),
     { label: t("fields.signedOn"), value: formatDate(lease.signedOn) },
     {
       label: t("fields.term"),

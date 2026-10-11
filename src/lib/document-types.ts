@@ -12,6 +12,7 @@ export const documentTypes = [
   "rent_receipt",
   "certificate",
   "cheque_deposit",
+  "owner_statement",
 ] as const;
 
 export type DocumentType = (typeof documentTypes)[number];
@@ -29,6 +30,7 @@ export const documentPrefixes: Record<DocumentType, string> = {
   rent_receipt: "QIT",
   certificate: "ATT",
   cheque_deposit: "BRC",
+  owner_statement: "RDG",
 };
 
 /** `REC-2026-000123` */

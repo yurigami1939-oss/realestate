@@ -19,6 +19,7 @@ export const accountingKeys = [
   "staff",
   "staffAdvances",
   "partners",
+  "owners",
   "bankFees",
   "expenses",
   "income",
@@ -27,6 +28,7 @@ export const accountingKeys = [
   "cashOver",
   "salesRevenue",
   "rentRevenue",
+  "managementFees",
   "chargesCalled",
   "reserveFund",
   "vatCollected",
@@ -47,6 +49,7 @@ export const defaultAccountingCodes: AccountingCodes = {
   staff: "421000",
   staffAdvances: "425000",
   partners: "622000",
+  owners: "467200",
   bankFees: "627000",
   expenses: "628000",
   income: "758000",
@@ -55,6 +58,7 @@ export const defaultAccountingCodes: AccountingCodes = {
   cashOver: "758000",
   salesRevenue: "702000",
   rentRevenue: "706000",
+  managementFees: "706200",
   chargesCalled: "708000",
   reserveFund: "467100",
   vatCollected: "445700",
@@ -78,6 +82,8 @@ export type TaxSettings = {
   vatRentCommercialBp: number;
   vatRentResidentialBp: number;
   stampDutyBp: number;
+  /** VAT on the management fees of owner statements (management mandates). */
+  vatFeesBp: number;
   leaseRegistrationBp: number;
   leaseRegistrationDays: number;
 };
@@ -91,6 +97,7 @@ export const defaultTaxSettings: TaxSettings = {
   vatRentCommercialBp: 0,
   vatRentResidentialBp: 0,
   stampDutyBp: 0,
+  vatFeesBp: 0,
   leaseRegistrationBp: 0,
   leaseRegistrationDays: DEFAULT_LEASE_REGISTRATION_DAYS,
 };
@@ -155,6 +162,8 @@ export function counterpartKey(
       return "staffAdvances";
     case "partner_commission":
       return "partners";
+    case "owner_payout":
+      return "owners";
     case "bank_fee":
       return "bankFees";
     case "income":

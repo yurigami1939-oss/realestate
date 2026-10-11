@@ -103,7 +103,7 @@ export function InspectionPdf({
   );
 }
 
-function PendingPdf({
+export function PendingPdf({
   fileId,
   label,
   pending,

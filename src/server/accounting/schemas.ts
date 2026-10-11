@@ -36,6 +36,7 @@ export const accountingCodesSchema = z.object({
       vatRentCommercial: optionalPercentText(0, 30),
       vatRentResidential: optionalPercentText(0, 30),
       stampDuty: optionalPercentText(0, 10),
+      vatFees: optionalPercentText(0, 30),
       leaseRegistration: optionalPercentText(0, 20),
       leaseRegistrationDays: optionalIntText(1, 365),
     })
@@ -45,6 +46,7 @@ export const accountingCodesSchema = z.object({
       vatRentCommercialBp: t.vatRentCommercial ?? 0,
       vatRentResidentialBp: t.vatRentResidential ?? 0,
       stampDutyBp: t.stampDuty ?? 0,
+      vatFeesBp: t.vatFees ?? 0,
       leaseRegistrationBp: t.leaseRegistration ?? 0,
       leaseRegistrationDays: t.leaseRegistrationDays ?? DEFAULT_LEASE_REGISTRATION_DAYS,
     }))

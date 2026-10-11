@@ -58,6 +58,7 @@ export function AccountingCodesForm({
         vatRentCommercial: percent(tax.vatRentCommercialBp),
         vatRentResidential: percent(tax.vatRentResidentialBp),
         stampDuty: percent(tax.stampDutyBp),
+        vatFees: percent(tax.vatFeesBp),
         leaseRegistration: percent(tax.leaseRegistrationBp),
         leaseRegistrationDays: String(tax.leaseRegistrationDays),
       },
@@ -113,6 +114,7 @@ export function AccountingCodesForm({
               "vatRentCommercial",
               "vatRentResidential",
               "stampDuty",
+              "vatFees",
               "leaseRegistration",
             ] as const
           ).map((key) => (

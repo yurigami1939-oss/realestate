@@ -14,6 +14,7 @@ import {
   renderAndStoreHandoverPv,
   renderAndStoreHandoverRelease,
 } from "@/server/handovers/documents";
+import { renderAndStoreOwnerStatement } from "@/server/mandates/documents";
 import { renderAndStorePaymentCall } from "@/server/payment-calls/documents";
 import { renderAndStoreReceipt } from "@/server/payments/documents";
 import { renderAndStoreQuotationPdf } from "@/server/quotations/pdf";
@@ -47,6 +48,7 @@ const renderers: Record<PdfDocumentKind, Renderer> = {
   schedule_amendment: renderAndStoreScheduleAmendment,
   cheque_deposit: renderAndStoreChequeDeposit,
   unit_sheet: renderAndStoreUnitSheet,
+  owner_statement: renderAndStoreOwnerStatement,
 };
 
 /** Job `pdf.document`: dispatches to the document's renderer (idempotent). */
