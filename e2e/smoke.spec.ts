@@ -83,6 +83,7 @@ test("wrong password shows a translated error", async ({ page }) => {
 test("the gérant manages members, switches organization and language", async ({ page }) => {
   await signIn(page, "owner");
 
+  await page.getByRole("link", { name: "Réglages" }).click();
   await page.getByRole("link", { name: "Membres" }).click();
   // Staff only: portal accounts (role resident) are managed from their records.
   await expect(page.getByTestId("members-table").getByRole("row")).toHaveCount(

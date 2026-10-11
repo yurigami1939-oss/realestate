@@ -96,7 +96,8 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
     │   ├── [locale]/
     │   │   ├── (auth)/       # sign-in, two-factor (code), sign-up, forgot/reset password, onboarding,
     │   │   │                 # accept-invitation; settings/security (2FA) lives in (app)
-    │   │   ├── (app)/        # back-office shell (guard + sidebar) · dashboard · settings (members,
+    │   │   ├── (app)/        # back-office shell (guard + sidebar) · dashboard · settings (the hub « Réglages »: its pages
+    │   │   │                 # grouped, its frame beside each of them and beside exports / imports; members,
     │   │   │                 # company + logo, audit log) · projects · construction · leads · buyers · sales
     │   │   │                 # · commissions · deliveries · rentals (+ taxes, owners under mandate) · residences · online-payments
     │   │   │                 # · settings/online-payment (SATIM account) · whatsapp (message log)
@@ -127,6 +128,7 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
     ├── components/
     │   ├── ui/               # shadcn/ui primitives (generated; sidebar labels made translatable)
     │   ├── brand/            # BrandMark, BrandLogo (the app's mark and name)
+    │   ├── settings/         # the settings hub (SettingsFrame, SettingsNav, SettingsTile), settings forms
     │   ├── app-shell/        # nav-items.ts (the back office's pages and sections: sidebar, top bar,
     │   │                     # palette), sidebar (folding groups), top bar, org switcher, user menu
     │   ├── forms/            # TextField, fields, FormDialog, ConfirmAction, useAction, useTranslateKey
@@ -1289,7 +1291,7 @@ Goal (user): a product that feels professional and Apple-like — calm, consiste
 
 ### Priority 2 — navigation and structure
 - [x] **6. App shell**: a translucent sticky top bar with the page's place (instead of the company name repeated), the sidebar on the canvas with the current page in the accent, quieter group labels, groups that fold.
-- [ ] **7. Settings hub**: the 14 settings entries leave the sidebar for one « Réglages » page with its own grouped navigation (account, company, communication, data and privacy), like System Settings.
+- [x] **7. Settings hub**: the 14 settings entries leave the sidebar for one « Réglages » page with its own grouped navigation (account, company, communication, data and privacy), like System Settings.
 - [ ] **8. Command palette** (⌘K / Ctrl K): go to any page, find a lead, buyer, sale or unit by name or number from anywhere.
 - [ ] **9. Page layout**: every page through `PageHeader` (27 pages without), three content widths instead of five, actions as one primary button plus a « … » menu (lead and project pages show 6–7 buttons in a row), filters with their placeholder shown (« Toutes les étapes » instead of empty boxes).
 

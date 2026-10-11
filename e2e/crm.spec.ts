@@ -167,6 +167,7 @@ test.describe("gérant", () => {
 
   test("keeps the retention periods and the register of processing", async ({ page }) => {
     await page.goto("/fr/dashboard");
+    await page.getByRole("link", { name: "Réglages" }).click();
     await page.getByRole("link", { name: "Données personnelles" }).click();
     await expect(page.getByLabel("Prospects sans achat (mois sans activité)")).toHaveValue("36");
     const register = page.getByTestId("processing-register");

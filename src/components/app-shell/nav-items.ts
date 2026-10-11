@@ -30,6 +30,7 @@ import {
   Percent,
   PhoneCall,
   ScrollText,
+  Settings,
   ShieldCheck,
   Target,
   Truck,
@@ -90,7 +91,8 @@ export type NavKey =
   | "reports"
   | "group"
   | "security"
-  | "notifications";
+  | "notifications"
+  | "settings";
 
 export type NavItem = {
   href: string;
@@ -99,6 +101,8 @@ export type NavItem = {
   permission?: Permission | Permission[];
   /** Shown only to a gérant of several companies. */
   groupOnly?: boolean;
+  /** Its icon's tile in the settings hub (a tone of globals.css). */
+  tile?: string;
 };
 
 /** A group of the sidebar, labelled by a `nav.*` key (the first group has none). */
@@ -111,8 +115,7 @@ export type NavSection = {
     | "financeGroup"
     | "rentalsGroup"
     | "residenceGroup"
-    | "communicationGroup"
-    | "settings";
+    | "communicationGroup";
   items: NavItem[];
 };
 
@@ -222,69 +225,130 @@ export const navSections: NavSection[] = [
       { href: "/sms", key: "smsLog", icon: MessageSquareText, permission: "notification:read" },
     ],
   },
+];
+
+/** The sidebar's one entry for the settings hub (`/settings`). */
+export const settingsItem: NavItem = { href: "/settings", key: "settings", icon: Settings };
+
+/** A group of the settings hub, labelled by a `settingsHub.groups.*` key. */
+export type SettingsGroup = {
+  id: "account" | "company" | "channels" | "data";
+  items: NavItem[];
+};
+
+/**
+ * The settings hub's pages (like System Settings: one entry in the sidebar, the pages grouped
+ * on `/settings` and beside every settings page).
+ */
+export const settingsGroups: SettingsGroup[] = [
   {
-    id: "settings",
-    label: "settings",
+    id: "account",
     items: [
-      { href: "/settings/members", key: "members", icon: Users },
-      { href: "/settings/security", key: "security", icon: ShieldCheck },
-      { href: "/settings/notifications", key: "notifications", icon: Bell },
+      { href: "/settings/security", key: "security", icon: ShieldCheck, tile: "bg-gray-vivid" },
+      {
+        href: "/settings/notifications",
+        key: "notifications",
+        icon: Bell,
+        tile: "bg-danger-vivid",
+      },
+    ],
+  },
+  {
+    id: "company",
+    items: [
       {
         href: "/settings/company",
         key: "company",
         icon: Building,
         permission: "organization:update",
+        tile: "bg-info-vivid",
       },
+      { href: "/settings/members", key: "members", icon: Users, tile: "bg-indigo-vivid" },
       {
-        href: "/settings/online-payment",
-        key: "paymentGateway",
-        icon: Landmark,
-        permission: "organization:update",
-      },
-      {
-        href: "/settings/lead-capture",
-        key: "leadCapture",
-        icon: Webhook,
-        permission: "lead:assign",
-      },
-      {
-        href: "/settings/whatsapp",
-        key: "whatsappSettings",
-        icon: MessageCircle,
-        permission: "organization:update",
-      },
-      {
-        href: "/settings/sms",
-        key: "smsSettings",
-        icon: MessageSquareText,
-        permission: "organization:update",
+        href: "/settings/roles",
+        key: "customRoles",
+        icon: UserCog,
+        permission: "member:update",
+        tile: "bg-purple-vivid",
       },
       {
         href: "/settings/documents",
         key: "documentTexts",
         icon: FileText,
         permission: "organization:update",
+        tile: "bg-orange-vivid",
       },
-      { href: "/settings/roles", key: "customRoles", icon: UserCog, permission: "member:update" },
+    ],
+  },
+  {
+    id: "channels",
+    items: [
       {
-        href: "/settings/privacy",
-        key: "privacy",
-        icon: FileLock2,
+        href: "/settings/online-payment",
+        key: "paymentGateway",
+        icon: Landmark,
         permission: "organization:update",
+        tile: "bg-success-vivid",
       },
-      { href: "/exports", key: "exports", icon: FileSpreadsheet },
+      {
+        href: "/settings/lead-capture",
+        key: "leadCapture",
+        icon: Webhook,
+        permission: "lead:assign",
+        tile: "bg-teal-vivid",
+      },
+      {
+        href: "/settings/whatsapp",
+        key: "whatsappSettings",
+        icon: MessageCircle,
+        permission: "organization:update",
+        tile: "bg-success-vivid",
+      },
+      {
+        href: "/settings/sms",
+        key: "smsSettings",
+        icon: MessageSquareText,
+        permission: "organization:update",
+        tile: "bg-info-vivid",
+      },
+    ],
+  },
+  {
+    id: "data",
+    items: [
+      { href: "/exports", key: "exports", icon: FileSpreadsheet, tile: "bg-success-vivid" },
       {
         href: "/imports",
         key: "imports",
         icon: FileUp,
         permission: ["unit:create", "buyer:create", "residence:update", "lead:create"],
+        tile: "bg-teal-vivid",
       },
-      { href: "/settings/audit", key: "audit", icon: ScrollText, permission: "audit:read" },
+      {
+        href: "/settings/privacy",
+        key: "privacy",
+        icon: FileLock2,
+        permission: "organization:update",
+        tile: "bg-gray-vivid",
+      },
+      {
+        href: "/settings/audit",
+        key: "audit",
+        icon: ScrollText,
+        permission: "audit:read",
+        tile: "bg-gray-vivid",
+      },
     ],
   },
 ];
 
-export const allNavItems: NavItem[] = navSections.flatMap((s) => s.items);
+export const settingsItems: NavItem[] = settingsGroups.flatMap((g) => g.items);
+
+export const allNavItems: NavItem[] = [
+  ...navSections.flatMap((s) => s.items),
+  ...settingsItems,
+  settingsItem,
+];
 
 /** The items a member may open (`group`: they run several companies). */
 export function visibleItems(items: NavItem[], access: Access, group: boolean): NavItem[] {

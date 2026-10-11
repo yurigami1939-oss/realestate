@@ -9,6 +9,7 @@ test.describe("exports Excel", () => {
 
   test("the cashier downloads the journal of collections and the sales", async ({ page }) => {
     await page.goto("/fr/dashboard");
+    await page.getByRole("link", { name: "Réglages" }).click();
     await page.getByRole("link", { name: "Exports Excel" }).click();
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("Exports Excel");
 

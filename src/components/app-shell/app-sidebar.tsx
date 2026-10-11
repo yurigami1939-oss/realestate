@@ -22,7 +22,7 @@ import { Link, usePathname } from "@/i18n/navigation";
 import type { Access } from "@/lib/permissions";
 import { cn } from "@/lib/utils";
 
-import { activeNavItem, navSections, visibleItems } from "./nav-items";
+import { activeNavItem, navSections, settingsItem, settingsItems, visibleItems } from "./nav-items";
 import { NavUser } from "./nav-user";
 import { type OrgOption, OrgSwitcher } from "./org-switcher";
 
@@ -75,6 +75,9 @@ export function AppSidebar({
   const t = useTranslations();
   const pathname = usePathname();
   const active = activeNavItem(pathname)?.href;
+  // Every page of the settings hub keeps « Réglages » current in the sidebar.
+  const inSettings =
+    active === settingsItem.href || settingsItems.some((item) => item.href === active);
   const { state } = useSidebar();
   const stored = useSyncExternalStore(subscribe, readFolded, () => "");
   const folded = stored ? stored.split(",") : [];
@@ -141,6 +144,24 @@ export function AppSidebar({
             </SidebarGroup>
           );
         })}
+        <SidebarGroup className="mt-auto py-1">
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  isActive={inSettings}
+                  tooltip={t(`nav.${settingsItem.key}`)}
+                >
+                  <Link href={settingsItem.href}>
+                    <settingsItem.icon className="text-primary" />
+                    <span>{t(`nav.${settingsItem.key}`)}</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={user} />

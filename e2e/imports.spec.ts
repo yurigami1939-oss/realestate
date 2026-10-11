@@ -17,6 +17,7 @@ test.describe("data import", () => {
 
   test("the gérant checks a file, fixes it, then imports the buyers", async ({ page }) => {
     await page.goto("/fr/dashboard");
+    await page.getByRole("link", { name: "Réglages" }).click();
     await page.getByRole("link", { name: "Reprise de données" }).click();
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("Reprise de données");
     const panel = page.getByTestId("import-buyers");

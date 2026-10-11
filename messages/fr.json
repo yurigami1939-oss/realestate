@@ -266,7 +266,7 @@
   "nav": {
     "main": "Navigation",
     "dashboard": "Tableau de bord",
-    "settings": "Paramètres",
+    "settings": "Réglages",
     "members": "Membres",
     "projects": "Projets",
     "sales": "Prospection",
@@ -6291,6 +6291,32 @@
       "notExpected": "Ce visiteur n'est plus attendu.",
       "notToday": "Ce visiteur est attendu un autre jour.",
       "unit": "Ce lot n'appartient pas à la résidence."
+    }
+  },
+  "settingsHub": {
+    "description": "Votre compte, la société, ses canaux et ses données.",
+    "back": "Réglages",
+    "groups": {
+      "account": "Mon compte",
+      "company": "Société",
+      "channels": "Paiements et communication",
+      "data": "Données"
+    },
+    "items": {
+      "security": "Mot de passe et double authentification",
+      "notifications": "Notifications sur vos appareils",
+      "company": "Identité légale, logo, réglages des ventes",
+      "members": "Les personnes qui ont accès et leurs rôles",
+      "customRoles": "Des rôles sur mesure pour votre équipe",
+      "documentTexts": "Vos mentions sur les documents imprimés",
+      "paymentGateway": "Compte marchand SATIM (CIB, Edahabia)",
+      "leadCapture": "Clés pour votre site et vos automatisations",
+      "whatsappSettings": "Numéro WhatsApp Business et modèles",
+      "smsSettings": "Passerelle, nom d'expéditeur, notifications",
+      "exports": "Journal des encaissements, listes, comptes",
+      "imports": "Reprise de vos données existantes",
+      "privacy": "Durées de conservation et registre des traitements",
+      "audit": "Qui a fait quoi, et quand"
     }
   }
 }
