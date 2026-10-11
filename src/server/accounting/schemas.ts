@@ -1,8 +1,13 @@
 /** Isomorphic: the accounting export's chart (CLAUDE.md §7 Treasury). */
 import { z } from "zod";
 
-import { type AccountingKey, accountingKeys, revenueEvents } from "@/lib/accounting";
-import { optionalPercentText } from "@/lib/zod";
+import {
+  type AccountingKey,
+  accountingKeys,
+  DEFAULT_LEASE_REGISTRATION_DAYS,
+  revenueEvents,
+} from "@/lib/accounting";
+import { optionalIntText, optionalPercentText } from "@/lib/zod";
 
 /** An account number of the chart: digits (and letters for auxiliaries), blank = the default. */
 const code = z
@@ -31,6 +36,8 @@ export const accountingCodesSchema = z.object({
       vatRentCommercial: optionalPercentText(0, 30),
       vatRentResidential: optionalPercentText(0, 30),
       stampDuty: optionalPercentText(0, 10),
+      leaseRegistration: optionalPercentText(0, 20),
+      leaseRegistrationDays: optionalIntText(1, 365),
     })
     .transform((t) => ({
       revenueEvent: t.revenueEvent,
@@ -38,6 +45,8 @@ export const accountingCodesSchema = z.object({
       vatRentCommercialBp: t.vatRentCommercial ?? 0,
       vatRentResidentialBp: t.vatRentResidential ?? 0,
       stampDutyBp: t.stampDuty ?? 0,
+      leaseRegistrationBp: t.leaseRegistration ?? 0,
+      leaseRegistrationDays: t.leaseRegistrationDays ?? DEFAULT_LEASE_REGISTRATION_DAYS,
     }))
     .optional(),
   /** Each treasury account's own code and journal (blank = by kind: 53 / CA, 512 / BQ…). */

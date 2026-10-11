@@ -36,6 +36,7 @@ import { listUnitAccounts } from "@/server/charges/queries";
 import { getBudgetReport } from "@/server/charges/report";
 import { listConditions as leadConditions } from "@/server/crm/queries";
 import { listLeases } from "@/server/rentals/queries";
+import { getRentalTaxes } from "@/server/rentals/taxes";
 import { saleAnnexes } from "@/server/sales/annexes";
 import { visibleSales } from "@/server/sales/access";
 import { buyerNames, paidTotals, searchCondition as saleSearch } from "@/server/sales/sale-queries";
@@ -871,6 +872,76 @@ async function leases(
   };
 }
 
+/** The rental taxes of a year: per lease what fell due (HT, VAT), collected, registration. */
+async function rentTaxes(
+  ctx: TenantCtx,
+  params: ExportParams<"rent_taxes">,
+  t: Translate,
+): Promise<ExportResult> {
+  const year = params.year ?? Number(todayInAlgiers().slice(0, 4));
+  const taxes = await getRentalTaxes(ctx, year);
+  const money = { kind: "money" } as const;
+  return {
+    file: exportFileName("fiscalite-loyers", String(year)),
+    rows: taxes.rows.length,
+    sheets: [
+      {
+        name: t("rentals.taxes.title"),
+        columns: [
+          { header: t("exports.columns.lease"), width: 18 },
+          { header: t("exports.columns.project"), width: 24 },
+          { header: t("exports.columns.unit"), width: 12 },
+          { header: t("exports.columns.leaseKind"), width: 14 },
+          { header: t("exports.columns.tenant"), width: 28 },
+          { header: t("rentals.taxes.columns.rents"), ...money },
+          { header: t("rentals.taxes.columns.regularized"), ...money },
+          { header: t("rentals.taxes.columns.due"), ...money },
+          { header: t("rentals.taxes.columns.ht"), ...money },
+          { header: t("rentals.taxes.columns.vat"), ...money },
+          { header: t("rentals.taxes.columns.collected"), ...money },
+          { header: t("rentals.registration.registeredOn"), kind: "date" },
+          { header: t("rentals.registration.reference"), width: 18 },
+          { header: t("rentals.taxes.columns.duty"), ...money },
+        ],
+        rows: [
+          ...taxes.rows.map((r) => [
+            r.number,
+            r.projectName,
+            r.unitCode,
+            t(`rentals.kind.${r.kind}`),
+            r.tenantName,
+            r.rents,
+            r.regularized,
+            r.due,
+            r.ht,
+            r.vat,
+            r.collected,
+            r.registeredOn,
+            r.registrationReference,
+            r.duty,
+          ]),
+          [
+            t("exports.total"),
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            taxes.all.due,
+            taxes.all.ht,
+            taxes.all.vat,
+            taxes.all.collected,
+            null,
+            null,
+            taxes.all.duty,
+          ],
+        ],
+      },
+    ],
+  };
+}
+
 /** Supplier invoices (of a residence, a year), with their booking and payment. */
 async function invoices(
   ctx: TenantCtx,
@@ -1246,4 +1317,5 @@ export const builders: { [K in ExportKind]: Builder<K> } = {
   accounting,
   person: personExport,
   assembly_pack: assemblyPack,
+  rent_taxes: rentTaxes,
 };

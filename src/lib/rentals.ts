@@ -3,7 +3,7 @@
  * Isomorphic: shared by the Drizzle schema, Zod schemas, services and UI.
  */
 import { addDays, addMonths, type CalendarDate } from "./dates";
-import type { Centimes } from "./money";
+import { applyRate, type Centimes } from "./money";
 
 /** Bail d'habitation / bail commercial (shop, office). */
 export const leaseKinds = ["residential", "commercial"] as const;
@@ -181,4 +181,35 @@ export function leaseState(
   if (lease.endOn < today) return "expired";
   if (lease.endOn <= addDays(today, ENDING_SOON_DAYS)) return "ending";
   return "running";
+}
+
+/**
+ * Registration of a lease at the tax office (CLAUDE.md §7 Rentals): due the organization's
+ * delay after its signature; `late` past that day, `due` before it, `registered` once recorded.
+ */
+export const registrationStates = ["registered", "due", "late"] as const;
+export type RegistrationState = (typeof registrationStates)[number];
+
+export function registrationDueOn(signedOn: CalendarDate, days: number): CalendarDate {
+  return addDays(signedOn, days);
+}
+
+export function registrationState(
+  lease: { registeredOn: CalendarDate | null; signedOn: CalendarDate },
+  days: number,
+  today: CalendarDate,
+): RegistrationState {
+  if (lease.registeredOn) return "registered";
+  return registrationDueOn(lease.signedOn, days) < today ? "late" : "due";
+}
+
+/**
+ * Duties estimated for registering a lease: the organization's rate on the rents of its whole
+ * term at the rent of its signature (charges left out), half-up; nothing at 0 %.
+ */
+export function registrationDuty(
+  lease: { monthlyRent: Centimes; durationMonths: number },
+  rateBp: number,
+): Centimes {
+  return applyRate(lease.monthlyRent * BigInt(lease.durationMonths), rateBp);
 }

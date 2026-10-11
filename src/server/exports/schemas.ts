@@ -20,6 +20,7 @@ export const exportKinds = [
   "accounting",
   "person",
   "assembly_pack",
+  "rent_taxes",
 ] as const;
 export type ExportKind = (typeof exportKinds)[number];
 
@@ -59,6 +60,10 @@ export const exportParams = {
   /** The accounts submitted to a residence's general assembly for one year. */
   assembly_pack: z.object({
     residence: z.uuid(),
+    year: z.coerce.number().int().min(2000).max(2100).optional().catch(undefined),
+  }),
+  /** The rental taxes of a year (rents due HT / VAT, collected, registration duties). */
+  rent_taxes: z.object({
     year: z.coerce.number().int().min(2000).max(2100).optional().catch(undefined),
   }),
 } as const satisfies Record<ExportKind, z.ZodType>;

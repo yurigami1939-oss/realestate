@@ -58,6 +58,8 @@ export function AccountingCodesForm({
         vatRentCommercial: percent(tax.vatRentCommercialBp),
         vatRentResidential: percent(tax.vatRentResidentialBp),
         stampDuty: percent(tax.stampDutyBp),
+        leaseRegistration: percent(tax.leaseRegistrationBp),
+        leaseRegistrationDays: String(tax.leaseRegistrationDays),
       },
       codes: Object.fromEntries(
         accountingKeys.map((key) => [
@@ -105,19 +107,32 @@ export function AccountingCodesForm({
             label={t("tax.revenueEvent")}
             options={revenueEvents.map((e) => ({ value: e, label: t(`tax.event.${e}`) }))}
           />
-          {(["vatSales", "vatRentCommercial", "vatRentResidential", "stampDuty"] as const).map(
-            (key) => (
-              <TextField
-                key={key}
-                control={form.control}
-                name={`tax.${key}`}
-                label={t(`tax.${key}`)}
-                placeholder="0"
-                inputMode="decimal"
-                dir="ltr"
-              />
-            ),
-          )}
+          {(
+            [
+              "vatSales",
+              "vatRentCommercial",
+              "vatRentResidential",
+              "stampDuty",
+              "leaseRegistration",
+            ] as const
+          ).map((key) => (
+            <TextField
+              key={key}
+              control={form.control}
+              name={`tax.${key}`}
+              label={t(`tax.${key}`)}
+              placeholder="0"
+              inputMode="decimal"
+              dir="ltr"
+            />
+          ))}
+          <TextField
+            control={form.control}
+            name="tax.leaseRegistrationDays"
+            label={t("tax.leaseRegistrationDays")}
+            inputMode="numeric"
+            dir="ltr"
+          />
         </div>
         <FieldSeparator>{t("accounts")}</FieldSeparator>
         {accounts.map((a, index) => (

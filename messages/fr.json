@@ -2195,6 +2195,53 @@
       "cancelDescription": "Elle ne compte plus dans le compte du locataire (les sommes payées passent aux échéances suivantes) et l'année pourra être régularisée à nouveau.",
       "cancelled": "Régularisation annulée.",
       "reason": "Motif"
+    },
+    "registration": {
+      "cardTitle": "Enregistrement fiscal",
+      "registeredOn": "Enregistré le",
+      "office": "Inspection de l'enregistrement",
+      "reference": "Référence d'enregistrement",
+      "duty": "Droits payés (DA)",
+      "dueBy": "À enregistrer avant le {date}.",
+      "late": "En retard : à enregistrer avant le {date}.",
+      "none": "Non enregistré.",
+      "estimate": "Droits estimés : {amount} ({rate} % des loyers du bail).",
+      "open": "Noter l'enregistrement",
+      "correct": "Corriger",
+      "title": "Enregistrement du bail",
+      "description": "Le bail enregistré à l'inspection de l'enregistrement : date, inspection, référence et droits payés (le paiement des droits est une dépense du compte qui les a réglés).",
+      "submit": "Enregistrer",
+      "done": "Enregistrement du bail noté.",
+      "dutyHelp": "Prérempli au taux de la société ; saisissez les droits réellement payés.",
+      "badge": {
+        "due": "À enregistrer",
+        "late": "Enregistrement en retard"
+      },
+      "errors": {
+        "beforeSigning": "Le bail ne peut être enregistré avant sa signature."
+      }
+    },
+    "taxes": {
+      "link": "Fiscalité des loyers",
+      "title": "Fiscalité des loyers",
+      "description": "Loyers et régularisations échus en {year}, hors taxes et TVA aux taux de la société, loyers encaissés et droits d'enregistrement des baux.",
+      "years": "Années",
+      "vatAt": "TVA ({rate} %)",
+      "collectedTitle": "Encaissements",
+      "dutyPaid": "Droits : {amount}",
+      "total": "Total",
+      "empty": "Aucun loyer cette année.",
+      "note": "Les déclarations (G50, IBS) restent celles du comptable ; les taux de TVA sur les loyers et des droits d'enregistrement sont ceux réglés dans l'export comptable.",
+      "columns": {
+        "rents": "Loyers échus",
+        "regularized": "Régularisations",
+        "due": "Échu TTC",
+        "ht": "Hors taxes",
+        "vat": "TVA",
+        "collected": "Loyers encaissés",
+        "registration": "Enregistrement",
+        "duty": "Droits d'enregistrement"
+      }
     }
   },
   "audit": {
@@ -2486,7 +2533,10 @@
       "warrantyOpen": "Réclamation en garantie à qualifier : {unit} ({project})",
       "warrantyLate": "Reprise en garantie en retard : {unit} ({project})",
       "checkLate": "{title} ({residence}) : échéance dépassée le {date}",
-      "checkSoon": "{title} ({residence}) : à faire avant le {date}"
+      "checkSoon": "{title} ({residence}) : à faire avant le {date}",
+      "leaseRegistration": "Enregistrer le bail {number} ({unit})",
+      "leaseRegistrationDue": "{tenant} · à enregistrer avant le {date}",
+      "leaseRegistrationLate": "{tenant} · en retard : à enregistrer avant le {date}"
     },
     "sales": {
       "title": "Ventes",
@@ -5343,7 +5393,9 @@
       "vatSales": "TVA sur les ventes (%)",
       "vatRentCommercial": "TVA sur les loyers commerciaux (%)",
       "vatRentResidential": "TVA sur les loyers d'habitation (%)",
-      "stampDuty": "Droit de timbre sur les encaissements en espèces (%)"
+      "stampDuty": "Droit de timbre sur les encaissements en espèces (%)",
+      "leaseRegistration": "Droits d'enregistrement des baux (% des loyers du bail)",
+      "leaseRegistrationDays": "Délai d'enregistrement d'un bail (jours)"
     },
     "g50": {
       "title": "Récapitulatif pour la G50",

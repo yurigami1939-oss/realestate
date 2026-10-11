@@ -295,6 +295,8 @@ describe("revenue entries and the G50 worksheet", () => {
       vatRentCommercialBp: 1900,
       vatRentResidentialBp: 0,
       stampDutyBp: 100,
+      leaseRegistrationBp: 0,
+      leaseRegistrationDays: 30,
     });
 
     const entries = await getAccountingEntries(accountant, { from: today, to: today });

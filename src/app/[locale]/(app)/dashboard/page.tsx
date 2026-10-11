@@ -113,6 +113,7 @@ export default async function DashboardPage({ params }: PageProps<"/[locale]/das
     (todo.lateReserves ?? 0) > 0 ||
     (todo.rents?.count ?? 0) > 0 ||
     (todo.endingLeases?.length ?? 0) > 0 ||
+    (todo.unregisteredLeases?.length ?? 0) > 0 ||
     (todo.onlineIssues ?? 0) > 0 ||
     (todo.lateDeliveries ?? 0) > 0 ||
     (todo.documents?.expiring ?? 0) > 0 ||
@@ -278,6 +279,26 @@ export default async function DashboardPage({ params }: PageProps<"/[locale]/das
                     tenant: l.tenantName,
                     date: formatDate(l.endOn),
                   })}
+                </span>
+              </li>
+            ))}
+            {todo.unregisteredLeases?.map((l) => (
+              <li key={`registration-${l.id}`} className="py-2">
+                <Link href={`/rentals/${l.id}`} className="font-medium hover:underline">
+                  {t("dashboard.todo.leaseRegistration", { number: l.number, unit: l.unitCode })}
+                </Link>
+                <span
+                  className={cn("block text-xs", l.late ? "text-red-800" : "text-muted-foreground")}
+                >
+                  {t(
+                    l.late
+                      ? "dashboard.todo.leaseRegistrationLate"
+                      : "dashboard.todo.leaseRegistrationDue",
+                    {
+                      tenant: l.tenantName,
+                      date: formatDate(l.dueOn),
+                    },
+                  )}
                 </span>
               </li>
             ))}

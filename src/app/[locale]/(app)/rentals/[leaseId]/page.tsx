@@ -14,6 +14,7 @@ import {
   EndLeaseDialog,
   RecordRentPaymentDialog,
   RenewLeaseDialog,
+  RegisterLeaseDialog,
   ReviseRentDialog,
   SettleChargesDialog,
   SettleDepositDialog,
@@ -520,6 +521,74 @@ export default async function LeasePage({ params }: PageProps<"/[locale]/rentals
                   ) : null}
                 </div>
               ))}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">{t("registration.cardTitle")}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2 text-sm" data-testid="lease-registration">
+              {lease.registeredOn ? (
+                <dl className="space-y-1">
+                  <div className="flex justify-between gap-3">
+                    <dt className="text-muted-foreground">{t("registration.registeredOn")}</dt>
+                    <dd>{formatDate(lease.registeredOn)}</dd>
+                  </div>
+                  <div className="flex justify-between gap-3">
+                    <dt className="text-muted-foreground">{t("registration.office")}</dt>
+                    <dd className="text-end">{lease.registrationOffice}</dd>
+                  </div>
+                  <div className="flex justify-between gap-3">
+                    <dt className="text-muted-foreground">{t("registration.reference")}</dt>
+                    <dd>
+                      <bdi dir="ltr">{lease.registrationReference}</bdi>
+                    </dd>
+                  </div>
+                  <div className="flex justify-between gap-3">
+                    <dt className="text-muted-foreground">{t("registration.duty")}</dt>
+                    <dd dir="ltr" className="tabular-nums">
+                      {money(lease.registrationDuty ?? 0n)}
+                    </dd>
+                  </div>
+                </dl>
+              ) : !active ? (
+                <p className="text-muted-foreground">{t("registration.none")}</p>
+              ) : (
+                <p
+                  className={
+                    lease.registration.state === "late" ? "text-red-800" : "text-muted-foreground"
+                  }
+                >
+                  {t(
+                    lease.registration.state === "late"
+                      ? "registration.late"
+                      : "registration.dueBy",
+                    { date: formatDate(lease.registration.dueOn) },
+                  )}
+                </p>
+              )}
+              {!lease.registeredOn && lease.registration.suggestedDuty > 0n ? (
+                <p className="text-xs text-muted-foreground">
+                  {t("registration.estimate", {
+                    amount: money(lease.registration.suggestedDuty),
+                    rate: lease.registration.rateBp / 100,
+                  })}
+                </p>
+              ) : null}
+              {can(ctx.roles, "lease:update") ? (
+                <RegisterLeaseDialog
+                  leaseId={lease.id}
+                  today={today}
+                  current={{
+                    registeredOn: lease.registeredOn,
+                    office: lease.registrationOffice,
+                    reference: lease.registrationReference,
+                    duty: lease.registrationDuty,
+                  }}
+                  suggestedDuty={lease.registration.suggestedDuty}
+                />
+              ) : null}
             </CardContent>
           </Card>
 

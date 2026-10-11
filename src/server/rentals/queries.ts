@@ -21,7 +21,15 @@ import {
 import { withTenant } from "@/db/tenant";
 import { addDays, type CalendarDate, todayInAlgiers } from "@/lib/dates";
 import { isUuid } from "@/lib/ids";
-import { ENDING_SOON_DAYS, leaseState, rentOn } from "@/lib/rentals";
+import {
+  ENDING_SOON_DAYS,
+  leaseState,
+  registrationDueOn,
+  registrationDuty,
+  registrationState,
+  rentOn,
+} from "@/lib/rentals";
+import { loadTaxSettings } from "@/server/accounting/tax";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
 
 import { leaseExtras, leasePaid, rentStatement } from "./accounts";
@@ -48,6 +56,7 @@ export async function listLeases(ctx: TenantCtx, filters: LeaseFilters = {}) {
         tenantName: lease.tenantName,
         tenantPhone: lease.tenantPhone,
         signedOn: lease.signedOn,
+        registeredOn: lease.registeredOn,
         startOn: lease.startOn,
         durationMonths: lease.durationMonths,
         endOn: lease.endOn,
@@ -83,6 +92,7 @@ export async function listLeases(ctx: TenantCtx, filters: LeaseFilters = {}) {
       tx,
       rows.map((r) => r.id),
     );
+    const { leaseRegistrationDays } = await loadTaxSettings(tx, ctx.orgId);
     return {
       items: rows.map((r) => {
         const terms = { ...r, ...extras(r.id) };
@@ -93,6 +103,9 @@ export async function listLeases(ctx: TenantCtx, filters: LeaseFilters = {}) {
           monthlyRent: rentOn(terms, today).monthlyRent,
           overdue: statement.overdue,
           state: leaseState(r, today),
+          // Only an active lease still has to be registered.
+          registration:
+            r.status === "active" ? registrationState(r, leaseRegistrationDays, today) : null,
         };
       }),
       projects,
@@ -221,6 +234,14 @@ export async function getLease(ctx: TenantCtx, leaseId: string) {
       .from(leaseInspection)
       .where(eq(leaseInspection.leaseId, l.id))
       .orderBy(asc(leaseInspection.inspectedOn));
+    // Registration at the tax office: its deadline and the duties the organization's rate gives.
+    const tax = await loadTaxSettings(tx, ctx.orgId);
+    const registration = {
+      state: registrationState(l, tax.leaseRegistrationDays, today),
+      dueOn: registrationDueOn(l.signedOn, tax.leaseRegistrationDays),
+      rateBp: tax.leaseRegistrationBp,
+      suggestedDuty: registrationDuty(l, tax.leaseRegistrationBp),
+    };
     const [scan] = l.contractScanFileId
       ? await tx
           .select({ fileName: file.fileName })
@@ -236,6 +257,7 @@ export async function getLease(ctx: TenantCtx, leaseId: string) {
       buildingName: row.buildingName,
       projectName: row.projectName,
       state: leaseState(l, today),
+      registration,
       statement: rentStatement({ ...l, revisions, settlements }, paid.rent, today),
       revisions: revisionRows,
       settlements: settlementRows,

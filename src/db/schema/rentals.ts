@@ -100,6 +100,14 @@ export const lease = pgTable(
     depositRefundMethod: paymentMethod(),
     depositRefundAccountId: uuid(),
     contractScanFileId: uuid(),
+    /**
+     * Registration at the tax office (inspection de l'enregistrement): day, office, reference
+     * and the duties paid (CLAUDE.md §7 Rentals).
+     */
+    registeredOn: date({ mode: "string" }),
+    registrationOffice: text(),
+    registrationReference: text(),
+    registrationDuty: money(),
     /** The tenant as occupant of the unit when it belongs to a residence (portal, tickets). */
     occupantId: uuid(),
     notes: text(),
@@ -147,6 +155,14 @@ export const lease = pgTable(
     index().on(t.organizationId, t.endOn),
     check("lease_duration", sql`${t.durationMonths} between 1 and 120`),
     check("lease_term", sql`${t.endOn} >= ${t.startOn}`),
+    check(
+      "lease_registration",
+      sql`(${t.registeredOn} is null) = (${t.registrationOffice} is null)
+        and (${t.registeredOn} is null) = (${t.registrationReference} is null)
+        and (${t.registeredOn} is null) = (${t.registrationDuty} is null)
+        and (${t.registeredOn} is null or ${t.registeredOn} >= ${t.signedOn})
+        and (${t.registrationDuty} is null or ${t.registrationDuty} >= 0)`,
+    ),
     check(
       "lease_amounts",
       sql`${t.monthlyRent} > 0 and ${t.monthlyCharges} >= 0 and ${t.deposit} >= 0

@@ -68,8 +68,9 @@ export type RevenueEvent = (typeof revenueEvents)[number];
 
 /**
  * The organization's tax settings, set with its accountant (0 % = no VAT line): VAT on sales
- * and on rents by lease kind (prices and rents are TTC), and the stamp duty on cash receipts
- * shown on the G50 worksheet.
+ * and on rents by lease kind (prices and rents are TTC), the stamp duty on cash receipts
+ * shown on the G50 worksheet, and the registration of leases at the tax office — the delay
+ * after the signature and the duties as a rate of the rents of the term (0 % = not estimated).
  */
 export type TaxSettings = {
   revenueEvent: RevenueEvent;
@@ -77,7 +78,12 @@ export type TaxSettings = {
   vatRentCommercialBp: number;
   vatRentResidentialBp: number;
   stampDutyBp: number;
+  leaseRegistrationBp: number;
+  leaseRegistrationDays: number;
 };
+
+/** Days given to register a lease when the organization has not set its own. */
+export const DEFAULT_LEASE_REGISTRATION_DAYS = 30;
 
 export const defaultTaxSettings: TaxSettings = {
   revenueEvent: "vsp",
@@ -85,6 +91,8 @@ export const defaultTaxSettings: TaxSettings = {
   vatRentCommercialBp: 0,
   vatRentResidentialBp: 0,
   stampDutyBp: 0,
+  leaseRegistrationBp: 0,
+  leaseRegistrationDays: DEFAULT_LEASE_REGISTRATION_DAYS,
 };
 
 /** The saved settings over the defaults. */

@@ -174,3 +174,18 @@ export const cancelChargeSettlementSchema = z.object({
   settlementId: z.uuid(),
   reason: requiredText(300),
 });
+
+/** The lease's registration at the tax office (recorded, or corrected). */
+export const registerLeaseSchema = z.object({
+  leaseId: z.uuid(),
+  registeredOn: dateText(),
+  office: requiredText(160),
+  reference: requiredText(80),
+  /** Duties paid, DA (0 when the lease was registered free of duties). */
+  duty: moneyText().refine((v) => v >= 0n, "validation.amount"),
+});
+
+/** The year of the rental tax summary. */
+export const rentalTaxesParams = z.object({
+  year: z.coerce.number().int().min(2000).max(2100).optional().catch(undefined),
+});

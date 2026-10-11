@@ -1,10 +1,10 @@
-import { Plus } from "lucide-react";
+import { Landmark, Plus } from "lucide-react";
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { PageHeader } from "@/components/app-shell/page-header";
 import { ExportButton } from "@/components/exports/export-button";
-import { LeaseFilters, LeaseStateBadge } from "@/components/rentals/rentals-ui";
+import { LeaseFilters, LeaseStateBadge, RegistrationBadge } from "@/components/rentals/rentals-ui";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -52,6 +52,12 @@ export default async function RentalsPage({
         actions={
           <>
             <ExportButton kind="leases" params={{ status, project: projectId }} />
+            <Button asChild variant="outline">
+              <Link href="/rentals/taxes">
+                <Landmark data-icon="inline-start" />
+                {t("taxes.link")}
+              </Link>
+            </Button>
             {can(ctx.roles, "lease:update") ? (
               <Button asChild>
                 <Link href="/rentals/new">
@@ -106,7 +112,10 @@ export default async function RentalsPage({
                     </div>
                   </TableCell>
                   <TableCell>
-                    <LeaseStateBadge state={l.state} />
+                    <div className="flex flex-wrap gap-1">
+                      <LeaseStateBadge state={l.state} />
+                      <RegistrationBadge state={l.registration} />
+                    </div>
                   </TableCell>
                   <TableCell className="text-end">
                     {l.overdue > 0n ? (

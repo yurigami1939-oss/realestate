@@ -6,6 +6,7 @@ import {
   Banknote,
   CheckCircle2,
   DoorOpen,
+  FileCheck2,
   HandCoins,
   RefreshCw,
   Scale,
@@ -36,6 +37,7 @@ import {
   clearRentChequeAction,
   endLeaseAction,
   recordRentPaymentAction,
+  registerLeaseAction,
   renewLeaseAction,
   reviseRentAction,
   settleDepositAction,
@@ -47,6 +49,7 @@ import {
   clearRentChequeSchema,
   endLeaseSchema,
   recordRentPaymentSchema,
+  registerLeaseSchema,
   renewLeaseSchema,
   reviseRentSchema,
   settleDepositSchema,
@@ -750,6 +753,91 @@ export function CancelSettlementDialog({ settlementId }: { settlementId: string 
       )}
     >
       <TextareaField control={form.control} name="reason" label={t("reason")} rows={2} />
+    </FormDialog>
+  );
+}
+
+type RegistrationValues = z.input<typeof registerLeaseSchema>;
+
+/**
+ * Records the lease's registration at the tax office (or corrects it): day, office, reference
+ * and duties paid, prefilled with the duties the organization's rate gives.
+ */
+export function RegisterLeaseDialog({
+  leaseId,
+  today,
+  current,
+  suggestedDuty,
+}: {
+  leaseId: string;
+  today: string;
+  current: {
+    registeredOn: string | null;
+    office: string | null;
+    reference: string | null;
+    duty: bigint | null;
+  };
+  /** Duties at the organization's rate (0 when it has none). */
+  suggestedDuty: bigint;
+}) {
+  const t = useTranslations("rentals.registration");
+  const [open, setOpen] = useState(false);
+  const register = useAction(registerLeaseAction);
+  const duty = current.duty ?? (suggestedDuty > 0n ? suggestedDuty : null);
+  const form = useForm<RegistrationValues, unknown, z.output<typeof registerLeaseSchema>>({
+    resolver: zodResolver(registerLeaseSchema),
+    defaultValues: {
+      leaseId,
+      registeredOn: current.registeredOn ?? today,
+      office: current.office ?? "",
+      reference: current.reference ?? "",
+      duty: duty === null ? "" : toDecimalString(duty).replace(".", ","),
+    },
+  });
+  return (
+    <FormDialog
+      open={open}
+      onOpenChange={setOpen}
+      trigger={
+        <Button variant="outline" size="sm">
+          <FileCheck2 data-icon="inline-start" />
+          {current.registeredOn ? t("correct") : t("open")}
+        </Button>
+      }
+      title={t("title")}
+      description={t("description")}
+      submitLabel={t("submit")}
+      pending={register.pending}
+      onSubmit={form.handleSubmit(() =>
+        register.run(form.getValues(), {
+          onSuccess: () => {
+            toast.success(t("done"));
+            setOpen(false);
+          },
+          onError: fieldErrors(form),
+        }),
+      )}
+    >
+      <TextField
+        control={form.control}
+        name="registeredOn"
+        label={t("registeredOn")}
+        type="date"
+        max={today}
+        dir="ltr"
+      />
+      <TextField control={form.control} name="office" label={t("office")} />
+      <div className="grid gap-4 sm:grid-cols-2">
+        <TextField control={form.control} name="reference" label={t("reference")} dir="ltr" />
+        <TextField
+          control={form.control}
+          name="duty"
+          label={t("duty")}
+          description={suggestedDuty > 0n ? t("dutyHelp") : undefined}
+          inputMode="decimal"
+          dir="ltr"
+        />
+      </div>
     </FormDialog>
   );
 }

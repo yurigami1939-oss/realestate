@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { LeaseState } from "@/lib/rentals";
+import type { LeaseState, RegistrationState } from "@/lib/rentals";
 import { cn } from "@/lib/utils";
 import { requestInspectionReportAction, requestRentReceiptAction } from "@/server/rentals/actions";
 
@@ -38,6 +38,25 @@ export function LeaseStateBadge({ state }: { state: LeaseState }) {
       data-state={state}
     >
       {t(state)}
+    </span>
+  );
+}
+
+/** An active lease still to register at the tax office (late past its deadline). */
+export function RegistrationBadge({ state }: { state: RegistrationState | null }) {
+  const t = useTranslations("rentals.registration");
+  if (state === null || state === "registered") return null;
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium whitespace-nowrap",
+        state === "late"
+          ? "border-red-300 bg-red-50 text-red-900"
+          : "border-amber-300 bg-amber-50 text-amber-900",
+      )}
+      data-registration={state}
+    >
+      {t(`badge.${state}`)}
     </span>
   );
 }

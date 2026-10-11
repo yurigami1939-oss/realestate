@@ -13,6 +13,7 @@ import {
   inspectionIdSchema,
   recordInspectionSchema,
   recordRentPaymentSchema,
+  registerLeaseSchema,
   renewLeaseSchema,
   rentReceiptIdSchema,
   reviseRentSchema,
@@ -34,6 +35,7 @@ import {
   settleDeposit,
   updateLease,
 } from "./service";
+import { registerLease } from "./registration";
 import { cancelChargeSettlement, settleLeaseCharges } from "./settlements";
 
 function mutation<T>(run: () => Promise<T>): Promise<T> {
@@ -79,6 +81,10 @@ export const settleLeaseChargesAction = defineAction(
 export const cancelChargeSettlementAction = defineAction(
   { input: cancelChargeSettlementSchema, permission: "lease:update" },
   (input, ctx) => mutation(() => cancelChargeSettlement(ctx, input)),
+);
+export const registerLeaseAction = defineAction(
+  { input: registerLeaseSchema, permission: "lease:update" },
+  (input, ctx) => mutation(() => registerLease(ctx, input)),
 );
 export const settleDepositAction = defineAction(
   { input: settleDepositSchema, permission: "lease:update" },

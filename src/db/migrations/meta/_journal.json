@@ -484,6 +484,13 @@
       "when": 1791701737317,
       "tag": "0068_third_party_buildings",
       "breakpoints": true
+    },
+    {
+      "idx": 69,
+      "version": "7",
+      "when": 1791704502355,
+      "tag": "0069_lease_registration",
+      "breakpoints": true
     }
   ]
 }

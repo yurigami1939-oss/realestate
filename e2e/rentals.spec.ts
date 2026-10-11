@@ -125,6 +125,38 @@ test.describe("gestionnaire", () => {
     await expect(page.getByTestId("rent-schedule")).toContainText("Régularisation des charges");
   });
 
+  test("registers the family's lease at the tax office; reads the year's rental taxes", async ({
+    page,
+  }) => {
+    // The pharmacy's lease is registered; the family's is late and waits on the dashboard.
+    await page.goto("/fr/dashboard");
+    await expect(page.getByTestId("dashboard-todo")).toContainText(
+      /Enregistrer le bail BAL-\d{4}-\d{6} \(D-03-03\)/,
+    );
+    await page.goto("/fr/rentals");
+    const leases = page.getByTestId("leases");
+    await expect(leases.locator('[data-unit="Y-00-02"] [data-registration]')).toHaveCount(0);
+    const family = leases.locator('[data-unit="D-03-03"]');
+    await expect(family).toContainText("Enregistrement en retard");
+    await family.getByRole("link").first().click();
+    await expect(page.getByTestId("lease-registration")).toContainText("En retard");
+    await page.getByRole("button", { name: "Noter l'enregistrement" }).click();
+    const dialog = page.getByRole("dialog");
+    await dialog.getByLabel("Inspection de l'enregistrement").fill("Inspection de Bab Ezzouar");
+    await dialog.getByLabel("Référence d'enregistrement").fill("EN-2026-0311");
+    await dialog.getByLabel("Droits payés (DA)").fill("8 400");
+    await dialog.getByRole("button", { name: "Enregistrer", exact: true }).click();
+    await expect(page.getByText("Enregistrement du bail noté.")).toBeVisible();
+    await expect(page.getByTestId("lease-registration")).toContainText("EN-2026-0311");
+
+    await page.goto("/fr/rentals");
+    await page.getByRole("link", { name: "Fiscalité des loyers" }).click();
+    const taxes = page.getByTestId("rent-taxes");
+    await expect(taxes).toContainText("SARL Pharmacie El Yasmine");
+    await expect(taxes).toContainText(/Droits : 8\s400,00\sDA/);
+    await expect(page.getByTestId("rent-tax-totals")).toContainText("Commercial");
+  });
+
   test("follows the overdue rents", async ({ page }) => {
     await page.goto("/fr/dashboard");
     await page.getByRole("link", { name: "Loyers impayés", exact: true }).click();

@@ -11,8 +11,6 @@ import {
   accountingCodes,
   counterpartKey,
   defaultTreasuryCodes,
-  type TaxSettings,
-  taxSettings,
 } from "@/lib/accounting";
 import { todayInAlgiers, type CalendarDate } from "@/lib/dates";
 import type { Centimes } from "@/lib/money";
@@ -22,6 +20,7 @@ import { ledgerLines } from "@/server/treasury/queries";
 
 import { revenueEntries } from "./revenue";
 import type { accountingCodesSchema } from "./schemas";
+import { loadTaxSettings } from "./tax";
 
 type In<S extends z.ZodType> = z.output<S>;
 
@@ -33,20 +32,12 @@ async function loadCodes(tx: Tx, orgId: string): Promise<AccountingCodes> {
   return accountingCodes(row?.codes ?? null);
 }
 
-async function loadTax(tx: Tx, orgId: string): Promise<TaxSettings> {
-  const [row] = await tx
-    .select({ tax: organizationSetting.taxSettings })
-    .from(organizationSetting)
-    .where(eq(organizationSetting.organizationId, orgId));
-  return taxSettings(row?.tax ?? null);
-}
-
 /** The chart's codes (saved over the defaults) and the treasury accounts' own codes. */
 export async function getAccountingSetup(ctx: TenantCtx) {
   assertCan(ctx, "treasury:update");
   return withTenant(ctx, async (tx) => ({
     codes: await loadCodes(tx, ctx.orgId),
-    tax: await loadTax(tx, ctx.orgId),
+    tax: await loadTaxSettings(tx, ctx.orgId),
     accounts: (
       await tx
         .select({
@@ -74,7 +65,10 @@ export async function getAccountingSetup(ctx: TenantCtx) {
 export async function saveAccountingCodes(ctx: TenantCtx, input: In<typeof accountingCodesSchema>) {
   assertCan(ctx, "treasury:update");
   await withTenant(ctx, async (tx) => {
-    const before = { codes: await loadCodes(tx, ctx.orgId), tax: await loadTax(tx, ctx.orgId) };
+    const before = {
+      codes: await loadCodes(tx, ctx.orgId),
+      tax: await loadTaxSettings(tx, ctx.orgId),
+    };
     const tax = input.tax ? { taxSettings: input.tax } : {};
     await tx
       .insert(organizationSetting)
@@ -137,7 +131,7 @@ export async function getAccountingEntries(
   const from = params.from ?? `${to.slice(0, 7)}-01`;
   return withTenant(ctx, async (tx) => {
     const codes = await loadCodes(tx, ctx.orgId);
-    const tax = await loadTax(tx, ctx.orgId);
+    const tax = await loadTaxSettings(tx, ctx.orgId);
     const accounts = await tx
       .select()
       .from(treasuryAccount)

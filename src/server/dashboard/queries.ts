@@ -35,6 +35,7 @@ import { countOpenPortalRequests } from "@/server/requests/service";
 import { countOnlinePaymentIssues } from "@/server/online-payments/queries";
 import { countLateDeliveries, loadDocumentAlerts } from "@/server/obligations/queries";
 import { loadEndingLeases, loadOverdueRents } from "@/server/rentals/queries";
+import { loadUnregisteredLeases } from "@/server/rentals/registration";
 import { visibleSales } from "@/server/sales/access";
 import { paidTotals } from "@/server/sales/sale-queries";
 import { forSale } from "@/server/inventory/third-party";
@@ -329,6 +330,10 @@ async function todo(tx: Tx, ctx: TenantCtx, today: CalendarDate) {
   // Rentals: overdue rents for those who follow them, terms to end or renew for lease managers.
   const overdueRents = can(ctx.roles, "lease:read") ? await loadOverdueRents(tx, today) : null;
   const endingLeases = can(ctx.roles, "lease:update") ? await loadEndingLeases(tx, today) : null;
+  // Leases still to register at the tax office (their deadline from the tax settings).
+  const unregisteredLeases = can(ctx.roles, "lease:update")
+    ? await loadUnregisteredLeases(tx, ctx.orgId, today)
+    : null;
   // Promoter's obligations: sold units past their contractual delivery date (deliveries team),
   // regulatory documents expired or missing (project managers).
   const lateDeliveries = can(ctx.roles, "handover:update")
@@ -379,6 +384,7 @@ async function todo(tx: Tx, ctx: TenantCtx, today: CalendarDate) {
         }
       : null,
     endingLeases,
+    unregisteredLeases,
     onlineIssues,
     lateDeliveries,
     documents,

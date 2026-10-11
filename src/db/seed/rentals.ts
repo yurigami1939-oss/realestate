@@ -19,6 +19,7 @@ import {
   endLeaseSchema,
   recordInspectionSchema,
   recordRentPaymentSchema,
+  registerLeaseSchema,
   reviseRentSchema,
   settleDepositSchema,
   settleLeaseChargesSchema,
@@ -31,6 +32,7 @@ import {
   reviseRent,
   settleDeposit,
 } from "@/server/rentals/service";
+import { registerLease } from "@/server/rentals/registration";
 import { settleLeaseCharges } from "@/server/rentals/settlements";
 
 import { demoUsers } from "./demo";
@@ -181,6 +183,17 @@ export async function seedRentals(actors: Actors) {
     deposit: "195 000",
   });
   await pay(actors, pharmacy, "deposit", 195_000_00n, addDays(today, -407), "Pharmacie El Yasmine");
+  // Registered at the tax office three weeks after its signature (the duties typed as paid).
+  await registerLease(
+    actors.manager,
+    registerLeaseSchema.parse({
+      leaseId: pharmacy,
+      registeredOn: addDays(today, -386),
+      office: "Inspection de l'enregistrement de Chéraga",
+      reference: "EN-2025-0874",
+      duty: "43 200",
+    }),
+  );
   await payPeriods(actors, pharmacy, 4, "Pharmacie El Yasmine");
   // Its second year is indexed by 3 % (the quarter now overdue is due at the new rent).
   await reviseRent(
