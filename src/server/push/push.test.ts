@@ -206,6 +206,10 @@ describe("push devices", () => {
       kind: "appointment",
       location: "Salle de bain",
       company: "SARL Promo",
+      room: "Salle polyvalente",
+      from: "18:00",
+      to: "22:00",
+      who: "Cherif Mohamed",
     };
     for (const kind of pushKinds) {
       for (const locale of ["fr", "ar"] as const) {

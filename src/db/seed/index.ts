@@ -24,6 +24,7 @@ import { seedRentals } from "./rentals";
 import { seedSales } from "./reservations";
 import { seedBankStatement, seedTreasuryAccounts, seedTreasuryMovements } from "./treasury";
 import { seedResidences } from "./residences";
+import { seedRooms } from "./rooms";
 import { seedPaymentPlans, seedQuotations } from "./sales";
 import { seedSms } from "./sms";
 import { seedThirdPartyBuilding } from "./third-party";
@@ -129,6 +130,7 @@ export async function seedDemo(): Promise<void> {
       owner: ctx("owner", ["owner"]),
       manager: ctx("propertyManager", ["property_manager"]),
     });
+    await seedRooms(ctx("propertyManager", ["property_manager"]));
     await seedPortal(
       {
         salesManager,

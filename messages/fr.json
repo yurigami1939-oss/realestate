@@ -2733,7 +2733,8 @@
       "assemblies": "Assemblées générales",
       "announcements": "Annonces",
       "checks": "Contrôles",
-      "meters": "Compteurs"
+      "meters": "Compteurs",
+      "rooms": "Salles communes"
     },
     "council": {
       "member": "Conseil syndical",
@@ -3724,7 +3725,8 @@
         "assemblies": "Assemblées",
         "payments": "Paiements",
         "documents": "Mon dossier",
-        "notifications": "Notifications"
+        "notifications": "Notifications",
+        "rooms": "Salles"
       }
     },
     "home": {
@@ -3952,6 +3954,17 @@
       "paidOn": "Payée le {date}",
       "unpaid": "Non payée",
       "scan": "Facture scannée"
+    },
+    "rooms": {
+      "title": "Salles communes",
+      "description": "Réservez une salle de votre résidence ; le gestionnaire confirme les réservations qui le demandent.",
+      "empty": "Aucune salle à réserver dans votre résidence.",
+      "taken": "Créneaux déjà réservés",
+      "noTaken": "Aucun créneau réservé.",
+      "mine": "Mes réservations",
+      "noMine": "Aucune réservation.",
+      "requested": "Demande envoyée : le gestionnaire vous répondra.",
+      "approved": "Réservation confirmée."
     }
   },
   "onlinePayments": {
@@ -6075,6 +6088,14 @@
       "test": {
         "title": "Notifications activées",
         "body": "Vous recevrez sur cet appareil les notifications de {company}."
+      },
+      "room_requested": {
+        "title": "Réservation à valider · {room}",
+        "body": "{who} : {day}, {from} – {to}."
+      },
+      "room_decided": {
+        "title": "{approved, select, yes {Réservation confirmée} other {Réservation refusée}}",
+        "body": "{room} : {day}, {from} – {to}."
       }
     }
   },
@@ -6128,5 +6149,78 @@
       "codeLocked": "Trop d'essais : demandez un nouveau code.",
       "codeFormat": "Le code compte 6 chiffres."
     }
+  },
+  "rooms": {
+    "title": "Salles communes",
+    "description": "Les salles que les résidents réservent depuis leur espace : horaires, durée maximale, validation par le gestionnaire.",
+    "empty": "Aucune salle.",
+    "new": "Nouvelle salle",
+    "newTitle": "Nouvelle salle commune",
+    "editTitle": "Modifier la salle",
+    "edit": "Modifier",
+    "save": "Enregistrer",
+    "created": "Salle ajoutée.",
+    "saved": "Salle modifiée.",
+    "archive": "Retirer",
+    "archiveTitle": "Retirer cette salle ?",
+    "archiveDescription": "Elle ne sera plus proposée aux résidents ; son historique est gardé.",
+    "archived": "Salle retirée.",
+    "fields": {
+      "name": "Nom",
+      "description": "Description et règles",
+      "capacity": "Capacité (personnes)",
+      "opensAt": "Ouverte de",
+      "closesAt": "Jusqu'à",
+      "maxHours": "Durée maximale (heures)",
+      "needsApproval": "Chaque réservation est validée par le gestionnaire",
+      "day": "Jour",
+      "from": "De",
+      "to": "À",
+      "purpose": "Objet",
+      "guests": "Invités",
+      "bookedFor": "Pour",
+      "note": "Note au résident"
+    },
+    "hours": "{from} – {to} · {hours, plural, one {# heure} other {# heures}} au plus",
+    "capacity": "{count} personnes",
+    "approval": "Sur validation",
+    "instant": "Réservation immédiate",
+    "book": "Réserver",
+    "bookTitle": "Réserver « {room} »",
+    "booked": "Réservation enregistrée.",
+    "bookings": "Réservations à venir",
+    "noBookings": "Aucune réservation à venir.",
+    "status": {
+      "requested": "À valider",
+      "approved": "Confirmée",
+      "rejected": "Refusée",
+      "cancelled": "Annulée"
+    },
+    "approve": "Confirmer",
+    "reject": "Refuser",
+    "rejectTitle": "Refuser la réservation",
+    "decided": "Réservation traitée.",
+    "cancel": "Annuler",
+    "cancelTitle": "Annuler cette réservation ?",
+    "cancelled": "Réservation annulée.",
+    "slot": "{day} · {from} – {to}",
+    "errors": {
+      "hours": "La fermeture vient après l'ouverture.",
+      "slot": "La fin vient après le début.",
+      "past": "Ce créneau est passé.",
+      "tooFar": "Réservation possible jusqu'à 90 jours à l'avance.",
+      "closed": "En dehors des horaires de la salle.",
+      "tooLong": "Plus long que la durée maximale de la salle.",
+      "taken": "Ce créneau est déjà réservé.",
+      "tooMany": "Vous avez déjà 3 réservations à venir.",
+      "noteRequired": "Expliquez le refus au résident.",
+      "notRequested": "Cette réservation a déjà été traitée.",
+      "notLive": "Cette réservation n'est plus en cours.",
+      "over": "Cette réservation est passée.",
+      "archived": "Cette salle a été retirée.",
+      "bookedAhead": "Des réservations sont à venir : annulez-les d'abord."
+    },
+    "approveDescription": "Le créneau est confirmé ; le résident est prévenu.",
+    "cancelDescription": "Le créneau est libéré ; le résident le voit dans son espace."
   }
 }

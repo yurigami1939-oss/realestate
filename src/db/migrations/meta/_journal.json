@@ -568,6 +568,13 @@
       "when": 1791745712441,
       "tag": "0080_virtual_tours",
       "breakpoints": true
+    },
+    {
+      "idx": 81,
+      "version": "7",
+      "when": 1791747239439,
+      "tag": "0081_common_rooms",
+      "breakpoints": true
     }
   ]
 }

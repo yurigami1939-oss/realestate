@@ -10,6 +10,7 @@ export type PortalSection = {
     | "home"
     | "announcements"
     | "tickets"
+    | "rooms"
     | "assemblies"
     | "payments"
     | "documents"

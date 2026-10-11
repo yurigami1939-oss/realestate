@@ -21,6 +21,7 @@ export * from "./privacy";
 export * from "./push";
 export * from "./residences";
 export * from "./roles";
+export * from "./rooms";
 export * from "./sales";
 export * from "./signatures";
 export * from "./staff";

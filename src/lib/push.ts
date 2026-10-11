@@ -11,6 +11,7 @@ export const residentPushKinds = [
   "request_answered",
   "ticket_status",
   "claim_closed",
+  "room_decided",
 ] as const;
 
 /** To staff: what waits for them. */
@@ -21,6 +22,7 @@ export const staffPushKinds = [
   "portal_request",
   "portal_ticket",
   "warranty_claim",
+  "room_requested",
 ] as const;
 
 export const pushKinds = [...residentPushKinds, ...staffPushKinds, "test"] as const;
