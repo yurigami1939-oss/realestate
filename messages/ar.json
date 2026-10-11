@@ -313,7 +313,10 @@
     "privacy": "المعطيات الشخصية",
     "customRoles": "أدوار مخصصة",
     "documentTexts": "نصوص الوثائق",
-    "notifications": "الإشعارات"
+    "notifications": "الإشعارات",
+    "promotionGroup": "الترقية العقارية",
+    "financeGroup": "المالية",
+    "communicationGroup": "التواصل"
   },
   "shell": {
     "organizations": "الشركات",

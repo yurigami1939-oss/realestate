@@ -1,47 +1,8 @@
 "use client";
 
-import {
-  AlarmClock,
-  BadgePercent,
-  Bell,
-  Building,
-  Building2,
-  ChartColumn,
-  CalendarDays,
-  Contact,
-  CreditCard,
-  FileSignature,
-  FileLock2,
-  FileSpreadsheet,
-  FileText,
-  FileUp,
-  Handshake,
-  Network,
-  HardHat,
-  Inbox,
-  Hotel,
-  House,
-  IdCard,
-  Kanban,
-  KeyRound,
-  Landmark,
-  LayoutDashboard,
-  MessageCircle,
-  MessageSquareText,
-  Percent,
-  PhoneCall,
-  ScrollText,
-  ShieldCheck,
-  Target,
-  Truck,
-  type LucideIcon,
-  Users,
-  UserCog,
-  Wallet,
-  Webhook,
-  Wrench,
-} from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { useSyncExternalStore } from "react";
 
 import {
   Sidebar,
@@ -55,204 +16,44 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import { Link, usePathname } from "@/i18n/navigation";
-import { type Access, can, type Permission } from "@/lib/permissions";
+import type { Access } from "@/lib/permissions";
+import { cn } from "@/lib/utils";
 
+import { activeNavItem, navSections, visibleItems } from "./nav-items";
 import { NavUser } from "./nav-user";
 import { type OrgOption, OrgSwitcher } from "./org-switcher";
 
-type NavKey =
-  | "dashboard"
-  | "projects"
-  | "members"
-  | "company"
-  | "leads"
-  | "pipeline"
-  | "followUps"
-  | "visits"
-  | "targets"
-  | "buyers"
-  | "saleList"
-  | "overdue"
-  | "discounts"
-  | "requests"
-  | "leadCapture"
-  | "partners"
-  | "commissions"
-  | "audit"
-  | "residences"
-  | "chargesOverdue"
-  | "suppliers"
-  | "tickets"
-  | "construction"
-  | "deliveries"
-  | "rentals"
-  | "rentsOverdue"
-  | "onlinePayments"
-  | "paymentGateway"
-  | "whatsappLog"
-  | "whatsappSettings"
-  | "smsLog"
-  | "smsSettings"
-  | "privacy"
-  | "customRoles"
-  | "documentTexts"
-  | "exports"
-  | "imports"
-  | "treasury"
-  | "reports"
-  | "group"
-  | "security"
-  | "notifications";
-/**
- * `permission`: shown only to roles that have it, or one of them (display only; services
- * enforce).
- */
-type NavItem = {
-  href: string;
-  key: NavKey;
-  icon: LucideIcon;
-  permission?: Permission | Permission[];
-};
+/** Folded sidebar groups, remembered in this browser (a convenience: nothing else depends on it). */
+const FOLDED_KEY = "sidebar.folded";
+const listeners = new Set<() => void>();
 
-/** Each module adds its entries here as it lands (CLAUDE.md §11 Roadmap). */
-const mainNav: NavItem[] = [
-  { href: "/dashboard", key: "dashboard", icon: LayoutDashboard },
-  { href: "/projects", key: "projects", icon: Building2, permission: "inventory:read" },
-  { href: "/treasury", key: "treasury", icon: Wallet, permission: "treasury:read" },
-  { href: "/reports", key: "reports", icon: ChartColumn, permission: "report:read" },
-  {
-    href: "/online-payments",
-    key: "onlinePayments",
-    icon: CreditCard,
-    permission: "payment:read",
-  },
-  {
-    href: "/whatsapp",
-    key: "whatsappLog",
-    icon: MessageCircle,
-    permission: "notification:read",
-  },
-  { href: "/sms", key: "smsLog", icon: MessageSquareText, permission: "notification:read" },
-];
-const salesNav: NavItem[] = [
-  { href: "/leads", key: "leads", icon: Contact, permission: "lead:read" },
-  { href: "/leads/pipeline", key: "pipeline", icon: Kanban, permission: "lead:read" },
-  { href: "/follow-ups", key: "followUps", icon: PhoneCall, permission: "lead:read" },
-  { href: "/visits", key: "visits", icon: CalendarDays, permission: "lead:read" },
-  { href: "/targets", key: "targets", icon: Target, permission: "lead:read" },
-  {
-    href: "/partners",
-    key: "partners",
-    icon: Handshake,
-    permission: ["lead:assign", "commission:read_all"],
-  },
-];
-const contractsNav: NavItem[] = [
-  { href: "/sales", key: "saleList", icon: FileSignature, permission: "sale:read" },
-  { href: "/sales/overdue", key: "overdue", icon: AlarmClock, permission: "sale:read" },
-  { href: "/sales/requests", key: "requests", icon: Inbox, permission: "sale:read" },
-  {
-    href: "/sales/discounts",
-    key: "discounts",
-    icon: BadgePercent,
-    permission: "discount:decide",
-  },
-  { href: "/buyers", key: "buyers", icon: IdCard, permission: "buyer:read" },
-  { href: "/commissions", key: "commissions", icon: Percent, permission: "commission:read" },
-];
-const constructionNav: NavItem[] = [
-  { href: "/construction", key: "construction", icon: HardHat, permission: "construction:read" },
-  { href: "/deliveries", key: "deliveries", icon: KeyRound, permission: "handover:read" },
-];
-const rentalsNav: NavItem[] = [
-  { href: "/rentals", key: "rentals", icon: House, permission: "lease:read" },
-  { href: "/rentals/overdue", key: "rentsOverdue", icon: AlarmClock, permission: "lease:read" },
-];
-const residenceNav: NavItem[] = [
-  { href: "/residences", key: "residences", icon: Hotel, permission: "residence:read" },
-  {
-    href: "/residences/overdue",
-    key: "chargesOverdue",
-    icon: AlarmClock,
-    permission: "charge:read",
-  },
-  { href: "/suppliers", key: "suppliers", icon: Truck, permission: "supplier:read" },
-  { href: "/tickets", key: "tickets", icon: Wrench, permission: "ticket:read" },
-];
-const settingsNav: NavItem[] = [
-  { href: "/settings/members", key: "members", icon: Users },
-  { href: "/settings/security", key: "security", icon: ShieldCheck },
-  { href: "/settings/notifications", key: "notifications", icon: Bell },
-  { href: "/settings/company", key: "company", icon: Building, permission: "organization:update" },
-  {
-    href: "/settings/online-payment",
-    key: "paymentGateway",
-    icon: Landmark,
-    permission: "organization:update",
-  },
-  { href: "/settings/lead-capture", key: "leadCapture", icon: Webhook, permission: "lead:assign" },
-  {
-    href: "/settings/whatsapp",
-    key: "whatsappSettings",
-    icon: MessageCircle,
-    permission: "organization:update",
-  },
-  {
-    href: "/settings/sms",
-    key: "smsSettings",
-    icon: MessageSquareText,
-    permission: "organization:update",
-  },
-  {
-    href: "/settings/documents",
-    key: "documentTexts",
-    icon: FileText,
-    permission: "organization:update",
-  },
-  {
-    href: "/settings/roles",
-    key: "customRoles",
-    icon: UserCog,
-    permission: "member:update",
-  },
-  {
-    href: "/settings/privacy",
-    key: "privacy",
-    icon: FileLock2,
-    permission: "organization:update",
-  },
-  { href: "/exports", key: "exports", icon: FileSpreadsheet },
-  {
-    href: "/imports",
-    key: "imports",
-    icon: FileUp,
-    permission: ["unit:create", "buyer:create", "residence:update", "lead:create"],
-  },
-  { href: "/settings/audit", key: "audit", icon: ScrollText, permission: "audit:read" },
-];
+function subscribe(listener: () => void) {
+  listeners.add(listener);
+  window.addEventListener("storage", listener);
+  return () => {
+    listeners.delete(listener);
+    window.removeEventListener("storage", listener);
+  };
+}
 
-/** The gérant of several companies sees them side by side (shown only to them). */
-const groupItem: NavItem = { href: "/group", key: "group", icon: Network };
+function readFolded(): string {
+  try {
+    return window.localStorage.getItem(FOLDED_KEY) ?? "";
+  } catch {
+    return "";
+  }
+}
 
-const allItems = [
-  groupItem,
-  ...mainNav,
-  ...salesNav,
-  ...contractsNav,
-  ...constructionNav,
-  ...rentalsNav,
-  ...residenceNav,
-  ...settingsNav,
-];
-
-/** The most specific entry matching the path ("/leads/pipeline" beats "/leads"). */
-function activeHref(pathname: string): string | undefined {
-  return allItems
-    .map((item) => item.href)
-    .filter((href) => pathname === href || pathname.startsWith(`${href}/`))
-    .sort((a, b) => b.length - a.length)[0];
+function writeFolded(ids: string[]) {
+  try {
+    window.localStorage.setItem(FOLDED_KEY, ids.join(","));
+  } catch {
+    // Storage blocked (private window): groups simply open again next time.
+  }
+  for (const listener of listeners) listener();
 }
 
 export function AppSidebar({
@@ -273,37 +74,10 @@ export function AppSidebar({
 }) {
   const t = useTranslations();
   const pathname = usePathname();
-  const active = activeHref(pathname);
-
-  const renderGroup = (label: string, all: NavItem[]) => {
-    const items = all.filter(
-      (item) => !item.permission || [item.permission].flat().some((p) => can(roles, p)),
-    );
-    if (items.length === 0) return null;
-    return (
-      <SidebarGroup>
-        <SidebarGroupLabel>{label}</SidebarGroupLabel>
-        <SidebarGroupContent>
-          <SidebarMenu>
-            {items.map((item) => (
-              <SidebarMenuItem key={item.href}>
-                <SidebarMenuButton
-                  asChild
-                  isActive={item.href === active}
-                  tooltip={t(`nav.${item.key}`)}
-                >
-                  <Link href={item.href}>
-                    <item.icon />
-                    <span>{t(`nav.${item.key}`)}</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            ))}
-          </SidebarMenu>
-        </SidebarGroupContent>
-      </SidebarGroup>
-    );
-  };
+  const active = activeNavItem(pathname)?.href;
+  const { state } = useSidebar();
+  const stored = useSyncExternalStore(subscribe, readFolded, () => "");
+  const folded = stored ? stored.split(",") : [];
 
   return (
     <Sidebar side={side} collapsible="icon" mobileTitle={t("nav.main")}>
@@ -311,20 +85,62 @@ export function AppSidebar({
         <OrgSwitcher organizations={organizations} activeId={activeOrgId} />
       </SidebarHeader>
       <SidebarContent>
-        {renderGroup(
-          t("nav.main"),
-          group
-            ? [mainNav[0], groupItem, ...mainNav.slice(1)].filter(
-                (i): i is NavItem => i !== undefined,
-              )
-            : mainNav,
-        )}
-        {renderGroup(t("nav.sales"), salesNav)}
-        {renderGroup(t("nav.contracts"), contractsNav)}
-        {renderGroup(t("nav.constructionGroup"), constructionNav)}
-        {renderGroup(t("nav.rentalsGroup"), rentalsNav)}
-        {renderGroup(t("nav.residenceGroup"), residenceNav)}
-        {renderGroup(t("nav.settings"), settingsNav)}
+        {navSections.map((section) => {
+          const items = visibleItems(section.items, roles, group);
+          if (items.length === 0) return null;
+          // The group of the current page and every group of the icon rail stay open.
+          const open =
+            !folded.includes(section.id) ||
+            items.some((item) => item.href === active) ||
+            state === "collapsed";
+          return (
+            <SidebarGroup key={section.id} className="py-1">
+              {section.label ? (
+                <SidebarGroupLabel asChild>
+                  <button
+                    type="button"
+                    aria-expanded={open}
+                    onClick={() =>
+                      writeFolded(
+                        open ? [...folded, section.id] : folded.filter((id) => id !== section.id),
+                      )
+                    }
+                    className="w-full justify-between hover:text-foreground"
+                  >
+                    {t(`nav.${section.label}`)}
+                    <ChevronRight
+                      aria-hidden
+                      className={cn(
+                        "transition-transform duration-200",
+                        open ? "rotate-90" : "rtl:rotate-180",
+                      )}
+                    />
+                  </button>
+                </SidebarGroupLabel>
+              ) : null}
+              {open ? (
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {items.map((item) => (
+                      <SidebarMenuItem key={item.href}>
+                        <SidebarMenuButton
+                          asChild
+                          isActive={item.href === active}
+                          tooltip={t(`nav.${item.key}`)}
+                        >
+                          <Link href={item.href}>
+                            <item.icon className="text-primary" />
+                            <span>{t(`nav.${item.key}`)}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              ) : null}
+            </SidebarGroup>
+          );
+        })}
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={user} />

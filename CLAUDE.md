@@ -127,7 +127,8 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
     ├── components/
     │   ├── ui/               # shadcn/ui primitives (generated; sidebar labels made translatable)
     │   ├── brand/            # BrandMark, BrandLogo (the app's mark and name)
-    │   ├── app-shell/        # sidebar, org switcher, user menu
+    │   ├── app-shell/        # nav-items.ts (the back office's pages and sections: sidebar, top bar,
+    │   │                     # palette), sidebar (folding groups), top bar, org switcher, user menu
     │   ├── forms/            # TextField, fields, FormDialog, ConfirmAction, useAction, useTranslateKey
     │   ├── files/            # UploadButton (posts to /api/files)
     │   ├── data-table/       # DataTable (TanStack columns), Pagination (links), useSearchParamsState
@@ -1287,7 +1288,7 @@ Goal (user): a product that feels professional and Apple-like — calm, consiste
 - [x] **5. Semantic colors everywhere**: ~400 raw palette classes (`text-red-700`, `bg-amber-50`…) in 70 files replaced by the tones — one meaning per color, ready for dark mode.
 
 ### Priority 2 — navigation and structure
-- [ ] **6. App shell**: a translucent sticky top bar with the page's place (instead of the company name repeated), the sidebar on the canvas with the current page in the accent, quieter group labels, groups that fold.
+- [x] **6. App shell**: a translucent sticky top bar with the page's place (instead of the company name repeated), the sidebar on the canvas with the current page in the accent, quieter group labels, groups that fold.
 - [ ] **7. Settings hub**: the 14 settings entries leave the sidebar for one « Réglages » page with its own grouped navigation (account, company, communication, data and privacy), like System Settings.
 - [ ] **8. Command palette** (⌘K / Ctrl K): go to any page, find a lead, buyer, sale or unit by name or number from anywhere.
 - [ ] **9. Page layout**: every page through `PageHeader` (27 pages without), three content widths instead of five, actions as one primary button plus a « … » menu (lead and project pages show 6–7 buttons in a row), filters with their placeholder shown (« Toutes les étapes » instead of empty boxes).

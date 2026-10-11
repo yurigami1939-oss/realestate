@@ -313,7 +313,10 @@
     "privacy": "Données personnelles",
     "customRoles": "Rôles personnalisés",
     "documentTexts": "Textes des documents",
-    "notifications": "Notifications"
+    "notifications": "Notifications",
+    "promotionGroup": "Promotion",
+    "financeGroup": "Finance",
+    "communicationGroup": "Communication"
   },
   "shell": {
     "organizations": "Sociétés",

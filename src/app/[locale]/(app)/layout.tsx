@@ -1,8 +1,6 @@
-import { getTranslations } from "next-intl/server";
-
 import { AppSidebar } from "@/components/app-shell/app-sidebar";
-import { Separator } from "@/components/ui/separator";
-import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { TopBar } from "@/components/app-shell/top-bar";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { redirect } from "@/i18n/navigation";
 import { localeDirection, toLocale } from "@/i18n/locales";
 import { accessOf, isPortalOnly } from "@/lib/permissions";
@@ -20,7 +18,6 @@ export default async function AppLayout({ children, params }: LayoutProps<"/[loc
   const active = organizations.find((o) => o.id === activeOrgId);
   if (!activeOrgId || !active) return redirect({ href: "/onboarding", locale });
 
-  const t = await getTranslations("shell");
   const ctx = await getTenantCtx();
   if (isPortalOnly(ctx.roles)) return redirect({ href: "/portal", locale });
 
@@ -36,12 +33,8 @@ export default async function AppLayout({ children, params }: LayoutProps<"/[loc
       />
       {/* min-w-0: wide tables scroll inside their own container, not the page. */}
       <SidebarInset className="min-w-0">
-        <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
-          <SidebarTrigger className="-ms-1" label={t("toggleSidebar")} />
-          <Separator orientation="vertical" className="me-2 data-[orientation=vertical]:h-4" />
-          <span className="truncate text-sm font-medium">{active.name}</span>
-        </header>
-        <div className="flex-1 p-4 md:p-6">{children}</div>
+        <TopBar fallback={active.name} />
+        <div className="flex-1 px-4 py-6 md:px-8 md:py-8">{children}</div>
       </SidebarInset>
     </SidebarProvider>
   );
