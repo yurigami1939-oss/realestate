@@ -1,5 +1,7 @@
 import type { QueueOptions } from "pg-boss";
 
+import type { PushKind, PushParams } from "@/lib/push";
+
 /**
  * Every pg-boss queue with its retry policy. Queues are created or updated by `pnpm db:migrate`,
  * before anything can enqueue. Tenant jobs carry `organizationId` and run inside `withTenant`.
@@ -31,6 +33,8 @@ export const queues = {
   "whatsapp.send": { retryLimit: 5, retryDelay: 60, retryBackoff: true, expireInSeconds: 60 },
   /** One SMS through the organization's gateway; retried while it is unreachable or throttling. */
   "sms.send": { retryLimit: 5, retryDelay: 60, retryBackoff: true, expireInSeconds: 60 },
+  /** One push notification to one device; retried while its push service is unreachable. */
+  "push.send": { retryLimit: 3, retryDelay: 60, retryBackoff: true, expireInSeconds: 60 },
   /** Cron (03:00 Algiers): fans out one retention job per organization (Loi 18-07). */
   "privacy.daily": { retryLimit: 3, retryDelay: 60, retryBackoff: true, expireInSeconds: 300 },
   /** Applies one organization's retention periods (idempotent). */
@@ -103,6 +107,14 @@ export type JobPayloads = {
   "online_payment.check": { organizationId: string; onlinePaymentId: string };
   "whatsapp.send": { organizationId: string; messageId: string };
   "sms.send": { organizationId: string; messageId: string };
+  /** `url`: the page to open, without its locale (the device's is added). */
+  "push.send": {
+    organizationId: string;
+    subscriptionId: string;
+    kind: PushKind;
+    params: PushParams;
+    url: string;
+  };
   "privacy.daily": Record<string, never>;
   "privacy.retention": { organizationId: string; date: string };
 };

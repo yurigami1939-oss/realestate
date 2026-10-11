@@ -8,11 +8,26 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from "@/i18n/navigation";
 import { authClient } from "@/lib/auth-client";
 
+/**
+ * Stops this browser's push notifications (a shared device must not keep receiving the account's
+ * notifications); the server forgets the device when its push service next answers « gone ».
+ */
+async function forgetPushSubscription() {
+  try {
+    const registration = await navigator.serviceWorker?.getRegistration();
+    const subscription = await registration?.pushManager?.getSubscription();
+    await subscription?.unsubscribe();
+  } catch {
+    // Nothing to forget.
+  }
+}
+
 export function useSignOut() {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const signOut = () =>
     startTransition(async () => {
+      await forgetPushSubscription();
       await authClient.signOut();
       router.replace("/sign-in");
       router.refresh();

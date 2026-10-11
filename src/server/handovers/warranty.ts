@@ -7,7 +7,7 @@ import type { z } from "zod";
 import type { Tx } from "@/db/client";
 import { handover, project, supplier, unit, user, warrantyClaim } from "@/db/schema";
 import { withTenant } from "@/db/tenant";
-import { todayInAlgiers } from "@/lib/dates";
+import { formatDate, todayInAlgiers } from "@/lib/dates";
 import { isUuid } from "@/lib/ids";
 import { runningWarranties } from "@/lib/obligations";
 import { can } from "@/lib/permissions";
@@ -16,6 +16,7 @@ import { recordAudit } from "@/server/audit/record-audit";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
 import type { PortalCtx } from "@/server/portal/context";
 import { isPortalSale } from "@/server/portal/sales";
+import { pushToSale, queuePush, saleObject, staffWith } from "@/server/push/notify";
 
 import type {
   assignWarrantyClaimSchema,
@@ -107,13 +108,39 @@ export async function reportPortalWarrantyClaim(
       throw new AppError("NOT_FOUND");
     }
     const row = await loadSignedHandover(tx, eq(handover.reservationId, input.reservationId));
-    return insertClaim(tx, ctx, row, {
+    const claim = await insertClaim(tx, ctx, row, {
       location: input.location,
       description: input.description,
       reportedOn: todayInAlgiers(),
       fromPortal: true,
     });
+    await queuePush(tx, ctx, "warranty_claim", async () => ({
+      userIds: await staffWith(tx, ctx.orgId, ["handover:update"]),
+      params: { ...(await saleObject(tx, input.reservationId)), location: input.location },
+      url: `/deliveries/${input.reservationId}`,
+    }));
+    return claim;
   });
+}
+
+/** A claim fixed or rejected, to the portal accounts of the sale's buyers. */
+async function pushClaimClosed(
+  tx: Tx,
+  ctx: TenantCtx,
+  claim: { handoverId: string; position: number },
+  outcome: { outcome: "fixed" | "rejected"; fixedOn?: string },
+) {
+  const [row] = await tx
+    .select({ saleId: handover.reservationId })
+    .from(handover)
+    .where(eq(handover.id, claim.handoverId));
+  if (!row) return;
+  await pushToSale(tx, ctx, "claim_closed", row.saleId, (sale) => ({
+    ...sale,
+    position: String(claim.position),
+    outcome: outcome.outcome,
+    fixedOn: outcome.fixedOn ? formatDate(outcome.fixedOn) : "",
+  }));
 }
 
 async function loadClaim(tx: Tx, claimId: string) {
@@ -207,6 +234,7 @@ export async function fixWarrantyClaim(ctx: TenantCtx, input: In<typeof fixWarra
       entityId: claim.handoverId,
       after: { position: claim.position, fixedOn: input.fixedOn },
     });
+    await pushClaimClosed(tx, ctx, claim, { outcome: "fixed", fixedOn: input.fixedOn });
   });
 }
 
@@ -240,6 +268,7 @@ export async function rejectWarrantyClaim(
       after: { position: claim.position },
       reason: input.note,
     });
+    await pushClaimClosed(tx, ctx, claim, { outcome: "rejected" });
   });
 }
 

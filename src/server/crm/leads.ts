@@ -11,6 +11,7 @@ import type { ConsentSource } from "@/lib/privacy";
 import { recordAudit } from "@/server/audit/record-audit";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
 import { recordConsentChanges } from "@/server/privacy/consents";
+import { queuePush } from "@/server/push/notify";
 
 import { assertLeadOwner, assertLiveProject, loadVisibleLead, seesAllLeads } from "./access";
 import { recordLeadActivity } from "./activity";
@@ -76,6 +77,14 @@ export async function createLead(
         options.consentSource,
       );
       const duplicates = await countDuplicates(tx, [fields.phone, fields.phone2], row.id);
+      // A manager's lead given to a commercial (not each row of an import).
+      if (!outer && assignedTo) {
+        await queuePush(tx, ctx, "lead_assigned", async () => ({
+          userIds: [assignedTo],
+          params: { name: fields.fullName },
+          url: `/leads/${row.id}`,
+        }));
+      }
       return { id: row.id, duplicates };
     },
     outer,
@@ -170,6 +179,14 @@ export async function assignLead(ctx: TenantCtx, input: In<typeof assignLeadSche
       from: current.assignedTo,
       to: input.assignedTo,
     });
+    const assignedTo = input.assignedTo;
+    if (assignedTo) {
+      await queuePush(tx, ctx, "lead_assigned", async () => ({
+        userIds: [assignedTo],
+        params: { name: current.fullName },
+        url: `/leads/${current.id}`,
+      }));
+    }
   });
 }
 

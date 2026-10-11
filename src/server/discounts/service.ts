@@ -15,6 +15,7 @@ import { recordAudit } from "@/server/audit/record-audit";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
 import { loadVisibleLead } from "@/server/crm/access";
 import { recordLeadActivity } from "@/server/crm/activity";
+import { pushAmount, queuePush, staffWith } from "@/server/push/notify";
 
 import type {
   decideDiscountSchema,
@@ -94,6 +95,11 @@ export async function requestDiscount(ctx: TenantCtx, input: In<typeof requestDi
       },
       reason: input.reason,
     });
+    await queuePush(tx, ctx, "discount_requested", async () => ({
+      userIds: await staffWith(tx, ctx.orgId, ["discount:decide"]),
+      params: { lead: lead.fullName, unit: target.code, amount: pushAmount(input.amount) },
+      url: "/sales/discounts",
+    }));
     return { id: row.id };
   });
 }
@@ -116,11 +122,11 @@ async function loadPending(tx: Tx, ctx: TenantCtx, requestId: string) {
     .for("update", { of: discountRequest });
   if (!row) throw new AppError("NOT_FOUND");
   // The request follows its lead's visibility (a commercial sees their own leads).
-  await loadVisibleLead(tx, ctx, row.leadId);
+  const lead = await loadVisibleLead(tx, ctx, row.leadId);
   if (row.status !== "pending") {
     throw new AppError("INVALID_TRANSITION", "discounts.errors.notPending");
   }
-  return row;
+  return { ...row, leadName: lead.fullName };
 }
 
 /**
@@ -174,6 +180,16 @@ export async function decideDiscount(ctx: TenantCtx, input: In<typeof decideDisc
       after: { status: input.approve ? "approved" : "rejected", approvedAmount, validUntil },
       reason: input.note ?? undefined,
     });
+    await queuePush(tx, ctx, "discount_decided", async () => ({
+      userIds: [request.requestedBy],
+      params: {
+        approved: input.approve ? "yes" : "no",
+        lead: request.leadName,
+        unit: request.unitCode,
+        amount: pushAmount(approvedAmount ?? request.amount),
+      },
+      url: `/leads/${request.leadId}`,
+    }));
   });
 }
 

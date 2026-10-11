@@ -46,6 +46,7 @@ export const processingActivities = [
   { key: "owners", retention: null },
   { key: "payments", retention: null },
   { key: "notifications", retention: "messageRetentionMonths" },
+  { key: "push", retention: null },
   { key: "staff", retention: null },
   { key: "accounts", retention: null },
 ] as const satisfies readonly { key: string; retention: keyof PrivacySettings | null }[];

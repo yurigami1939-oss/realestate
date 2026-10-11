@@ -27,6 +27,13 @@ import {
   whatsappTemplates,
 } from "@/lib/whatsapp";
 import { smsText } from "@/lib/sms";
+import {
+  pushAmount,
+  pushToLease,
+  pushToResidence,
+  pushToSale,
+  pushToUnit,
+} from "@/server/push/notify";
 import { currentResident } from "@/server/residences/service";
 import { loadSmsAccount, sendsSms } from "@/server/sms/account";
 import { queueSms } from "@/server/sms/service";
@@ -145,12 +152,17 @@ async function saleAudience(tx: Tx, saleId: string) {
 }
 
 /** A sale's payment was recorded (counter or online), with its receipt. */
-export function notifySalePayment(
+export async function notifySalePayment(
   tx: Tx,
   scope: TenantScope,
   saleId: string,
   paid: { amount: Centimes; receiptNumber: string },
 ) {
+  await pushToSale(tx, scope, "payment_received", saleId, (sale) => ({
+    ...sale,
+    amount: pushAmount(paid.amount),
+    receipt: paid.receiptNumber,
+  }));
   return queueWhatsapp(tx, scope, "payment_received", async (company) => {
     const audience = await saleAudience(tx, saleId);
     return {
@@ -168,12 +180,18 @@ export function notifySalePayment(
 }
 
 /** An appel de fonds was issued for a sale. */
-export function notifyPaymentCall(
+export async function notifyPaymentCall(
   tx: Tx,
   scope: TenantScope,
   saleId: string,
   call: { number: string; amount: Centimes; dueOn: CalendarDate },
 ) {
+  await pushToSale(tx, scope, "payment_call", saleId, (sale) => ({
+    ...sale,
+    number: call.number,
+    amount: pushAmount(call.amount),
+    dueOn: formatDate(call.dueOn),
+  }));
   return queueWhatsapp(tx, scope, "payment_call", async (company) => {
     const audience = await saleAudience(tx, saleId);
     return {
@@ -192,12 +210,17 @@ export function notifyPaymentCall(
 }
 
 /** A reminder letter was issued for a sale's overdue installments. */
-export function notifyPaymentReminder(
+export async function notifyPaymentReminder(
   tx: Tx,
   scope: TenantScope,
   saleId: string,
   reminder: { overdue: Centimes; payBy: CalendarDate },
 ) {
+  await pushToSale(tx, scope, "payment_reminder", saleId, (sale) => ({
+    ...sale,
+    amount: pushAmount(reminder.overdue),
+    payBy: formatDate(reminder.payBy),
+  }));
   return queueWhatsapp(tx, scope, "payment_reminder", async (company) => {
     const audience = await saleAudience(tx, saleId);
     return {
@@ -215,15 +238,16 @@ export function notifyPaymentReminder(
 }
 
 /** The handover appointment of a sold unit was set (or moved). */
-export function notifyHandoverAppointment(
+export async function notifyHandoverAppointment(
   tx: Tx,
   scope: TenantScope,
   saleId: string,
   scheduledAt: Date,
 ) {
+  const [day = "", time = ""] = formatDateTime(scheduledAt).split(" ");
+  await pushToSale(tx, scope, "handover_appointment", saleId, (sale) => ({ ...sale, day, time }));
   return queueWhatsapp(tx, scope, "handover_appointment", async (company) => {
     const audience = await saleAudience(tx, saleId);
-    const [day = "", time = ""] = formatDateTime(scheduledAt).split(" ");
     return {
       ref: { type: "reservation", id: saleId },
       recipients: audience.recipients,
@@ -267,7 +291,7 @@ async function mainCoOwner(tx: Tx, residenceId: string, unitId: string) {
 }
 
 /** A charge call was issued to a unit's co-owner (`owner`, as addressed on the call). */
-export function notifyChargeCall(
+export async function notifyChargeCall(
   tx: Tx,
   scope: TenantScope,
   call: {
@@ -279,7 +303,13 @@ export function notifyChargeCall(
     owner: WhatsappRecipient | null;
   },
 ) {
-  if (!call.owner) return Promise.resolve(0);
+  if (!call.owner) return 0;
+  await pushToUnit(tx, scope, "charge_call", call, (target) => ({
+    ...target,
+    number: call.number,
+    amount: pushAmount(call.amount),
+    dueOn: formatDate(call.dueOn),
+  }));
   const owner = call.owner;
   return queueWhatsapp(tx, scope, "charge_call", async () => {
     const object = await residenceUnitObject(tx, call.residenceId, call.unitId);
@@ -298,11 +328,16 @@ export function notifyChargeCall(
 }
 
 /** Charges paid for a unit (receipt RCH-), to its main co-owner. */
-export function notifyChargePayment(
+export async function notifyChargePayment(
   tx: Tx,
   scope: TenantScope,
   paid: { residenceId: string; unitId: string; amount: Centimes; receiptNumber: string },
 ) {
+  await pushToUnit(tx, scope, "charge_received", paid, (target) => ({
+    ...target,
+    amount: pushAmount(paid.amount),
+    receipt: paid.receiptNumber,
+  }));
   return queueWhatsapp(tx, scope, "charge_received", async () => {
     const object = await residenceUnitObject(tx, paid.residenceId, paid.unitId);
     return {
@@ -319,11 +354,16 @@ export function notifyChargePayment(
 }
 
 /** A reminder letter for a unit's overdue charges, to its main co-owner. */
-export function notifyChargeReminder(
+export async function notifyChargeReminder(
   tx: Tx,
   scope: TenantScope,
   reminder: { residenceId: string; unitId: string; overdue: Centimes; payBy: CalendarDate },
 ) {
+  await pushToUnit(tx, scope, "charge_reminder", reminder, (target) => ({
+    ...target,
+    amount: pushAmount(reminder.overdue),
+    payBy: formatDate(reminder.payBy),
+  }));
   return queueWhatsapp(tx, scope, "charge_reminder", async () => {
     const object = await residenceUnitObject(tx, reminder.residenceId, reminder.unitId);
     return {
@@ -340,12 +380,17 @@ export function notifyChargeReminder(
 }
 
 /** Rent (or the deposit) received from a tenant, with its quittance number. */
-export function notifyRentPayment(
+export async function notifyRentPayment(
   tx: Tx,
   scope: TenantScope,
   leaseId: string,
   paid: { amount: Centimes; receiptNumber: string },
 ) {
+  await pushToLease(tx, scope, "rent_received", leaseId, (target) => ({
+    ...target,
+    amount: pushAmount(paid.amount),
+    receipt: paid.receiptNumber,
+  }));
   return queueWhatsapp(tx, scope, "rent_received", async () => {
     const [row] = await tx
       .select({
@@ -400,11 +445,21 @@ const residenceName = async (tx: Tx, residenceId: string) =>
   )[0]?.name ?? "";
 
 /** An announcement was published: every resident who agreed (co-owners and occupants). */
-export function notifyAnnouncement(
+export async function notifyAnnouncement(
   tx: Tx,
   scope: TenantScope,
   published: { residenceId: string; title: string; titleAr: string | null },
 ) {
+  await pushToResidence(
+    tx,
+    scope,
+    "announcement",
+    { residenceId: published.residenceId, coOwnersOnly: false, url: "/portal/announcements" },
+    (target) => ({
+      ...target,
+      title: { fr: published.title, ar: published.titleAr ?? published.title },
+    }),
+  );
   return queueWhatsapp(tx, scope, "announcement", async () => {
     const name = await residenceName(tx, published.residenceId);
     return {
@@ -419,11 +474,23 @@ export function notifyAnnouncement(
 }
 
 /** A general assembly was convened: its co-owners get the date, the time and the place. */
-export function notifyAssemblyConvocation(
+export async function notifyAssemblyConvocation(
   tx: Tx,
   scope: TenantScope,
   assembly: { residenceId: string; heldOn: CalendarDate; startTime: string; place: string },
 ) {
+  await pushToResidence(
+    tx,
+    scope,
+    "assembly_convocation",
+    { residenceId: assembly.residenceId, coOwnersOnly: true, url: "/portal/assemblies" },
+    (target) => ({
+      ...target,
+      day: formatDate(assembly.heldOn),
+      time: assembly.startTime.slice(0, 5),
+      place: assembly.place,
+    }),
+  );
   return queueWhatsapp(tx, scope, "assembly_convocation", async () => {
     const name = await residenceName(tx, assembly.residenceId);
     return {

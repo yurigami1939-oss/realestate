@@ -303,7 +303,8 @@
     "smsSettings": "الرسائل القصيرة",
     "privacy": "المعطيات الشخصية",
     "customRoles": "أدوار مخصصة",
-    "documentTexts": "نصوص الوثائق"
+    "documentTexts": "نصوص الوثائق",
+    "notifications": "الإشعارات"
   },
   "shell": {
     "organizations": "الشركات",
@@ -3703,7 +3704,8 @@
         "tickets": "الشكاوى",
         "assemblies": "الجمعيات",
         "payments": "المدفوعات",
-        "documents": "ملفي"
+        "documents": "ملفي",
+        "notifications": "الإشعارات"
       }
     },
     "home": {
@@ -5581,6 +5583,14 @@
           "basis": "المصلحة المشروعة (الأمن)؛ الالتزامات القانونية للتتبع.",
           "recipients": "المسيّر والمحاسب (سجل التدقيق).",
           "retention": "مدة الحساب؛ يُحفظ سجل التدقيق (غير قابل للتعديل)."
+        },
+        "push": {
+          "name": "الإشعارات الفورية",
+          "purpose": "إشعار الشخص بأحداث ملفه أو عمله على الأجهزة التي فعّلها عليها.",
+          "data": "عنوان اشتراك الجهاز لدى خدمة الإشعارات في متصفحه، ومفاتيحه، واللغة، والمتصفح، وتاريخ آخر إرسال.",
+          "basis": "الموافقة: يفعّلها الشخص على كل جهاز ويعطلها متى شاء.",
+          "recipients": "خدمة الإشعارات في المتصفح (غوغل، موزيلا، آبل، مايكروسوفت)، ولا تطلع على المحتوى المشفّر للجهاز.",
+          "retention": "إلى غاية التعطيل أو انتهاء الاشتراك أو مغادرة الشخص."
         }
       }
     },
@@ -5929,6 +5939,122 @@
       "reminder_letter": "رسائل التذكير والإعذارات",
       "charge_call": "نداءات الأعباء",
       "certificate": "الشهادات والكشوف"
+    }
+  },
+  "push": {
+    "settings": {
+      "title": "الإشعارات",
+      "description": "الإشعارات على أجهزتك (المتصفح أو التطبيق المثبّت).",
+      "staffIntro": "استقبل على هاتفك أو حاسوبك ما ينتظرك: الزبائن المحتملون المسندون إليك، وطلبات التخفيض وقراراتها، والطلبات والشكاوى والعيوب المبلغ عنها من فضاء الزبائن.",
+      "portalIntro": "استقبل على هاتفك الدفعات المسجلة، وطلبات الدفع والأعباء، والتذكيرات، والمواعيد، والإعلانات، والاستدعاءات، والردود على طلباتك.",
+      "on": "مفعّلة على هذا الجهاز",
+      "off": "معطّلة على هذا الجهاز",
+      "unsupported": "لا يمكن لهذا المتصفح استقبال الإشعارات.",
+      "iosHint": "على آيفون وآيباد، أضف التطبيق أولا إلى الشاشة الرئيسية (مشاركة، ثم « إضافة إلى الشاشة الرئيسية ») وافتحه من أيقونته.",
+      "denied": "الإشعارات محظورة لهذا الموقع: اسمح بها في إعدادات المتصفح ثم أعد المحاولة.",
+      "enable": "تفعيل الإشعارات",
+      "disable": "تعطيل",
+      "test": "إرسال إشعار تجريبي",
+      "testSent": "تم إرسال إشعار تجريبي.",
+      "enabled": "تم تفعيل الإشعارات.",
+      "disabled": "تم تعطيل الإشعارات.",
+      "devices": "أجهزتك",
+      "noDevices": "لا يستقبل أي جهاز إشعاراتك.",
+      "device": "جهاز",
+      "since": "مفعّلة منذ {date}",
+      "lastSent": "آخر إرسال في {date}",
+      "never": "لا إرسال بعد",
+      "thisDevice": "هذا الجهاز",
+      "remove": "إزالة",
+      "removed": "تمت إزالة الجهاز."
+    },
+    "errors": {
+      "endpoint": "خدمة الإشعارات هذه غير مقبولة.",
+      "keys": "اشتراك المتصفح غير صالح.",
+      "notSubscribed": "هذا الجهاز لا يستقبل الإشعارات.",
+      "failed": "تعذر تفعيل الإشعارات على هذا الجهاز."
+    },
+    "messages": {
+      "payment_received": {
+        "title": "تم استلام دفعة",
+        "body": "تم استلام {amount} عن الوحدة {unit} ({place}). الوصل رقم {receipt}."
+      },
+      "payment_call": {
+        "title": "طلب دفع {number}",
+        "body": "{amount} مستحقة قبل {dueOn} عن الوحدة {unit} ({place})."
+      },
+      "payment_reminder": {
+        "title": "أقساط متأخرة",
+        "body": "لا يزال {amount} مستحقا عن الوحدة {unit} ({place})، يرجى الدفع قبل {payBy}."
+      },
+      "handover_appointment": {
+        "title": "تسليم المفاتيح",
+        "body": "موعدكم يوم {day} على الساعة {time} للوحدة {unit} ({place})."
+      },
+      "charge_call": {
+        "title": "طلب أعباء {number}",
+        "body": "{amount} مستحقة قبل {dueOn} عن الوحدة {unit} ({place})."
+      },
+      "charge_received": {
+        "title": "تم استلام الأعباء",
+        "body": "تم استلام {amount} عن الوحدة {unit} ({place}). الوصل رقم {receipt}."
+      },
+      "charge_reminder": {
+        "title": "أعباء متأخرة",
+        "body": "لا يزال {amount} مستحقا عن الوحدة {unit} ({place})، يرجى الدفع قبل {payBy}."
+      },
+      "rent_received": {
+        "title": "تم استلام دفعة",
+        "body": "تم استلام {amount} عن عقد الإيجار {lease} (الوحدة {unit}). وصل الإيجار رقم {receipt}."
+      },
+      "announcement": {
+        "title": "إعلان · {residence}",
+        "body": "{title}"
+      },
+      "assembly_convocation": {
+        "title": "الجمعية العامة · {residence}",
+        "body": "تنعقد يوم {day} على الساعة {time}، {place}."
+      },
+      "request_answered": {
+        "title": "{outcome, select, done {تمت معالجة طلبكم} other {تم رفض طلبكم}}",
+        "body": "الوحدة {unit} ({place}): الرد في فضائكم."
+      },
+      "ticket_status": {
+        "title": "شكوى: {title}",
+        "body": "{status, select, open {أعيد فتحها.} in_progress {قيد المعالجة.} resolved {تمت معالجتها.} closed {أغلقت.} other {ألغيت.}}"
+      },
+      "claim_closed": {
+        "title": "العيب رقم {position} · الوحدة {unit}",
+        "body": "{outcome, select, fixed {تم إصلاحه يوم {fixedOn}.} other {لم يقبل: الرد في فضائكم.}}"
+      },
+      "lead_assigned": {
+        "title": "زبون محتمل جديد",
+        "body": "أسند إليك {name}."
+      },
+      "discount_requested": {
+        "title": "طلب تخفيض",
+        "body": "{amount} على الوحدة {unit} لفائدة {lead}."
+      },
+      "discount_decided": {
+        "title": "{approved, select, yes {تمت الموافقة على التخفيض} other {تم رفض التخفيض}}",
+        "body": "{amount} على الوحدة {unit} لفائدة {lead}."
+      },
+      "portal_request": {
+        "title": "طلب من أحد المشترين",
+        "body": "{buyer} · الوحدة {unit} ({place}): {kind, select, certificate {شهادة} appointment {موعد} other {طلب آخر}}."
+      },
+      "portal_ticket": {
+        "title": "شكوى جديدة · {residence}",
+        "body": "{title}"
+      },
+      "warranty_claim": {
+        "title": "تم الإبلاغ عن عيب",
+        "body": "الوحدة {unit} ({place}): {location}"
+      },
+      "test": {
+        "title": "تم تفعيل الإشعارات",
+        "body": "ستستقبل على هذا الجهاز إشعارات {company}."
+      }
     }
   }
 }

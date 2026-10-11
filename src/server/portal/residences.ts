@@ -25,6 +25,7 @@ import { isUuid } from "@/lib/ids";
 import { AppError } from "@/lib/result";
 import { activeTicketStatuses } from "@/lib/tickets";
 import { chargeStatement, liveCalls, paidByUnit } from "@/server/charges/accounts";
+import { queuePush, staffWith } from "@/server/push/notify";
 
 import { type PortalCtx, type PortalScope, portalScope } from "./context";
 import type { portalTicketSchema } from "./schemas";
@@ -305,6 +306,17 @@ export async function createPortalTicket(
       toStatus: "open",
       comment: input.description,
       actorUserId: ctx.userId,
+    });
+    await queuePush(tx, ctx, "portal_ticket", async () => {
+      const [place] = await tx
+        .select({ name: residence.name })
+        .from(residence)
+        .where(eq(residence.id, input.residenceId));
+      return {
+        userIds: await staffWith(tx, ctx.orgId, ["ticket:update"]),
+        params: { residence: place?.name ?? "", title: input.title },
+        url: `/tickets/${row.id}`,
+      };
     });
     return { id: row.id };
   });

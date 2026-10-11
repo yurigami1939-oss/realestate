@@ -18,6 +18,7 @@ export * from "./portal";
 export * from "./recovery";
 export * from "./rentals";
 export * from "./privacy";
+export * from "./push";
 export * from "./residences";
 export * from "./roles";
 export * from "./sales";

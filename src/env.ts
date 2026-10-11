@@ -39,6 +39,16 @@ const serverEnvSchema = z.object({
   SATIM_PRODUCTION_URL: z.url().default("https://cib.satim.dz/payment/rest"),
   /** WhatsApp Cloud API (Graph API, with its version); the stand-in when DEV_GATEWAYS is on. */
   WHATSAPP_API_URL: z.url().optional(),
+  /**
+   * Web Push (VAPID) private key, base64url of 32 bytes; optional: derived from
+   * BETTER_AUTH_SECRET when absent. Changing it unsubscribes every browser.
+   */
+  VAPID_PRIVATE_KEY: z
+    .string()
+    .refine((v) => Buffer.from(v, "base64url").length === 32, "must be 32 bytes, base64url")
+    .optional(),
+  /** Contact sent to the push services with each message (RFC 8292). */
+  VAPID_SUBJECT: z.string().default("mailto:contact@example.com"),
 });
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>;

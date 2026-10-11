@@ -21,6 +21,7 @@ import { recordAudit } from "@/server/audit/record-audit";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
 import type { PortalCtx } from "@/server/portal/context";
 import { isPortalSale } from "@/server/portal/sales";
+import { queuePush, saleAccounts, saleObject, staffWith } from "@/server/push/notify";
 import { loadVisibleReservation, visibleSales } from "@/server/sales/access";
 
 import {
@@ -48,7 +49,7 @@ export async function createPortalRequest(
       throw new AppError("NOT_FOUND");
     }
     const [sale] = await tx
-      .select({ status: reservation.status })
+      .select({ status: reservation.status, commercial: reservation.commercialUserId })
       .from(reservation)
       .where(eq(reservation.id, input.reservationId));
     if (sale?.status === "withdrawn") throw new AppError("CONFLICT", "sales.errors.closed");
@@ -81,6 +82,15 @@ export async function createPortalRequest(
       entityId: input.reservationId,
       after: { kind: input.kind, certificateKind: input.certificateKind },
     });
+    // The sale's commercial and the managers who handle its requests.
+    await queuePush(tx, ctx, "portal_request", async () => ({
+      userIds: [
+        sale?.commercial,
+        ...(await staffWith(tx, ctx.orgId, ["sale:read_all", "sale:update"])),
+      ],
+      params: { buyer: ctx.name, kind: input.kind, ...(await saleObject(tx, input.reservationId)) },
+      url: "/sales/requests",
+    }));
     return { id: row.id };
   });
 }
@@ -148,6 +158,14 @@ export async function closePortalRequest(
       after: { kind: request.kind, outcome: input.outcome },
       reason: input.answer ?? undefined,
     });
+    // The account that asked, while it still reaches the sale.
+    await queuePush(tx, ctx, "request_answered", async () => ({
+      userIds: (await saleAccounts(tx, request.reservationId)).filter(
+        (id) => id === request.userId,
+      ),
+      params: { outcome: input.outcome, ...(await saleObject(tx, request.reservationId)) },
+      url: `/portal/sales/${request.reservationId}`,
+    }));
   });
 }
 

@@ -303,7 +303,8 @@
     "smsSettings": "SMS",
     "privacy": "Données personnelles",
     "customRoles": "Rôles personnalisés",
-    "documentTexts": "Textes des documents"
+    "documentTexts": "Textes des documents",
+    "notifications": "Notifications"
   },
   "shell": {
     "organizations": "Sociétés",
@@ -3703,7 +3704,8 @@
         "tickets": "Réclamations",
         "assemblies": "Assemblées",
         "payments": "Paiements",
-        "documents": "Mon dossier"
+        "documents": "Mon dossier",
+        "notifications": "Notifications"
       }
     },
     "home": {
@@ -5581,6 +5583,14 @@
           "basis": "Intérêt légitime (sécurité) ; obligations légales de traçabilité.",
           "recipients": "Gérant et comptable (journal d'audit).",
           "retention": "Durée du compte ; journal d'audit conservé (inaltérable)."
+        },
+        "push": {
+          "name": "Notifications push",
+          "purpose": "Avis des événements du dossier de la personne ou de son travail, sur les appareils où elle les a activées.",
+          "data": "Adresse d'abonnement de l'appareil auprès du service push de son navigateur, ses clés, la langue, le navigateur, la date du dernier envoi.",
+          "basis": "Consentement : activées sur chaque appareil par la personne, désactivées à tout moment.",
+          "recipients": "Le service push du navigateur (Google, Mozilla, Apple, Microsoft), qui ne lit pas le contenu, chiffré pour l'appareil.",
+          "retention": "Jusqu'à la désactivation, l'expiration de l'abonnement ou le départ de la personne."
         }
       }
     },
@@ -5929,6 +5939,122 @@
       "reminder_letter": "Lettres de relance et mises en demeure",
       "charge_call": "Appels de charges",
       "certificate": "Attestations et relevés"
+    }
+  },
+  "push": {
+    "settings": {
+      "title": "Notifications",
+      "description": "Les notifications sur vos appareils (navigateur ou application installée).",
+      "staffIntro": "Recevez sur votre téléphone ou votre ordinateur ce qui vous attend : prospects qui vous sont attribués, demandes de remise et leurs décisions, demandes, réclamations et désordres signalés depuis l'espace client.",
+      "portalIntro": "Recevez sur votre téléphone les paiements enregistrés, les appels de fonds et de charges, les relances, les rendez-vous, les annonces, les convocations et les réponses à vos demandes.",
+      "on": "Activées sur cet appareil",
+      "off": "Désactivées sur cet appareil",
+      "unsupported": "Ce navigateur ne peut pas recevoir de notifications.",
+      "iosHint": "Sur iPhone et iPad, ajoutez d'abord l'application à l'écran d'accueil (Partager, puis « Sur l'écran d'accueil ») et ouvrez-la depuis son icône.",
+      "denied": "Les notifications sont bloquées pour ce site : autorisez-les dans les réglages du navigateur, puis réessayez.",
+      "enable": "Activer les notifications",
+      "disable": "Désactiver",
+      "test": "Envoyer une notification d'essai",
+      "testSent": "Notification d'essai envoyée.",
+      "enabled": "Notifications activées.",
+      "disabled": "Notifications désactivées.",
+      "devices": "Vos appareils",
+      "noDevices": "Aucun appareil ne reçoit vos notifications.",
+      "device": "Appareil",
+      "since": "Activées le {date}",
+      "lastSent": "Dernier envoi le {date}",
+      "never": "Aucun envoi",
+      "thisDevice": "Cet appareil",
+      "remove": "Retirer",
+      "removed": "Appareil retiré."
+    },
+    "errors": {
+      "endpoint": "Ce service de notifications n'est pas accepté.",
+      "keys": "L'abonnement du navigateur est invalide.",
+      "notSubscribed": "Cet appareil ne reçoit pas les notifications.",
+      "failed": "Les notifications n'ont pas pu être activées sur cet appareil."
+    },
+    "messages": {
+      "payment_received": {
+        "title": "Paiement reçu",
+        "body": "{amount} reçus pour le lot {unit} ({place}). Reçu n° {receipt}."
+      },
+      "payment_call": {
+        "title": "Appel de fonds {number}",
+        "body": "{amount} à régler avant le {dueOn} pour le lot {unit} ({place})."
+      },
+      "payment_reminder": {
+        "title": "Échéances en retard",
+        "body": "{amount} restent dus sur le lot {unit} ({place}), à régler avant le {payBy}."
+      },
+      "handover_appointment": {
+        "title": "Remise des clés",
+        "body": "Rendez-vous le {day} à {time} pour le lot {unit} ({place})."
+      },
+      "charge_call": {
+        "title": "Appel de charges {number}",
+        "body": "{amount} à régler avant le {dueOn} pour le lot {unit} ({place})."
+      },
+      "charge_received": {
+        "title": "Charges reçues",
+        "body": "{amount} reçus pour le lot {unit} ({place}). Reçu n° {receipt}."
+      },
+      "charge_reminder": {
+        "title": "Charges en retard",
+        "body": "{amount} restent dus sur le lot {unit} ({place}), à régler avant le {payBy}."
+      },
+      "rent_received": {
+        "title": "Paiement reçu",
+        "body": "{amount} reçus pour le bail {lease} (lot {unit}). Quittance n° {receipt}."
+      },
+      "announcement": {
+        "title": "Annonce · {residence}",
+        "body": "{title}"
+      },
+      "assembly_convocation": {
+        "title": "Assemblée générale · {residence}",
+        "body": "Convoquée le {day} à {time}, {place}."
+      },
+      "request_answered": {
+        "title": "{outcome, select, done {Votre demande a été traitée} other {Votre demande a été déclinée}}",
+        "body": "Lot {unit} ({place}) : la réponse est dans votre espace."
+      },
+      "ticket_status": {
+        "title": "Réclamation : {title}",
+        "body": "{status, select, open {Rouverte.} in_progress {Prise en charge.} resolved {Résolue.} closed {Clôturée.} other {Annulée.}}"
+      },
+      "claim_closed": {
+        "title": "Désordre n° {position} · lot {unit}",
+        "body": "{outcome, select, fixed {Réparé le {fixedOn}.} other {Non retenu : la réponse est dans votre espace.}}"
+      },
+      "lead_assigned": {
+        "title": "Nouveau prospect",
+        "body": "{name} vous a été attribué."
+      },
+      "discount_requested": {
+        "title": "Demande de remise",
+        "body": "{amount} sur le lot {unit} pour {lead}."
+      },
+      "discount_decided": {
+        "title": "{approved, select, yes {Remise accordée} other {Remise refusée}}",
+        "body": "{amount} sur le lot {unit} pour {lead}."
+      },
+      "portal_request": {
+        "title": "Demande d'un acquéreur",
+        "body": "{buyer} · lot {unit} ({place}) : {kind, select, certificate {une attestation} appointment {un rendez-vous} other {une autre demande}}."
+      },
+      "portal_ticket": {
+        "title": "Nouvelle réclamation · {residence}",
+        "body": "{title}"
+      },
+      "warranty_claim": {
+        "title": "Désordre signalé",
+        "body": "Lot {unit} ({place}) : {location}"
+      },
+      "test": {
+        "title": "Notifications activées",
+        "body": "Vous recevrez sur cet appareil les notifications de {company}."
+      }
     }
   }
 }

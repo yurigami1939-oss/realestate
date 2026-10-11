@@ -26,7 +26,8 @@ export default defineConfig({
     // A static file: the readiness check must not depend on the database being migrated yet.
     url: `${baseURL}/favicon.ico`,
     env: e2eEnv,
-    timeout: 300_000,
+    // The production build alone takes about four minutes on a developer machine.
+    timeout: 600_000,
     reuseExistingServer: !process.env.CI,
   },
 });

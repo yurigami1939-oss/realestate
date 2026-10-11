@@ -9,6 +9,7 @@ import { withTenant } from "@/db/tenant";
 import { ticketTransitions } from "@/lib/tickets";
 import { AppError } from "@/lib/result";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
+import { queuePush, residentAccounts } from "@/server/push/notify";
 import { loadResidence } from "@/server/residences/service";
 
 import type {
@@ -88,6 +89,15 @@ export async function changeTicketStatus(
       comment: input.comment,
       actorUserId: ctx.userId,
     });
+    // The resident who reported it follows it on the portal.
+    const residentId = current.residentId;
+    if (residentId) {
+      await queuePush(tx, ctx, "ticket_status", async () => ({
+        userIds: await residentAccounts(tx, residentId),
+        params: { title: current.title, status: input.status },
+        url: `/portal/tickets/${current.id}`,
+      }));
+    }
   });
 }
 
