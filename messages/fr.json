@@ -6318,5 +6318,20 @@
       "privacy": "Durées de conservation et registre des traitements",
       "audit": "Qui a fait quoi, et quand"
     }
+  },
+  "palette": {
+    "open": "Rechercher",
+    "label": "Recherche rapide",
+    "placeholder": "Une page, un prospect, un acquéreur, une vente, un lot…",
+    "pages": "Pages",
+    "kinds": {
+      "lead": "Prospects",
+      "buyer": "Acquéreurs",
+      "sale": "Ventes",
+      "unit": "Lots"
+    },
+    "empty": "Aucun résultat.",
+    "searching": "Recherche…",
+    "hint": "↑ ↓ pour choisir · Entrée pour ouvrir · Échap pour fermer"
   }
 }

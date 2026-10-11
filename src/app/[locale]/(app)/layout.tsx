@@ -1,4 +1,5 @@
 import { AppSidebar } from "@/components/app-shell/app-sidebar";
+import { CommandPalette } from "@/components/app-shell/command-palette";
 import { TopBar } from "@/components/app-shell/top-bar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { redirect } from "@/i18n/navigation";
@@ -21,6 +22,8 @@ export default async function AppLayout({ children, params }: LayoutProps<"/[loc
   const ctx = await getTenantCtx();
   if (isPortalOnly(ctx.roles)) return redirect({ href: "/portal", locale });
 
+  const access = accessOf(ctx);
+  const group = organizations.filter((o) => o.roles.includes("owner")).length > 1;
   return (
     <SidebarProvider>
       <AppSidebar
@@ -28,12 +31,14 @@ export default async function AppLayout({ children, params }: LayoutProps<"/[loc
         organizations={organizations.map(({ id, name }) => ({ id, name }))}
         activeOrgId={activeOrgId}
         user={{ name: session.user.name, email: session.user.email }}
-        roles={accessOf(ctx)}
-        group={organizations.filter((o) => o.roles.includes("owner")).length > 1}
+        roles={access}
+        group={group}
       />
       {/* min-w-0: wide tables scroll inside their own container, not the page. */}
       <SidebarInset className="min-w-0">
-        <TopBar fallback={active.name} />
+        <TopBar fallback={active.name}>
+          <CommandPalette access={access} group={group} />
+        </TopBar>
         <div className="flex-1 px-4 py-6 md:px-8 md:py-8">{children}</div>
       </SidebarInset>
     </SidebarProvider>
