@@ -141,7 +141,7 @@ export function LeaseForm({
       <div className="space-y-6 lg:col-span-2">
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">{t("form.unitAndTenant")}</CardTitle>
+            <CardTitle>{t("form.unitAndTenant")}</CardTitle>
           </CardHeader>
           <CardContent>
             <FieldGroup>
@@ -238,7 +238,7 @@ export function LeaseForm({
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">{t("form.terms")}</CardTitle>
+            <CardTitle>{t("form.terms")}</CardTitle>
           </CardHeader>
           <CardContent>
             <FieldGroup>
@@ -305,7 +305,7 @@ export function LeaseForm({
       <div className="space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">{t("form.preview")}</CardTitle>
+            <CardTitle>{t("form.preview")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2 text-sm" data-testid="lease-preview">
             {preview ? (

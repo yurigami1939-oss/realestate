@@ -121,7 +121,7 @@ export default async function PartnersPage({ params }: PageProps<"/[locale]/part
       {readsCommissions ? (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">{t("commissions")}</CardTitle>
+            <CardTitle>{t("commissions")}</CardTitle>
           </CardHeader>
           <CardContent className="overflow-x-auto">
             {commissions.length === 0 ? (

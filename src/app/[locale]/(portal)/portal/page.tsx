@@ -26,7 +26,7 @@ export default async function PortalHomePage({ params }: PageProps<"/[locale]/po
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-semibold">{t("welcome", { name: ctx.name })}</h1>
+      <h1 className="text-large-title">{t("welcome", { name: ctx.name })}</h1>
       {sales.length === 0 && units.length === 0 && leases.length === 0 ? (
         <p className="rounded-lg border border-dashed p-6 text-center text-muted-foreground">
           {t("empty")}
@@ -34,7 +34,7 @@ export default async function PortalHomePage({ params }: PageProps<"/[locale]/po
       ) : null}
       {sales.length > 0 ? (
         <section className="space-y-3">
-          <h2 className="flex items-center gap-2 font-medium">
+          <h2 className="flex items-center gap-2 text-headline">
             <Home className="size-4" aria-hidden />
             {t("sales")}
           </h2>
@@ -43,7 +43,7 @@ export default async function PortalHomePage({ params }: PageProps<"/[locale]/po
               <li key={s.id}>
                 <Card>
                   <CardHeader className="flex flex-row items-start justify-between gap-2">
-                    <CardTitle className="text-base">
+                    <CardTitle>
                       <Link href={`/portal/sales/${s.id}`} className="hover:underline">
                         {s.projectName} · <bdi dir="ltr">{s.unitCode}</bdi>
                       </Link>
@@ -62,7 +62,7 @@ export default async function PortalHomePage({ params }: PageProps<"/[locale]/po
       ) : null}
       {units.length > 0 ? (
         <section className="space-y-3">
-          <h2 className="flex items-center gap-2 font-medium">
+          <h2 className="flex items-center gap-2 text-headline">
             <Building2 className="size-4" aria-hidden />
             {t("units")}
           </h2>
@@ -71,7 +71,7 @@ export default async function PortalHomePage({ params }: PageProps<"/[locale]/po
               <li key={u.residentId}>
                 <Card>
                   <CardHeader className="flex flex-row items-start justify-between gap-2">
-                    <CardTitle className="text-base">
+                    <CardTitle>
                       {u.kind === "co_owner" ? (
                         <Link href={`/portal/units/${u.unitId}`} className="hover:underline">
                           {u.residenceName} · <bdi dir="ltr">{u.unitCode}</bdi>
@@ -102,7 +102,7 @@ export default async function PortalHomePage({ params }: PageProps<"/[locale]/po
       ) : null}
       {leases.length > 0 ? (
         <section className="space-y-3">
-          <h2 className="flex items-center gap-2 font-medium">
+          <h2 className="flex items-center gap-2 text-headline">
             <KeyRound className="size-4" aria-hidden />
             {t("leases")}
           </h2>
@@ -111,7 +111,7 @@ export default async function PortalHomePage({ params }: PageProps<"/[locale]/po
               <li key={l.id}>
                 <Card>
                   <CardHeader className="flex flex-row items-start justify-between gap-2">
-                    <CardTitle className="text-base">
+                    <CardTitle>
                       <Link href={`/portal/leases/${l.id}`} className="hover:underline">
                         {l.projectName} · <bdi dir="ltr">{l.unitCode}</bdi>
                       </Link>

@@ -36,7 +36,7 @@ function Kpi({
 }) {
   const body = (
     <>
-      <div className={cn("text-sm", tone === "alert" ? "text-red-900" : "text-muted-foreground")}>
+      <div className={cn("text-sm", tone === "alert" ? "text-danger" : "text-muted-foreground")}>
         {label}
       </div>
       <div className="text-xl font-semibold tabular-nums">
@@ -47,7 +47,7 @@ function Kpi({
   );
   const className = cn(
     "block space-y-1 rounded-lg border p-3 text-start",
-    tone === "alert" && "border-red-300 bg-red-50 text-red-950",
+    tone === "alert" && "border-danger/25 bg-danger-soft text-danger",
     href && "transition-colors hover:bg-muted/50",
   );
   return href ? (
@@ -73,7 +73,7 @@ function Section({
   return (
     <Card data-testid={testId}>
       <CardHeader>
-        <CardTitle className="text-base">{title}</CardTitle>
+        <CardTitle>{title}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">{children}</CardContent>
     </Card>
@@ -122,7 +122,7 @@ export default async function DashboardPage({ params }: PageProps<"/[locale]/das
   return (
     <div className="mx-auto max-w-7xl space-y-6">
       <div className="space-y-1">
-        <h1 className="text-2xl font-semibold">{t("home.title")}</h1>
+        <h1 className="text-large-title">{t("home.title")}</h1>
         <p className="text-muted-foreground">
           {t("dashboard.asOf", { date: formatDate(data.today), month: monthLabel })}
         </p>
@@ -130,7 +130,7 @@ export default async function DashboardPage({ params }: PageProps<"/[locale]/das
 
       {secure ? (
         <p
-          className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900"
+          className="rounded-lg border border-warning/25 bg-warning-soft p-3 text-sm text-warning"
           data-testid="secure-account"
         >
           {t("dashboard.secureAccount")}{" "}
@@ -288,7 +288,7 @@ export default async function DashboardPage({ params }: PageProps<"/[locale]/das
                   {t("dashboard.todo.leaseRegistration", { number: l.number, unit: l.unitCode })}
                 </Link>
                 <span
-                  className={cn("block text-xs", l.late ? "text-red-800" : "text-muted-foreground")}
+                  className={cn("block text-xs", l.late ? "text-danger" : "text-muted-foreground")}
                 >
                   {t(
                     l.late

@@ -36,7 +36,7 @@ export default async function ConstructionPage({ params }: PageProps<"/[locale]/
           {projects.map((p) => (
             <Card key={p.id} data-project={p.code}>
               <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-2">
-                <CardTitle className="text-base">
+                <CardTitle>
                   <Link href={`/construction/${p.id}`} className="hover:underline">
                     {p.name}
                   </Link>

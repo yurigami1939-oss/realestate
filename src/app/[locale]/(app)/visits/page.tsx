@@ -46,7 +46,7 @@ export default async function VisitsPage({ params }: PageProps<"/[locale]/visits
         days.map((day) => (
           <Card key={day}>
             <CardHeader>
-              <CardTitle className="text-base">{formatDate(day)}</CardTitle>
+              <CardTitle>{formatDate(day)}</CardTitle>
             </CardHeader>
             <CardContent>
               <ul className="divide-y">

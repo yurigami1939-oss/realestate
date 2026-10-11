@@ -190,7 +190,7 @@ export default async function AssemblyPage({
 
       <Card>
         <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
-          <CardTitle className="text-base">{t("agenda.title")}</CardTitle>
+          <CardTitle>{t("agenda.title")}</CardTitle>
           {draft && editable ? <ResolutionDialog assemblyId={assembly.id} /> : null}
         </CardHeader>
         <CardContent>
@@ -259,7 +259,7 @@ export default async function AssemblyPage({
       {draft ? null : (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">{t("attendance.title")}</CardTitle>
+            <CardTitle>{t("attendance.title")}</CardTitle>
             <p className="text-sm text-muted-foreground">{t("attendance.description")}</p>
           </CardHeader>
           <CardContent>
@@ -276,7 +276,7 @@ export default async function AssemblyPage({
       {draft ? null : (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">{t("votes.title")}</CardTitle>
+            <CardTitle>{t("votes.title")}</CardTitle>
           </CardHeader>
           <CardContent>
             {assembly.attendanceRecorded ? (

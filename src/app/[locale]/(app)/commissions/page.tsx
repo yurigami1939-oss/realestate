@@ -63,7 +63,7 @@ export default async function CommissionsPage({
     <div className="mx-auto max-w-7xl space-y-6">
       <PageHeader title={t("commissions.title")} description={t("commissions.description")} />
       <dl className="grid gap-2 text-sm sm:grid-cols-2" data-testid="commission-totals">
-        <div className="rounded-md border border-amber-300 bg-amber-50 p-3 text-amber-950">
+        <div className="rounded-md border border-warning/25 bg-warning-soft p-3 text-warning">
           <dt>{t("commissions.toPay")}</dt>
           <dd className="text-lg font-semibold tabular-nums" dir="ltr">
             {money(result.earned)}
@@ -163,7 +163,7 @@ export default async function CommissionsPage({
       {rates ? (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">{t("commissions.rates.title")}</CardTitle>
+            <CardTitle>{t("commissions.rates.title")}</CardTitle>
           </CardHeader>
           <CardContent>
             <CommissionRatesEditor rates={rates} />

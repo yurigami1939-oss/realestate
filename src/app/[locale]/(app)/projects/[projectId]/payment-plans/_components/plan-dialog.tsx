@@ -271,7 +271,7 @@ export function PlanDialog({
                 <span
                   className={cn(
                     "text-sm font-medium",
-                    total === FULL_SHARE_BP ? "text-emerald-700" : "text-rose-700",
+                    total === FULL_SHARE_BP ? "text-success" : "text-danger",
                   )}
                   data-testid="plan-total"
                 >

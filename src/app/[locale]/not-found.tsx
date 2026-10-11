@@ -8,7 +8,7 @@ export default async function NotFound() {
   return (
     <main className="grid min-h-dvh place-items-center p-8 text-center">
       <div className="space-y-3">
-        <h1 className="text-2xl font-semibold">{t("errors.notFoundTitle")}</h1>
+        <h1 className="text-large-title">{t("errors.notFoundTitle")}</h1>
         <p className="text-muted-foreground">{t("errors.notFoundText")}</p>
         <Button asChild variant="outline">
           <Link href="/">{t("common.backHome")}</Link>

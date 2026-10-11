@@ -49,7 +49,7 @@ export function BuyersTable({ rows, empty }: { rows: BuyerListRow[]; empty: stri
         return (
           <Badge
             variant="outline"
-            className={missing > 0 ? "border-amber-400 text-amber-800" : "text-emerald-800"}
+            className={missing > 0 ? "border-warning/25 text-warning" : "text-success"}
           >
             {t("documents.missing", { count: missing })}
           </Badge>

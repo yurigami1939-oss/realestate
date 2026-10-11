@@ -29,7 +29,7 @@ export function BuildingProgressBar({
         aria-valuenow={percent}
         className="h-2 overflow-hidden rounded-full bg-muted"
       >
-        <div className="h-full rounded-full bg-emerald-600" style={{ width: `${percent}%` }} />
+        <div className="h-full rounded-full bg-success-vivid" style={{ width: `${percent}%` }} />
       </div>
       <p className="text-xs text-muted-foreground">
         {progress ? t("asOf", { date: formatDate(progress.reportedOn) }) : t("none")}

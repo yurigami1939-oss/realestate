@@ -132,7 +132,7 @@ export default async function AccountPage({
         {ledger.pendingCheques > 0n ? (
           <div>
             <dt className="text-muted-foreground">{t("ledger.pendingCheques")}</dt>
-            <dd className="text-lg text-amber-800 tabular-nums" dir="ltr">
+            <dd className="text-lg text-warning tabular-nums" dir="ltr">
               {money(ledger.pendingCheques)}
             </dd>
           </div>
@@ -250,7 +250,7 @@ export default async function AccountPage({
       {banked && (pendingCheques.length > 0 || deposits.length > 0) ? (
         <Card data-testid="cheque-deposits">
           <CardHeader>
-            <CardTitle className="text-base">{t("deposits.title")}</CardTitle>
+            <CardTitle>{t("deposits.title")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <PendingCheques
@@ -304,7 +304,7 @@ export default async function AccountPage({
       {ledger.counts.length > 0 ? (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">{t("counts.title")}</CardTitle>
+            <CardTitle>{t("counts.title")}</CardTitle>
           </CardHeader>
           <CardContent>
             <ul className="divide-y text-sm" data-testid="cash-counts">
@@ -322,8 +322,8 @@ export default async function AccountPage({
                     <span
                       className={
                         c.difference === 0n
-                          ? "block text-xs text-emerald-800"
-                          : "block text-xs text-amber-800"
+                          ? "block text-xs text-success"
+                          : "block text-xs text-warning"
                       }
                     >
                       {c.difference === 0n

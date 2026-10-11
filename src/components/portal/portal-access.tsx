@@ -56,7 +56,7 @@ export function PortalAccessControl({
       {access ? (
         <Badge
           variant={access.state === "active" ? "secondary" : "outline"}
-          className={access.state === "expired" ? "text-amber-800" : undefined}
+          className={access.state === "expired" ? "text-warning" : undefined}
         >
           {t(`state.${access.state}`, { email: access.email })}
         </Badge>

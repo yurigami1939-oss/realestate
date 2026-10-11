@@ -59,9 +59,7 @@ export default async function AttendancePage({
       <ResidenceNav residenceId={residenceId} current="staff" roles={accessOf(ctx)} />
       <Card>
         <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
-          <CardTitle className="text-base">
-            {t("attendance.title", { month: label(month) })}
-          </CardTitle>
+          <CardTitle>{t("attendance.title", { month: label(month) })}</CardTitle>
           <div className="flex items-center gap-1">
             <Button asChild variant="ghost" size="sm">
               <Link href={href(previous)}>

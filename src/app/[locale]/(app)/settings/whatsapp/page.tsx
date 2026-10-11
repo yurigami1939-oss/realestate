@@ -30,7 +30,7 @@ export default async function WhatsappSettingsPage({
       <PageHeader title={t("title")} description={t("description")} />
       {standIn ? (
         <p
-          className="flex items-start gap-2 rounded-md border border-violet-200 bg-violet-50 p-3 text-sm text-violet-900"
+          className="flex items-start gap-2 rounded-md border border-purple/25 bg-purple-soft p-3 text-sm text-purple"
           data-testid="whatsapp-stand-in"
         >
           <Info className="mt-0.5 size-4 shrink-0" aria-hidden />
@@ -40,7 +40,7 @@ export default async function WhatsappSettingsPage({
       {settings ? (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">{t("webhook")}</CardTitle>
+            <CardTitle>{t("webhook")}</CardTitle>
             <p className="text-sm text-muted-foreground">{t("webhookHint")}</p>
           </CardHeader>
           <CardContent className="space-y-2 text-sm" data-testid="whatsapp-webhook">
@@ -56,7 +56,7 @@ export default async function WhatsappSettingsPage({
                 {settings.verifyToken}
               </code>
             </div>
-            {settings.hasAppSecret ? null : <p className="text-amber-800">{t("noAppSecret")}</p>}
+            {settings.hasAppSecret ? null : <p className="text-warning">{t("noAppSecret")}</p>}
           </CardContent>
         </Card>
       ) : null}

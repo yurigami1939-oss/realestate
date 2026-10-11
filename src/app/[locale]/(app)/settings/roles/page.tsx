@@ -47,7 +47,7 @@ export default async function CustomRolesPage({ params }: PageProps<"/[locale]/s
               <Card key={role.id} data-role={role.name}>
                 <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-2">
                   <div className="space-y-1">
-                    <CardTitle className="text-base">{role.name}</CardTitle>
+                    <CardTitle>{role.name}</CardTitle>
                     <p className="text-sm text-muted-foreground">
                       {t("line", {
                         base: tr(baseRole),

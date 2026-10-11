@@ -82,7 +82,7 @@ export default async function ImportsPage({ params }: PageProps<"/[locale]/impor
         shown.map((section) => (
           <Card key={section.key}>
             <CardHeader>
-              <CardTitle className="text-base">{t(`kinds.${section.key}.title`)}</CardTitle>
+              <CardTitle>{t(`kinds.${section.key}.title`)}</CardTitle>
               <p className="text-sm text-muted-foreground">
                 {t(`kinds.${section.key}.description`)}
               </p>

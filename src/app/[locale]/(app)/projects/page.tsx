@@ -64,7 +64,7 @@ function ProjectCard({ project }: { project: ProjectListItem }) {
       <Card className="h-full transition-colors group-hover:border-foreground/30">
         <CardHeader className="space-y-2">
           <div className="flex items-start justify-between gap-2">
-            <CardTitle className="text-base">{project.name}</CardTitle>
+            <CardTitle>{project.name}</CardTitle>
             <Badge variant="secondary" dir="ltr">
               {project.code}
             </Badge>

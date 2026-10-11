@@ -62,7 +62,7 @@ export default async function ResidenceStaffPage({
       <ResidenceNav residenceId={residenceId} current="staff" roles={accessOf(ctx)} />
       <Card>
         <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
-          <CardTitle className="text-base">{t("title")}</CardTitle>
+          <CardTitle>{t("title")}</CardTitle>
           <div className="flex flex-wrap gap-2">
             {staff.length > 0 ? (
               <Button asChild variant="outline">

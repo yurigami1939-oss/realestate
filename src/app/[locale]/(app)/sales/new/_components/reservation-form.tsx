@@ -442,7 +442,7 @@ export function ReservationForm({
 
       <Card className="xl:col-span-3">
         <CardHeader>
-          <CardTitle className="text-base">{t("schedule")}</CardTitle>
+          <CardTitle>{t("schedule")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           {unit?.option ? (

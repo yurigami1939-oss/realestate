@@ -109,7 +109,7 @@ export default async function StaffMemberPage({
       ) : null}
       <Card>
         <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
-          <CardTitle className="text-base">{t("advances.title")}</CardTitle>
+          <CardTitle>{t("advances.title")}</CardTitle>
           {editable && agent.employed ? (
             <AdvanceDialog
               staffId={agent.id}
@@ -174,7 +174,7 @@ export default async function StaffMemberPage({
       </Card>
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">{t("payroll.history")}</CardTitle>
+          <CardTitle>{t("payroll.history")}</CardTitle>
         </CardHeader>
         <CardContent>
           {pays.length === 0 ? (

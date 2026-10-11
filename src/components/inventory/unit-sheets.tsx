@@ -25,7 +25,7 @@ export function UnitSheetsCard({
     <Card data-testid="unit-sheets">
       <PendingDocumentsRefresher pending={sheets.some((s) => s.pdfFileId === null)} />
       <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
-        <CardTitle className="text-base">{t("title")}</CardTitle>
+        <CardTitle>{t("title")}</CardTitle>
         <Button
           variant="outline"
           size="sm"

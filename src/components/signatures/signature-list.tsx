@@ -11,7 +11,7 @@ export function SignatureList({ signatures }: { signatures: DocumentSignature[] 
   return (
     <ul className="space-y-0.5 text-xs" data-testid="e-signatures">
       {signatures.map((s) => (
-        <li key={`${s.signerName}-${s.signedAt.toISOString()}`} className="text-emerald-800">
+        <li key={`${s.signerName}-${s.signedAt.toISOString()}`} className="text-success">
           <BadgeCheck className="inline size-3.5 align-text-bottom" aria-hidden />{" "}
           {t("signedBy", { name: s.signerName, date: formatDateTime(s.signedAt) })}
           <span className="block text-muted-foreground" dir="ltr">

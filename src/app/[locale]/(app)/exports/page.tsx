@@ -101,7 +101,7 @@ export default async function ExportsPage({ params }: PageProps<"/[locale]/expor
           {shown.map((section) => (
             <Card key={section.key} data-testid={`export-card-${section.key}`}>
               <CardHeader>
-                <CardTitle className="text-base">{t(`${section.key}.title`)}</CardTitle>
+                <CardTitle>{t(`${section.key}.title`)}</CardTitle>
                 <p className="text-sm text-muted-foreground">{t(`${section.key}.description`)}</p>
               </CardHeader>
               <CardContent>{section.control}</CardContent>

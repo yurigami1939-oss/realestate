@@ -27,7 +27,7 @@ export default async function PortalAssembliesPage({
 
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-semibold">{t("title")}</h1>
+      <h1 className="text-large-title">{t("title")}</h1>
       {assemblies.length === 0 ? (
         <p className="rounded-lg border border-dashed p-6 text-center text-muted-foreground">
           {t("empty")}
@@ -39,7 +39,7 @@ export default async function PortalAssembliesPage({
               <Card>
                 <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-2">
                   <div className="space-y-1">
-                    <CardTitle className="text-base">
+                    <CardTitle>
                       {ta("heading", { kind: ta(`kind.${a.kind}`), date: formatDate(a.heldOn) })}
                     </CardTitle>
                     <p className="text-sm text-muted-foreground">

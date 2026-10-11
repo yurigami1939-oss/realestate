@@ -47,7 +47,7 @@ export default async function LeadCapturePage({
       />
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">{t("howTitle")}</CardTitle>
+          <CardTitle>{t("howTitle")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2 text-sm">
           <p>{t("how", { limit: CAPTURE_PER_MINUTE })}</p>

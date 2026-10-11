@@ -141,7 +141,7 @@ export default async function DeliveryPage({ params }: PageProps<"/[locale]/deli
           <Card>
             <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-2">
               <div className="space-y-1">
-                <CardTitle className="text-base">{t("detail.reserves")}</CardTitle>
+                <CardTitle>{t("detail.reserves")}</CardTitle>
                 {!signed ? (
                   <p className="text-sm text-muted-foreground">{t("detail.reservesHint")}</p>
                 ) : null}
@@ -184,7 +184,7 @@ export default async function DeliveryPage({ params }: PageProps<"/[locale]/deli
                             <TableCell>
                               {item.dueOn ? formatDate(item.dueOn) : "—"}
                               {late ? (
-                                <span className="block text-xs text-red-800">
+                                <span className="block text-xs text-danger">
                                   {t("detail.late")}
                                 </span>
                               ) : null}
@@ -265,7 +265,7 @@ export default async function DeliveryPage({ params }: PageProps<"/[locale]/deli
           {deliveredOn && h ? (
             <Card data-testid="warranty-claims">
               <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
-                <CardTitle className="text-base">{tw("title")}</CardTitle>
+                <CardTitle>{tw("title")}</CardTitle>
                 {editable && runningWarranties(deliveredOn, today).length > 0 ? (
                   <ReportClaimDialog handoverId={h.id} today={today} />
                 ) : null}
@@ -311,7 +311,7 @@ export default async function DeliveryPage({ params }: PageProps<"/[locale]/deli
                               </span>
                             ) : null}
                             {c.fixedOn ? (
-                              <span className="block text-xs text-emerald-700">
+                              <span className="block text-xs text-success">
                                 {tw("fixedOn", { date: formatDate(c.fixedOn) })}
                               </span>
                             ) : null}
@@ -350,7 +350,7 @@ export default async function DeliveryPage({ params }: PageProps<"/[locale]/deli
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">{t("detail.documents")}</CardTitle>
+              <CardTitle>{t("detail.documents")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4 text-sm" data-testid="delivery-documents">
               {signed && h?.number && h.signedOn ? (
@@ -371,7 +371,7 @@ export default async function DeliveryPage({ params }: PageProps<"/[locale]/deli
                     })}
                   </div>
                   {h.outstanding !== null && h.outstanding > 0n ? (
-                    <div className="text-amber-800">
+                    <div className="text-warning">
                       {t("detail.outstandingOnPv", { amount: money(h.outstanding) })}
                     </div>
                   ) : null}
@@ -412,7 +412,7 @@ export default async function DeliveryPage({ params }: PageProps<"/[locale]/deli
         <div className="min-w-0 space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">{t("detail.appointment")}</CardTitle>
+              <CardTitle>{t("detail.appointment")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-1 text-sm" data-testid="delivery-appointment">
               {h?.scheduledAt ? (
@@ -430,7 +430,7 @@ export default async function DeliveryPage({ params }: PageProps<"/[locale]/deli
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">{t("detail.sale")}</CardTitle>
+              <CardTitle>{t("detail.sale")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 text-sm" data-testid="delivery-sale">
               {delivery.buyers.map((b) => (
@@ -464,7 +464,7 @@ export default async function DeliveryPage({ params }: PageProps<"/[locale]/deli
                     <dd
                       className={
                         key === "remaining" && value > 0n
-                          ? "font-semibold text-amber-800 tabular-nums"
+                          ? "font-semibold text-warning tabular-nums"
                           : "tabular-nums"
                       }
                     >
@@ -474,7 +474,7 @@ export default async function DeliveryPage({ params }: PageProps<"/[locale]/deli
                 ))}
               </dl>
               {delivery.remaining === 0n ? (
-                <p className="text-emerald-800">{t("detail.settled")}</p>
+                <p className="text-success">{t("detail.settled")}</p>
               ) : null}
             </CardContent>
           </Card>

@@ -63,7 +63,7 @@ export default async function OnlinePaymentsPage({
       <PageHeader title={t("title")} description={t("description")} />
       {issues > 0 ? (
         <p
-          className="flex items-start gap-2 rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950"
+          className="flex items-start gap-2 rounded-md border border-warning/25 bg-warning-soft p-3 text-sm text-warning"
           data-testid="online-payment-issues"
         >
           <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden />
@@ -130,7 +130,7 @@ export default async function OnlinePaymentsPage({
                         {p.environment === "test" ? <TestModeBadge /> : null}
                       </div>
                       {p.status === "paid" && p.issue ? (
-                        <div className="mt-1 text-xs text-amber-800">
+                        <div className="mt-1 text-xs text-warning">
                           {t("issue", {
                             reason: ti.has(p.issue as Parameters<typeof ti>[0])
                               ? ti(p.issue as Parameters<typeof ti>[0])

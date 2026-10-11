@@ -33,7 +33,7 @@ export function LeadsTable({
             {row.original.fullName}
           </Link>
           {row.original.duplicate ? (
-            <Badge variant="outline" className="border-amber-400 text-amber-800">
+            <Badge variant="outline" className="border-warning/25 text-warning">
               {t("leads.duplicate")}
             </Badge>
           ) : null}
@@ -73,7 +73,7 @@ export function LeadsTable({
           <span
             className={cn(
               "whitespace-nowrap",
-              row.original.followUpOverdue && "font-medium text-rose-700",
+              row.original.followUpOverdue && "font-medium text-danger",
             )}
           >
             {formatDateTime(due)}

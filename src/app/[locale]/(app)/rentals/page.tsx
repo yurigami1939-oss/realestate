@@ -130,7 +130,7 @@ export default async function RentalsPage({
                   </TableCell>
                   <TableCell className="text-end">
                     {l.overdue > 0n ? (
-                      <bdi dir="ltr" className="font-medium text-red-800 tabular-nums">
+                      <bdi dir="ltr" className="font-medium text-danger tabular-nums">
                         {money(l.overdue)}
                       </bdi>
                     ) : (

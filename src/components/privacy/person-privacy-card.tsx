@@ -13,7 +13,7 @@ export function PersonPrivacyCard({ privacy }: { privacy: PersonPrivacy }) {
   return (
     <Card data-testid="person-privacy">
       <CardHeader>
-        <CardTitle className="text-base">{t("title")}</CardTitle>
+        <CardTitle>{t("title")}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4 text-sm">
         <div className="space-y-1">

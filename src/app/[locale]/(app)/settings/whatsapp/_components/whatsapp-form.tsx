@@ -114,7 +114,7 @@ export function WhatsappForm({
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">{t("notifications")}</CardTitle>
+          <CardTitle>{t("notifications")}</CardTitle>
           <p className="text-sm text-muted-foreground">{t("notificationsHint")}</p>
         </CardHeader>
         <CardContent>

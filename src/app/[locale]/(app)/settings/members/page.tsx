@@ -33,7 +33,7 @@ export default async function MembersPage({ params }: PageProps<"/[locale]/setti
   return (
     <div className="mx-auto max-w-5xl space-y-8">
       <div className="space-y-1">
-        <h1 className="text-2xl font-semibold">{t("title")}</h1>
+        <h1 className="text-large-title">{t("title")}</h1>
         <p className="text-muted-foreground">{t("description")}</p>
       </div>
       <MembersTable

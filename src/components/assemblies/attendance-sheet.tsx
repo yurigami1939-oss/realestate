@@ -28,9 +28,9 @@ import { saveAttendanceAction } from "@/server/assemblies/actions";
 import type { AttendanceRow } from "@/server/assemblies/queries";
 
 const kindClasses: Record<AttendanceKind, string> = {
-  present: "bg-emerald-100 text-emerald-900 border-emerald-300",
-  represented: "bg-sky-100 text-sky-900 border-sky-300",
-  absent: "bg-zinc-100 text-zinc-700 border-zinc-300",
+  present: "bg-success-soft text-success border-success/25",
+  represented: "bg-info-soft text-info border-info/25",
+  absent: "bg-muted text-muted-foreground border-border",
 };
 
 type Entry = { kind: AttendanceKind; proxyName: string };

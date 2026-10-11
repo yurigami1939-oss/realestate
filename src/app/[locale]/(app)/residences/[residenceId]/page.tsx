@@ -94,7 +94,7 @@ export default async function ResidencePage({
       </dl>
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">{t("units.title")}</CardTitle>
+          <CardTitle>{t("units.title")}</CardTitle>
         </CardHeader>
         <CardContent>
           <SharesEditor

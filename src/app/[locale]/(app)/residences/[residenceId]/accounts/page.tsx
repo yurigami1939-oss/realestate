@@ -69,7 +69,7 @@ export default async function ResidenceAccountsPage({
             <dd
               className={cn(
                 "font-medium tabular-nums",
-                tile.key === "overdue" && tile.value > 0n && "text-red-700",
+                tile.key === "overdue" && tile.value > 0n && "text-danger",
               )}
             >
               <bdi dir="ltr">{money(tile.value)}</bdi>
@@ -120,7 +120,7 @@ export default async function ResidenceAccountsPage({
                 <TableCell
                   className={cn(
                     "text-end tabular-nums",
-                    r.overdue > 0n && "font-medium text-red-700",
+                    r.overdue > 0n && "font-medium text-danger",
                   )}
                   dir="ltr"
                 >

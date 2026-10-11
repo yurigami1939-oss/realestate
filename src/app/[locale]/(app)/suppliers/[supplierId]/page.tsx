@@ -99,7 +99,7 @@ export default async function SupplierPage({
       ) : null}
       <Card>
         <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
-          <CardTitle className="text-base">{t("contracts.title")}</CardTitle>
+          <CardTitle>{t("contracts.title")}</CardTitle>
           {editable && targets.length > 0 ? (
             <ContractDialog supplierId={supplier.id} targets={targets} today={today} />
           ) : null}
@@ -116,7 +116,7 @@ export default async function SupplierPage({
       </Card>
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">{t("invoices.all")}</CardTitle>
+          <CardTitle>{t("invoices.all")}</CardTitle>
         </CardHeader>
         <CardContent>
           <InvoicesTable

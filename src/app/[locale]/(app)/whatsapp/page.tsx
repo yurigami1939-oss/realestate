@@ -98,7 +98,7 @@ export default async function WhatsappLogPage({
                     <TableCell className="whitespace-normal">
                       <WhatsappStatusBadge status={m.status} />
                       {m.error ? (
-                        <div className="mt-1 text-xs text-red-800" dir="ltr">
+                        <div className="mt-1 text-xs text-danger" dir="ltr">
                           {m.error}
                         </div>
                       ) : null}

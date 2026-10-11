@@ -94,7 +94,7 @@ export default async function OwnerPage({
       <div className="grid gap-6 lg:grid-cols-3">
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">{t("owner.card")}</CardTitle>
+            <CardTitle>{t("owner.card")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-1 text-sm" data-testid="owner-identity">
             {owner.nameAr ? <div lang="ar">{owner.nameAr}</div> : null}
@@ -122,7 +122,7 @@ export default async function OwnerPage({
 
         <Card className="lg:col-span-2">
           <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
-            <CardTitle className="text-base">{t("mandate.title")}</CardTitle>
+            <CardTitle>{t("mandate.title")}</CardTitle>
             {editable ? <MandateDialog ownerId={owner.id} units={units} today={today} /> : null}
           </CardHeader>
           <CardContent>
@@ -174,7 +174,7 @@ export default async function OwnerPage({
       <Card>
         <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
           <div className="space-y-1">
-            <CardTitle className="text-base">{t("statement.title")}</CardTitle>
+            <CardTitle>{t("statement.title")}</CardTitle>
             <p className="text-sm text-muted-foreground" data-testid="owner-pending">
               {owner.pending.lines.length === 0
                 ? t("statement.nothingPending")

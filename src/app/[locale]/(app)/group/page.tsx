@@ -54,9 +54,7 @@ export default async function GroupPage({ params }: PageProps<"/[locale]/group">
     ),
     sales: t("count", { count: c.sales }),
     collected: money(c.collected),
-    overdue: (
-      <span className={c.overdue > 0n ? "text-red-800" : undefined}>{money(c.overdue)}</span>
-    ),
+    overdue: <span className={c.overdue > 0n ? "text-danger" : undefined}>{money(c.overdue)}</span>,
     expected: money(c.expected),
     stock: (
       <>

@@ -69,7 +69,7 @@ export default async function PortalLeasePage({
         {tps("back")}
       </Link>
       <div className="space-y-1">
-        <h1 className="text-2xl font-semibold">
+        <h1 className="text-large-title">
           {lease.projectName} · <bdi dir="ltr">{lease.unitCode}</bdi>
         </h1>
         <p className="text-sm text-muted-foreground">
@@ -100,12 +100,12 @@ export default async function PortalLeasePage({
             ["overdue", statement.overdue],
           ] as const
         ).map(([key, value]) => (
-          <div key={key} className="rounded-md border bg-background p-3">
+          <div key={key} className="rounded-md border bg-card p-3">
             <dt className="text-muted-foreground">{tr(`totals.${key}`)}</dt>
             <dd
               className={cn(
                 "font-semibold tabular-nums",
-                key === "overdue" && value > 0n && "text-red-700",
+                key === "overdue" && value > 0n && "text-danger",
               )}
             >
               <bdi dir="ltr">{money(value)}</bdi>
@@ -116,7 +116,7 @@ export default async function PortalLeasePage({
 
       {offer && options ? (
         <div
-          className="flex flex-wrap items-center justify-between gap-3 rounded-md border bg-background p-3"
+          className="flex flex-wrap items-center justify-between gap-3 rounded-md border bg-card p-3"
           data-testid="portal-pay-online"
         >
           <p className="text-sm text-muted-foreground">{tpay("introRent")}</p>
@@ -140,7 +140,7 @@ export default async function PortalLeasePage({
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">{t("schedule")}</CardTitle>
+          <CardTitle>{t("schedule")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto rounded-lg border">
@@ -182,7 +182,7 @@ export default async function PortalLeasePage({
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">{tps("payments")}</CardTitle>
+          <CardTitle>{tps("payments")}</CardTitle>
         </CardHeader>
         <CardContent>
           {lease.payments.length === 0 ? (
@@ -224,7 +224,7 @@ export default async function PortalLeasePage({
       {lease.inspections.length > 0 ? (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">{t("inspections")}</CardTitle>
+            <CardTitle>{t("inspections")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
             {lease.inspections.map((i) => {

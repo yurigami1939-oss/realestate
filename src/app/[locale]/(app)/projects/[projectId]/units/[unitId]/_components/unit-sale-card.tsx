@@ -46,7 +46,7 @@ export function UnitSaleCard({
     return (
       <Card data-testid="unit-sale">
         <CardHeader>
-          <CardTitle className="text-base">{ts("unitCardTitle")}</CardTitle>
+          <CardTitle>{ts("unitCardTitle")}</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-wrap items-center gap-2 text-sm">
           <Link href={`/sales/${sale.id}`} className="font-medium hover:underline">
@@ -72,7 +72,7 @@ export function UnitSaleCard({
   return (
     <Card data-testid="unit-sale">
       <CardHeader>
-        <CardTitle className="text-base">{ts("unitCardTitle")}</CardTitle>
+        <CardTitle>{ts("unitCardTitle")}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3 text-sm">
         {option ? (

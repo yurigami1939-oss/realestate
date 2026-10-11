@@ -214,7 +214,7 @@ export default async function LeadPage({ params }: PageProps<"/[locale]/leads/[l
         </div>
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">{t("leads.timeline")}</CardTitle>
+            <CardTitle>{t("leads.timeline")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             {editable ? <NoteForm leadId={lead.id} /> : null}
@@ -245,7 +245,7 @@ function ContactCard({ lead }: { lead: LeadDetail }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">{t("leads.sections.contact")}</CardTitle>
+        <CardTitle>{t("leads.sections.contact")}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <PhoneActions value={lead.phone} />
@@ -281,7 +281,7 @@ function InterestCard({ lead }: { lead: LeadDetail }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">{t("leads.sections.interest")}</CardTitle>
+        <CardTitle>{t("leads.sections.interest")}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <Rows
@@ -316,7 +316,7 @@ function FollowUpsCard({
   return (
     <Card data-testid="lead-follow-ups">
       <CardHeader className="flex flex-row items-center justify-between gap-2">
-        <CardTitle className="text-base">{t("followUps.title")}</CardTitle>
+        <CardTitle>{t("followUps.title")}</CardTitle>
         {editable ? <NewFollowUpDialog leadId={lead.id} owners={owners} /> : null}
       </CardHeader>
       <CardContent>
@@ -330,7 +330,7 @@ function FollowUpsCard({
                   <p
                     className={cn(
                       "font-medium",
-                      f.overdue && "text-rose-700",
+                      f.overdue && "text-danger",
                       f.doneAt && "text-muted-foreground line-through",
                     )}
                   >
@@ -372,7 +372,7 @@ function VisitsCard({
   return (
     <Card data-testid="lead-visits">
       <CardHeader className="flex flex-row items-center justify-between gap-2">
-        <CardTitle className="text-base">{t("visits.title")}</CardTitle>
+        <CardTitle>{t("visits.title")}</CardTitle>
         {editable ? (
           <ScheduleVisitDialog
             leadId={lead.id}
@@ -421,15 +421,15 @@ function Duplicates({ lead, ctx }: { lead: LeadDetail; ctx: TenantCtx }) {
   const t = useTranslations("crm");
   const merge = can(ctx, "lead:merge");
   return (
-    <Card className="border-amber-300 bg-amber-50/60" data-testid="lead-duplicates">
+    <Card className="border-warning/25 bg-warning-soft" data-testid="lead-duplicates">
       <CardContent className="space-y-3">
-        <p className="flex items-center gap-2 text-sm font-medium text-amber-900">
+        <p className="flex items-center gap-2 text-sm font-medium text-warning">
           <AlertTriangle className="size-4" aria-hidden />
           {t("leads.duplicatesAlert", { count: lead.duplicateCount })}
           {!merge ? ` ${t("leads.duplicatesAgentHint")}` : ""}
         </p>
         {lead.duplicates.length > 0 ? (
-          <ul className="divide-y rounded-md border bg-background">
+          <ul className="divide-y rounded-md border bg-card">
             {lead.duplicates.map((d) => (
               <li key={d.id} className="flex flex-wrap items-center justify-between gap-3 p-2.5">
                 <div className="text-sm">
@@ -474,7 +474,7 @@ function QuotationsCard({
   return (
     <Card data-testid="lead-quotations">
       <CardHeader className="flex flex-row items-center justify-between gap-2">
-        <CardTitle className="text-base">{t("title")}</CardTitle>
+        <CardTitle>{t("title")}</CardTitle>
         {canCreate ? (
           <Button asChild variant="outline" size="sm">
             <Link href={`/leads/${leadId}/quotations/new`}>
@@ -541,7 +541,7 @@ function OptionsCard({
   return (
     <Card data-testid="lead-options">
       <CardHeader className="flex flex-row items-center justify-between gap-2">
-        <CardTitle className="text-base">{t("title")}</CardTitle>
+        <CardTitle>{t("title")}</CardTitle>
         {canSell ? (
           <PlaceOptionDialog leadId={leadId} units={units} optionHours={optionHours} />
         ) : null}
@@ -596,7 +596,7 @@ function DiscountsCard({
   return (
     <Card data-testid="lead-discounts">
       <CardHeader className="flex flex-row items-center justify-between gap-2">
-        <CardTitle className="text-base">{t("card")}</CardTitle>
+        <CardTitle>{t("card")}</CardTitle>
         {canRequest ? <RequestDiscountDialog leadId={leadId} units={units} /> : null}
       </CardHeader>
       <CardContent>
@@ -619,7 +619,7 @@ function DiscountsCard({
                     {t("askedBy", { name: r.requesterName, date: formatDateTime(r.requestedAt) })}
                   </p>
                   {r.approvedAmount !== null && r.validUntil ? (
-                    <p className="text-xs font-medium text-emerald-700">
+                    <p className="text-xs font-medium text-success">
                       {t("approvedUpTo", {
                         amount: formatDZD(r.approvedAmount, locale),
                         date: formatDate(r.validUntil),

@@ -70,7 +70,7 @@ export default async function CompanyPage({ params }: PageProps<"/[locale]/setti
       />
       <Card data-testid="acquisition-costs-settings">
         <CardHeader>
-          <CardTitle className="text-base">{ta("title")}</CardTitle>
+          <CardTitle>{ta("title")}</CardTitle>
         </CardHeader>
         <CardContent>
           <AcquisitionCostsForm
@@ -89,7 +89,7 @@ export default async function CompanyPage({ params }: PageProps<"/[locale]/setti
       </Card>
       <Card data-testid="housing-aid">
         <CardHeader>
-          <CardTitle className="text-base">{th("title")}</CardTitle>
+          <CardTitle>{th("title")}</CardTitle>
         </CardHeader>
         <CardContent>
           <HousingAidForm

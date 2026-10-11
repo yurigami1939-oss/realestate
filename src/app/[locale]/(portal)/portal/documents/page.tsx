@@ -33,7 +33,7 @@ export default async function PortalDocumentsPage({
   return (
     <div className="space-y-4">
       <div className="space-y-1">
-        <h1 className="text-xl font-semibold">{t("title")}</h1>
+        <h1 className="text-large-title">{t("title")}</h1>
         <p className="text-sm text-muted-foreground">{t("description")}</p>
       </div>
       {files.length === 0 ? (
@@ -42,9 +42,7 @@ export default async function PortalDocumentsPage({
         files.map((f) => (
           <Card key={f.id} data-testid="portal-buyer-file">
             <CardHeader>
-              <CardTitle className="text-base">
-                {t("file", { name: `${f.firstName} ${f.lastName}` })}
-              </CardTitle>
+              <CardTitle>{t("file", { name: `${f.firstName} ${f.lastName}` })}</CardTitle>
             </CardHeader>
             <CardContent>
               <ul className="divide-y text-sm">

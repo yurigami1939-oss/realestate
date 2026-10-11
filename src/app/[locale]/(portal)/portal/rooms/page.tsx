@@ -28,7 +28,7 @@ export default async function PortalRoomsPage({ params }: PageProps<"/[locale]/p
   return (
     <div className="space-y-4">
       <div className="space-y-1">
-        <h1 className="text-xl font-semibold">{t("title")}</h1>
+        <h1 className="text-large-title">{t("title")}</h1>
         <p className="text-sm text-muted-foreground">{t("description")}</p>
       </div>
       {rooms.length === 0 ? (
@@ -38,7 +38,7 @@ export default async function PortalRoomsPage({ params }: PageProps<"/[locale]/p
           <Card key={room.id} data-room={room.name}>
             <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-2">
               <div className="space-y-1">
-                <CardTitle className="text-base">
+                <CardTitle>
                   {room.name} · {room.residenceName}
                 </CardTitle>
                 <div className="text-sm text-muted-foreground">
@@ -71,7 +71,7 @@ export default async function PortalRoomsPage({ params }: PageProps<"/[locale]/p
       )}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">{t("mine")}</CardTitle>
+          <CardTitle>{t("mine")}</CardTitle>
         </CardHeader>
         <CardContent>
           {mine.length === 0 ? (

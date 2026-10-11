@@ -76,7 +76,7 @@ export default async function ResidencesPage({ params }: PageProps<"/[locale]/re
                     className={
                       r.shares === r.shareBasis
                         ? "text-end tabular-nums"
-                        : "text-end text-amber-800 tabular-nums"
+                        : "text-end text-warning tabular-nums"
                     }
                     dir="ltr"
                   >

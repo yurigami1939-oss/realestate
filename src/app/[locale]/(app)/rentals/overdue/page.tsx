@@ -83,7 +83,7 @@ export default async function OverdueRentsPage({ params }: PageProps<"/[locale]/
                         <PhoneText value={r.tenantPhone} />
                       </div>
                     </TableCell>
-                    <TableCell className="text-end font-medium text-red-800 tabular-nums">
+                    <TableCell className="text-end font-medium text-danger tabular-nums">
                       <bdi dir="ltr">{money(r.overdue)}</bdi>
                     </TableCell>
                     <TableCell className="whitespace-normal">

@@ -22,8 +22,8 @@ export function ResolutionResultBadge({ adopted }: { adopted: boolean }) {
       variant="outline"
       className={
         adopted
-          ? "border-emerald-300 bg-emerald-50 text-emerald-900"
-          : "border-red-300 bg-red-50 text-red-900"
+          ? "border-success/25 bg-success-soft text-success"
+          : "border-danger/25 bg-danger-soft text-danger"
       }
     >
       {adopted ? t("adopted") : t("rejected")}

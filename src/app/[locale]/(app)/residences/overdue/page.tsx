@@ -49,7 +49,7 @@ export default async function OverdueChargesPage({
           <dl className="grid gap-2 text-sm sm:grid-cols-2">
             <div className="rounded-md border p-2">
               <dt className="text-muted-foreground">{t("total")}</dt>
-              <dd className="font-medium text-red-700 tabular-nums">
+              <dd className="font-medium text-danger tabular-nums">
                 <bdi dir="ltr">{money(sumCentimes(rows.map((r) => r.overdue)))}</bdi>
               </dd>
               <dd className="text-xs text-muted-foreground">
@@ -95,7 +95,7 @@ export default async function OverdueChargesPage({
                         </div>
                       ) : null}
                     </TableCell>
-                    <TableCell className="text-end font-medium text-red-700 tabular-nums" dir="ltr">
+                    <TableCell className="text-end font-medium text-danger tabular-nums" dir="ltr">
                       {money(r.overdue)}
                     </TableCell>
                     <TableCell>
@@ -112,9 +112,7 @@ export default async function OverdueChargesPage({
                             ? trec(`step.${r.recovery.lastStep}`)
                             : trec("opened")}
                           {r.recovery.planLate === null ? null : (
-                            <span
-                              className={r.recovery.planLate ? "text-red-800" : "text-emerald-800"}
-                            >
+                            <span className={r.recovery.planLate ? "text-danger" : "text-success"}>
                               {" · "}
                               {r.recovery.planLate ? trec("planLate") : trec("planOnTrack")}
                             </span>

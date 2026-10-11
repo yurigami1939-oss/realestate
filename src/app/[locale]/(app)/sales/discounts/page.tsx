@@ -97,7 +97,7 @@ export default async function DiscountRequestsPage({
                   <TableCell className="text-end tabular-nums">
                     <span dir="ltr">{money(r.amount)}</span>
                     {r.approvedAmount !== null && r.validUntil ? (
-                      <span className="block text-xs text-emerald-700">
+                      <span className="block text-xs text-success">
                         {t("approvedUpTo", {
                           amount: money(r.approvedAmount),
                           date: formatDate(r.validUntil),

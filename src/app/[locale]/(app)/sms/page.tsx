@@ -104,7 +104,7 @@ export default async function SmsLogPage({ params, searchParams }: PageProps<"/[
                     </TableCell>
                     <TableCell className="whitespace-normal">
                       <SmsStatusBadge status={m.status} />
-                      {m.error ? <div className="mt-1 text-xs text-red-800">{m.error}</div> : null}
+                      {m.error ? <div className="mt-1 text-xs text-danger">{m.error}</div> : null}
                     </TableCell>
                     <TableCell>
                       {href ? (
@@ -133,7 +133,7 @@ export default async function SmsLogPage({ params, searchParams }: PageProps<"/[
       <Card>
         <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
           <div className="space-y-1">
-            <CardTitle className="text-base">{t("optOut.cardTitle")}</CardTitle>
+            <CardTitle>{t("optOut.cardTitle")}</CardTitle>
             <p className="text-sm text-muted-foreground">{t("optOut.cardDescription")}</p>
           </div>
           {editable ? <SmsOptOutDialog /> : null}

@@ -49,7 +49,7 @@ export function AcquisitionCostsCard(props: Props) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">{t("estimate")}</CardTitle>
+        <CardTitle>{t("estimate")}</CardTitle>
       </CardHeader>
       <CardContent>
         <AcquisitionCostsList {...props} />

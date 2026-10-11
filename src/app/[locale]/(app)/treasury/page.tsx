@@ -94,7 +94,7 @@ export default async function TreasuryPage({ params }: PageProps<"/[locale]/trea
               className={a.closedOn ? "opacity-60" : undefined}
             >
               <CardHeader className="space-y-1">
-                <CardTitle className="flex flex-wrap items-center gap-2 text-base">
+                <CardTitle className="flex flex-wrap items-center gap-2">
                   <Link href={`/treasury/${a.id}`} className="hover:underline">
                     {a.name}
                   </Link>
@@ -130,7 +130,7 @@ export default async function TreasuryPage({ params }: PageProps<"/[locale]/trea
                   {t("accounts.today", { in: money(a.inOn), out: money(a.outOn) })}
                 </div>
                 {a.pendingCheques > 0n ? (
-                  <div className="text-amber-800">
+                  <div className="text-warning">
                     {t("accounts.pendingCheques", { amount: money(a.pendingCheques) })}
                   </div>
                 ) : null}

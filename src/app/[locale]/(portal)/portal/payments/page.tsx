@@ -27,16 +27,13 @@ export default async function PortalOnlinePaymentsPage({
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-semibold">{t("history")}</h1>
+      <h1 className="text-large-title">{t("history")}</h1>
       {payments.length === 0 ? (
         <p className="rounded-lg border border-dashed p-6 text-center text-muted-foreground">
           {t("historyEmpty")}
         </p>
       ) : (
-        <ul
-          className="divide-y rounded-lg border bg-background"
-          data-testid="portal-online-payments"
-        >
+        <ul className="divide-y rounded-lg border bg-card" data-testid="portal-online-payments">
           {payments.map((p) => (
             <li
               key={p.id}

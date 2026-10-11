@@ -87,7 +87,7 @@ export default async function PortalSalePage({
       </Link>
       <div className="space-y-1">
         <div className="flex flex-wrap items-center gap-2">
-          <h1 className="text-2xl font-semibold">
+          <h1 className="text-large-title">
             {sale.projectName} · <bdi dir="ltr">{sale.unitCode}</bdi>
           </h1>
           <SaleStatusBadge status={sale.status} />
@@ -129,12 +129,12 @@ export default async function PortalSalePage({
             ["overdue", statement.overdue],
           ] as const
         ).map(([key, value]) => (
-          <div key={key} className="rounded-md border bg-background p-3">
+          <div key={key} className="rounded-md border bg-card p-3">
             <dt className="text-muted-foreground">{ts(key)}</dt>
             <dd
               className={cn(
                 "font-semibold tabular-nums",
-                key === "overdue" && value > 0n && "text-red-700",
+                key === "overdue" && value > 0n && "text-danger",
               )}
             >
               <bdi dir="ltr">{money(value)}</bdi>
@@ -145,7 +145,7 @@ export default async function PortalSalePage({
 
       {offer && options ? (
         <div
-          className="flex flex-wrap items-center justify-between gap-3 rounded-md border bg-background p-3"
+          className="flex flex-wrap items-center justify-between gap-3 rounded-md border bg-card p-3"
           data-testid="portal-pay-online"
         >
           <p className="text-sm text-muted-foreground">{tp("intro")}</p>
@@ -169,7 +169,7 @@ export default async function PortalSalePage({
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">{t("schedule")}</CardTitle>
+          <CardTitle>{t("schedule")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto rounded-lg border">
@@ -211,7 +211,7 @@ export default async function PortalSalePage({
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">{t("payments")}</CardTitle>
+          <CardTitle>{t("payments")}</CardTitle>
         </CardHeader>
         <CardContent>
           {sale.payments.length === 0 ? (
@@ -262,7 +262,7 @@ export default async function PortalSalePage({
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">{t("documents")}</CardTitle>
+          <CardTitle>{t("documents")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2" data-testid="portal-documents">
           {!hasDocuments && sale.reminders.length === 0 && sale.amendments.length === 0 ? (
@@ -327,7 +327,7 @@ export default async function PortalSalePage({
 
       <Card>
         <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
-          <CardTitle className="text-base">{t("certificates")}</CardTitle>
+          <CardTitle>{t("certificates")}</CardTitle>
           <PortalStatementButton reservationId={sale.id} />
         </CardHeader>
         <CardContent className="space-y-2" data-testid="portal-certificates">
@@ -352,7 +352,7 @@ export default async function PortalSalePage({
 
       <Card>
         <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
-          <CardTitle className="text-base">{tr("mine")}</CardTitle>
+          <CardTitle>{tr("mine")}</CardTitle>
           {sale.status === "withdrawn" ? null : (
             <PortalRequestDialog reservationId={sale.id} today={todayInAlgiers()} />
           )}
@@ -397,7 +397,7 @@ export default async function PortalSalePage({
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">{t("progress")}</CardTitle>
+          <CardTitle>{t("progress")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <BuildingProgressBar name={sale.buildingName} progress={sale.progress} />
@@ -413,7 +413,7 @@ export default async function PortalSalePage({
               {sale.milestones.map((m) => (
                 <li key={m.id} className="flex items-start gap-2">
                   {m.validatedOn ? (
-                    <CheckCircle2 className="mt-0.5 size-4 text-emerald-600" aria-hidden />
+                    <CheckCircle2 className="mt-0.5 size-4 text-success" aria-hidden />
                   ) : (
                     <Circle className="mt-0.5 size-4 text-muted-foreground" aria-hidden />
                   )}
@@ -437,7 +437,7 @@ export default async function PortalSalePage({
       {sale.handover ? (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">{t("handover")}</CardTitle>
+            <CardTitle>{t("handover")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-sm" data-testid="portal-handover">
             {sale.handover.status === "signed" && sale.handover.signedOn ? (
@@ -536,7 +536,7 @@ export default async function PortalSalePage({
 
       {sale.reports.length > 0 ? (
         <section className="space-y-3" data-testid="portal-reports">
-          <h2 className="text-lg font-semibold">{t("reports")}</h2>
+          <h2 className="text-title">{t("reports")}</h2>
           {sale.reports.map((report) => (
             <ReportCard key={report.id} report={report} variant="portal" locale={locale} />
           ))}
@@ -546,7 +546,7 @@ export default async function PortalSalePage({
       {sale.loans.length > 0 ? (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">{tl("title")}</CardTitle>
+            <CardTitle>{tl("title")}</CardTitle>
           </CardHeader>
           <CardContent>
             <ul className="space-y-2 text-sm" data-testid="portal-loans">

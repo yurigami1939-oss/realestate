@@ -20,9 +20,9 @@ import { saveVotesAction } from "@/server/assemblies/actions";
 const cycle: (VoteChoice | null)[] = [null, ...voteChoices];
 
 const choiceClasses: Record<VoteChoice, string> = {
-  for: "bg-emerald-100 text-emerald-900",
-  against: "bg-red-100 text-red-900",
-  abstain: "bg-zinc-200 text-zinc-700",
+  for: "bg-success-soft text-success",
+  against: "bg-danger-soft text-danger",
+  abstain: "bg-muted text-muted-foreground",
 };
 
 type Voter = { unitId: string; code: string; coOwnerName: string | null; share: number };
@@ -81,9 +81,7 @@ export function VotesGrid({
         <table className="w-full border-collapse text-sm" data-testid="votes-grid">
           <thead>
             <tr className="border-b">
-              <th className="sticky start-0 bg-background p-2 text-start font-medium">
-                {t("unit")}
-              </th>
+              <th className="sticky start-0 bg-card p-2 text-start font-medium">{t("unit")}</th>
               <th className="p-2 text-end font-medium">{t("share")}</th>
               {resolutions.map((r) => (
                 <th key={r.id} className="min-w-28 p-2 text-center align-top font-medium">
@@ -107,7 +105,7 @@ export function VotesGrid({
           <tbody>
             {voters.map((v) => (
               <tr key={v.unitId} className="border-b" data-unit={v.code}>
-                <td className="sticky start-0 bg-background p-2 whitespace-nowrap">
+                <td className="sticky start-0 bg-card p-2 whitespace-nowrap">
                   <span className="font-medium" dir="ltr">
                     {v.code}
                   </span>
@@ -145,7 +143,7 @@ export function VotesGrid({
           </tbody>
           <tfoot>
             <tr>
-              <td className="sticky start-0 bg-background p-2 font-medium" colSpan={2}>
+              <td className="sticky start-0 bg-card p-2 font-medium" colSpan={2}>
                 {t("results", { total: totalShares })}
               </td>
               {resolutions.map((r) => {

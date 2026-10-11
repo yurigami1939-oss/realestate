@@ -62,7 +62,7 @@ export default async function FollowUpsPage({
           .map((g) => (
             <Card key={g.key} data-testid={`follow-ups-${g.key}`}>
               <CardHeader>
-                <CardTitle className={cn("text-base", g.key === "overdue" && "text-rose-700")}>
+                <CardTitle className={cn(g.key === "overdue" && "text-danger")}>
                   {t(g.key)} · {g.items.length}
                 </CardTitle>
               </CardHeader>

@@ -19,7 +19,7 @@ import type { ProjectDocumentRow } from "@/server/obligations/queries";
 import { DocumentScan } from "./document-scan";
 import { ProjectDocumentDialog } from "./project-document-dialog";
 
-const validityTone = { expired: "text-red-800", expiring: "text-amber-800" } as const;
+const validityTone = { expired: "text-danger", expiring: "text-warning" } as const;
 
 /**
  * A project's regulatory file (dossier administratif): the essential documents held or
@@ -42,7 +42,7 @@ export function ProjectDocuments({
     <section className="space-y-4" data-testid="project-documents">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <h2 className="text-lg font-semibold">{t("title")}</h2>
+          <h2 className="text-title">{t("title")}</h2>
           <p className="text-sm text-muted-foreground">{t("description")}</p>
         </div>
         {editable ? <ProjectDocumentDialog projectId={projectId} /> : null}
@@ -52,7 +52,7 @@ export function ProjectDocuments({
           const held = documents.some((d) => d.kind === kind);
           return (
             <li key={kind}>
-              <Badge variant="outline" className={held ? "text-emerald-800" : "text-amber-800"}>
+              <Badge variant="outline" className={held ? "text-success" : "text-warning"}>
                 {held ? (
                   <CheckCircle2 data-icon="inline-start" />
                 ) : (

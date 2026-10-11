@@ -54,7 +54,7 @@ export default async function AccountingPage({
       />
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">{t("export")}</CardTitle>
+          <CardTitle>{t("export")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           <LedgerFilters from={from} to={to} />
@@ -64,7 +64,7 @@ export default async function AccountingPage({
       </Card>
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">{t("g50.title")}</CardTitle>
+          <CardTitle>{t("g50.title")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           <p className="text-sm text-muted-foreground">{t("g50.help")}</p>
@@ -125,7 +125,7 @@ export default async function AccountingPage({
       </Card>
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">{t("chart")}</CardTitle>
+          <CardTitle>{t("chart")}</CardTitle>
         </CardHeader>
         <CardContent>
           <AccountingCodesForm codes={setup.codes} tax={setup.tax} accounts={setup.accounts} />

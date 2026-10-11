@@ -17,7 +17,7 @@ export function CompanyLogo({ orgId, logoFileId }: { orgId: string; logoFileId: 
   return (
     <Card data-testid="company-logo">
       <CardHeader>
-        <CardTitle className="text-base">{t("title")}</CardTitle>
+        <CardTitle>{t("title")}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         <div className="flex min-h-20 items-center justify-center rounded-md border border-dashed p-3">

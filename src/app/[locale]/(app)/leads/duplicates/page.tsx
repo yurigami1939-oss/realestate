@@ -39,7 +39,7 @@ export default async function DuplicatesPage({ params }: PageProps<"/[locale]/le
         groups.map((group) => (
           <Card key={group.phone} data-testid="duplicate-group">
             <CardHeader>
-              <CardTitle className="text-base">
+              <CardTitle>
                 <PhoneText value={group.phone} />
               </CardTitle>
             </CardHeader>

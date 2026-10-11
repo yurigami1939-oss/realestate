@@ -25,12 +25,12 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 const statusLook: Record<OnlinePaymentStatus, { icon: typeof CheckCircle2; className: string }> = {
-  paid: { icon: CheckCircle2, className: "text-emerald-700" },
-  pending: { icon: Clock, className: "text-amber-700" },
-  created: { icon: AlertCircle, className: "text-zinc-600" },
-  failed: { icon: XCircle, className: "text-red-700" },
-  expired: { icon: XCircle, className: "text-zinc-600" },
-  refunded: { icon: RotateCcw, className: "text-sky-700" },
+  paid: { icon: CheckCircle2, className: "text-success" },
+  pending: { icon: Clock, className: "text-warning" },
+  created: { icon: AlertCircle, className: "text-muted-foreground" },
+  failed: { icon: XCircle, className: "text-danger" },
+  expired: { icon: XCircle, className: "text-muted-foreground" },
+  refunded: { icon: RotateCcw, className: "text-info" },
 };
 
 /**
@@ -83,7 +83,7 @@ export default async function PortalOnlinePaymentPage({
       <div className="space-y-2" data-testid="online-payment-result" data-status={payment.status}>
         <div className="flex flex-wrap items-center gap-2">
           <look.icon className={cn("size-7", look.className)} aria-hidden />
-          <h1 className="text-2xl font-semibold">{t(payment.status)}</h1>
+          <h1 className="text-large-title">{t(payment.status)}</h1>
           {payment.environment === "test" ? <TestModeBadge /> : null}
         </div>
         <p className="text-muted-foreground">
@@ -98,7 +98,7 @@ export default async function PortalOnlinePaymentPage({
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between gap-2">
-          <CardTitle className="text-base">{t("details")}</CardTitle>
+          <CardTitle>{t("details")}</CardTitle>
           <CardsMark />
         </CardHeader>
         <CardContent className="space-y-4">

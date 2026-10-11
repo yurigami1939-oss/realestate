@@ -48,7 +48,7 @@ export default async function OverduePage({
           <div className="rounded-md border p-3">
             <dt className="text-muted-foreground">{t("count", { count: result.total })}</dt>
           </div>
-          <div className="rounded-md border border-red-300 bg-red-50 p-3 text-red-900">
+          <div className="rounded-md border border-danger/25 bg-danger-soft p-3 text-danger">
             <dt>{t("totalOverdue")}</dt>
             <dd className="text-lg font-semibold tabular-nums" dir="ltr">
               {money(result.overdue)}
@@ -113,7 +113,7 @@ export default async function OverduePage({
                     <span className="tabular-nums" dir="ltr">
                       {formatDate(row.oldestDueOn)}
                     </span>
-                    <span className="block text-xs text-red-800">
+                    <span className="block text-xs text-danger">
                       {t("days", { days: row.daysLate })}
                     </span>
                   </TableCell>

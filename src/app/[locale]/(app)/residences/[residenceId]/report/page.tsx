@@ -90,7 +90,7 @@ export default async function ResidenceReportPage({
       <ResidenceNav residenceId={residenceId} current="report" roles={accessOf(ctx)} />
       <Card>
         <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
-          <CardTitle className="flex items-center gap-2 text-base">
+          <CardTitle className="flex items-center gap-2">
             {t("title", { year })}
             {report.budgetStatus ? (
               <Badge variant={report.budgetStatus === "approved" ? "default" : "secondary"}>
@@ -152,7 +152,7 @@ export default async function ResidenceReportPage({
                         <TableCell
                           className={cn(
                             "text-end tabular-nums",
-                            l.variance < 0n && "font-medium text-red-700",
+                            l.variance < 0n && "font-medium text-danger",
                           )}
                           dir="ltr"
                         >
@@ -193,7 +193,7 @@ export default async function ResidenceReportPage({
       </Card>
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">{t("reserve.title")}</CardTitle>
+          <CardTitle>{t("reserve.title")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
           <dl className="grid gap-2 text-sm sm:grid-cols-4" data-testid="reserve-fund">
@@ -203,7 +203,7 @@ export default async function ResidenceReportPage({
                 <dd
                   className={cn(
                     "font-medium tabular-nums",
-                    tile.key === "balance" && tile.value < 0n && "text-red-700",
+                    tile.key === "balance" && tile.value < 0n && "text-danger",
                   )}
                 >
                   <bdi dir="ltr">{money(tile.value)}</bdi>

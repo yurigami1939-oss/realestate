@@ -251,7 +251,7 @@ export function QuotationForm({
 
       <Card className="xl:col-span-3">
         <CardHeader>
-          <CardTitle className="text-base">{t("simulator")}</CardTitle>
+          <CardTitle>{t("simulator")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           {unit && price !== null ? (

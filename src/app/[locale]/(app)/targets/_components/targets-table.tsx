@@ -30,7 +30,7 @@ function Progress({ actual, target }: { actual: number; target: number }) {
       {target > 0 ? (
         <div className="h-1.5 overflow-hidden rounded-full bg-muted" aria-hidden>
           <div
-            className={cn("h-full", ratio >= 1 ? "bg-emerald-500" : "bg-sky-500")}
+            className={cn("h-full", ratio >= 1 ? "bg-success-vivid" : "bg-info-vivid")}
             style={{ width: `${Math.round(ratio * 100)}%` }}
           />
         </div>

@@ -137,7 +137,7 @@ export function PriceListEditor({ list, editable }: { list: PriceListDetail; edi
       {editable ? (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">{t("priceLists.bulk.title")}</CardTitle>
+            <CardTitle>{t("priceLists.bulk.title")}</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-4 sm:grid-cols-2">
             <div className="flex items-end gap-2">
@@ -243,8 +243,8 @@ export function PriceListEditor({ list, editable }: { list: PriceListDetail; edi
                         <TableCell
                           className={cn(
                             "text-end whitespace-nowrap",
-                            change !== null && change > 0 && "text-emerald-700",
-                            change !== null && change < 0 && "text-rose-700",
+                            change !== null && change > 0 && "text-success",
+                            change !== null && change < 0 && "text-danger",
                           )}
                           dir="ltr"
                         >

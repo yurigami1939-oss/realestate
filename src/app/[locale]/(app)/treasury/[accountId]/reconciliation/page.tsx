@@ -59,13 +59,13 @@ export default async function ReconciliationPage({
   const canUpdate = can(ctx, "treasury:update");
   const stateBadge = {
     matched: (
-      <Badge variant="outline" className="text-emerald-800">
+      <Badge variant="outline" className="text-success">
         {t("reconciliation.state.matched")}
       </Badge>
     ),
     dismissed: <Badge variant="outline">{t("reconciliation.state.dismissed")}</Badge>,
     open: (
-      <Badge variant="outline" className="text-amber-800">
+      <Badge variant="outline" className="text-warning">
         {t("reconciliation.state.open")}
       </Badge>
     ),
@@ -116,7 +116,7 @@ export default async function ReconciliationPage({
             })}
           </dd>
           {totals.open > 0 ? (
-            <dd className="text-amber-800">
+            <dd className="text-warning">
               {t("reconciliation.totals.open", { count: totals.open })}
             </dd>
           ) : null}
@@ -259,7 +259,7 @@ export default async function ReconciliationPage({
                         </span>
                         {e.label}
                         {e.pendingCheque ? (
-                          <span className="block text-xs text-amber-800">
+                          <span className="block text-xs text-warning">
                             {t("ledger.pendingCheque")}
                           </span>
                         ) : null}

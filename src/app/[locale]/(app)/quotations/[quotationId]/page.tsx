@@ -68,7 +68,7 @@ export default async function QuotationPage({
         }
       />
       {q.status === "cancelled" ? (
-        <p className="rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-900">
+        <p className="rounded-lg border border-danger/25 bg-danger-soft p-3 text-sm text-danger">
           {t("quotations.cancelledBy", {
             date: q.cancelledAt ? formatDateTime(q.cancelledAt) : "",
             name: q.cancellerName ?? "—",
@@ -155,7 +155,7 @@ function Schedule({ q }: { q: QuotationDetail }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">{t("plan")}</CardTitle>
+        <CardTitle>{t("plan")}</CardTitle>
       </CardHeader>
       <CardContent>
         <Table data-testid="quotation-lines">

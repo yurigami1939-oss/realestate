@@ -84,7 +84,7 @@ export function PayOnlineDialog({
     >
       <div className="flex flex-wrap items-center gap-2">
         <CardsMark />
-        {test ? <span className="text-sm text-violet-800">{t("testMode")}</span> : null}
+        {test ? <span className="text-sm text-purple">{t("testMode")}</span> : null}
       </div>
       <TextField
         control={form.control}

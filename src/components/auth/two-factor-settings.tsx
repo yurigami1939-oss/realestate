@@ -91,8 +91,8 @@ export function TwoFactorSettings({ enabled }: { enabled: boolean }) {
   return (
     <Card>
       <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
-        <CardTitle className="text-base">{t("twoFactor")}</CardTitle>
-        <Badge variant="outline" className={enabled ? "text-emerald-800" : undefined}>
+        <CardTitle>{t("twoFactor")}</CardTitle>
+        <Badge variant="outline" className={enabled ? "text-success" : undefined}>
           {enabled ? t("on") : t("off")}
         </Badge>
       </CardHeader>

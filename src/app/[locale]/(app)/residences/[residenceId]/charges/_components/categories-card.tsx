@@ -36,7 +36,7 @@ export function CategoriesCard({ setup, editable }: { setup: ChargesSetup; edita
   return (
     <Card>
       <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
-        <CardTitle className="text-base">{t("categories.title")}</CardTitle>
+        <CardTitle>{t("categories.title")}</CardTitle>
         {editable ? (
           <CategoryDialog
             residenceId={setup.residence.id}

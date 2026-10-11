@@ -23,9 +23,9 @@ import { setBuyerDocumentAction } from "@/server/buyers/actions";
 import type { BuyerDetail } from "@/server/buyers/queries";
 
 const statusClasses: Record<DocumentStatus, string> = {
-  missing: "text-amber-800",
-  received: "text-sky-800",
-  verified: "text-emerald-800",
+  missing: "text-warning",
+  received: "text-info",
+  verified: "text-success",
 };
 
 /** Checklist of the buyer's documents: status per item, optional scan (never blocking). */
@@ -60,7 +60,7 @@ export function DocumentsChecklist({
                 </span>
               ) : null}
               {d.submittedFromPortal ? (
-                <span className="block text-xs font-medium text-amber-800">{t("fromPortal")}</span>
+                <span className="block text-xs font-medium text-warning">{t("fromPortal")}</span>
               ) : null}
             </TableCell>
             <TableCell>

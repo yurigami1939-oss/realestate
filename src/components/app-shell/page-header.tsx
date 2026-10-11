@@ -44,7 +44,7 @@ export function PageHeader({
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="space-y-1">
           <div className="flex flex-wrap items-center gap-2">
-            <h1 className="text-2xl font-semibold">{title}</h1>
+            <h1 className="text-large-title">{title}</h1>
             {badge}
           </div>
           {description ? <p className="text-muted-foreground">{description}</p> : null}

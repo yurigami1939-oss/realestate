@@ -60,7 +60,7 @@ export default async function PortalUnitPage({
         {tps("back")}
       </Link>
       <div className="space-y-1">
-        <h1 className="text-2xl font-semibold">
+        <h1 className="text-large-title">
           {account.residenceName} · <bdi dir="ltr">{account.code}</bdi>
         </h1>
         <p className="text-sm text-muted-foreground">
@@ -83,12 +83,12 @@ export default async function PortalUnitPage({
             ["overdue", statement.overdue],
           ] as const
         ).map(([key, value]) => (
-          <div key={key} className="rounded-md border bg-background p-3">
+          <div key={key} className="rounded-md border bg-card p-3">
             <dt className="text-muted-foreground">{t(key)}</dt>
             <dd
               className={cn(
                 "font-semibold tabular-nums",
-                key === "overdue" && value > 0n && "text-red-700",
+                key === "overdue" && value > 0n && "text-danger",
               )}
             >
               <bdi dir="ltr">{money(value)}</bdi>
@@ -104,7 +104,7 @@ export default async function PortalUnitPage({
 
       {offer && options ? (
         <div
-          className="flex flex-wrap items-center justify-between gap-3 rounded-md border bg-background p-3"
+          className="flex flex-wrap items-center justify-between gap-3 rounded-md border bg-card p-3"
           data-testid="portal-pay-online"
         >
           <p className="text-sm text-muted-foreground">{tpay("introCharges")}</p>
@@ -128,7 +128,7 @@ export default async function PortalUnitPage({
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">{t("calls")}</CardTitle>
+          <CardTitle>{t("calls")}</CardTitle>
         </CardHeader>
         <CardContent>
           {statement.lines.length === 0 ? (
@@ -178,7 +178,7 @@ export default async function PortalUnitPage({
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">{tps("payments")}</CardTitle>
+          <CardTitle>{tps("payments")}</CardTitle>
         </CardHeader>
         <CardContent>
           {account.payments.length === 0 ? (
@@ -224,7 +224,7 @@ export default async function PortalUnitPage({
       {account.reminders.length > 0 ? (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">{t("reminders")}</CardTitle>
+            <CardTitle>{t("reminders")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
             {account.reminders.map((r) => (

@@ -60,7 +60,7 @@ export default async function PortalCouncilPage({
         {tps("back")}
       </Link>
       <div className="space-y-1">
-        <h1 className="text-2xl font-semibold">{report.residence.name}</h1>
+        <h1 className="text-large-title">{report.residence.name}</h1>
         <p className="text-sm text-muted-foreground">{t("description", { year })}</p>
         <nav className="flex gap-3 text-sm" aria-label={t("years")}>
           {[current - 1, current].map((y) => (
@@ -81,7 +81,7 @@ export default async function PortalCouncilPage({
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">{t("budget")}</CardTitle>
+          <CardTitle>{t("budget")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto rounded-lg border">
@@ -109,7 +109,7 @@ export default async function PortalCouncilPage({
                       {money(line.spent)}
                     </TableCell>
                     <TableCell
-                      className={cn("text-end tabular-nums", line.variance < 0n && "text-red-700")}
+                      className={cn("text-end tabular-nums", line.variance < 0n && "text-danger")}
                       dir="ltr"
                     >
                       {money(line.variance)}
@@ -141,7 +141,7 @@ export default async function PortalCouncilPage({
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">{t("reserve")}</CardTitle>
+          <CardTitle>{t("reserve")}</CardTitle>
         </CardHeader>
         <CardContent>
           <dl className="grid gap-2 text-sm sm:grid-cols-4" data-testid="council-reserve">
@@ -166,7 +166,7 @@ export default async function PortalCouncilPage({
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">{t("invoices")}</CardTitle>
+          <CardTitle>{t("invoices")}</CardTitle>
         </CardHeader>
         <CardContent>
           {invoices.length === 0 ? (

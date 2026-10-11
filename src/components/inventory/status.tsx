@@ -6,13 +6,13 @@ import { cn } from "@/lib/utils";
 
 /** Availability colors, shared by the grid, badges and legend. */
 export const unitStatusClasses: Record<UnitStatus, string> = {
-  available: "border-emerald-300 bg-emerald-50 text-emerald-900",
-  optioned: "border-amber-300 bg-amber-50 text-amber-900",
-  reserved: "border-orange-300 bg-orange-100 text-orange-950",
-  sold: "border-rose-300 bg-rose-100 text-rose-950",
-  delivered: "border-slate-400 bg-slate-200 text-slate-900",
-  rented: "border-violet-300 bg-violet-100 text-violet-950",
-  blocked: "border-zinc-700 bg-zinc-700 text-zinc-50",
+  available: "border-success/25 bg-success-soft text-success",
+  optioned: "border-warning/25 bg-warning-soft text-warning",
+  reserved: "border-orange/25 bg-orange-soft text-orange",
+  sold: "border-pink/25 bg-pink-soft text-pink",
+  delivered: "border-gray/25 bg-gray-soft text-foreground",
+  rented: "border-purple/25 bg-purple-soft text-purple",
+  blocked: "border-transparent bg-foreground/80 text-background",
 };
 
 export function UnitStatusBadge({ status, className }: { status: UnitStatus; className?: string }) {
@@ -20,7 +20,7 @@ export function UnitStatusBadge({ status, className }: { status: UnitStatus; cla
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium whitespace-nowrap",
+        "inline-flex h-5.5 items-center rounded-full border px-2.5 text-xs font-medium whitespace-nowrap",
         unitStatusClasses[status],
         className,
       )}
@@ -44,10 +44,10 @@ export type Stats = {
 };
 
 const segments = [
-  { key: "available", className: "bg-emerald-500" },
-  { key: "engaged", className: "bg-amber-500" },
-  { key: "sold", className: "bg-rose-500" },
-  { key: "unavailable", className: "bg-zinc-500" },
+  { key: "available", className: "bg-success-vivid" },
+  { key: "engaged", className: "bg-warning-vivid" },
+  { key: "sold", className: "bg-pink-vivid" },
+  { key: "unavailable", className: "bg-gray-vivid" },
 ] as const;
 
 /** Stacked bar of the commercial state of a set of units, with counts. */

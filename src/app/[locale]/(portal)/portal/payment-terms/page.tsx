@@ -29,7 +29,7 @@ export default async function PaymentTermsPage({
 
   return (
     <article className="max-w-3xl space-y-4">
-      <h1 className="text-2xl font-semibold">{t("title")}</h1>
+      <h1 className="text-large-title">{t("title")}</h1>
       {paragraphs.map((key) => (
         <p key={key} className="leading-relaxed">
           {t(key, values)}

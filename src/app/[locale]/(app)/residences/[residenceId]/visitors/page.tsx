@@ -25,8 +25,8 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 const statusClass: Record<VisitorStatus, string> = {
-  expected: "text-amber-800",
-  arrived: "text-emerald-800",
+  expected: "text-warning",
+  arrived: "text-success",
   cancelled: "text-muted-foreground",
 };
 

@@ -84,7 +84,7 @@ export default async function TicketPage({ params }: PageProps<"/[locale]/ticket
       ) : null}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">{t("history")}</CardTitle>
+          <CardTitle>{t("history")}</CardTitle>
         </CardHeader>
         <CardContent>
           <ol className="space-y-3 text-sm" data-testid="ticket-events">

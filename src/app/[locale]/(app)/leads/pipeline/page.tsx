@@ -76,7 +76,7 @@ function Board({ columns }: { columns: Pipeline["columns"] }) {
               <Link
                 key={card.id}
                 href={`/leads/${card.id}`}
-                className="space-y-1 rounded-md border bg-background p-2.5 text-sm shadow-xs transition-shadow hover:shadow-sm"
+                className="space-y-1 rounded-md border bg-card p-2.5 text-sm shadow-xs transition-shadow hover:shadow-sm"
               >
                 <p className="font-medium">{card.fullName}</p>
                 <p className="text-xs text-muted-foreground">

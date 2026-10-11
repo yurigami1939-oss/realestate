@@ -47,7 +47,7 @@ export default async function PortalLayout({ children, params }: LayoutProps<"/[
 
   return (
     <div className="flex min-h-dvh flex-col bg-muted/30">
-      <header className="border-b bg-background">
+      <header className="border-b bg-card">
         <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 px-4 pt-3">
           <div>
             <div className="font-semibold">{organization?.name}</div>

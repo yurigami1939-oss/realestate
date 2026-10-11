@@ -90,7 +90,7 @@ export default async function ProjectConstructionPage({
 
       <div className="grid gap-6 lg:grid-cols-3">
         <section className="min-w-0 space-y-4 lg:col-span-2" data-testid="construction-reports">
-          <h2 className="text-lg font-semibold">{t("reports")}</h2>
+          <h2 className="text-title">{t("reports")}</h2>
           {project.reports.length === 0 ? (
             <p className="rounded-lg border border-dashed p-8 text-center text-muted-foreground">
               {t("noReports")}
@@ -140,7 +140,7 @@ export default async function ProjectConstructionPage({
         <div className="min-w-0 space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">{t("buildings")}</CardTitle>
+              <CardTitle>{t("buildings")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4" data-testid="building-progress">
               {project.buildings.length === 0 ? (
@@ -155,7 +155,7 @@ export default async function ProjectConstructionPage({
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">{t("milestones")}</CardTitle>
+              <CardTitle>{t("milestones")}</CardTitle>
               <p className="text-sm text-muted-foreground">{t("milestonesHint")}</p>
             </CardHeader>
             <CardContent>
@@ -168,7 +168,7 @@ export default async function ProjectConstructionPage({
                       <div className="flex items-start gap-2">
                         {m.validatedOn ? (
                           <CheckCircle2
-                            className="mt-0.5 size-4 shrink-0 text-emerald-600"
+                            className="mt-0.5 size-4 shrink-0 text-success"
                             aria-hidden
                           />
                         ) : (

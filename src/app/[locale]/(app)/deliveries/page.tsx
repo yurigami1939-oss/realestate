@@ -100,7 +100,7 @@ export default async function DeliveriesPage({
                   <TableCell>
                     <DeliveryStateBadge state={d.state} />
                     {d.daysLate > 0 ? (
-                      <span className="block text-xs text-red-800" data-testid="delivery-late">
+                      <span className="block text-xs text-danger" data-testid="delivery-late">
                         {t("late", { days: d.daysLate })}
                       </span>
                     ) : null}
@@ -108,7 +108,7 @@ export default async function DeliveriesPage({
                   <TableCell className="whitespace-normal">
                     {t("reservesOpen", { count: d.openReserves })}
                     {d.lateReserves > 0 ? (
-                      <span className="block text-xs text-red-800">
+                      <span className="block text-xs text-danger">
                         {t("reservesLate", { count: d.lateReserves })}
                       </span>
                     ) : null}

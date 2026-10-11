@@ -33,7 +33,7 @@ export function ReportCard({
     <Card data-testid="construction-report" data-report={report.title}>
       <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-2">
         <div className="space-y-1">
-          <CardTitle className="text-base">{title}</CardTitle>
+          <CardTitle>{title}</CardTitle>
           <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
             <span>{formatDate(report.reportedOn)}</span>
             {variant === "staff" ? (

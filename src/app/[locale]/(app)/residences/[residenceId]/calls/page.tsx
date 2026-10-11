@@ -57,7 +57,7 @@ export default async function ResidenceCallsPage({
       <ResidenceNav residenceId={residenceId} current="calls" roles={accessOf(ctx)} />
       <Card>
         <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
-          <CardTitle className="text-base">{t("title")}</CardTitle>
+          <CardTitle>{t("title")}</CardTitle>
           <div className="flex flex-wrap gap-2">
             {works && works.categories.length > 0 ? (
               <WorksCallDialog

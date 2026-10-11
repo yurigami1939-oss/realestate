@@ -28,9 +28,9 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 const statusClass: Record<BookingStatus, string> = {
-  requested: "text-amber-800",
-  approved: "text-emerald-800",
-  rejected: "text-red-800",
+  requested: "text-warning",
+  approved: "text-success",
+  rejected: "text-danger",
   cancelled: "text-muted-foreground",
 };
 
@@ -71,7 +71,7 @@ export default async function ResidenceRoomsPage({
             <Card key={room.id} data-room={room.name}>
               <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-2">
                 <div className="space-y-1">
-                  <CardTitle className="text-base">{room.name}</CardTitle>
+                  <CardTitle>{room.name}</CardTitle>
                   <div className="text-sm text-muted-foreground">
                     <span dir="ltr">
                       {t("hours", { from: room.opensAt, to: room.closesAt, hours: room.maxHours })}

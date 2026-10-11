@@ -77,7 +77,7 @@ export default async function RentalTaxesPage({
         {leaseKinds.map((kind) => (
           <Card key={kind}>
             <CardHeader>
-              <CardTitle className="text-base">{t(`kind.${kind}`)}</CardTitle>
+              <CardTitle>{t(`kind.${kind}`)}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-1 text-sm">
               <div className="flex justify-between gap-3">
@@ -99,7 +99,7 @@ export default async function RentalTaxesPage({
         ))}
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">{t("taxes.collectedTitle")}</CardTitle>
+            <CardTitle>{t("taxes.collectedTitle")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-1 text-sm">
             <div className="flex justify-between gap-3">

@@ -63,9 +63,7 @@ function IssueTable({ issues, tone }: { issues: ImportIssueView[]; tone: "error"
               </TableCell>
               <TableCell>{issue.column?.[locale] ?? "—"}</TableCell>
               <TableCell
-                className={
-                  tone === "error" ? "whitespace-normal text-red-800" : "whitespace-normal"
-                }
+                className={tone === "error" ? "whitespace-normal text-danger" : "whitespace-normal"}
               >
                 {message(issue)}
               </TableCell>
@@ -211,17 +209,17 @@ export function ImportPanel({
         <div className="space-y-3" data-testid="import-report">
           <div className="flex flex-wrap items-center gap-2 text-sm">
             {report.committed ? (
-              <Badge variant="outline" className="text-emerald-800">
+              <Badge variant="outline" className="text-success">
                 {t("page.imported")}
               </Badge>
             ) : report.issues.length > 0 ? (
-              <Badge variant="outline" className="text-red-800">
+              <Badge variant="outline" className="text-danger">
                 {t("page.blocked", { count: report.issues.length })}
               </Badge>
             ) : nothing ? (
               <Badge variant="outline">{t("page.nothing")}</Badge>
             ) : (
-              <Badge variant="outline" className="text-emerald-800">
+              <Badge variant="outline" className="text-success">
                 {t("page.ready")}
               </Badge>
             )}
@@ -234,7 +232,7 @@ export function ImportPanel({
           {report.issues.length > 0 ? <IssueTable issues={report.issues} tone="error" /> : null}
           {report.warnings.length > 0 ? (
             <div className="space-y-1">
-              <p className="text-sm text-amber-800">
+              <p className="text-sm text-warning">
                 {t("page.leftAside", { count: report.warnings.length })}
               </p>
               <IssueTable issues={report.warnings} tone="warning" />

@@ -68,7 +68,7 @@ export default async function PaymentPlansPage({
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">{t("paymentPlans.milestones")}</CardTitle>
+          <CardTitle>{t("paymentPlans.milestones")}</CardTitle>
           <p className="text-sm text-muted-foreground">{t("paymentPlans.milestonesHint")}</p>
         </CardHeader>
         <CardContent>
@@ -84,7 +84,7 @@ export default async function PaymentPlansPage({
       </Card>
 
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold">{t("paymentPlans.plans")}</h2>
+        <h2 className="text-title">{t("paymentPlans.plans")}</h2>
         {plans.length === 0 ? (
           <p className="rounded-lg border border-dashed p-8 text-center text-muted-foreground">
             {t("paymentPlans.noPlans")}
@@ -128,7 +128,7 @@ function PlanCard({
   return (
     <Card data-testid="payment-plan">
       <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
-        <CardTitle className="flex items-center gap-2 text-base">
+        <CardTitle className="flex items-center gap-2">
           {plan.name}
           {plan.isDefault ? <Badge variant="secondary">{t("default")}</Badge> : null}
         </CardTitle>

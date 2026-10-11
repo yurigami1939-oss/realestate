@@ -14,14 +14,14 @@ import { cn } from "@/lib/utils";
 import { whatsappKinds, type WhatsappStatus, whatsappStatuses } from "@/lib/whatsapp";
 
 const badge =
-  "inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium whitespace-nowrap";
+  "inline-flex h-5.5 items-center rounded-full border px-2.5 text-xs font-medium whitespace-nowrap";
 
 const statusClasses: Record<WhatsappStatus, string> = {
-  queued: "border-amber-300 bg-amber-50 text-amber-900",
-  sent: "border-sky-200 bg-sky-50 text-sky-900",
-  delivered: "border-emerald-300 bg-emerald-50 text-emerald-900",
-  read: "border-emerald-400 bg-emerald-100 text-emerald-950",
-  failed: "border-red-300 bg-red-50 text-red-900",
+  queued: "border-warning/25 bg-warning-soft text-warning",
+  sent: "border-info/25 bg-info-soft text-info",
+  delivered: "border-success/25 bg-success-soft text-success",
+  read: "border-success/25 bg-success-soft text-success",
+  failed: "border-danger/25 bg-danger-soft text-danger",
 };
 
 export function WhatsappStatusBadge({ status }: { status: WhatsappStatus }) {

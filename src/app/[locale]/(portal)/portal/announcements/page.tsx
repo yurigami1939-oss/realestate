@@ -27,7 +27,7 @@ export default async function PortalAnnouncementsPage({
 
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-semibold">{t("title")}</h1>
+      <h1 className="text-large-title">{t("title")}</h1>
       {announcements.length === 0 ? (
         <p className="rounded-lg border border-dashed p-6 text-center text-muted-foreground">
           {t("empty")}
@@ -35,10 +35,10 @@ export default async function PortalAnnouncementsPage({
       ) : (
         <ul className="space-y-3" data-testid="portal-announcements">
           {announcements.map((a) => (
-            <li key={a.id} className="rounded-lg border bg-background p-4">
+            <li key={a.id} className="rounded-lg border bg-card p-4">
               <div className="flex flex-wrap items-center gap-2">
                 {a.pinned ? <Pin className="size-4" aria-label={ta("pinned")} /> : null}
-                <h2 className="font-medium">{a.title}</h2>
+                <h2 className="text-headline">{a.title}</h2>
                 <Badge variant="outline">{ta(`category.${a.category}`)}</Badge>
               </div>
               {a.titleAr ? (

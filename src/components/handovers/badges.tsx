@@ -4,14 +4,14 @@ import type { DeliveryState, PunchStatus } from "@/lib/handovers";
 import { cn } from "@/lib/utils";
 
 const stateClasses: Record<DeliveryState, string> = {
-  not_ready: "border-zinc-300 bg-zinc-50 text-zinc-700",
-  to_schedule: "border-amber-300 bg-amber-50 text-amber-900",
-  scheduled: "border-sky-300 bg-sky-50 text-sky-900",
-  reserves: "border-orange-300 bg-orange-50 text-orange-900",
-  delivered: "border-emerald-300 bg-emerald-50 text-emerald-900",
+  not_ready: "border-border bg-muted text-muted-foreground",
+  to_schedule: "border-warning/25 bg-warning-soft text-warning",
+  scheduled: "border-info/25 bg-info-soft text-info",
+  reserves: "border-orange/25 bg-orange-soft text-orange",
+  delivered: "border-success/25 bg-success-soft text-success",
 };
 
-const badge = "inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium";
+const badge = "inline-flex h-5.5 items-center rounded-full border px-2.5 text-xs font-medium";
 
 /** Where the delivery of a sold unit stands. */
 export function DeliveryStateBadge({ state }: { state: DeliveryState }) {
@@ -24,9 +24,9 @@ export function DeliveryStateBadge({ state }: { state: DeliveryState }) {
 }
 
 const punchClasses: Record<PunchStatus, string> = {
-  open: "border-orange-300 bg-orange-50 text-orange-900",
-  lifted: "border-emerald-300 bg-emerald-50 text-emerald-900",
-  cancelled: "border-zinc-300 bg-zinc-50 text-zinc-600",
+  open: "border-orange/25 bg-orange-soft text-orange",
+  lifted: "border-success/25 bg-success-soft text-success",
+  cancelled: "border-border bg-muted text-muted-foreground",
 };
 
 export function PunchStatusBadge({ status }: { status: PunchStatus }) {

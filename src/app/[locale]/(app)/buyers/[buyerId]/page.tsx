@@ -98,7 +98,7 @@ export default async function BuyerPage({ params }: PageProps<"/[locale]/buyers/
       {sales && sales.length > 0 ? (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">{ts("title")}</CardTitle>
+            <CardTitle>{ts("title")}</CardTitle>
           </CardHeader>
           <CardContent>
             <Table data-testid="buyer-sales">
@@ -136,11 +136,11 @@ export default async function BuyerPage({ params }: PageProps<"/[locale]/buyers/
       ) : null}
       <Card>
         <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
-          <CardTitle className="text-base">{t("documents.title")}</CardTitle>
+          <CardTitle>{t("documents.title")}</CardTitle>
           <Badge
             variant="outline"
             className={
-              buyer.missingRequired > 0 ? "border-amber-400 text-amber-800" : "text-emerald-800"
+              buyer.missingRequired > 0 ? "border-warning/25 text-warning" : "text-success"
             }
           >
             {t("documents.missing", { count: buyer.missingRequired })}
@@ -174,7 +174,7 @@ function IdentityCard({ buyer }: { buyer: BuyerDetail }) {
   return (
     <Card className="lg:col-span-2">
       <CardHeader>
-        <CardTitle className="text-base">{t("sections.identity")}</CardTitle>
+        <CardTitle>{t("sections.identity")}</CardTitle>
       </CardHeader>
       <CardContent className="grid gap-x-6 gap-y-2 sm:grid-cols-2">
         <Rows
@@ -245,7 +245,7 @@ function ContactCard({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">{t("sections.contact")}</CardTitle>
+        <CardTitle>{t("sections.contact")}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <PhoneActions value={buyer.phone} />

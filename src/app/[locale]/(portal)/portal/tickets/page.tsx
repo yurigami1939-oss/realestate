@@ -27,7 +27,7 @@ export default async function PortalTicketsPage({ params }: PageProps<"/[locale]
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-2xl font-semibold">{t("title")}</h1>
+        <h1 className="text-large-title">{t("title")}</h1>
         {targets.length > 0 ? <PortalTicketDialog targets={targets} /> : null}
       </div>
       {tickets.length === 0 ? (
@@ -37,7 +37,7 @@ export default async function PortalTicketsPage({ params }: PageProps<"/[locale]
       ) : (
         <ul className="space-y-2" data-testid="portal-tickets">
           {tickets.map((ticket) => (
-            <li key={ticket.id} className="rounded-lg border bg-background p-3">
+            <li key={ticket.id} className="rounded-lg border bg-card p-3">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <Link href={`/portal/tickets/${ticket.id}`} className="font-medium hover:underline">
                   {ticket.title}

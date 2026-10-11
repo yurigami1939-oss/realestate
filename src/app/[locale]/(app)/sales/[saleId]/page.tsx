@@ -304,7 +304,7 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
         <div className="min-w-0 space-y-6 xl:col-span-2">
           <Card>
             <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
-              <CardTitle className="text-base">{t("sales.sections.statement")}</CardTitle>
+              <CardTitle>{t("sales.sections.statement")}</CardTitle>
               {canReschedule ? (
                 <RescheduleDialog
                   reservationId={sale.id}
@@ -353,7 +353,7 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
                       key={key}
                       className={
                         key === "overdue" && value > 0n
-                          ? "rounded-md border border-red-300 bg-red-50 p-2 text-red-900"
+                          ? "rounded-md border border-danger/25 bg-danger-soft p-2 text-danger"
                           : "rounded-md border p-2"
                       }
                       data-total={key}
@@ -416,7 +416,7 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
                         <TableCell>
                           {line ? <InstallmentStateBadge state={line.state} /> : null}
                           {line && line.daysLate > 0 ? (
-                            <span className="block text-xs text-red-800">
+                            <span className="block text-xs text-danger">
                               {t("sales.statement.daysLate", { days: line.daysLate })}
                             </span>
                           ) : null}
@@ -442,7 +442,7 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">{t("sales.sections.payments")}</CardTitle>
+              <CardTitle>{t("sales.sections.payments")}</CardTitle>
             </CardHeader>
             <CardContent>
               {payments.length === 0 ? (
@@ -518,7 +518,7 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
                           <TableCell className="whitespace-normal">
                             {cancelled ? (
                               <>
-                                <Badge variant="outline" className="text-red-800">
+                                <Badge variant="outline" className="text-danger">
                                   {t("payments.cancelled")}
                                 </Badge>
                                 <span className="block text-xs text-muted-foreground">
@@ -528,7 +528,7 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
                                 </span>
                               </>
                             ) : pendingCheque ? (
-                              <Badge variant="outline" className="text-amber-800">
+                              <Badge variant="outline" className="text-warning">
                                 {t("payments.pendingCheque")}
                               </Badge>
                             ) : p.chequeClearedOn ? (
@@ -538,7 +538,7 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
                                 })}
                               </span>
                             ) : (
-                              <Badge variant="outline" className="text-emerald-800">
+                              <Badge variant="outline" className="text-success">
                                 {t("payments.valid")}
                               </Badge>
                             )}
@@ -568,7 +568,7 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
           {calls.length > 0 ? (
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">{t("paymentCalls.title")}</CardTitle>
+                <CardTitle>{t("paymentCalls.title")}</CardTitle>
               </CardHeader>
               <CardContent>
                 <Table data-testid="sale-payment-calls">
@@ -613,7 +613,7 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
           {certificates.length > 0 || canCertify ? (
             <Card>
               <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
-                <CardTitle className="text-base">{t("certificates.title")}</CardTitle>
+                <CardTitle>{t("certificates.title")}</CardTitle>
                 {canCertify ? (
                   <IssueCertificateDialog reservationId={sale.id} kinds={certificateChoices} />
                 ) : null}
@@ -655,7 +655,7 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
         <div className="min-w-0 space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">{t("sales.sections.summary")}</CardTitle>
+              <CardTitle>{t("sales.sections.summary")}</CardTitle>
             </CardHeader>
             <CardContent>
               <dl className="space-y-2 text-sm" data-testid="sale-summary">
@@ -672,7 +672,7 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
           {financing && (financing.lines.length > 0 || (live && can(ctx, "sale:finance"))) ? (
             <Card data-testid="sale-financing">
               <CardHeader className="flex flex-row items-center justify-between gap-2">
-                <CardTitle className="text-base">{t("sales.financing.title")}</CardTitle>
+                <CardTitle>{t("sales.financing.title")}</CardTitle>
                 {live && can(ctx, "sale:finance") ? (
                   <FinancingDialog
                     reservationId={sale.id}
@@ -721,7 +721,7 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
                 ) : null}
                 {financing.hasPlan && financing.unplanned !== 0n ? (
                   <p
-                    className="rounded-md border border-amber-300 bg-amber-50 p-2 text-amber-900"
+                    className="rounded-md border border-warning/25 bg-warning-soft p-2 text-warning"
                     data-testid="financing-gap"
                   >
                     {t("sales.financing.gap", { amount: money(financing.unplanned) })}
@@ -734,7 +734,7 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
           {housingAid ? (
             <Card data-testid="sale-lpa">
               <CardHeader>
-                <CardTitle className="text-base">{t("housingAid.saleTitle")}</CardTitle>
+                <CardTitle>{t("housingAid.saleTitle")}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2 text-sm">
                 {housingAid.buyer ? (
@@ -762,13 +762,13 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
                   </div>
                 ) : null}
                 {housingAid.check.issues.length > 0 ? (
-                  <ul className="space-y-1 rounded-md border border-amber-300 bg-amber-50 p-2 text-amber-900">
+                  <ul className="space-y-1 rounded-md border border-warning/25 bg-warning-soft p-2 text-warning">
                     {housingAid.check.issues.map((issue) => (
                       <li key={issue}>{t(`housingAid.issues.${issue}`)}</li>
                     ))}
                   </ul>
                 ) : (
-                  <p className="text-emerald-700">{t("housingAid.eligible")}</p>
+                  <p className="text-success">{t("housingAid.eligible")}</p>
                 )}
                 {housingAid.check.cnlAid !== null ? (
                   <p>{t("housingAid.cnlAid", { amount: money(housingAid.check.cnlAid) })}</p>
@@ -782,7 +782,7 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">{t("sales.sections.buyers")}</CardTitle>
+              <CardTitle>{t("sales.sections.buyers")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               {sale.buyers.map((b, index) => (
@@ -809,7 +809,7 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">{t("sales.sections.documents")}</CardTitle>
+              <CardTitle>{t("sales.sections.documents")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-1">
@@ -921,7 +921,7 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
           {live ? (
             <Card data-testid="sale-obligations">
               <CardHeader>
-                <CardTitle className="text-base">{t("sales.obligations.title")}</CardTitle>
+                <CardTitle>{t("sales.obligations.title")}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3 text-sm">
                 <dl className="space-y-2">
@@ -936,7 +936,7 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
                     </dd>
                   </div>
                   {sale.obligations.daysLate > 0 ? (
-                    <div className="flex justify-between gap-3 text-red-800">
+                    <div className="flex justify-between gap-3 text-danger">
                       <dt>{t("sales.obligations.late")}</dt>
                       <dd className="text-end">
                         {t("sales.obligations.days", { days: sale.obligations.daysLate })}
@@ -944,7 +944,7 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
                     </div>
                   ) : null}
                   {sale.obligations.penalty > 0n ? (
-                    <div className="flex justify-between gap-3 text-red-800">
+                    <div className="flex justify-between gap-3 text-danger">
                       <dt>{t("sales.obligations.penalty")}</dt>
                       <dd className="text-end tabular-nums" dir="ltr">
                         {money(sale.obligations.penalty)}
@@ -964,7 +964,7 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
                           t("sales.obligations.guaranteeValue", { number: sale.guaranteeNumber })
                         )
                       ) : sale.status === "sold" ? (
-                        <span className="text-amber-800">
+                        <span className="text-warning">
                           {t("sales.obligations.guaranteeMissing")}
                         </span>
                       ) : (
@@ -1028,7 +1028,7 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
           {showWithdrawals || showLoans || changeable ? (
             <Card data-testid="after-sale">
               <CardHeader>
-                <CardTitle className="text-base">{t("sales.sections.afterSale")}</CardTitle>
+                <CardTitle>{t("sales.sections.afterSale")}</CardTitle>
               </CardHeader>
               <CardContent className="divide-y text-sm">
                 {showWithdrawals ? (
@@ -1058,12 +1058,12 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
                         ) : null}
                         {w.status === "approved" && w.refund > 0n ? (
                           w.refundedOn ? (
-                            <div className="text-emerald-800">
+                            <div className="text-success">
                               {t("sales.withdrawal.refundDone", { date: formatDate(w.refundedOn) })}
                             </div>
                           ) : (
                             <div className="flex flex-wrap items-center gap-2">
-                              <span className="text-amber-800">
+                              <span className="text-warning">
                                 {t("sales.withdrawal.refundPending")}
                               </span>
                               {can(ctx, "payment:create") ? (
@@ -1218,7 +1218,7 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
           {delivery ? (
             <Card data-testid="sale-delivery">
               <CardHeader>
-                <CardTitle className="text-base">{t("handovers.card.title")}</CardTitle>
+                <CardTitle>{t("handovers.card.title")}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2 text-sm">
                 <DeliveryStateBadge state={delivery.state} />
@@ -1249,7 +1249,7 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
           {seesCommission && sale.commission ? (
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">{t("sales.sections.commission")}</CardTitle>
+                <CardTitle>{t("sales.sections.commission")}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-1 text-sm" data-testid="sale-commission">
                 <div>

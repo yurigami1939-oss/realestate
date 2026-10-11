@@ -41,12 +41,12 @@ import {
 import { smsOptOutSchema, smsSettingsSchema, testSmsSchema } from "@/server/sms/schemas";
 
 const badge =
-  "inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium whitespace-nowrap";
+  "inline-flex h-5.5 items-center rounded-full border px-2.5 text-xs font-medium whitespace-nowrap";
 
 const statusClasses: Record<SmsStatus, string> = {
-  queued: "border-amber-300 bg-amber-50 text-amber-900",
-  sent: "border-emerald-300 bg-emerald-50 text-emerald-900",
-  failed: "border-red-300 bg-red-50 text-red-900",
+  queued: "border-warning/25 bg-warning-soft text-warning",
+  sent: "border-success/25 bg-success-soft text-success",
+  failed: "border-danger/25 bg-danger-soft text-danger",
 };
 
 export function SmsStatusBadge({ status }: { status: SmsStatus }) {

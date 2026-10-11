@@ -32,7 +32,7 @@ export function FloorPlanCard({
   return (
     <Card data-testid="floor-plan">
       <CardHeader>
-        <CardTitle className="text-base">{t("title")}</CardTitle>
+        <CardTitle>{t("title")}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         {plan && href ? (

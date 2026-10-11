@@ -29,7 +29,7 @@ export default async function SmsSettingsPage({ params }: PageProps<"/[locale]/s
       />
       {standIn ? (
         <p
-          className="flex items-start gap-2 rounded-md border border-violet-200 bg-violet-50 p-3 text-sm text-violet-900"
+          className="flex items-start gap-2 rounded-md border border-purple/25 bg-purple-soft p-3 text-sm text-purple"
           data-testid="sms-stand-in"
         >
           <Info className="mt-0.5 size-4 shrink-0" aria-hidden />

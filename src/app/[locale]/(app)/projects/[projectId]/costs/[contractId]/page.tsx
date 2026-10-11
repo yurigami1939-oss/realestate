@@ -164,7 +164,7 @@ export default async function WorksContractPage({
       <div className="grid gap-6 lg:grid-cols-3">
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">{t("contracts.details")}</CardTitle>
+            <CardTitle>{t("contracts.details")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-sm">
             <dl className="space-y-2">
@@ -190,7 +190,7 @@ export default async function WorksContractPage({
         </Card>
         <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle className="text-base">{t("contracts.progress")}</CardTitle>
+            <CardTitle>{t("contracts.progress")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
             <dl className="grid gap-3 sm:grid-cols-4" data-testid="contract-totals">
@@ -221,7 +221,7 @@ export default async function WorksContractPage({
               <p>{t("acceptance.finalOn", { date: formatDate(contract.finalAcceptanceOn) })}</p>
             ) : null}
             {contract.terminatedOn ? (
-              <p className="text-red-800">
+              <p className="text-danger">
                 {t("contracts.terminatedOn", { date: formatDate(contract.terminatedOn) })}
               </p>
             ) : null}
@@ -231,7 +231,7 @@ export default async function WorksContractPage({
               </p>
             ) : null}
             {contract.retentionReleasedOn && contract.retentionReleased !== null ? (
-              <p className="text-emerald-800">
+              <p className="text-success">
                 {t("retention.releasedOn", {
                   amount: money(contract.retentionReleased),
                   date: formatDate(contract.retentionReleasedOn),
@@ -245,7 +245,7 @@ export default async function WorksContractPage({
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">{t("invoices.title")}</CardTitle>
+          <CardTitle>{t("invoices.title")}</CardTitle>
         </CardHeader>
         <CardContent>
           {contract.invoices.length === 0 ? (
@@ -294,7 +294,7 @@ export default async function WorksContractPage({
                     </TableCell>
                     <TableCell className="whitespace-normal">
                       {i.paidOn ? (
-                        <span className="text-emerald-800">
+                        <span className="text-success">
                           {t("invoices.paidOn", { date: formatDate(i.paidOn) })}
                           <span className="block text-xs text-muted-foreground">
                             {[
@@ -307,7 +307,7 @@ export default async function WorksContractPage({
                           </span>
                         </span>
                       ) : (
-                        <span className="text-amber-800">
+                        <span className="text-warning">
                           {i.dueOn
                             ? t("invoices.dueOn", { date: formatDate(i.dueOn) })
                             : t("invoices.unpaid")}

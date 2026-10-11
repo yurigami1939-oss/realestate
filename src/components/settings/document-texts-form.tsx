@@ -46,7 +46,7 @@ export function DocumentTextsForm({ current }: { current: DocumentTexts }) {
       {documentTextKinds.map((kind) => (
         <Card key={kind} data-kind={kind}>
           <CardHeader>
-            <CardTitle className="text-base">{t(`kinds.${kind}`)}</CardTitle>
+            <CardTitle>{t(`kinds.${kind}`)}</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-4 sm:grid-cols-2">
             <TextareaField

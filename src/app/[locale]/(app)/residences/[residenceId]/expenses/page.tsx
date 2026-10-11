@@ -73,7 +73,7 @@ export default async function ResidenceExpensesPage({
       <ResidenceNav residenceId={residenceId} current="expenses" roles={accessOf(ctx)} />
       <Card>
         <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
-          <CardTitle className="text-base">{t("invoices.title", { year })}</CardTitle>
+          <CardTitle>{t("invoices.title", { year })}</CardTitle>
           <div className="flex flex-wrap items-center gap-1">
             <Button asChild variant="ghost" size="sm">
               <Link href={yearHref(year - 1)}>
@@ -114,7 +114,7 @@ export default async function ResidenceExpensesPage({
       </Card>
       <Card>
         <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
-          <CardTitle className="text-base">{t("contracts.title")}</CardTitle>
+          <CardTitle>{t("contracts.title")}</CardTitle>
           {editable && suppliers.length > 0 ? (
             <ContractDialog
               residenceId={residenceId}

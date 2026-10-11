@@ -36,9 +36,9 @@ export async function generateMetadata({
 
 const stateTone = {
   active: "",
-  provisional: "text-amber-800",
-  final: "text-emerald-800",
-  terminated: "text-red-800",
+  provisional: "text-warning",
+  final: "text-success",
+  terminated: "text-danger",
 } as const;
 
 /**
@@ -81,7 +81,7 @@ export default async function ProjectCostsPage({
     {
       key: "margin",
       value: revenue.margin,
-      tone: revenue.margin < 0n ? "text-red-800" : "text-emerald-800",
+      tone: revenue.margin < 0n ? "text-danger" : "text-success",
     },
   ];
 
@@ -139,7 +139,7 @@ export default async function ProjectCostsPage({
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">{t("budget.title")}</CardTitle>
+          <CardTitle>{t("budget.title")}</CardTitle>
         </CardHeader>
         <CardContent>
           <Table data-testid="costs-by-category">
@@ -172,7 +172,7 @@ export default async function ProjectCostsPage({
                       {money(c.paid)}
                     </TableCell>
                     <TableCell
-                      className={`text-end tabular-nums ${c.committed > c.budget ? "text-red-800" : ""}`}
+                      className={`text-end tabular-nums ${c.committed > c.budget ? "text-danger" : ""}`}
                       dir="ltr"
                     >
                       {money(c.budget - c.committed)}
@@ -214,7 +214,7 @@ export default async function ProjectCostsPage({
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">{t("contracts.title")}</CardTitle>
+          <CardTitle>{t("contracts.title")}</CardTitle>
         </CardHeader>
         <CardContent>
           {costs.contracts.length === 0 ? (
@@ -280,7 +280,7 @@ export default async function ProjectCostsPage({
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">{t("forecast.title")}</CardTitle>
+          <CardTitle>{t("forecast.title")}</CardTitle>
           <p className="text-sm text-muted-foreground">{t("forecast.description")}</p>
         </CardHeader>
         <CardContent className="space-y-2">
@@ -306,13 +306,13 @@ export default async function ProjectCostsPage({
                       {money(m.expectedOut)}
                     </TableCell>
                     <TableCell
-                      className={`text-end tabular-nums ${m.net < 0n ? "text-red-800" : ""}`}
+                      className={`text-end tabular-nums ${m.net < 0n ? "text-danger" : ""}`}
                       dir="ltr"
                     >
                       {money(m.net)}
                     </TableCell>
                     <TableCell
-                      className={`text-end tabular-nums ${m.cumulative < 0n ? "text-red-800" : ""}`}
+                      className={`text-end tabular-nums ${m.cumulative < 0n ? "text-danger" : ""}`}
                       dir="ltr"
                     >
                       {money(m.cumulative)}

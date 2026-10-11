@@ -258,7 +258,7 @@ export default async function LeasePage({ params }: PageProps<"/[locale]/rentals
         <div className="min-w-0 space-y-6 xl:col-span-2">
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">{t("schedule")}</CardTitle>
+              <CardTitle>{t("schedule")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <dl className="grid gap-2 text-sm sm:grid-cols-4" data-testid="rent-totals">
@@ -274,7 +274,7 @@ export default async function LeasePage({ params }: PageProps<"/[locale]/rentals
                     key={key}
                     className={
                       key === "overdue" && value > 0n
-                        ? "rounded-md border border-red-300 bg-red-50 p-2 text-red-900"
+                        ? "rounded-md border border-danger/25 bg-danger-soft p-2 text-danger"
                         : "rounded-md border p-2"
                     }
                   >
@@ -340,7 +340,7 @@ export default async function LeasePage({ params }: PageProps<"/[locale]/rentals
           {lease.settlements.length > 0 || (canSettle && toSettle.length > 0) ? (
             <Card>
               <CardHeader className="flex flex-row items-center justify-between gap-2">
-                <CardTitle className="text-base">{t("settlement.cardTitle")}</CardTitle>
+                <CardTitle>{t("settlement.cardTitle")}</CardTitle>
                 {canSettle && toSettle.length > 0 ? (
                   <SettleChargesDialog
                     leaseId={lease.id}
@@ -397,7 +397,7 @@ export default async function LeasePage({ params }: PageProps<"/[locale]/rentals
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">{t("payments")}</CardTitle>
+              <CardTitle>{t("payments")}</CardTitle>
             </CardHeader>
             <CardContent>
               {lease.payments.length === 0 ? (
@@ -457,7 +457,7 @@ export default async function LeasePage({ params }: PageProps<"/[locale]/rentals
                             <TableCell className="whitespace-normal">
                               {cancelled ? (
                                 <>
-                                  <Badge variant="outline" className="text-red-800">
+                                  <Badge variant="outline" className="text-danger">
                                     {tp("cancelled")}
                                   </Badge>
                                   <span className="block text-xs text-muted-foreground">
@@ -465,7 +465,7 @@ export default async function LeasePage({ params }: PageProps<"/[locale]/rentals
                                   </span>
                                 </>
                               ) : pendingCheque ? (
-                                <Badge variant="outline" className="text-amber-800">
+                                <Badge variant="outline" className="text-warning">
                                   {tp("pendingCheque")}
                                 </Badge>
                               ) : p.chequeClearedOn ? (
@@ -473,7 +473,7 @@ export default async function LeasePage({ params }: PageProps<"/[locale]/rentals
                                   {tp("chequeCleared", { date: formatDate(p.chequeClearedOn) })}
                                 </span>
                               ) : (
-                                <Badge variant="outline" className="text-emerald-800">
+                                <Badge variant="outline" className="text-success">
                                   {tp("valid")}
                                 </Badge>
                               )}
@@ -505,7 +505,7 @@ export default async function LeasePage({ params }: PageProps<"/[locale]/rentals
         <div className="min-w-0 space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">{t("inspection.cardTitle")}</CardTitle>
+              <CardTitle>{t("inspection.cardTitle")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 text-sm" data-testid="lease-inspections">
               {(
@@ -548,7 +548,7 @@ export default async function LeasePage({ params }: PageProps<"/[locale]/rentals
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">{t("registration.cardTitle")}</CardTitle>
+              <CardTitle>{t("registration.cardTitle")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2 text-sm" data-testid="lease-registration">
               {lease.registeredOn ? (
@@ -579,7 +579,7 @@ export default async function LeasePage({ params }: PageProps<"/[locale]/rentals
               ) : (
                 <p
                   className={
-                    lease.registration.state === "late" ? "text-red-800" : "text-muted-foreground"
+                    lease.registration.state === "late" ? "text-danger" : "text-muted-foreground"
                   }
                 >
                   {t(
@@ -616,7 +616,7 @@ export default async function LeasePage({ params }: PageProps<"/[locale]/rentals
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">{t("tenant")}</CardTitle>
+              <CardTitle>{t("tenant")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-1 text-sm" data-testid="lease-tenant">
               <div className="font-medium">{lease.tenantName}</div>
@@ -680,7 +680,7 @@ export default async function LeasePage({ params }: PageProps<"/[locale]/rentals
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">{t("terms")}</CardTitle>
+              <CardTitle>{t("terms")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
               <div className="flex flex-wrap items-center gap-2">

@@ -109,7 +109,7 @@ export default async function ReportsPage({
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">{t("byMonth.title")}</CardTitle>
+          <CardTitle>{t("byMonth.title")}</CardTitle>
         </CardHeader>
         <CardContent className="overflow-x-auto">
           <Table data-testid="report-by-month">
@@ -142,7 +142,7 @@ export default async function ReportsPage({
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">{t("byTypology.title")}</CardTitle>
+            <CardTitle>{t("byTypology.title")}</CardTitle>
           </CardHeader>
           <CardContent className="overflow-x-auto">
             {r.byTypology.length === 0 ? (
@@ -178,7 +178,7 @@ export default async function ReportsPage({
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">{t("commercials.title")}</CardTitle>
+            <CardTitle>{t("commercials.title")}</CardTitle>
           </CardHeader>
           <CardContent className="overflow-x-auto">
             {r.commercials.length === 0 ? (
@@ -223,7 +223,7 @@ export default async function ReportsPage({
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">{t("ageing.title")}</CardTitle>
+            <CardTitle>{t("ageing.title")}</CardTitle>
             <p className="text-sm text-muted-foreground">{t("ageing.description")}</p>
           </CardHeader>
           <CardContent>
@@ -248,7 +248,7 @@ export default async function ReportsPage({
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">{t("forecast.title")}</CardTitle>
+            <CardTitle>{t("forecast.title")}</CardTitle>
             <p className="text-sm text-muted-foreground">{t("forecast.description")}</p>
           </CardHeader>
           <CardContent>
@@ -273,7 +273,7 @@ export default async function ReportsPage({
       <Card>
         <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
           <div className="space-y-1">
-            <CardTitle className="text-base">{t("sources.title")}</CardTitle>
+            <CardTitle>{t("sources.title")}</CardTitle>
             <p className="text-sm text-muted-foreground">{t("sources.description")}</p>
           </div>
           {can(ctx, "target:update") ? <MarketingSpendDialog month={r.to.slice(0, 7)} /> : null}
@@ -318,7 +318,7 @@ export default async function ReportsPage({
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">{t("stock.title")}</CardTitle>
+          <CardTitle>{t("stock.title")}</CardTitle>
         </CardHeader>
         <CardContent className="overflow-x-auto">
           <Table data-testid="report-stock">

@@ -124,7 +124,7 @@ export default async function UnitAccountPage({
             <dd
               className={cn(
                 "font-medium tabular-nums",
-                tile.key === "overdue" && tile.value > 0n && "text-red-700",
+                tile.key === "overdue" && tile.value > 0n && "text-danger",
               )}
             >
               <bdi dir="ltr">{money(tile.value)}</bdi>
@@ -136,7 +136,7 @@ export default async function UnitAccountPage({
       {recovery || (canRecover && statement.overdue > 0n) ? (
         <Card data-testid="recovery">
           <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
-            <CardTitle className="text-base">
+            <CardTitle>
               {trec("title")}
               {recovery ? (
                 <span className="ms-2 text-xs font-normal text-muted-foreground">
@@ -176,10 +176,10 @@ export default async function UnitAccountPage({
                         variant="outline"
                         className={
                           recovery.plan.progress.done
-                            ? "text-emerald-800"
+                            ? "text-success"
                             : recovery.plan.progress.late > 0n
-                              ? "text-red-800"
-                              : "text-emerald-800"
+                              ? "text-danger"
+                              : "text-success"
                         }
                       >
                         {recovery.plan.progress.done
@@ -237,7 +237,7 @@ export default async function UnitAccountPage({
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">{t("callsTitle")}</CardTitle>
+          <CardTitle>{t("callsTitle")}</CardTitle>
         </CardHeader>
         <CardContent>
           {statement.lines.length === 0 ? (
@@ -298,7 +298,7 @@ export default async function UnitAccountPage({
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">{t("paymentsTitle")}</CardTitle>
+          <CardTitle>{t("paymentsTitle")}</CardTitle>
         </CardHeader>
         <CardContent>
           {account.payments.length === 0 ? (
@@ -364,7 +364,7 @@ export default async function UnitAccountPage({
                               {tpay("cancelledBy", { reason: p.cancellationReason ?? "" })}
                             </Badge>
                           ) : pendingCheque ? (
-                            <Badge variant="outline" className="text-amber-800">
+                            <Badge variant="outline" className="text-warning">
                               {tpay("pendingCheque")}
                             </Badge>
                           ) : p.chequeClearedOn ? (
@@ -396,7 +396,7 @@ export default async function UnitAccountPage({
       {reminders.length > 0 ? (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">{trem("title")}</CardTitle>
+            <CardTitle>{trem("title")}</CardTitle>
           </CardHeader>
           <CardContent>
             <ul className="divide-y text-sm" data-testid="account-reminders">

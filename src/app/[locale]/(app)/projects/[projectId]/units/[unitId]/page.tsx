@@ -146,7 +146,7 @@ export default async function UnitPage({
           ) : (
             <Card data-testid="unit-third-party">
               <CardHeader>
-                <CardTitle className="text-base">{t("projects.thirdParty")}</CardTitle>
+                <CardTitle>{t("projects.thirdParty")}</CardTitle>
               </CardHeader>
               <CardContent className="text-sm text-muted-foreground">
                 {t("projects.thirdPartyHint")}
@@ -163,7 +163,7 @@ export default async function UnitPage({
           {lease ? (
             <Card data-testid="unit-lease">
               <CardHeader>
-                <CardTitle className="text-base">{tr("rentedTitle")}</CardTitle>
+                <CardTitle>{tr("rentedTitle")}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-1 text-sm">
                 <Link href={`/rentals/${lease.id}`} className="font-medium hover:underline">
@@ -237,7 +237,7 @@ function UnitDetails({ unit }: { unit: UnitDetail }) {
   return (
     <Card className="lg:col-span-2">
       <CardHeader>
-        <CardTitle className="text-base">{t("units.details")}</CardTitle>
+        <CardTitle>{t("units.details")}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4 text-sm">
         <dl className="grid gap-x-6 gap-y-2 sm:grid-cols-2">
@@ -264,7 +264,7 @@ function PriceCard({ unit }: { unit: UnitDetail }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">{t("fields.listPrice")}</CardTitle>
+        <CardTitle>{t("fields.listPrice")}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-1">
         <p className="text-2xl font-semibold" dir="ltr" data-testid="unit-price">
@@ -285,7 +285,7 @@ function StatusHistory({ unit }: { unit: UnitDetail }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">{t("statusHistory")}</CardTitle>
+        <CardTitle>{t("statusHistory")}</CardTitle>
       </CardHeader>
       <CardContent>
         <Table>
@@ -332,7 +332,7 @@ function PriceHistory({ unit }: { unit: UnitDetail }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">{t("priceHistory")}</CardTitle>
+        <CardTitle>{t("priceHistory")}</CardTitle>
       </CardHeader>
       <CardContent>
         {unit.priceHistory.length === 0 ? (

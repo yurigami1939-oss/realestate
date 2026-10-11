@@ -40,7 +40,7 @@ export function ReportPhotos({
                 />
               </a>
               {editable ? (
-                <div className="absolute end-1 top-1 rounded-md bg-background/90">
+                <div className="absolute end-1 top-1 rounded-md bg-card/90">
                   <ConfirmAction
                     action={removeReportPhotoAction}
                     input={{ reportId, fileId: photo.id }}

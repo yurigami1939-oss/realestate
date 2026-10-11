@@ -130,7 +130,7 @@ export function SharesEditor({
                   </TableCell>
                   <TableCell className="whitespace-normal">
                     {coOwners.length === 0 ? (
-                      <Badge variant="outline" className="text-amber-800">
+                      <Badge variant="outline" className="text-warning">
                         {t("units.noCoOwner")}
                       </Badge>
                     ) : (
@@ -159,7 +159,7 @@ export function SharesEditor({
             <TableRow>
               <TableCell colSpan={2}>{t("units.total")}</TableCell>
               <TableCell
-                className={cn("tabular-nums", !balanced && "text-amber-800")}
+                className={cn("tabular-nums", !balanced && "text-warning")}
                 dir="ltr"
                 data-testid="shares-total"
               >

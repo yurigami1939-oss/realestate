@@ -63,7 +63,7 @@ export default async function ResidenceAnnouncementsPage({
       <Card>
         <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
           <div className="space-y-1">
-            <CardTitle className="text-base">{t("title")}</CardTitle>
+            <CardTitle>{t("title")}</CardTitle>
             <p className="text-sm text-muted-foreground">{t("description")}</p>
           </div>
           {editable ? <AnnouncementDialog residenceId={residenceId} /> : null}

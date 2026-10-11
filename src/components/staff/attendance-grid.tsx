@@ -15,10 +15,10 @@ import type { AttendanceMonth } from "@/server/staff/attendance";
 const cycle: (AttendanceStatus | null)[] = [null, ...attendanceStatuses];
 
 const statusClasses: Record<AttendanceStatus, string> = {
-  absent: "bg-red-100 text-red-900",
-  leave: "bg-sky-100 text-sky-900",
-  sick: "bg-amber-100 text-amber-900",
-  off: "bg-zinc-200 text-zinc-700",
+  absent: "bg-danger-soft text-danger",
+  leave: "bg-info-soft text-info",
+  sick: "bg-warning-soft text-warning",
+  off: "bg-muted text-muted-foreground",
 };
 
 /**
@@ -75,7 +75,7 @@ export function AttendanceGrid({
         <table className="w-full border-collapse text-xs" data-testid="attendance">
           <thead>
             <tr>
-              <th className="sticky start-0 bg-background p-2 text-start font-medium">
+              <th className="sticky start-0 bg-card p-2 text-start font-medium">
                 {t("columns.agent")}
               </th>
               {days.map((d) => (
@@ -103,7 +103,7 @@ export function AttendanceGrid({
               }
               return (
                 <tr key={agent.id} className="border-t">
-                  <td className="sticky start-0 bg-background p-2 font-medium whitespace-nowrap">
+                  <td className="sticky start-0 bg-card p-2 font-medium whitespace-nowrap">
                     {agent.lastName} {agent.firstName}
                   </td>
                   {days.map((d) => {

@@ -148,7 +148,7 @@ export default async function ProjectPage({ params }: PageProps<"/[locale]/proje
       {project.thirdParty || project.residences.length > 0 ? (
         <Card data-testid="project-residences">
           <CardHeader>
-            <CardTitle className="text-base">{t("projects.residences")}</CardTitle>
+            <CardTitle>{t("projects.residences")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-sm">
             {project.thirdParty ? (
@@ -178,7 +178,7 @@ export default async function ProjectPage({ params }: PageProps<"/[locale]/proje
 
       <section className="space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="text-lg font-semibold">{t("buildings.title")}</h2>
+          <h2 className="text-title">{t("buildings.title")}</h2>
           {canEdit ? <BuildingDialog projectId={project.id} /> : null}
         </div>
         {project.buildings.length === 0 ? (
@@ -191,7 +191,7 @@ export default async function ProjectPage({ params }: PageProps<"/[locale]/proje
               <Card key={b.id}>
                 <CardHeader className="flex flex-row items-start justify-between gap-2">
                   <div className="space-y-1">
-                    <CardTitle className="text-base">{b.name}</CardTitle>
+                    <CardTitle>{b.name}</CardTitle>
                     <p className="text-sm text-muted-foreground">
                       {t("buildings.floors", { count: b.topFloor - b.lowestFloor + 1 })}
                     </p>
@@ -244,7 +244,7 @@ function ProjectInfo({ project }: { project: ProjectDetail }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">{t("information")}</CardTitle>
+        <CardTitle>{t("information")}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3 text-sm">
         <dl className="space-y-2">

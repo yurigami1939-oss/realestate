@@ -29,9 +29,9 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 const stateClass: Record<CheckState, string> = {
-  overdue: "text-red-800",
-  due_soon: "text-amber-800",
-  ok: "text-emerald-800",
+  overdue: "text-danger",
+  due_soon: "text-warning",
+  ok: "text-success",
 };
 
 /**

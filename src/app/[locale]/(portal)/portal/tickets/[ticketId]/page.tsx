@@ -39,7 +39,7 @@ export default async function PortalTicketPage({
       </Link>
       <div className="space-y-1">
         <div className="flex flex-wrap items-center gap-2">
-          <h1 className="text-2xl font-semibold">{ticket.title}</h1>
+          <h1 className="text-large-title">{ticket.title}</h1>
           <TicketStatusBadge status={ticket.status} />
           <TicketPriorityBadge priority={ticket.priority} />
         </div>
@@ -56,7 +56,7 @@ export default async function PortalTicketPage({
       ) : null}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">{tt("history")}</CardTitle>
+          <CardTitle>{tt("history")}</CardTitle>
         </CardHeader>
         <CardContent>
           <ol className="space-y-3 text-sm" data-testid="portal-ticket-events">

@@ -19,11 +19,11 @@ import { cn } from "@/lib/utils";
 import { requestInspectionReportAction, requestRentReceiptAction } from "@/server/rentals/actions";
 
 const stateClasses: Record<LeaseState, string> = {
-  upcoming: "border-sky-300 bg-sky-50 text-sky-900",
-  running: "border-emerald-300 bg-emerald-50 text-emerald-900",
-  ending: "border-amber-300 bg-amber-50 text-amber-900",
-  expired: "border-red-300 bg-red-50 text-red-900",
-  ended: "border-zinc-300 bg-zinc-50 text-zinc-700",
+  upcoming: "border-info/25 bg-info-soft text-info",
+  running: "border-success/25 bg-success-soft text-success",
+  ending: "border-warning/25 bg-warning-soft text-warning",
+  expired: "border-danger/25 bg-danger-soft text-danger",
+  ended: "border-border bg-muted text-muted-foreground",
 };
 
 /** Where a lease stands (derived from its dates). */
@@ -32,7 +32,7 @@ export function LeaseStateBadge({ state }: { state: LeaseState }) {
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium whitespace-nowrap",
+        "inline-flex h-5.5 items-center rounded-full border px-2.5 text-xs font-medium whitespace-nowrap",
         stateClasses[state],
       )}
       data-state={state}
@@ -49,10 +49,10 @@ export function RegistrationBadge({ state }: { state: RegistrationState | null }
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium whitespace-nowrap",
+        "inline-flex h-5.5 items-center rounded-full border px-2.5 text-xs font-medium whitespace-nowrap",
         state === "late"
-          ? "border-red-300 bg-red-50 text-red-900"
-          : "border-amber-300 bg-amber-50 text-amber-900",
+          ? "border-danger/25 bg-danger-soft text-danger"
+          : "border-warning/25 bg-warning-soft text-warning",
       )}
       data-registration={state}
     >

@@ -291,7 +291,7 @@ export function RescheduleDialog({
                 <span
                   className={cn(
                     "text-sm font-medium",
-                    total === expected ? "text-emerald-700" : "text-rose-700",
+                    total === expected ? "text-success" : "text-danger",
                   )}
                   data-testid="amendment-total"
                 >

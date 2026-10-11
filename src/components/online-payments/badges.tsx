@@ -4,15 +4,15 @@ import type { OnlinePaymentStatus } from "@/lib/online-payments";
 import { cn } from "@/lib/utils";
 
 const badge =
-  "inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium whitespace-nowrap";
+  "inline-flex h-5.5 items-center rounded-full border px-2.5 text-xs font-medium whitespace-nowrap";
 
 const statusClasses: Record<OnlinePaymentStatus, string> = {
-  created: "border-zinc-200 bg-zinc-50 text-zinc-600",
-  pending: "border-amber-300 bg-amber-50 text-amber-900",
-  paid: "border-emerald-300 bg-emerald-50 text-emerald-900",
-  failed: "border-red-300 bg-red-50 text-red-900",
-  expired: "border-zinc-300 bg-zinc-100 text-zinc-700",
-  refunded: "border-sky-200 bg-sky-50 text-sky-900",
+  created: "border-border bg-muted text-muted-foreground",
+  pending: "border-warning/25 bg-warning-soft text-warning",
+  paid: "border-success/25 bg-success-soft text-success",
+  failed: "border-danger/25 bg-danger-soft text-danger",
+  expired: "border-border bg-muted text-muted-foreground",
+  refunded: "border-info/25 bg-info-soft text-info",
 };
 
 export function OnlinePaymentStatusBadge({ status }: { status: OnlinePaymentStatus }) {
@@ -24,10 +24,7 @@ export function OnlinePaymentStatusBadge({ status }: { status: OnlinePaymentStat
 export function CardsMark({ className }: { className?: string }) {
   const t = useTranslations("portal.pay");
   return (
-    <span
-      className={cn(badge, "border-emerald-700 bg-emerald-700 text-white", className)}
-      dir="ltr"
-    >
+    <span className={cn(badge, "border-success bg-success-vivid text-white", className)} dir="ltr">
       {t("cards")}
     </span>
   );
@@ -37,7 +34,7 @@ export function CardsMark({ className }: { className?: string }) {
 export function TestModeBadge() {
   const t = useTranslations("onlinePayments");
   return (
-    <span className={cn(badge, "border-violet-300 bg-violet-50 text-violet-900")}>
+    <span className={cn(badge, "border-purple/25 bg-purple-soft text-purple")}>
       {t("testMode")}
     </span>
   );

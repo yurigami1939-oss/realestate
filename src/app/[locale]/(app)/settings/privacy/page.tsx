@@ -41,7 +41,7 @@ export default async function PrivacySettingsPage({
 
       <section className="space-y-4" data-testid="processing-register">
         <div className="space-y-1">
-          <h2 className="text-lg font-semibold">{t("register.title")}</h2>
+          <h2 className="text-title">{t("register.title")}</h2>
           <p className="text-sm text-muted-foreground">
             {t("register.description", { company: company.legalName ?? company.name })}
           </p>
@@ -49,9 +49,7 @@ export default async function PrivacySettingsPage({
         {processingActivities.map((activity) => (
           <Card key={activity.key} data-activity={activity.key}>
             <CardHeader>
-              <CardTitle className="text-base">
-                {t(`register.activities.${activity.key}.name`)}
-              </CardTitle>
+              <CardTitle>{t(`register.activities.${activity.key}.name`)}</CardTitle>
             </CardHeader>
             <CardContent>
               <dl className="grid gap-x-6 gap-y-2 text-sm sm:grid-cols-[12rem_1fr]">

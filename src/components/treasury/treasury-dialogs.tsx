@@ -481,7 +481,7 @@ export function CashCountDialog({
         dir="ltr"
       />
       {difference !== null && difference !== 0n ? (
-        <p className="text-sm text-amber-800" data-testid="cash-count-difference">
+        <p className="text-sm text-warning" data-testid="cash-count-difference">
           {t("counts.difference", { amount: formatDZD(difference, locale) })}
         </p>
       ) : null}

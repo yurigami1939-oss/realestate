@@ -53,7 +53,7 @@ export function SignDocument({
   if (signedAt) {
     return (
       <span
-        className="inline-flex items-center gap-1 text-xs text-emerald-800"
+        className="inline-flex items-center gap-1 text-xs text-success"
         data-signed={documentType}
       >
         <BadgeCheck className="size-3.5" aria-hidden />

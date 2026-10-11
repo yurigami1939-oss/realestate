@@ -29,14 +29,14 @@ export default async function PortalVisitorsPage({
     <div className="space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="space-y-1">
-          <h1 className="text-xl font-semibold">{t("portalTitle")}</h1>
+          <h1 className="text-large-title">{t("portalTitle")}</h1>
           <p className="text-sm text-muted-foreground">{t("portalDescription")}</p>
         </div>
         {units.length > 0 ? <AnnounceVisitorDialog units={units} today={today} /> : null}
       </div>
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">{t("mine")}</CardTitle>
+          <CardTitle>{t("mine")}</CardTitle>
         </CardHeader>
         <CardContent>
           {passes.length === 0 ? (
