@@ -14,6 +14,7 @@ import {
   user,
 } from "@/db/schema";
 import { withTenant } from "@/db/tenant";
+import { formatForeign, rateText } from "@/lib/currencies";
 import { formatDate } from "@/lib/dates";
 import { paymentMethodLabels } from "@/pdf/payment-methods";
 import { type ReceiptData, receiptHtml } from "@/pdf/receipt";
@@ -94,6 +95,13 @@ export async function loadReceiptData(
         }`,
       },
       amount: p.amount,
+      foreign:
+        p.currency && p.currencyAmount
+          ? {
+              fr: `${formatForeign(p.currencyAmount, p.currency, "fr")} (${rateText(p.amount, p.currencyAmount, p.currency, "fr")})`,
+              ar: `${formatForeign(p.currencyAmount, p.currency, "ar")} (${rateText(p.amount, p.currencyAmount, p.currency, "ar")})`,
+            }
+          : null,
       cashier: row.cashier,
       online: p.method === "card",
     },

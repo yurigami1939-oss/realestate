@@ -25,6 +25,8 @@ export type ReceiptData = {
   reference: { fr: string; ar: string };
   method: { fr: string; ar: string };
   amount: Centimes;
+  /** A transfer from abroad: the amount in its currency and the rate credited. */
+  foreign?: { fr: string; ar: string } | null;
   cashier: string;
   /** Paid online by card (SATIM): no cashier signs. */
   online?: boolean;
@@ -129,6 +131,9 @@ export function ReceiptTemplate({ data }: { data: ReceiptData }) {
         <Row fr="Reçu de" ar="استلمنا من" value={data.payer} />
         <Row fr="Objet" ar="الموضوع" value={data.reference} />
         <Row fr="Mode de paiement" ar="طريقة الدفع" value={data.method} />
+        {data.foreign ? (
+          <Row fr="Montant en devises" ar="المبلغ بالعملة الأجنبية" value={data.foreign} />
+        ) : null}
       </div>
 
       <div className="amount">{formatDZD(data.amount, "fr")}</div>

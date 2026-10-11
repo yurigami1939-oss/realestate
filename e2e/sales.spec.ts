@@ -85,6 +85,15 @@ test.describe("commercial and cashier", () => {
     expect(pdf.headers()["content-type"]).toBe("application/pdf");
     expect((await pdf.body()).subarray(0, 5).toString()).toBe("%PDF-");
 
+    // A transfer from abroad is recorded with its currency and the amount sent.
+    await cashier.getByRole("button", { name: "Enregistrer un paiement" }).click();
+    const transfer = cashier.getByRole("dialog");
+    await expect(transfer.getByLabel("Montant en devise")).toHaveCount(0);
+    await transfer.getByRole("combobox", { name: "Mode de paiement" }).click();
+    await cashier.getByRole("option", { name: "Virement", exact: true }).click();
+    await expect(transfer.getByLabel("Montant en devise")).toBeVisible();
+    await cashier.keyboard.press("Escape");
+
     // The cashier also follows the overdue installments of every sale.
     await cashier.goto("/fr/sales/overdue");
     await expect(cashier.getByTestId("overdue-table")).toContainText("Meziane Houda");
@@ -101,6 +110,10 @@ test.describe("directrice commerciale", () => {
     await expect(page.getByTestId("vsp-signed")).toContainText(/^VSP VSP-\d{4}-\d{6} signée le/);
     await expect(page.getByTestId("sale-payment-calls")).toContainText("Achèvement du gros œuvre");
     await expect(page.getByTestId("bank-loans")).toContainText("CNEP-Banque");
+    // Part of the signing came by transfer from France, in euros, with the rate credited.
+    await expect(page.getByTestId("sale-payments").locator('[data-foreign="EUR"]')).toContainText(
+      /1 EUR = 147,25\d{2} DA/,
+    );
     await expect(page.getByTestId("sale-commission")).toContainText("1,5");
   });
 

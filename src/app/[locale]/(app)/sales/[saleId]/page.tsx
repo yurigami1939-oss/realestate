@@ -28,6 +28,7 @@ import {
 import { Link } from "@/i18n/navigation";
 import { toLocale } from "@/i18n/locales";
 import { certificateKinds } from "@/lib/certificates";
+import { formatForeign, rateText } from "@/lib/currencies";
 import { addDays, formatDate, formatDateTime, todayInAlgiers } from "@/lib/dates";
 import { formatDZD, formatPercentInput, toDecimalString } from "@/lib/money";
 import { formatShare } from "@/lib/payment-plans";
@@ -472,6 +473,17 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
                             dir="ltr"
                           >
                             {money(p.amount)}
+                            {p.currency && p.currencyAmount ? (
+                              <span
+                                className="block text-xs text-muted-foreground"
+                                data-foreign={p.currency}
+                              >
+                                {formatForeign(p.currencyAmount, p.currency, locale)}
+                                <span className="block">
+                                  {rateText(p.amount, p.currencyAmount, p.currency, locale)}
+                                </span>
+                              </span>
+                            ) : null}
                           </TableCell>
                           <TableCell className="whitespace-normal">
                             {t(`payments.method.${p.method}`)}

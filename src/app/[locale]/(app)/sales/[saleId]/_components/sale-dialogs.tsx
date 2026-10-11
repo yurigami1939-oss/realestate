@@ -16,6 +16,7 @@ import { TextField } from "@/components/forms/text-field";
 import { useAction } from "@/components/forms/use-action";
 import { Button } from "@/components/ui/button";
 import { formatDZD } from "@/lib/money";
+import { foreignCurrencies } from "@/lib/currencies";
 import { counterPaymentMethods, type FinancingSource } from "@/lib/sales";
 import { issueReminderAction } from "@/server/collections/actions";
 import { issueReminderSchema } from "@/server/collections/schemas";
@@ -72,6 +73,8 @@ export function RecordPaymentDialog({
       notes: "",
       accountId: "",
       financingSource: "",
+      currency: "",
+      currencyAmount: "",
     },
   });
   const method = useWatch({ control: form.control, name: "method" });
@@ -113,6 +116,13 @@ export function RecordPaymentDialog({
           name="method"
           label={t("fields.method")}
           options={counterPaymentMethods.map((m) => ({ value: m, label: t(`method.${m}`) }))}
+          onValueChange={(value) => {
+            // Only a transfer comes from abroad in a currency.
+            if (value !== "bank_transfer") {
+              form.setValue("currency", "");
+              form.setValue("currencyAmount", "");
+            }
+          }}
         />
         <TextField
           control={form.control}
@@ -132,6 +142,25 @@ export function RecordPaymentDialog({
         />
         <TextField control={form.control} name="bank" label={t("fields.bank")} />
       </div>
+      {method === "bank_transfer" ? (
+        <div className="grid gap-4 sm:grid-cols-2">
+          <SelectField
+            control={form.control}
+            name="currency"
+            label={t("fields.currency")}
+            emptyLabel={t("dinars")}
+            options={foreignCurrencies.map((c) => ({ value: c, label: c }))}
+          />
+          <TextField
+            control={form.control}
+            name="currencyAmount"
+            label={t("fields.currencyAmount")}
+            description={t("currencyHelp")}
+            inputMode="decimal"
+            dir="ltr"
+          />
+        </div>
+      ) : null}
       <TextField control={form.control} name="payerName" label={t("fields.payerName")} />
       <AccountField control={form.control} name="accountId" method={method} accounts={accounts} />
       {sources.length > 0 ? (

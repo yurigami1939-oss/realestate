@@ -7,6 +7,7 @@ import type { Tx } from "@/db/client";
 import { installment, payment, receipt, type reservation } from "@/db/schema";
 import { withTenant } from "@/db/tenant";
 import { enqueueInTx } from "@/jobs/enqueue";
+import type { ForeignCurrency } from "@/lib/currencies";
 import { type CalendarDate, todayInAlgiers } from "@/lib/dates";
 import type { Centimes } from "@/lib/money";
 import { AppError } from "@/lib/result";
@@ -58,6 +59,9 @@ export type SalePaymentEntry = {
   accountId?: string | null;
   /** Where the money comes from (financing plan); absent = derived from the method. */
   financingSource?: FinancingSource | null;
+  /** A transfer from abroad: its currency and amount in hundredths of it. */
+  currency?: ForeignCurrency | null;
+  currencyAmount?: bigint | null;
 };
 
 /**
@@ -114,6 +118,8 @@ export async function insertSalePayment(
       notes: input.notes,
       accountId: await resolvePaymentAccount(tx, input.method, input.accountId),
       financingSource: input.financingSource ?? null,
+      currency: input.currency ?? null,
+      currencyAmount: input.currency ? (input.currencyAmount ?? null) : null,
       recordedBy: actor.userId,
     })
     .returning({ id: payment.id });
@@ -143,6 +149,9 @@ export async function insertSalePayment(
       method: input.method,
       paidOn: input.paidOn,
       reference: input.reference,
+      ...(input.currency
+        ? { currency: input.currency, currencyAmount: input.currencyAmount ?? null }
+        : {}),
       allocation,
       ...audit,
     },

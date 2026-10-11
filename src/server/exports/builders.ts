@@ -96,6 +96,9 @@ async function collections(
     clearedOn: string | null;
     reason: string | null;
     recordedBy: string;
+    /** A transfer from abroad: its currency and amount in hundredths of it. */
+    currency?: string | null;
+    currencyAmount?: bigint | null;
   };
   const lines: Line[] = [];
   await withTenant(ctx, async (tx) => {
@@ -117,6 +120,8 @@ async function collections(
           clearedOn: payment.chequeClearedOn,
           reason: payment.cancellationReason,
           recordedBy: user.name,
+          currency: payment.currency,
+          currencyAmount: payment.currencyAmount,
         })
         .from(payment)
         .leftJoin(receipt, eq(receipt.paymentId, payment.id))
@@ -249,6 +254,8 @@ async function collections(
           { header: t("exports.columns.clearedOn"), kind: "date" },
           { header: t("exports.columns.cancellation"), width: 30 },
           { header: t("exports.columns.recordedBy"), width: 22 },
+          { header: t("exports.columns.currency"), width: 10 },
+          { header: t("exports.columns.currencyAmount"), kind: "money" },
         ],
         rows: lines.map((l) => [
           l.paidOn,
@@ -264,6 +271,8 @@ async function collections(
           l.clearedOn,
           l.reason,
           l.recordedBy,
+          l.currency ?? null,
+          l.currencyAmount ?? null,
         ]),
       },
       {

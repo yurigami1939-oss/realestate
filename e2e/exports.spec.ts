@@ -25,6 +25,8 @@ test.describe("exports Excel", () => {
     expect(entries?.data[0]).toContain("N° de reçu");
     expect(entries?.data.length).toBeGreaterThan(10);
     expect(entries?.data.slice(1).every((row) => typeof row[8] === "number")).toBe(true);
+    // The transfer from France keeps its currency beside the dinars credited.
+    expect(entries?.data.some((row) => row.includes("EUR"))).toBe(true);
     expect(summary?.data.at(-1)?.[0]).toBe("Total");
 
     // The sales list's own button keeps its filters.

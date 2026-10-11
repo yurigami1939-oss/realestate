@@ -547,6 +547,13 @@
       "when": 1791739224029,
       "tag": "0077_acquisition_costs",
       "breakpoints": true
+    },
+    {
+      "idx": 78,
+      "version": "7",
+      "when": 1791741694214,
+      "tag": "0078_foreign_currency_payments",
+      "breakpoints": true
     }
   ]
 }

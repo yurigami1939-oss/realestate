@@ -36,10 +36,14 @@ export function toDecimalString(amount: Centimes): string {
  * is missing from many fonts, including the one embedded in PDFs.
  */
 export function formatDZD(amount: Centimes, locale: MoneyLocale = "fr"): string {
-  const number = formatters[locale]
+  return `${formatDecimal(amount, locale)}\u00a0${CURRENCY_SYMBOL[locale]}`;
+}
+
+/** An amount in hundredths written like the dinars, without a currency (« 1 250 000,50 »). */
+export function formatDecimal(amount: bigint, locale: MoneyLocale = "fr"): string {
+  return formatters[locale]
     .format(toDecimalString(amount) as Intl.StringNumericLiteral)
     .replace(/\u202f/g, "\u00a0");
-  return `${number}\u00a0${CURRENCY_SYMBOL[locale]}`;
 }
 
 /**

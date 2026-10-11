@@ -33,6 +33,8 @@ export async function listSalePayments(ctx: TenantCtx, reservationId: string) {
         cancellationReason: payment.cancellationReason,
         imported: payment.imported,
         legacyReceipt: payment.legacyReceipt,
+        currency: payment.currency,
+        currencyAmount: payment.currencyAmount,
         recordedByName: recorder.name,
         receiptId: receipt.id,
         receiptNumber: receipt.number,

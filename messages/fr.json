@@ -1545,7 +1545,9 @@
       "reference": "N° de chèque / référence",
       "bank": "Banque",
       "payerName": "Versé par",
-      "notes": "Remarques"
+      "notes": "Remarques",
+      "currency": "Devise (virement de l'étranger)",
+      "currencyAmount": "Montant en devise"
     },
     "method": {
       "cash": "Espèces",
@@ -1583,10 +1585,14 @@
       "saleClosed": "Cette vente n'accepte plus de paiements.",
       "alreadyCancelled": "Ce paiement est déjà annulé.",
       "notPendingCheque": "Ce paiement n'est pas un chèque en attente d'encaissement.",
-      "beforePayment": "L'encaissement ne peut précéder la remise du chèque."
+      "beforePayment": "L'encaissement ne peut précéder la remise du chèque.",
+      "currencyTransfer": "Un paiement en devises arrive par virement.",
+      "currencyAmount": "Indiquez la devise et le montant envoyé."
     },
     "valid": "Valide",
-    "imported": "Reprise · reçu de l'ancien système"
+    "imported": "Reprise · reçu de l'ancien système",
+    "dinars": "Dinars",
+    "currencyHelp": "Le montant envoyé ; le montant en dinars est celui crédité par la banque."
   },
   "paymentCalls": {
     "title": "Appels de fonds",
@@ -4216,7 +4222,9 @@
       "paidOn": "Payée le",
       "in": "Entrée",
       "out": "Sortie",
-      "balance": "Solde"
+      "balance": "Solde",
+      "currency": "Devise",
+      "currencyAmount": "Montant en devise"
     },
     "errors": {
       "tooMany": "Trop de lignes pour un export : réduisez les filtres.",

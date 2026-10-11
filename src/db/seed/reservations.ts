@@ -338,6 +338,8 @@ export async function seedSales(actors: Actors, ids: Ids) {
     daysAgo: number,
     payerName: string,
     method: "cash" | "cheque" | "bank_transfer" | "bank_loan" = "cash",
+    /** A transfer from abroad: its currency and the amount sent, in hundredths. */
+    foreign?: { currency: "EUR"; amount: Centimes },
   ) =>
     recordPayment(
       cashier,
@@ -349,6 +351,8 @@ export async function seedSales(actors: Actors, ids: Ids) {
         reference: method === "cheque" ? "0045871" : method === "bank_transfer" ? "VIR-77120" : "",
         bank: method === "cheque" ? "BNA, agence Kouba" : "",
         payerName,
+        currency: foreign?.currency ?? "",
+        currencyAmount: foreign ? asInput(foreign.amount) : "",
       }),
     );
 
@@ -369,7 +373,12 @@ export async function seedSales(actors: Actors, ids: Ids) {
   });
   const signing = karimaSale.installments[0]?.amount ?? 0n;
   await pay(karimaSale.id, 200_000_000n, 95, "Karima Boudiaf");
-  await pay(karimaSale.id, signing - 200_000_000n, 75, "Karima Boudiaf", "bank_transfer");
+  // The rest of the signing came by transfer from France, in euros (credited at 147,25 DA).
+  const fromFrance = signing - 200_000_000n;
+  await pay(karimaSale.id, fromFrance, 75, "Karima Boudiaf", "bank_transfer", {
+    currency: "EUR",
+    amount: (fromFrance * 10_000n) / 1_472_500n,
+  });
   await recordSale(
     manager,
     recordSaleSchema.parse({

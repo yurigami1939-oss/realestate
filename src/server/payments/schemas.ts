@@ -1,8 +1,9 @@
 /** Isomorphic: shared by the payment forms and actions. */
 import { z } from "zod";
 
+import { foreignCurrencies } from "@/lib/currencies";
 import { counterPaymentMethods, financingSources } from "@/lib/sales";
-import { dateText, moneyText, optionalText, requiredText } from "@/lib/zod";
+import { dateText, moneyText, optionalMoneyText, optionalText, requiredText } from "@/lib/zod";
 
 export const recordPaymentSchema = z
   .object({
@@ -24,11 +25,29 @@ export const recordPaymentSchema = z
       .or(z.literal(""))
       .optional()
       .transform((v) => v || null),
+    /** A transfer from abroad: its currency and amount (`amount` = the dinars credited). */
+    currency: z
+      .enum(foreignCurrencies)
+      .or(z.literal(""))
+      .optional()
+      .transform((v) => v || null),
+    currencyAmount: optionalMoneyText(),
   })
   .refine((v) => v.method !== "cheque" || (v.reference !== null && v.bank !== null), {
     path: ["reference"],
     message: "payments.errors.chequeDetails",
-  });
+  })
+  .refine((v) => v.currency === null || v.method === "bank_transfer", {
+    path: ["currency"],
+    message: "payments.errors.currencyTransfer",
+  })
+  .refine(
+    (v) =>
+      v.currency === null
+        ? v.currencyAmount === null
+        : v.currencyAmount !== null && v.currencyAmount > 0n,
+    { path: ["currencyAmount"], message: "payments.errors.currencyAmount" },
+  );
 
 export const cancelPaymentSchema = z.object({
   paymentId: z.uuid(),

@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import {
+  bigint,
   boolean,
   check,
   date,
@@ -17,6 +18,7 @@ import {
 } from "drizzle-orm/pg-core";
 
 import type { TaxSettings } from "../../lib/accounting";
+import { foreignCurrencies } from "../../lib/currencies";
 import type {
   StoredAcquisitionCosts,
   StoredAcquisitionCostSettings,
@@ -781,6 +783,8 @@ export const receiptStatus = pgEnum("receipt_status", ["issued", "cancelled"]);
  * installments by the derived FIFO statement (src/lib/statement.ts), never stored.
  */
 export const financingSource = pgEnum("financing_source", financingSources);
+/** A payment from abroad: the currency of the transfer (CLAUDE.md §7 Payments). */
+export const foreignCurrency = pgEnum("foreign_currency", foreignCurrencies);
 
 export const payment = pgTable(
   "payment",
@@ -807,6 +811,12 @@ export const payment = pgTable(
     accountId: uuid(),
     /** Where the money comes from (financing plan); null = derived from the method. */
     financingSource: financingSource(),
+    /**
+     * A transfer from abroad: its currency and amount in hundredths of that currency; `amount`
+     * stays the dinars the bank credited (the rate is derived).
+     */
+    currency: foreignCurrency(),
+    currencyAmount: bigint({ mode: "bigint" }),
     status: paymentStatus().notNull().default("valid"),
     cancelledAt: instant(),
     cancelledBy: userRef(),
@@ -830,6 +840,10 @@ export const payment = pgTable(
     index().on(t.organizationId, t.reservationId),
     index().on(t.organizationId, t.paidOn),
     check("payment_amount", sql`${t.amount} > 0`),
+    check(
+      "payment_currency",
+      sql`(${t.currency} is null and ${t.currencyAmount} is null) or (${t.currency} is not null and ${t.currencyAmount} > 0 and ${t.method} = 'bank_transfer')`,
+    ),
     check(
       "payment_cancellation",
       sql`(${t.status} = 'cancelled') = (${t.cancelledAt} is not null and ${t.cancellationReason} is not null)`,
