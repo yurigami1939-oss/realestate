@@ -67,6 +67,7 @@ export async function loadUnitSheetData(
       planName: row.sheet.planName,
       lines: row.sheet.lines.map((l) => ({ ...l, amount: BigInt(l.amount) })),
       plan,
+      virtualTourUrl: row.sheet.virtualTourUrl,
     },
   };
 }

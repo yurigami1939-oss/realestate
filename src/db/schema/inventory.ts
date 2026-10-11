@@ -79,6 +79,8 @@ export const project = pgTable(
     launchedOn: date({ mode: "string" }),
     plannedDeliveryOn: date({ mode: "string" }),
     description: text(),
+    /** A virtual tour of the project (Matterport, Kuula, a 360° video…): an https link. */
+    virtualTourUrl: text(),
     ...timestamps(),
     ...softDelete(),
   },
@@ -142,6 +144,8 @@ export const unit = pgTable(
     status: unitStatus().notNull().default("available"),
     floorPlanFileId: uuid(),
     notes: text(),
+    /** The unit's own virtual tour (else its project's): an https link. */
+    virtualTourUrl: text(),
     ...timestamps(),
     ...softDelete(),
   },
@@ -296,6 +300,8 @@ export const unitSheet = pgTable(
     listPrice: money(),
     planName: text(),
     lines: jsonb().$type<UnitSheetLine[]>().notNull(),
+    /** The virtual tour printed as a QR code (the unit's, else its project's). */
+    virtualTourUrl: text(),
     createdBy: userRef().notNull(),
     createdAt: createdAt(),
     pdfFileId: uuid(),

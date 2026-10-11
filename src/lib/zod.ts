@@ -14,6 +14,18 @@ export const requiredText = (max = 200) =>
   z.string().trim().min(1, "validation.required").max(max, "validation.tooLong");
 
 /** "" → null. */
+/** An optional https link ("" → null): a virtual tour, a page of the provider's. */
+export const optionalHttpsUrl = (max = 500) =>
+  optionalText(max).refine((v) => {
+    if (v === null) return true;
+    try {
+      const url = new URL(v);
+      return url.protocol === "https:" && !url.username && !url.password;
+    } catch {
+      return false;
+    }
+  }, "validation.httpsUrl");
+
 export const optionalText = (max = 500) =>
   z
     .string()

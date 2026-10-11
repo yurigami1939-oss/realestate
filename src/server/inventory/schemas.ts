@@ -16,6 +16,7 @@ import {
   optionalAreaText,
   optionalDateText,
   optionalEnum,
+  optionalHttpsUrl,
   optionalIntText,
   optionalText,
   requiredText,
@@ -42,6 +43,8 @@ export const projectFields = z.object({
   launchedOn: optionalDateText(),
   plannedDeliveryOn: optionalDateText(),
   description: optionalText(2000),
+  /** A virtual tour of the project (Matterport, Kuula, a 360° video…), https. */
+  virtualTourUrl: optionalHttpsUrl(),
 });
 
 export const createProjectSchema = projectFields;
@@ -83,6 +86,8 @@ export const unitFields = z.object({
   orientations: z.array(z.enum(orientations)).max(orientations.length),
   share: optionalIntText(1, 1_000_000),
   notes: optionalText(2000),
+  /** The unit's own virtual tour (else its project's), https. */
+  virtualTourUrl: optionalHttpsUrl(),
 });
 
 export const createUnitSchema = unitFields;

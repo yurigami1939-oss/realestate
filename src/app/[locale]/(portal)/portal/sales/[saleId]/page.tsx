@@ -9,6 +9,7 @@ import { ReportCard } from "@/components/construction/report-card";
 import { PortalStatementButton } from "@/components/certificates/portal-statement-button";
 import { PortalRequestDialog } from "@/components/portal/request-dialog";
 import { PortalClaimDialog, WarrantyClaimBadge } from "@/components/handovers/warranty-dialogs";
+import { VirtualTourLink } from "@/components/inventory/virtual-tour-link";
 import { PortalDocument } from "@/components/portal/portal-document";
 import { SignDocument } from "@/components/portal/sign-document";
 import { PendingDocumentsRefresher } from "@/components/sales/document-pdf";
@@ -91,6 +92,9 @@ export default async function PortalSalePage({
           </h1>
           <SaleStatusBadge status={sale.status} />
         </div>
+        {(sale.unitTour ?? sale.projectTour) ? (
+          <VirtualTourLink url={sale.unitTour ?? sale.projectTour ?? ""} />
+        ) : null}
         <p className="text-sm text-muted-foreground">
           {[
             sale.buildingName,

@@ -18,6 +18,7 @@ import { PageHeader } from "@/components/app-shell/page-header";
 import { ExportButton } from "@/components/exports/export-button";
 import { ConfirmAction } from "@/components/forms/confirm-action";
 import { ProjectStatusBadge, StatsBar } from "@/components/inventory/status";
+import { VirtualTourLink } from "@/components/inventory/virtual-tour-link";
 import { ProjectDocuments } from "@/components/obligations/project-documents";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -257,6 +258,7 @@ function ProjectInfo({ project }: { project: ProjectDetail }) {
         {project.description ? (
           <p className="whitespace-pre-line text-muted-foreground">{project.description}</p>
         ) : null}
+        {project.virtualTourUrl ? <VirtualTourLink url={project.virtualTourUrl} /> : null}
       </CardContent>
     </Card>
   );

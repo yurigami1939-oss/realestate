@@ -56,6 +56,7 @@ export default async function EditUnitPage({
           orientations: unit.orientations,
           share: text(unit.share),
           notes: text(unit.notes),
+          virtualTourUrl: text(unit.virtualTourUrl),
         }}
       />
     </div>

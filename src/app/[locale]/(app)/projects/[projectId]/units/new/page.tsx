@@ -59,6 +59,7 @@ export default async function NewUnitPage({
           orientations: [],
           share: "",
           notes: "",
+          virtualTourUrl: "",
         }}
       />
     </div>

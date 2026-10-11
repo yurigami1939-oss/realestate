@@ -78,7 +78,8 @@
     "nin": "NIN invalide (18 chiffres).",
     "time": "Heure invalide (HH:MM).",
     "accountCode": "Chiffres et lettres uniquement.",
-    "permission": "Droit inconnu."
+    "permission": "Droit inconnu.",
+    "httpsUrl": "Indiquez un lien commençant par https://."
   },
   "auth": {
     "fields": {
@@ -432,7 +433,8 @@
         "plannedDeliveryOn": "Livraison prévue",
         "description": "Description",
         "housingProgram": "Programme",
-        "thirdParty": "Immeuble d'un tiers (géré en syndic, jamais vendu)"
+        "thirdParty": "Immeuble d'un tiers (géré en syndic, jamais vendu)",
+        "virtualTourUrl": "Visite virtuelle (lien https)"
       },
       "thirdParty": "Immeuble d'un tiers",
       "thirdPartyHint": "Immeuble géré en syndic pour le compte de ses copropriétaires : ses lots sont livrés et ne sont jamais mis en vente (ni prix, ni échéancier, ni suivi de chantier).",
@@ -498,7 +500,8 @@
         "share": "Quote-part (tantièmes)",
         "notes": "Notes",
         "listPrice": "Prix de vente",
-        "status": "Statut"
+        "status": "Statut",
+        "virtualTourUrl": "Visite virtuelle du lot (lien https, sinon celle du projet)"
       },
       "block": "Bloquer",
       "unblock": "Débloquer",
@@ -604,7 +607,8 @@
     "housingProgram": {
       "free": "Promotion libre",
       "lpa": "Logement promotionnel aidé (LPA)"
-    }
+    },
+    "virtualTour": "Visite virtuelle"
   },
   "crm": {
     "source": {

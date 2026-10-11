@@ -39,6 +39,7 @@ export const emptyProject: ProjectFormValues = {
   launchedOn: "",
   plannedDeliveryOn: "",
   description: "",
+  virtualTourUrl: "",
 };
 
 /** Create (no `projectId`) or edit a project. */
@@ -189,6 +190,14 @@ export function ProjectForm({
               </>
             )}
             <TextareaField control={form.control} name="description" label={f("description")} />
+            <TextField
+              control={form.control}
+              name="virtualTourUrl"
+              label={f("virtualTourUrl")}
+              type="url"
+              dir="ltr"
+              placeholder="https://"
+            />
             <div className="flex gap-2">
               <Button type="submit" disabled={create.pending || update.pending}>
                 {projectId ? tc("save") : tc("create")}

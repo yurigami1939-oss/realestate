@@ -1,5 +1,7 @@
 import "server-only";
 
+import { renderSVG } from "uqr";
+
 import { formatDate } from "@/lib/dates";
 import type { Orientation, Typology, UnitStatus, UnitType } from "@/lib/inventory";
 import { type Centimes, formatDZD } from "@/lib/money";
@@ -39,6 +41,8 @@ export type UnitSheetData = {
   }[];
   /** Floor plan image as a data URI (none for a PDF plan). */
   plan: string | null;
+  /** The virtual tour, printed with its QR code. */
+  virtualTourUrl: string | null;
 };
 
 const CSS = `
@@ -55,6 +59,9 @@ td.num,th.num{text-align:end;white-space:nowrap}
 .plan{max-width:100%;max-height:300pt;display:block;margin:6pt auto;border:0.75pt solid #d4d4d4}
 h2{font-size:11pt;margin:10pt 0 4pt}
 .note{font-size:8pt;color:#525252}
+.tour{display:flex;gap:10pt;align-items:center;border:0.75pt solid #d4d4d4;border-radius:4pt;padding:6pt;margin:8pt 0}
+.tour img{width:70pt;height:70pt}
+.tour .url{font-size:8pt;word-break:break-all;margin:2pt 0 0}
 `;
 
 const typeLabel: Record<UnitType, [string, string]> = {
@@ -241,6 +248,26 @@ export function UnitSheetTemplate({
             </tbody>
           </table>
         </>
+      ) : null}
+
+      {data.virtualTourUrl ? (
+        <div className="tour" data-virtual-tour="">
+          {/* Static HTML printed by Chromium: the QR code as an inline SVG. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={`data:image/svg+xml;utf8,${encodeURIComponent(renderSVG(data.virtualTourUrl))}`}
+            alt=""
+          />
+          <div>
+            <b>Visite virtuelle · الزيارة الافتراضية</b>
+            <p className="note">
+              Scannez le code ou ouvrez le lien · <span lang="ar">امسح الرمز أو افتح الرابط</span>
+            </p>
+            <p className="url" dir="ltr">
+              {data.virtualTourUrl}
+            </p>
+          </div>
+        </div>
       ) : null}
 
       <p className="note">

@@ -157,6 +157,14 @@ export function UnitForm({
               dir="ltr"
             />
             <TextareaField control={form.control} name="notes" label={f("notes")} />
+            <TextField
+              control={form.control}
+              name="virtualTourUrl"
+              label={f("virtualTourUrl")}
+              type="url"
+              dir="ltr"
+              placeholder="https://"
+            />
             <div className="flex gap-2">
               <Button type="submit" disabled={create.pending || update.pending}>
                 {unitId ? tc("save") : tc("create")}

@@ -50,6 +50,7 @@ export default async function EditProjectPage({
           launchedOn: text(project.launchedOn),
           plannedDeliveryOn: text(project.plannedDeliveryOn),
           description: text(project.description),
+          virtualTourUrl: text(project.virtualTourUrl),
         }}
       />
     </div>

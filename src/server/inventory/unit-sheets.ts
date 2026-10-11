@@ -2,7 +2,7 @@ import "server-only";
 
 import { and, desc, eq, isNull } from "drizzle-orm";
 
-import { unit, unitSheet, user } from "@/db/schema";
+import { project, unit, unitSheet, user } from "@/db/schema";
 import { withTenant } from "@/db/tenant";
 import { enqueueInTx } from "@/jobs/enqueue";
 import { todayInAlgiers } from "@/lib/dates";
@@ -16,8 +16,9 @@ import { assertSaleUnit } from "./third-party";
 
 /**
  * Fiche du lot for a prospect (`inventory:read`, CLAUDE.md §7 Inventory): the unit with its
- * asking price and the project's default payment plan as today. The same day's sheet is
- * reused while the price and the status are unchanged; else a new one is rendered.
+ * asking price, the project's default payment plan as today and its virtual tour. The same
+ * day's sheet is reused while the price, the status and the tour are unchanged; else a new one
+ * is rendered.
  */
 export async function issueUnitSheet(ctx: TenantCtx, input: { unitId: string }) {
   assertCan(ctx, "inventory:read");
@@ -30,22 +31,32 @@ export async function issueUnitSheet(ctx: TenantCtx, input: { unitId: string }) 
         projectId: unit.projectId,
         status: unit.status,
         listPrice: unit.listPrice,
+        unitTour: unit.virtualTourUrl,
+        projectTour: project.virtualTourUrl,
       })
       .from(unit)
+      .innerJoin(project, eq(project.id, unit.projectId))
       .where(and(eq(unit.id, input.unitId), isNull(unit.deletedAt)));
     if (!target) throw new AppError("NOT_FOUND");
+    const virtualTourUrl = target.unitTour ?? target.projectTour;
     await assertSaleUnit(tx, target.id);
     const [latest] = await tx
       .select({
         id: unitSheet.id,
         status: unitSheet.status,
         listPrice: unitSheet.listPrice,
+        virtualTourUrl: unitSheet.virtualTourUrl,
       })
       .from(unitSheet)
       .where(and(eq(unitSheet.unitId, target.id), eq(unitSheet.issuedOn, today)))
       .orderBy(desc(unitSheet.createdAt))
       .limit(1);
-    if (latest && latest.status === target.status && latest.listPrice === target.listPrice) {
+    if (
+      latest &&
+      latest.status === target.status &&
+      latest.listPrice === target.listPrice &&
+      latest.virtualTourUrl === virtualTourUrl
+    ) {
       return { id: latest.id, reused: true };
     }
 
@@ -72,6 +83,7 @@ export async function issueUnitSheet(ctx: TenantCtx, input: { unitId: string }) 
         listPrice: target.listPrice,
         planName: plan?.name ?? null,
         lines,
+        virtualTourUrl,
         createdBy: ctx.userId,
       })
       .returning({ id: unitSheet.id });

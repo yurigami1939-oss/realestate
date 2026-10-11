@@ -18,6 +18,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { UnitSheetsCard } from "@/components/inventory/unit-sheets";
+import { VirtualTourLink } from "@/components/inventory/virtual-tour-link";
 import { Link } from "@/i18n/navigation";
 import { toLocale } from "@/i18n/locales";
 import { formatDate, formatDateTime } from "@/lib/dates";
@@ -152,6 +153,13 @@ export default async function UnitPage({
               </CardContent>
             </Card>
           )}
+          {unit.virtualTour ? (
+            <Card>
+              <CardContent>
+                <VirtualTourLink url={unit.virtualTour} />
+              </CardContent>
+            </Card>
+          ) : null}
           {lease ? (
             <Card data-testid="unit-lease">
               <CardHeader>

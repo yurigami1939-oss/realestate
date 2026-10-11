@@ -133,6 +133,8 @@ export async function getPortalSale(ctx: PortalCtx, saleId: string) {
         usableArea: unit.usableArea,
         buildingName: building.name,
         projectName: project.name,
+        unitTour: unit.virtualTourUrl,
+        projectTour: project.virtualTourUrl,
       })
       .from(reservation)
       .innerJoin(unit, eq(unit.id, reservation.unitId))

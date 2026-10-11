@@ -14,9 +14,21 @@ test.describe("sales manager", () => {
     await page.getByLabel("Nom").fill("Résidence du Jardin");
     await page.getByLabel("Code", { exact: true }).fill("jard");
     await page.getByLabel("Commune").fill("Chéraga");
+    await page
+      .getByLabel("Visite virtuelle (lien https)")
+      .fill("http://visite.example.test/jardin");
+    await page.getByRole("button", { name: "Créer" }).click();
+    await expect(page.getByText("Indiquez un lien commençant par https://.")).toBeVisible();
+    await page
+      .getByLabel("Visite virtuelle (lien https)")
+      .fill("https://visite.example.test/jardin");
     await page.getByRole("button", { name: "Créer" }).click();
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("Résidence du Jardin");
     await expect(page.getByText("JARD", { exact: true })).toBeVisible();
+    await expect(page.getByTestId("virtual-tour")).toHaveAttribute(
+      "href",
+      "https://visite.example.test/jardin",
+    );
 
     // Building
     await page.getByRole("button", { name: "Ajouter un bâtiment" }).click();
@@ -100,6 +112,10 @@ test.describe("commercial", () => {
     await page.getByRole("link", { name: "Résidence Les Oliviers" }).click();
     await expect(page.getByRole("link", { name: "Modifier le projet" })).toHaveCount(0);
     await expect(page.getByRole("button", { name: "Ajouter un bâtiment" })).toHaveCount(0);
+    await expect(page.getByTestId("virtual-tour")).toHaveAttribute(
+      "href",
+      "https://visite.example.test/les-oliviers",
+    );
 
     await page.getByRole("link", { name: "Grilles de prix" }).click();
     await expect(page.getByRole("row")).toHaveCount(3);
@@ -126,6 +142,8 @@ test.describe("commercial", () => {
     ).toHaveCount(0);
     await expect(page.getByTestId("floor-plan")).toContainText("Aucun plan pour ce lot.");
     await expect(page.getByTestId("upload-unit.floor_plan")).toHaveCount(0);
+    // The project's virtual tour, also printed as a QR code on the fiche du lot.
+    await expect(page.getByTestId("virtual-tour")).toHaveText("Visite virtuelle");
 
     // The fiche du lot to hand to a prospect.
     await page

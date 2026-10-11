@@ -155,6 +155,8 @@ export const demoProjects: ProjectSpec[] = [
       launchedOn: "2024-06-01",
       plannedDeliveryOn: "2027-06-30",
       description: "Deux blocs R+8 avec commerces en pied d'immeuble et parking en sous-sol.",
+      // An example address: a real promoter links its provider's tour (Matterport, Kuula…).
+      virtualTourUrl: "https://visite.example.test/les-oliviers",
     },
     buildings: [
       {

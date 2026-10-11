@@ -196,6 +196,7 @@ export async function getUnit(ctx: TenantCtx, unitId: string) {
         projectCode: project.code,
         projectName: project.name,
         thirdParty: project.thirdParty,
+        projectTour: project.virtualTourUrl,
       })
       .from(unit)
       .innerJoin(building, eq(building.id, unit.buildingId))
@@ -252,6 +253,8 @@ export async function getUnit(ctx: TenantCtx, unitId: string) {
       projectCode: row.projectCode,
       projectName: row.projectName,
       thirdParty: row.thirdParty,
+      /** The unit's virtual tour, else its project's. */
+      virtualTour: row.unit.virtualTourUrl ?? row.projectTour,
       statusHistory,
       priceHistory,
       floorPlan,
