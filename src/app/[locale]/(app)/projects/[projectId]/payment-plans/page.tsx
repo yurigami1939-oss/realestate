@@ -45,8 +45,8 @@ export default async function PaymentPlansPage({
   const project = await getProject(ctx, projectId);
   if (!project) notFound();
   const { milestones, plans } = await getProjectPaymentSetup(ctx, projectId);
-  const editable = can(ctx.roles, "project:update");
-  const validation = can(ctx.roles, "milestone:validate")
+  const editable = can(ctx, "project:update");
+  const validation = can(ctx, "milestone:validate")
     ? {
         today: todayInAlgiers(),
         delayDays: (await getSalesSettings(ctx)).paymentCallDelayDays,

@@ -285,10 +285,10 @@ export async function prepareUnits(
   if (thirdParty && ready.some((r) => r.blocked !== "")) {
     report.at(null, "blocked", "inventory.errors.thirdParty");
   }
-  if (ready.some((r) => r.price !== null) && !can(ctx.roles, "price:update")) {
+  if (ready.some((r) => r.price !== null) && !can(ctx, "price:update")) {
     report.at(null, "price", "errors.FORBIDDEN");
   }
-  if (ready.some((r) => r.blocked !== "") && !can(ctx.roles, "unit:block")) {
+  if (ready.some((r) => r.blocked !== "") && !can(ctx, "unit:block")) {
     report.at(null, "blocked", "errors.FORBIDDEN");
   }
 

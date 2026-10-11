@@ -21,7 +21,7 @@ import { Link } from "@/i18n/navigation";
 import { toLocale } from "@/i18n/locales";
 import { formatDate, todayInAlgiers } from "@/lib/dates";
 import { formatDZD } from "@/lib/money";
-import { can } from "@/lib/permissions";
+import { accessOf, can } from "@/lib/permissions";
 import { requirePermission } from "@/server/auth/page-guard";
 import { getChargesSetup } from "@/server/charges/queries";
 import { getResidence } from "@/server/residences/queries";
@@ -44,13 +44,13 @@ export default async function ResidenceStaffPage({
   if (!home) notFound();
   const staff = await listStaff(ctx, residenceId);
   const today = todayInAlgiers();
-  const categories = can(ctx.roles, "charge:read")
+  const categories = can(ctx, "charge:read")
     ? ((await getChargesSetup(ctx, residenceId, Number(today.slice(0, 4))))?.categories ?? [])
     : [];
   const t = await getTranslations("staff");
   const tr = await getTranslations("residences");
   const moneyLocale = (await getLocale()) === "ar" ? "ar" : "fr";
-  const editable = can(ctx.roles, "staff:update");
+  const editable = can(ctx, "staff:update");
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
@@ -59,7 +59,7 @@ export default async function ResidenceStaffPage({
         description={home.projectName}
         crumbs={[{ label: tr("title"), href: "/residences" }]}
       />
-      <ResidenceNav residenceId={residenceId} current="staff" roles={ctx.roles} />
+      <ResidenceNav residenceId={residenceId} current="staff" roles={accessOf(ctx)} />
       <Card>
         <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
           <CardTitle className="text-base">{t("title")}</CardTitle>

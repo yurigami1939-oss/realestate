@@ -32,7 +32,7 @@ export default async function FollowUpsPage({
   setRequestLocale(toLocale((await params).locale));
   const ctx = await requirePermission("lead:read");
   const raw = (await searchParams).assignee;
-  const managers = can(ctx.roles, "lead:read_all");
+  const managers = can(ctx, "lead:read_all");
   const followUps = await listOpenFollowUps(ctx, {
     assignee: typeof raw === "string" ? raw : undefined,
   });

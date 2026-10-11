@@ -36,7 +36,7 @@ export default async function OverdueChargesPage({
   const trec = await getTranslations("charges.recovery");
   const moneyLocale = (await getLocale()) === "ar" ? "ar" : "fr";
   const money = (v: bigint) => formatDZD(v, moneyLocale);
-  const canRemind = can(ctx.roles, "charge:remind");
+  const canRemind = can(ctx, "charge:remind");
   const today = todayInAlgiers();
 
   return (

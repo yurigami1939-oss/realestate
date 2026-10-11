@@ -17,7 +17,7 @@ import { Link } from "@/i18n/navigation";
 import { toLocale } from "@/i18n/locales";
 import { formatDate, todayInAlgiers } from "@/lib/dates";
 import { formatDZD } from "@/lib/money";
-import { can } from "@/lib/permissions";
+import { accessOf, can } from "@/lib/permissions";
 import { requirePermission } from "@/server/auth/page-guard";
 import { getCallsSetup } from "@/server/charges/queries";
 import { getWorksCallChoices } from "@/server/charges/works";
@@ -44,7 +44,7 @@ export default async function ResidenceCallsPage({
   const tp = await getTranslations("charges.period");
   const tr = await getTranslations("residences");
   const moneyLocale = (await getLocale()) === "ar" ? "ar" : "fr";
-  const canIssue = can(ctx.roles, "charge:create");
+  const canIssue = can(ctx, "charge:create");
   const works = canIssue ? await getWorksCallChoices(ctx, residenceId) : null;
 
   return (
@@ -54,7 +54,7 @@ export default async function ResidenceCallsPage({
         description={setup.residence.projectName}
         crumbs={[{ label: tr("title"), href: "/residences" }]}
       />
-      <ResidenceNav residenceId={residenceId} current="calls" roles={ctx.roles} />
+      <ResidenceNav residenceId={residenceId} current="calls" roles={accessOf(ctx)} />
       <Card>
         <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
           <CardTitle className="text-base">{t("title")}</CardTitle>

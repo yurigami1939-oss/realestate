@@ -41,7 +41,7 @@ export default async function NewQuotationPage({
       : [],
   );
   const setups = await listPaymentSetups(ctx);
-  const canDiscount = can(ctx.roles, "quotation:discount");
+  const canDiscount = can(ctx, "quotation:discount");
   const approvedDiscounts = canDiscount ? [] : await listApprovedDiscounts(ctx, [lead.id]);
   const t = await getTranslations();
 

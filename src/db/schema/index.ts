@@ -19,6 +19,7 @@ export * from "./recovery";
 export * from "./rentals";
 export * from "./privacy";
 export * from "./residences";
+export * from "./roles";
 export * from "./sales";
 export * from "./staff";
 export * from "./suppliers";

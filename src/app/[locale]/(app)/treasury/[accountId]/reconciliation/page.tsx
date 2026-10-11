@@ -56,7 +56,7 @@ export default async function ReconciliationPage({
   const t = await getTranslations("treasury");
   const money = (v: bigint) => formatDZD(v, locale);
   const { account, totals } = data;
-  const canUpdate = can(ctx.roles, "treasury:update");
+  const canUpdate = can(ctx, "treasury:update");
   const stateBadge = {
     matched: (
       <Badge variant="outline" className="text-emerald-800">

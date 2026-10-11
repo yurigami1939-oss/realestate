@@ -13,6 +13,7 @@ import { parseRoles } from "@/lib/permissions";
 import { AppError } from "@/lib/result";
 import { recordAudit } from "@/server/audit/record-audit";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
+import { loadCustomPermissions } from "@/server/organizations/custom-roles";
 import { forSale } from "@/server/inventory/third-party";
 
 import { assertLiveProject } from "./access";
@@ -152,6 +153,7 @@ export async function captureLead(
       userId: key.createdBy,
       orgId,
       roles: parseRoles(membership.role),
+      permissions: await loadCustomPermissions(orgId, key.createdBy),
       locale: "fr",
     };
     let projectId = key.projectId;

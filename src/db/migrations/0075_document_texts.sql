@@ -1,0 +1,1 @@
+ALTER TABLE "organization_setting" ADD COLUMN "document_texts" jsonb DEFAULT '{}'::jsonb NOT NULL;

@@ -334,7 +334,7 @@ export async function listWarrantyContractors(ctx: TenantCtx) {
  * with their unit.
  */
 export async function loadWarrantyTodo(tx: Tx, ctx: TenantCtx) {
-  if (!can(ctx.roles, "handover:update")) return null;
+  if (!can(ctx, "handover:update")) return null;
   const today = todayInAlgiers();
   return tx
     .select({

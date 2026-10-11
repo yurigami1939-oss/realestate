@@ -85,7 +85,7 @@ test.describe("acquéreur et copropriétaire", () => {
     await row.getByRole("button", { name: "Répondre" }).click();
     await cashier.getByRole("dialog").getByLabel("Réponse au client").fill("Prête à l'accueil.");
     await cashier.getByRole("dialog").getByRole("button", { name: "Traitée" }).click();
-    await expect(cashier.getByText("Demande traitée.")).toBeVisible();
+    await expect(cashier.getByText("Demande traitée.", { exact: true })).toBeVisible();
     await desk.close();
 
     await page.reload();

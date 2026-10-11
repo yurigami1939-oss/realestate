@@ -17,7 +17,7 @@ import {
 import { Link } from "@/i18n/navigation";
 import { toLocale } from "@/i18n/locales";
 import { formatDate, todayInAlgiers } from "@/lib/dates";
-import { can } from "@/lib/permissions";
+import { accessOf, can } from "@/lib/permissions";
 import { listAssemblies } from "@/server/assemblies/queries";
 import { requirePermission } from "@/server/auth/page-guard";
 import { getResidence } from "@/server/residences/queries";
@@ -48,14 +48,14 @@ export default async function ResidenceAssembliesPage({
         description={home.projectName}
         crumbs={[{ label: tr("title"), href: "/residences" }]}
       />
-      <ResidenceNav residenceId={residenceId} current="assemblies" roles={ctx.roles} />
+      <ResidenceNav residenceId={residenceId} current="assemblies" roles={accessOf(ctx)} />
       <Card>
         <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
           <div className="space-y-1">
             <CardTitle className="text-base">{t("title")}</CardTitle>
             <p className="text-sm text-muted-foreground">{t("description")}</p>
           </div>
-          {can(ctx.roles, "assembly:update") ? (
+          {can(ctx, "assembly:update") ? (
             <AssemblyDialog residenceId={residenceId} today={todayInAlgiers()} />
           ) : null}
         </CardHeader>

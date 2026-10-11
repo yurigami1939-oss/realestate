@@ -70,13 +70,13 @@ export default async function LeadPage({ params }: PageProps<"/[locale]/leads/[l
   const lead = await getLead(ctx, leadId);
   if (!lead) notFound();
 
-  const managers = can(ctx.roles, "lead:assign");
+  const managers = can(ctx, "lead:assign");
   const owners = managers ? await listLeadOwners(ctx) : null;
   const projects = await listProjectOptions(ctx);
   const units = await listUnitChoices(ctx);
   const quotations = await listLeadQuotations(ctx, lead.id);
   const options = await listLeadOptions(ctx, lead.id);
-  const canSell = can(ctx.roles, "sale:create");
+  const canSell = can(ctx, "sale:create");
   const { optionHours } = await getSalesSettings(ctx);
   const privacy = await getPersonPrivacy(ctx, { type: "lead", id: lead.id });
   const projectNames = new Map(projects.map((p) => [p.id, p.name]));
@@ -85,7 +85,7 @@ export default async function LeadPage({ params }: PageProps<"/[locale]/leads/[l
       ? [{ id: u.id, code: u.code, projectName: projectNames.get(u.projectId) ?? "" }]
       : [],
   );
-  const buyers = can(ctx.roles, "buyer:read") ? await listBuyersOfLead(ctx, lead.id) : [];
+  const buyers = can(ctx, "buyer:read") ? await listBuyersOfLead(ctx, lead.id) : [];
   const discounts = await listLeadDiscountRequests(ctx, lead.id);
   const discountUnits: DiscountUnitChoice[] = units.flatMap((u) =>
     (u.status === "available" || u.status === "optioned") && u.listPrice !== null
@@ -103,7 +103,7 @@ export default async function LeadPage({ params }: PageProps<"/[locale]/leads/[l
   const tc = await getTranslations("common");
   const tb = await getTranslations("buyers");
   const tp = await getTranslations("privacy");
-  const editable = can(ctx.roles, "lead:update");
+  const editable = can(ctx, "lead:update");
 
   return (
     <div className="mx-auto max-w-7xl space-y-6">
@@ -123,7 +123,7 @@ export default async function LeadPage({ params }: PageProps<"/[locale]/leads/[l
                 </Link>
               </Button>
             ))}
-            {buyers.length === 0 && can(ctx.roles, "buyer:create") ? (
+            {buyers.length === 0 && can(ctx, "buyer:create") ? (
               <Button asChild variant="outline">
                 <Link href={{ pathname: "/buyers/new", query: { leadId: lead.id } }}>
                   <IdCard data-icon="inline-start" />
@@ -150,15 +150,15 @@ export default async function LeadPage({ params }: PageProps<"/[locale]/leads/[l
                 owners={owners}
               />
             ) : null}
-            {can(ctx.roles, "personal_data:export") ? (
+            {can(ctx, "personal_data:export") ? (
               <ExportButton kind="person" params={{ lead: lead.id }} label={tp("export")} />
             ) : null}
-            {can(ctx.roles, "personal_data:erase") &&
+            {can(ctx, "personal_data:erase") &&
             buyers.length === 0 &&
             lead.fullName !== ANONYMIZED_NAME ? (
               <AnonymizeLeadDialog leadId={lead.id} />
             ) : null}
-            {can(ctx.roles, "lead:delete") ? (
+            {can(ctx, "lead:delete") ? (
               <ConfirmAction
                 action={deleteLeadAction}
                 input={{ leadId: lead.id }}
@@ -195,7 +195,7 @@ export default async function LeadPage({ params }: PageProps<"/[locale]/leads/[l
           <QuotationsCard
             leadId={lead.id}
             quotations={quotations}
-            canCreate={can(ctx.roles, "quotation:create")}
+            canCreate={can(ctx, "quotation:create")}
           />
           <DiscountsCard leadId={lead.id} requests={discounts} units={discountUnits} ctx={ctx} />
           <FollowUpsCard lead={lead} owners={owners} editable={editable} />
@@ -419,7 +419,7 @@ function VisitsCard({
 
 function Duplicates({ lead, ctx }: { lead: LeadDetail; ctx: TenantCtx }) {
   const t = useTranslations("crm");
-  const merge = can(ctx.roles, "lead:merge");
+  const merge = can(ctx, "lead:merge");
   return (
     <Card className="border-amber-300 bg-amber-50/60" data-testid="lead-duplicates">
       <CardContent className="space-y-3">
@@ -590,8 +590,8 @@ function DiscountsCard({
 }) {
   const t = useTranslations("discounts");
   const locale = useLocale() === "ar" ? "ar" : "fr";
-  const canRequest = can(ctx.roles, "discount:request");
-  const canDecide = can(ctx.roles, "discount:decide");
+  const canRequest = can(ctx, "discount:request");
+  const canDecide = can(ctx, "discount:decide");
   if (requests.length === 0 && !canRequest) return null;
   return (
     <Card data-testid="lead-discounts">

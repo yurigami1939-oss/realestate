@@ -48,14 +48,14 @@ export default async function ProjectConstructionPage({
     limit: showAll ? undefined : RECENT_REPORTS,
   });
   if (!project) notFound();
-  const editable = can(ctx.roles, "construction:update");
+  const editable = can(ctx, "construction:update");
   const today = todayInAlgiers();
-  const validation = can(ctx.roles, "milestone:validate")
+  const validation = can(ctx, "milestone:validate")
     ? { delayDays: (await getSalesSettings(ctx)).paymentCallDelayDays }
     : null;
   // Units sold and handed over before the app, in a delivered project.
   const pastUnits =
-    project.status === "delivered" && can(ctx.roles, "handover:update")
+    project.status === "delivered" && can(ctx, "handover:update")
       ? await listPastDeliveryUnits(ctx, project.id)
       : [];
   const t = await getTranslations("construction");
@@ -70,7 +70,7 @@ export default async function ProjectConstructionPage({
         badge={<ProjectStatusBadge status={project.status} />}
         actions={
           <>
-            {can(ctx.roles, "inventory:read") ? (
+            {can(ctx, "inventory:read") ? (
               <Button asChild variant="outline">
                 <Link href={`/projects/${project.id}`}>
                   <Building2 data-icon="inline-start" />

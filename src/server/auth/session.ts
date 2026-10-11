@@ -10,6 +10,8 @@ import { defaultLocale, isLocale, type Locale } from "@/i18n/locales";
 import { can, parseRoles, type Permission, type Role } from "@/lib/permissions";
 import { AppError } from "@/lib/result";
 
+import { loadCustomPermissions } from "@/server/organizations/custom-roles";
+
 import { auth, type Session } from "./auth";
 
 /** Everything a service needs to act on behalf of a member of one organization. */
@@ -17,6 +19,11 @@ export type TenantCtx = {
   userId: string;
   orgId: string;
   roles: Role[];
+  /**
+   * The exact permissions of the member's custom role, when the organization gave one
+   * (CLAUDE.md §5 Auth & roles); null or absent: their roles decide.
+   */
+  permissions?: readonly Permission[] | null;
   locale: Locale;
 };
 
@@ -47,13 +54,18 @@ export const getTenantCtx = cache(async (): Promise<TenantCtx> => {
     userId: session.user.id,
     orgId,
     roles: parseRoles(membership.role),
+    // A custom role, when the organization gave one, decides the member's permissions.
+    permissions: await loadCustomPermissions(orgId, session.user.id),
     locale: isLocale(locale) ? locale : defaultLocale,
   };
 });
 
 /** Service-layer permission check (CLAUDE.md §5). Throws FORBIDDEN. */
-export function assertCan(ctx: Pick<TenantCtx, "roles">, permission: Permission): void {
-  if (!can(ctx.roles, permission)) {
+export function assertCan(
+  ctx: Pick<TenantCtx, "roles" | "permissions">,
+  permission: Permission,
+): void {
+  if (!can(ctx, permission)) {
     throw new AppError("FORBIDDEN", "errors.FORBIDDEN", { details: { permission } });
   }
 }

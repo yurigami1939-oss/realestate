@@ -25,7 +25,7 @@ export default async function ImportsPage({ params }: PageProps<"/[locale]/impor
   setRequestLocale(toLocale((await params).locale));
   const ctx = await requireTenantCtx();
   const t = await getTranslations("imports");
-  const allowed = (...permissions: Permission[]) => permissions.every((p) => can(ctx.roles, p));
+  const allowed = (...permissions: Permission[]) => permissions.every((p) => can(ctx, p));
   const projects = allowed("unit:create")
     ? await listProjectOptions(ctx, { thirdParty: true })
     : [];

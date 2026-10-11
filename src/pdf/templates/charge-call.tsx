@@ -6,6 +6,7 @@ import type { CompanyIdentity } from "@/server/organizations/settings";
 
 import { PdfDocument } from "../document";
 
+import { CompanyNote } from "./company-note";
 import { Letterhead } from "./letterhead";
 
 /** Everything printed on a charge call, already resolved (no lookups in templates). */
@@ -181,6 +182,8 @@ export function ChargeCallTemplate({
         يتم التسديد لدى مسير الإقامة (نقداً، بصك، بتحويل، عبر الحساب البريدي الجاري)، ويُسلَّم لكم
         وصل عن كل دفعة.
       </p>
+
+      <CompanyNote company={company} kind="charge_call" />
 
       <div className="signatures">
         <div className="muted">Le gestionnaire · المسير</div>

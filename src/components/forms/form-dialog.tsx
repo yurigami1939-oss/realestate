@@ -14,6 +14,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { FieldGroup } from "@/components/ui/field";
+import { cn } from "@/lib/utils";
 
 /** Trigger button → dialog holding a react-hook-form form, with one submit button. */
 export function FormDialog({
@@ -26,6 +27,7 @@ export function FormDialog({
   pending,
   onSubmit,
   destructive = false,
+  className,
   children,
 }: {
   open: boolean;
@@ -37,13 +39,18 @@ export function FormDialog({
   pending: boolean;
   onSubmit: FormEventHandler<HTMLFormElement>;
   destructive?: boolean;
+  /** Extra classes of the dialog (a wider one: `sm:max-w-3xl`). */
+  className?: string;
   children?: ReactNode;
 }) {
   const tc = useTranslations("common");
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent closeLabel={tc("close")} className="max-h-[calc(100dvh-2rem)] overflow-y-auto">
+      <DialogContent
+        closeLabel={tc("close")}
+        className={cn("max-h-[calc(100dvh-2rem)] overflow-y-auto", className)}
+      >
         <form className="space-y-4" onSubmit={onSubmit} noValidate>
           <DialogHeader>
             <DialogTitle>{title}</DialogTitle>

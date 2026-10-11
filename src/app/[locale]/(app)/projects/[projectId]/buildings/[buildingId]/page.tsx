@@ -53,7 +53,7 @@ export default async function BuildingPage({
         ]}
         actions={
           <>
-            {can(ctx.roles, "unit:create") ? (
+            {can(ctx, "unit:create") ? (
               <>
                 <GenerateUnitsDialog building={building} />
                 <Button asChild>
@@ -64,7 +64,7 @@ export default async function BuildingPage({
                 </Button>
               </>
             ) : null}
-            {can(ctx.roles, "project:update") ? (
+            {can(ctx, "project:update") ? (
               <>
                 <BuildingDialog projectId={projectId} building={building} />
                 {grid.units.length === 0 ? (

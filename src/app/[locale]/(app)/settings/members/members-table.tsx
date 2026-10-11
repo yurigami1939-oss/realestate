@@ -24,6 +24,8 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -37,22 +39,42 @@ import {
 } from "@/components/ui/table";
 import { formatDate } from "@/lib/dates";
 import { isStaffRole, type StaffRole, staffRoles } from "@/lib/permissions";
-import { removeMemberAction, updateMemberRolesAction } from "@/server/organizations/actions";
+import {
+  assignCustomRoleAction,
+  removeMemberAction,
+  updateMemberRolesAction,
+} from "@/server/organizations/actions";
 import type { MemberRow } from "@/server/organizations/queries";
+
+const NONE = "__none__";
 
 export function MembersTable({
   members,
   currentUserId,
   canManage,
   canRemove,
+  customRoles = [],
+  memberCustomRoles = {},
 }: {
   members: MemberRow[];
   currentUserId: string;
   canManage: boolean;
   canRemove: boolean;
+  /** The organization's custom roles (CLAUDE.md §5). */
+  customRoles?: { id: string; name: string }[];
+  /** The custom role each member holds, by user. */
+  memberCustomRoles?: Record<string, { id: string; name: string }>;
 }) {
   const t = useTranslations();
   const updateRoles = useAction(updateMemberRolesAction);
+  const assignCustomRole = useAction(assignCustomRoleAction);
+
+  function setCustomRole(row: MemberRow, customRoleId: string) {
+    void assignCustomRole.run(
+      { memberId: row.id, customRoleId: customRoleId === NONE ? "" : customRoleId },
+      { onSuccess: () => toast.success(t("members.updated")) },
+    );
+  }
   const remove = useAction(removeMemberAction);
   const [toRemove, setToRemove] = useState<MemberRow | null>(null);
 
@@ -101,11 +123,17 @@ export function MembersTable({
                   </TableCell>
                   <TableCell>
                     <div className="flex flex-wrap gap-1">
-                      {row.roles.map((role) => (
-                        <Badge key={role} variant={role === "owner" ? "default" : "secondary"}>
-                          {t(`roles.${role}`)}
+                      {memberCustomRoles[row.userId] ? (
+                        <Badge variant="outline" data-custom-role>
+                          {memberCustomRoles[row.userId]?.name}
                         </Badge>
-                      ))}
+                      ) : (
+                        row.roles.map((role) => (
+                          <Badge key={role} variant={role === "owner" ? "default" : "secondary"}>
+                            {t(`roles.${role}`)}
+                          </Badge>
+                        ))
+                      )}
                     </div>
                   </TableCell>
                   <TableCell>{formatDate(row.joinedAt)}</TableCell>
@@ -118,7 +146,9 @@ export function MembersTable({
                               variant="ghost"
                               size="icon-sm"
                               aria-label={t("members.actions", { name: row.name })}
-                              disabled={updateRoles.pending || remove.pending}
+                              disabled={
+                                updateRoles.pending || remove.pending || assignCustomRole.pending
+                              }
                             >
                               <MoreHorizontal />
                             </Button>
@@ -137,6 +167,25 @@ export function MembersTable({
                                     {t(`roles.${role}`)}
                                   </DropdownMenuCheckboxItem>
                                 ))}
+                                {customRoles.length > 0 ? (
+                                  <>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuLabel>{t("members.customRole")}</DropdownMenuLabel>
+                                    <DropdownMenuRadioGroup
+                                      value={memberCustomRoles[row.userId]?.id ?? NONE}
+                                      onValueChange={(value) => setCustomRole(row, value)}
+                                    >
+                                      <DropdownMenuRadioItem value={NONE}>
+                                        {t("members.noCustomRole")}
+                                      </DropdownMenuRadioItem>
+                                      {customRoles.map((role) => (
+                                        <DropdownMenuRadioItem key={role.id} value={role.id}>
+                                          {role.name}
+                                        </DropdownMenuRadioItem>
+                                      ))}
+                                    </DropdownMenuRadioGroup>
+                                  </>
+                                ) : null}
                               </>
                             ) : null}
                             {canManage && canRemove ? <DropdownMenuSeparator /> : null}

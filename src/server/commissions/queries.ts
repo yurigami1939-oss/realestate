@@ -17,7 +17,7 @@ import { COMMISSIONS_PAGE_SIZE, type CommissionListParams } from "./schemas";
 export async function listCommissions(ctx: TenantCtx, params: CommissionListParams) {
   assertCan(ctx, "commission:read");
   const page = params.page ?? 1;
-  const seesAll = can(ctx.roles, "commission:read_all");
+  const seesAll = can(ctx, "commission:read_all");
   const scope = seesAll
     ? params.userId
       ? eq(commission.userId, params.userId)

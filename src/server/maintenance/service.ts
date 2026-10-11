@@ -280,7 +280,7 @@ export type CheckRow = Awaited<ReturnType<typeof listChecks>>[number];
 
 /** Dashboard: checks late or due within `CHECK_SOON_DAYS` (who keeps the residences). */
 export async function loadCheckTodo(tx: Tx, ctx: TenantCtx) {
-  if (!can(ctx.roles, "residence:update")) return null;
+  if (!can(ctx, "residence:update")) return null;
   const today = todayInAlgiers();
   const rows = await tx
     .select({

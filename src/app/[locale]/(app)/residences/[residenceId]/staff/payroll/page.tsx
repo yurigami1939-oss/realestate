@@ -11,7 +11,7 @@ import { Link } from "@/i18n/navigation";
 import { toLocale } from "@/i18n/locales";
 import { addMonths, todayInAlgiers } from "@/lib/dates";
 import { formatDZD, sumCentimes } from "@/lib/money";
-import { can } from "@/lib/permissions";
+import { accessOf, can } from "@/lib/permissions";
 import { requirePermission } from "@/server/auth/page-guard";
 import { getResidence } from "@/server/residences/queries";
 import { getPayrollMonth } from "@/server/staff/pay";
@@ -60,7 +60,7 @@ export default async function PayrollPage({
         description={home.projectName}
         crumbs={[{ label: tr("title"), href: "/residences" }]}
       />
-      <ResidenceNav residenceId={residenceId} current="staff" roles={ctx.roles} />
+      <ResidenceNav residenceId={residenceId} current="staff" roles={accessOf(ctx)} />
       <Card>
         <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
           <CardTitle className="text-base">{t("title", { month: label(month) })}</CardTitle>
@@ -84,9 +84,9 @@ export default async function PayrollPage({
           <PayrollTable
             rows={sheet.rows}
             month={month}
-            editable={can(ctx.roles, "staff:update")}
+            editable={can(ctx, "staff:update")}
             today={todayInAlgiers()}
-            accounts={can(ctx.roles, "staff:update") ? await listAccountChoices(ctx) : []}
+            accounts={can(ctx, "staff:update") ? await listAccountChoices(ctx) : []}
           />
           {recorded.length > 0 ? (
             <p className="text-sm">

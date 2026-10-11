@@ -5,6 +5,7 @@ import { toLocale } from "@/i18n/locales";
 import { can } from "@/lib/permissions";
 import { requireTenantCtx } from "@/server/auth/page-guard";
 import { listMembers, listPendingInvitations } from "@/server/organizations/queries";
+import { listCustomRoles, listMemberCustomRoles } from "@/server/organizations/custom-roles";
 
 import { InviteMemberForm } from "./invite-member-form";
 import { MembersTable } from "./members-table";
@@ -19,12 +20,15 @@ export default async function MembersPage({ params }: PageProps<"/[locale]/setti
   setRequestLocale(toLocale((await params).locale));
   const t = await getTranslations("members");
   const ctx = await requireTenantCtx();
-  const canInvite = can(ctx.roles, "invitation:create");
+  const canInvite = can(ctx, "invitation:create");
 
   const [members, invitations] = await Promise.all([
     listMembers(ctx.orgId),
     canInvite ? listPendingInvitations(ctx.orgId) : Promise.resolve([]),
   ]);
+  const manage = can(ctx, "member:update");
+  const customRoles = manage ? await listCustomRoles(ctx) : [];
+  const memberCustomRoles = manage ? Object.fromEntries(await listMemberCustomRoles(ctx)) : {};
 
   return (
     <div className="mx-auto max-w-5xl space-y-8">
@@ -35,16 +39,15 @@ export default async function MembersPage({ params }: PageProps<"/[locale]/setti
       <MembersTable
         members={members}
         currentUserId={ctx.userId}
-        canManage={can(ctx.roles, "member:update")}
-        canRemove={can(ctx.roles, "member:delete")}
+        canManage={can(ctx, "member:update")}
+        canRemove={can(ctx, "member:delete")}
+        customRoles={customRoles.map((r) => ({ id: r.id, name: r.name }))}
+        memberCustomRoles={memberCustomRoles}
       />
       {canInvite ? (
         <div className="grid gap-8 lg:grid-cols-2">
           <InviteMemberForm />
-          <PendingInvitations
-            invitations={invitations}
-            canCancel={can(ctx.roles, "invitation:cancel")}
-          />
+          <PendingInvitations invitations={invitations} canCancel={can(ctx, "invitation:cancel")} />
         </div>
       ) : null}
     </div>

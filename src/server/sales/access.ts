@@ -9,7 +9,7 @@ import { AppError } from "@/lib/result";
 import type { TenantCtx } from "@/server/auth/session";
 
 /** Managers, cashiers and accountants see every sale; a commercial the sales credited to them. */
-export const seesAllSales = (ctx: Pick<TenantCtx, "roles">) => can(ctx.roles, "sale:read_all");
+export const seesAllSales = (ctx: Pick<TenantCtx, "roles">) => can(ctx, "sale:read_all");
 
 export function visibleSales(ctx: TenantCtx): SQL | undefined {
   return seesAllSales(ctx) ? undefined : eq(reservation.commercialUserId, ctx.userId);

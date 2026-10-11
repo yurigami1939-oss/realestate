@@ -276,9 +276,7 @@ export default async function ReportsPage({
             <CardTitle className="text-base">{t("sources.title")}</CardTitle>
             <p className="text-sm text-muted-foreground">{t("sources.description")}</p>
           </div>
-          {can(ctx.roles, "target:update") ? (
-            <MarketingSpendDialog month={r.to.slice(0, 7)} />
-          ) : null}
+          {can(ctx, "target:update") ? <MarketingSpendDialog month={r.to.slice(0, 7)} /> : null}
         </CardHeader>
         <CardContent className="overflow-x-auto">
           {r.sources.length === 0 ? (

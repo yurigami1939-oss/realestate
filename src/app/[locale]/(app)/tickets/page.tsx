@@ -38,7 +38,7 @@ export default async function TicketsPage({
   const rawStatus = typeof query.status === "string" ? query.status : "active";
   const status = rawStatus === "__all__" ? undefined : (rawStatus as TicketStatus | "active");
   const tickets = await listTickets(ctx, { residenceId, status });
-  const canCreate = can(ctx.roles, "ticket:create");
+  const canCreate = can(ctx, "ticket:create");
   const targets = canCreate ? await listTicketTargets(ctx) : [];
   const t = await getTranslations("tickets");
 

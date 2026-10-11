@@ -118,7 +118,7 @@ export async function getPersonPrivacy(
   ctx: TenantCtx,
   subject: { type: ConsentSubject & AccessSubject; id: string },
 ) {
-  if (!can(ctx.roles, "personal_data:export")) return null;
+  if (!can(ctx, "personal_data:export")) return null;
   return withTenant(ctx, async (tx) => ({
     consents: await consentHistory(tx, subject),
     accesses: await accessHistory(tx, subject.type, subject.id),

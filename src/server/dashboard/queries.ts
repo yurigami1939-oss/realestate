@@ -221,7 +221,7 @@ async function pipeline(tx: Tx, ctx: TenantCtx, month: Period) {
 
 /** What waits for the member, by role: approvals, cheques, commissions, options, milestones. */
 async function todo(tx: Tx, ctx: TenantCtx, today: CalendarDate) {
-  const withdrawals = can(ctx.roles, "sale:approve")
+  const withdrawals = can(ctx, "sale:approve")
     ? await tx
         .select({
           reservationId: withdrawal.reservationId,
@@ -234,7 +234,7 @@ async function todo(tx: Tx, ctx: TenantCtx, today: CalendarDate) {
         .where(eq(withdrawal.status, "proposed"))
         .orderBy(asc(withdrawal.proposedAt))
     : null;
-  const [cheques] = can(ctx.roles, "payment:create")
+  const [cheques] = can(ctx, "payment:create")
     ? await tx
         .select({ n: sql<number>`count(*)::int`, value: money(sql`sum(${payment.amount})`) })
         .from(payment)
@@ -246,13 +246,13 @@ async function todo(tx: Tx, ctx: TenantCtx, today: CalendarDate) {
           ),
         )
     : [null];
-  const [commissions] = can(ctx.roles, "commission:update")
+  const [commissions] = can(ctx, "commission:update")
     ? await tx
         .select({ n: sql<number>`count(*)::int`, value: money(sql`sum(${commission.amount})`) })
         .from(commission)
         .where(eq(commission.status, "earned"))
     : [null];
-  const options = can(ctx.roles, "sale:create")
+  const options = can(ctx, "sale:create")
     ? await tx
         .select({
           unitId: unit.id,
@@ -274,7 +274,7 @@ async function todo(tx: Tx, ctx: TenantCtx, today: CalendarDate) {
         )
         .orderBy(asc(unitOption.expiresAt))
     : null;
-  const milestones = can(ctx.roles, "milestone:validate")
+  const milestones = can(ctx, "milestone:validate")
     ? await tx
         .select({
           id: constructionMilestone.id,
@@ -295,7 +295,7 @@ async function todo(tx: Tx, ctx: TenantCtx, today: CalendarDate) {
         .orderBy(asc(constructionMilestone.plannedOn))
     : null;
   // Deliveries: appointments of the next 7 days (and past ones not signed), late reserves.
-  const handovers = can(ctx.roles, "handover:update")
+  const handovers = can(ctx, "handover:update")
     ? await tx
         .select({
           saleId: handover.reservationId,
@@ -314,7 +314,7 @@ async function todo(tx: Tx, ctx: TenantCtx, today: CalendarDate) {
         )
         .orderBy(asc(handover.scheduledAt))
     : null;
-  const [lateReserves] = can(ctx.roles, "handover:update")
+  const [lateReserves] = can(ctx, "handover:update")
     ? await tx
         .select({ n: sql<number>`count(*)::int` })
         .from(punchItem)
@@ -328,24 +328,24 @@ async function todo(tx: Tx, ctx: TenantCtx, today: CalendarDate) {
         )
     : [null];
   // Rentals: overdue rents for those who follow them, terms to end or renew for lease managers.
-  const overdueRents = can(ctx.roles, "lease:read") ? await loadOverdueRents(tx, today) : null;
-  const endingLeases = can(ctx.roles, "lease:update") ? await loadEndingLeases(tx, today) : null;
+  const overdueRents = can(ctx, "lease:read") ? await loadOverdueRents(tx, today) : null;
+  const endingLeases = can(ctx, "lease:update") ? await loadEndingLeases(tx, today) : null;
   // Leases still to register at the tax office (their deadline from the tax settings).
-  const unregisteredLeases = can(ctx.roles, "lease:update")
+  const unregisteredLeases = can(ctx, "lease:update")
     ? await loadUnregisteredLeases(tx, ctx.orgId, today)
     : null;
   // Promoter's obligations: sold units past their contractual delivery date (deliveries team),
   // regulatory documents expired or missing (project managers).
-  const lateDeliveries = can(ctx.roles, "handover:update")
+  const lateDeliveries = can(ctx, "handover:update")
     ? await countLateDeliveries(tx, ctx, today)
     : null;
-  const documents = can(ctx.roles, "project:update") ? await loadDocumentAlerts(tx, today) : null;
+  const documents = can(ctx, "project:update") ? await loadDocumentAlerts(tx, today) : null;
   // Online payments SATIM confirmed but that could not be recorded: to refund (accountants).
-  const onlineIssues = can(ctx.roles, "payment:cancel")
+  const onlineIssues = can(ctx, "payment:cancel")
     ? await countOnlinePaymentIssues(tx, ctx)
     : null;
   // Pieces buyers sent from the portal, to verify (who follows buyer files).
-  const [portalDocuments] = can(ctx.roles, "buyer:update")
+  const [portalDocuments] = can(ctx, "buyer:update")
     ? await tx
         .select({ n: sql<number>`count(*)::int` })
         .from(buyerDocument)
@@ -364,9 +364,9 @@ async function todo(tx: Tx, ctx: TenantCtx, today: CalendarDate) {
   // A residence's inspections, insurance and maintenance late or due soon (who keeps them).
   const checks = await loadCheckTodo(tx, ctx);
   // Requests buyers sent from the portal about the sales the member sees.
-  const requests = can(ctx.roles, "sale:read") ? await countOpenPortalRequests(tx, ctx) : null;
+  const requests = can(ctx, "sale:read") ? await countOpenPortalRequests(tx, ctx) : null;
   // Discounts the commercials asked for, to decide (managers).
-  const discounts = can(ctx.roles, "discount:decide")
+  const discounts = can(ctx, "discount:decide")
     ? await countPendingDiscountRequests(tx)
     : null;
   return {
@@ -425,7 +425,7 @@ export async function getDashboard(ctx: TenantCtx) {
   const today = todayInAlgiers();
   const periods = months(today);
   return withTenant(ctx, async (tx) => {
-    const salesVisible = can(ctx.roles, "sale:read");
+    const salesVisible = can(ctx, "sale:read");
     const sales = salesVisible
       ? {
           month: await signed(tx, ctx, periods.current),
@@ -445,10 +445,10 @@ export async function getDashboard(ctx: TenantCtx) {
     return {
       today,
       month: periods.current.from,
-      stock: can(ctx.roles, "inventory:read") ? await stock(tx) : null,
+      stock: can(ctx, "inventory:read") ? await stock(tx) : null,
       sales,
       collections,
-      pipeline: can(ctx.roles, "lead:read") ? await pipeline(tx, ctx, periods.current) : null,
+      pipeline: can(ctx, "lead:read") ? await pipeline(tx, ctx, periods.current) : null,
       todo: {
         ...tasks,
         withdrawals:

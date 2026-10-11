@@ -58,7 +58,7 @@ export default async function ProjectCostsPage({
   const ti = await getTranslations("inventory");
   const money = (v: bigint) => formatDZD(v, locale);
   const today = todayInAlgiers();
-  const canUpdate = can(ctx.roles, "cost:update");
+  const canUpdate = can(ctx, "cost:update");
   const contractors = canUpdate ? await listContractorChoices(ctx) : [];
   const { revenue, totals } = costs;
   const monthLabel = (month: string) =>

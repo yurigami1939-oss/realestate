@@ -30,7 +30,7 @@ export default async function PipelinePage({
   const ctx = await requirePermission("lead:read");
   const raw = (await searchParams).assignee;
   const assignee = typeof raw === "string" && raw !== "" ? raw : undefined;
-  const managers = can(ctx.roles, "lead:read_all");
+  const managers = can(ctx, "lead:read_all");
   const pipeline = await getPipeline(ctx, { assignee });
   const owners = managers ? await listLeadOwners(ctx) : null;
   const t = await getTranslations("crm");

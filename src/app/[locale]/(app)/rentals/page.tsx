@@ -64,7 +64,7 @@ export default async function RentalsPage({
                 {t("taxes.link")}
               </Link>
             </Button>
-            {can(ctx.roles, "lease:update") ? (
+            {can(ctx, "lease:update") ? (
               <Button asChild>
                 <Link href="/rentals/new">
                   <Plus data-icon="inline-start" />

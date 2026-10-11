@@ -14,7 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "@/i18n/navigation";
 import { toLocale } from "@/i18n/locales";
 import { todayInAlgiers, yearInAlgiers } from "@/lib/dates";
-import { can } from "@/lib/permissions";
+import { accessOf, can } from "@/lib/permissions";
 import { requirePermission } from "@/server/auth/page-guard";
 import { getResidence } from "@/server/residences/queries";
 import { listAccountChoices } from "@/server/treasury/queries";
@@ -57,7 +57,7 @@ export default async function ResidenceExpensesPage({
   const categories = targets.find((r) => r.id === residenceId)?.categories ?? [];
   const t = await getTranslations("suppliers");
   const tr = await getTranslations("residences");
-  const editable = can(ctx.roles, "supplier:update");
+  const editable = can(ctx, "supplier:update");
   const accounts = editable ? await listAccountChoices(ctx) : [];
   const today = todayInAlgiers();
   const yearHref = (y: number) => `/residences/${residenceId}/expenses?year=${y}`;
@@ -70,7 +70,7 @@ export default async function ResidenceExpensesPage({
         crumbs={[{ label: tr("title"), href: "/residences" }]}
         actions={<ExportButton kind="invoices" params={{ residence: residenceId, year }} />}
       />
-      <ResidenceNav residenceId={residenceId} current="expenses" roles={ctx.roles} />
+      <ResidenceNav residenceId={residenceId} current="expenses" roles={accessOf(ctx)} />
       <Card>
         <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
           <CardTitle className="text-base">{t("invoices.title", { year })}</CardTitle>

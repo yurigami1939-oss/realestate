@@ -43,7 +43,7 @@ export default async function AssemblyPage({
   const tr = await getTranslations("residences");
   const tc = await getTranslations("common");
   const today = todayInAlgiers();
-  const editable = can(ctx.roles, "assembly:update");
+  const editable = can(ctx, "assembly:update");
   const { status } = assembly;
   const draft = status === "draft";
   const convened = status === "convened";

@@ -94,8 +94,8 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
   const certificates = await listSaleCertificates(ctx, saleId);
   const financing = await getSaleFinancing(ctx, saleId);
   const housingAid = await getSaleHousingAid(ctx, saleId);
-  const accounts = can(ctx.roles, "payment:create") ? await listAccountChoices(ctx) : [];
-  const changeable = sale.status === "reserved" && can(ctx.roles, "sale:update");
+  const accounts = can(ctx, "payment:create") ? await listAccountChoices(ctx) : [];
+  const changeable = sale.status === "reserved" && can(ctx, "sale:update");
   const buyerChoices = changeable
     ? (await listBuyerOptions(ctx)).map((b) => ({
         id: b.id,
@@ -113,12 +113,10 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
   const { withdrawalRetentionBp, formalNoticeDays, formalNoticesRequired, terminationRetentionBp } =
     await getSalesSettings(ctx);
   const delivery =
-    sale.status === "sold" && can(ctx.roles, "handover:read")
-      ? await getDelivery(ctx, saleId)
-      : null;
+    sale.status === "sold" && can(ctx, "handover:read") ? await getDelivery(ctx, saleId) : null;
   const openWithdrawal = withdrawals.find((w) => w.status !== "rejected");
   const canProposeWithdrawal =
-    sale.status === "reserved" && !openWithdrawal && can(ctx.roles, "sale:withdraw");
+    sale.status === "reserved" && !openWithdrawal && can(ctx, "sale:withdraw");
   // Termination for non-payment: formal notices whose delay is over, something still overdue.
   const expiredNotices = reminders.filter(
     (r) => r.kind === "formal_notice" && r.payBy < todayInAlgiers(),
@@ -128,7 +126,7 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
     sale.statement.overdue > 0n &&
     !openWithdrawal &&
     !delivery?.handover &&
-    can(ctx.roles, "sale:withdraw");
+    can(ctx, "sale:withdraw");
   const showWithdrawals = withdrawals.length > 0 || canProposeWithdrawal || canTerminate;
   const followedLoan = loans.find((l) => l.status !== "refused" && l.status !== "cancelled");
   /** Money as typed in amount inputs ("8000000,00"). */
@@ -138,13 +136,13 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
   const today = todayInAlgiers();
   const st = sale.statement;
   const live = sale.status !== "withdrawn";
-  const canUpdate = live && can(ctx.roles, "sale:update");
+  const canUpdate = live && can(ctx, "sale:update");
   const showLoans = loans.length > 0 || canUpdate;
   const seesCommission =
     sale.commission !== null &&
-    (can(ctx.roles, "commission:read_all") ||
-      (can(ctx.roles, "commission:read") && sale.commission.userId === ctx.userId));
-  const canCertify = live && can(ctx.roles, "sale:certify");
+    (can(ctx, "commission:read_all") ||
+      (can(ctx, "commission:read") && sale.commission.userId === ctx.userId));
+  const canCertify = live && can(ctx, "sale:certify");
   /** What the sale allows today: versements once something is paid, solde once nothing remains. */
   const certificateChoices = certificateKinds.filter(
     (kind) =>
@@ -233,7 +231,7 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
         badge={<SaleStatusBadge status={sale.status} />}
         actions={
           <>
-            {live && st.remaining > 0n && can(ctx.roles, "payment:create") ? (
+            {live && st.remaining > 0n && can(ctx, "payment:create") ? (
               <RecordPaymentDialog
                 reservationId={sale.id}
                 number={sale.number}
@@ -248,14 +246,14 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
                 }
               />
             ) : null}
-            {sale.status === "reserved" && can(ctx.roles, "sale:sign") ? (
+            {sale.status === "reserved" && can(ctx, "sale:sign") ? (
               <RecordSaleDialog
                 reservationId={sale.id}
                 notary={sale.reservationNotary ?? ""}
                 today={today}
               />
             ) : null}
-            {live && st.overdue > 0n && can(ctx.roles, "sale:remind") ? (
+            {live && st.overdue > 0n && can(ctx, "sale:remind") ? (
               <ReminderDialog
                 reservationId={sale.id}
                 overdue={st.overdue}
@@ -263,7 +261,7 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
                 today={today}
               />
             ) : null}
-            {live && st.overdue > 0n && can(ctx.roles, "sale:withdraw") ? (
+            {live && st.overdue > 0n && can(ctx, "sale:withdraw") ? (
               <ReminderDialog
                 reservationId={sale.id}
                 overdue={st.overdue}
@@ -528,10 +526,10 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
                           </TableCell>
                           <TableCell>
                             <div className="flex flex-wrap justify-end gap-1">
-                              {pendingCheque && can(ctx.roles, "payment:create") ? (
+                              {pendingCheque && can(ctx, "payment:create") ? (
                                 <ClearChequeDialog paymentId={p.id} today={today} />
                               ) : null}
-                              {!cancelled && can(ctx.roles, "payment:cancel") ? (
+                              {!cancelled && can(ctx, "payment:cancel") ? (
                                 <CancelPaymentDialog
                                   paymentId={p.id}
                                   receiptNumber={p.receiptNumber ?? p.legacyReceipt ?? ""}
@@ -652,11 +650,11 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
             </CardContent>
           </Card>
 
-          {financing && (financing.lines.length > 0 || (live && can(ctx.roles, "sale:finance"))) ? (
+          {financing && (financing.lines.length > 0 || (live && can(ctx, "sale:finance"))) ? (
             <Card data-testid="sale-financing">
               <CardHeader className="flex flex-row items-center justify-between gap-2">
                 <CardTitle className="text-base">{t("sales.financing.title")}</CardTitle>
-                {live && can(ctx.roles, "sale:finance") ? (
+                {live && can(ctx, "sale:finance") ? (
                   <FinancingDialog
                     reservationId={sale.id}
                     price={sale.price}
@@ -1048,7 +1046,7 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
                               <span className="text-amber-800">
                                 {t("sales.withdrawal.refundPending")}
                               </span>
-                              {can(ctx.roles, "payment:create") ? (
+                              {can(ctx, "payment:create") ? (
                                 <WithdrawalRefundDialog
                                   withdrawalId={w.id}
                                   refund={w.refund}
@@ -1059,7 +1057,7 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
                             </div>
                           )
                         ) : null}
-                        {w.status === "proposed" && can(ctx.roles, "sale:approve") ? (
+                        {w.status === "proposed" && can(ctx, "sale:approve") ? (
                           <div className="flex flex-wrap gap-2">
                             <DecideWithdrawalDialog
                               withdrawalId={w.id}
@@ -1109,7 +1107,7 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
                     <div className="space-y-2 py-3 first:pt-0 last:pb-0" data-testid="bank-loans">
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <span className="font-medium">{t("sales.loan.title")}</span>
-                        {live && can(ctx.roles, "sale:update") ? (
+                        {live && can(ctx, "sale:update") ? (
                           <BankLoanDialog
                             reservationId={sale.id}
                             loan={
@@ -1186,7 +1184,7 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
                           reservationId={sale.id}
                           units={swapUnits}
                           paid={st.paid}
-                          canDiscount={can(ctx.roles, "sale:discount")}
+                          canDiscount={can(ctx, "sale:discount")}
                           today={today}
                         />
                       ) : null}

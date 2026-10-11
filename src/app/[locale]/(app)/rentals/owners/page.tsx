@@ -40,7 +40,7 @@ export default async function OwnersPage({ params }: PageProps<"/[locale]/rental
         title={t("title")}
         description={t("description")}
         crumbs={[{ label: tr("title"), href: "/rentals" }]}
-        actions={can(ctx.roles, "lease:update") ? <OwnerDialog /> : null}
+        actions={can(ctx, "lease:update") ? <OwnerDialog /> : null}
       />
       {owners.length === 0 ? (
         <p className="text-sm text-muted-foreground">{t("empty")}</p>

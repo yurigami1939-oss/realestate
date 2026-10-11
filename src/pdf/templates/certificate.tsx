@@ -9,6 +9,7 @@ import type { CompanyIdentity } from "@/server/organizations/settings";
 import { PdfDocument } from "../document";
 import { paymentMethodLabels } from "../payment-methods";
 
+import { CompanyNote } from "./company-note";
 import { Letterhead } from "./letterhead";
 
 /** A certificate as printed: its number, issue and frozen content. */
@@ -656,6 +657,7 @@ export function CertificateTemplate({
           </span>
         </p>
       )}
+      <CompanyNote company={company} kind="certificate" />
     </PdfDocument>
   );
 }

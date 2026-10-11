@@ -169,5 +169,7 @@ REVOKE DELETE, TRUNCATE ON public.whatsapp_message FROM realestate_app;
 REVOKE UPDATE, DELETE, TRUNCATE ON public.consent_event FROM realestate_app;
 REVOKE UPDATE, DELETE, TRUNCATE ON public.data_access FROM realestate_app;
 GRANT UPDATE (last_at, count) ON public.data_access TO realestate_app;
+-- Custom roles are archived, never deleted (members keep the trail of what they held).
+REVOKE DELETE, TRUNCATE ON public.custom_role FROM realestate_app;
 -- SMS messages are kept (sent or failed), never deleted.
 REVOKE DELETE, TRUNCATE ON public.sms_message FROM realestate_app;

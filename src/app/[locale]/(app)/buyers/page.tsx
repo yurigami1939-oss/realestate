@@ -40,7 +40,7 @@ export default async function BuyersPage({ params, searchParams }: PageProps<"/[
         actions={
           <>
             <ExportButton kind="buyers" params={{ q: filters.q }} />
-            {can(ctx.roles, "buyer:create") ? (
+            {can(ctx, "buyer:create") ? (
               <Button asChild>
                 <Link href="/buyers/new">
                   <Plus data-icon="inline-start" />

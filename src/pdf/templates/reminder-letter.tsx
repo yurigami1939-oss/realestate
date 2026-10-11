@@ -7,6 +7,7 @@ import type { CompanyIdentity } from "@/server/organizations/settings";
 
 import { PdfDocument } from "../document";
 
+import { CompanyNote } from "./company-note";
 import { Letterhead } from "./letterhead";
 
 /** Everything printed on a reminder letter, already resolved (no lookups in templates). */
@@ -216,6 +217,8 @@ export function ReminderLetterTemplate({
           </p>
         </>
       ) : null}
+
+      <CompanyNote company={company} kind="reminder_letter" />
 
       <div className="signatures">
         <div className="muted">Le promoteur · المرقي</div>

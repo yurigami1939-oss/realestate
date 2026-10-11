@@ -87,7 +87,7 @@ export async function listAccountChoices(ctx: TenantCtx) {
         "staff:update",
         "lease:update",
       ] as const
-    ).some((p) => can(ctx.roles, p))
+    ).some((p) => can(ctx, p))
   ) {
     throw new AppError("FORBIDDEN");
   }

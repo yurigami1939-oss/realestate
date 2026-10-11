@@ -53,7 +53,7 @@ export default async function ProjectPage({ params }: PageProps<"/[locale]/proje
   const tp = await getTranslations("paymentPlans");
   const tw = await getTranslations("construction");
   const tk = await getTranslations("costs");
-  const canEdit = can(ctx.roles, "project:update");
+  const canEdit = can(ctx, "project:update");
   const documents = await listProjectDocuments(ctx, project.id);
   // A third party's building is only managed: nothing of the sales side (CLAUDE.md §7).
   const forSale = !project.thirdParty;
@@ -93,7 +93,7 @@ export default async function ProjectPage({ params }: PageProps<"/[locale]/proje
                 </Link>
               </Button>
             ) : null}
-            {forSale && can(ctx.roles, "cost:read") ? (
+            {forSale && can(ctx, "cost:read") ? (
               <Button asChild variant="outline">
                 <Link href={`/projects/${project.id}/costs`}>
                   <Coins data-icon="inline-start" />
@@ -101,7 +101,7 @@ export default async function ProjectPage({ params }: PageProps<"/[locale]/proje
                 </Link>
               </Button>
             ) : null}
-            {forSale && can(ctx.roles, "construction:read") ? (
+            {forSale && can(ctx, "construction:read") ? (
               <Button asChild variant="outline">
                 <Link href={`/construction/${project.id}`}>
                   <HardHat data-icon="inline-start" />
@@ -117,7 +117,7 @@ export default async function ProjectPage({ params }: PageProps<"/[locale]/proje
                 </Link>
               </Button>
             ) : null}
-            {can(ctx.roles, "project:delete") && project.totals.units === 0 ? (
+            {can(ctx, "project:delete") && project.totals.units === 0 ? (
               <ConfirmAction
                 action={deleteProjectAction}
                 input={{ projectId: project.id }}
@@ -162,7 +162,7 @@ export default async function ProjectPage({ params }: PageProps<"/[locale]/proje
                   </Link>
                 </Button>
               ))}
-              {project.residences.length === 0 && can(ctx.roles, "residence:create") ? (
+              {project.residences.length === 0 && can(ctx, "residence:create") ? (
                 <Button asChild size="sm">
                   <Link href={`/residences/new?project=${project.id}`}>
                     <Plus data-icon="inline-start" />

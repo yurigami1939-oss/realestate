@@ -172,7 +172,7 @@ export async function payPartnerCommission(
 
 /** Partners with their leads and commissions (managers or accountants). */
 export async function listPartners(ctx: TenantCtx) {
-  if (!can(ctx.roles, "lead:assign") && !can(ctx.roles, "commission:read_all")) {
+  if (!can(ctx, "lead:assign") && !can(ctx, "commission:read_all")) {
     throw new AppError("FORBIDDEN");
   }
   const rows = await withTenant(ctx, (tx) =>

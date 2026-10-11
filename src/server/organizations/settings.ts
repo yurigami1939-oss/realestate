@@ -6,6 +6,7 @@ import type { z } from "zod";
 import type { Tx } from "@/db/client";
 import { file, organization, organizationSetting } from "@/db/schema";
 import { withTenant } from "@/db/tenant";
+import { type DocumentTexts, storedDocumentTexts } from "@/lib/document-texts";
 import { AppError } from "@/lib/result";
 import { salesSettingDefaults, type SalesSettings, type VspLimits } from "@/lib/sales";
 import { recordAudit } from "@/server/audit/record-audit";
@@ -13,7 +14,7 @@ import { assertCan, type TenantCtx } from "@/server/auth/session";
 import { checkUpload, discardFile, storeFile, type Upload } from "@/server/files/service";
 import { getObjectBytes } from "@/server/files/storage";
 
-import type { companySettingsSchema } from "./schemas";
+import type { companySettingsSchema, documentTextsSchema } from "./schemas";
 
 export const DEFAULT_QUOTATION_VALIDITY_DAYS = 15;
 
@@ -74,6 +75,7 @@ export async function loadCompanyProfile(tx: Tx, orgId: string) {
       logoFileId: organizationSetting.logoFileId,
       fgcmpiNumber: organizationSetting.fgcmpiNumber,
       emailDocuments: organizationSetting.emailDocuments,
+      documentTexts: organizationSetting.documentTexts,
     })
     .from(organizationSetting)
     .where(eq(organizationSetting.organizationId, orgId));
@@ -83,6 +85,7 @@ export async function loadCompanyProfile(tx: Tx, orgId: string) {
     logoFileId: setting?.logoFileId ?? null,
     fgcmpiNumber: setting?.fgcmpiNumber ?? null,
     emailDocuments: setting?.emailDocuments ?? false,
+    documentTexts: setting?.documentTexts ?? {},
   };
 }
 
@@ -91,7 +94,11 @@ export type CompanyProfile = Awaited<ReturnType<typeof loadCompanyProfile>>;
 export type CompanyIdentity = Pick<
   CompanyProfile,
   "name" | "legalName" | "address" | "wilaya" | "phone" | "rcNumber" | "nif" | "nis" | "aiNumber"
-> & { logo?: string | null };
+> & {
+  logo?: string | null;
+  /** The organization's wording per kind of document (« mentions de la société »). */
+  documentTexts?: DocumentTexts;
+};
 
 /**
  * Company profile for the PDF templates: the logo is read from storage and embedded as a data
@@ -264,4 +271,37 @@ export async function updateCompanySettings(
 /** Sales settings for any member (option duration shown in dialogs, etc.). */
 export async function getSalesSettings(ctx: TenantCtx) {
   return withTenant(ctx, (tx) => loadSalesSettings(tx, ctx.orgId));
+}
+
+/**
+ * The organization's wording on its documents (gérant, `organization:update`): printed on the
+ * documents issued afterwards. Audited `organization.document_texts`.
+ */
+export async function saveDocumentTexts(
+  ctx: TenantCtx,
+  input: z.output<typeof documentTextsSchema>,
+) {
+  assertCan(ctx, "organization:update");
+  const texts = storedDocumentTexts(input.texts);
+  await withTenant(ctx, async (tx) => {
+    const [before] = await tx
+      .select({ texts: organizationSetting.documentTexts })
+      .from(organizationSetting)
+      .where(eq(organizationSetting.organizationId, ctx.orgId));
+    await tx
+      .insert(organizationSetting)
+      .values({ organizationId: ctx.orgId, documentTexts: texts, updatedBy: ctx.userId })
+      .onConflictDoUpdate({
+        target: organizationSetting.organizationId,
+        set: { documentTexts: texts, updatedBy: ctx.userId, updatedAt: new Date() },
+      });
+    await recordAudit(tx, ctx, {
+      actorUserId: ctx.userId,
+      action: "organization.document_texts",
+      entityType: "organization",
+      entityId: ctx.orgId,
+      before: before?.texts ?? {},
+      after: texts,
+    });
+  });
 }

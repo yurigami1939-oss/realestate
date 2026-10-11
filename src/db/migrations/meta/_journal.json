@@ -519,6 +519,20 @@
       "when": 1791719163736,
       "tag": "0073_consents_and_access",
       "breakpoints": true
+    },
+    {
+      "idx": 74,
+      "version": "7",
+      "when": 1791722991893,
+      "tag": "0074_custom_roles",
+      "breakpoints": true
+    },
+    {
+      "idx": 75,
+      "version": "7",
+      "when": 1791725618031,
+      "tag": "0075_document_texts",
+      "breakpoints": true
     }
   ]
 }

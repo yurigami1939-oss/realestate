@@ -99,7 +99,7 @@ async function collections(
   };
   const lines: Line[] = [];
   await withTenant(ctx, async (tx) => {
-    if (can(ctx.roles, "sale:read_all")) {
+    if (can(ctx, "sale:read_all")) {
       const rows = await tx
         .select({
           paidOn: payment.paidOn,
@@ -137,7 +137,7 @@ async function collections(
         });
       }
     }
-    if (can(ctx.roles, "charge:read")) {
+    if (can(ctx, "charge:read")) {
       const rows = await tx
         .select({
           paidOn: chargePayment.paidOn,
@@ -169,7 +169,7 @@ async function collections(
         });
       }
     }
-    if (can(ctx.roles, "lease:read")) {
+    if (can(ctx, "lease:read")) {
       const rows = await tx
         .select({
           paidOn: rentPayment.paidOn,

@@ -9,6 +9,7 @@ import type { SaleDetail } from "@/server/sales/sale-queries";
 
 import { PdfDocument } from "../document";
 
+import { CompanyNote } from "./company-note";
 import { Letterhead } from "./letterhead";
 
 const CSS = `
@@ -251,6 +252,8 @@ export function ReservationSheetTemplate({
       <p className="muted" dir="rtl" lang="ar">
         بطاقة داخلية تُرسل إلى الموثق؛ ولا تحل محل عقد الحجز.
       </p>
+
+      <CompanyNote company={company} kind="reservation_sheet" />
 
       <div className="signatures">
         <div className="muted">Le promoteur · المرقي</div>

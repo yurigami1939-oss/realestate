@@ -32,10 +32,10 @@ type Reader = (tx: Tx, ctx: TenantCtx, entityId: string) => Promise<boolean>;
 const readers: Record<string, Reader> = {
   // The company logo: any member of the organization.
   organization: async (_tx, ctx, entityId) => entityId === ctx.orgId,
-  unit: async (_tx, ctx) => can(ctx.roles, "inventory:read"),
+  unit: async (_tx, ctx) => can(ctx, "inventory:read"),
   // A buyer's scans follow the buyer: commercials only see the buyers they follow.
   buyer: async (tx, ctx, entityId) => {
-    if (!can(ctx.roles, "buyer:read")) return false;
+    if (!can(ctx, "buyer:read")) return false;
     const [row] = await tx
       .select({ id: buyer.id })
       .from(buyer)
@@ -44,7 +44,7 @@ const readers: Record<string, Reader> = {
   },
   // Sale documents (contract scans, sheets, receipts…) follow the sale's visibility.
   reservation: async (tx, ctx, entityId) => {
-    if (!can(ctx.roles, "sale:read")) return false;
+    if (!can(ctx, "sale:read")) return false;
     const [row] = await tx
       .select({ id: reservation.id })
       .from(reservation)
@@ -54,14 +54,14 @@ const readers: Record<string, Reader> = {
   // Residence documents: charge calls, receipts, reminders, assembly convocations and minutes,
   // announcement notices.
   residence: async (_tx, ctx) =>
-    can(ctx.roles, "charge:read") ||
-    can(ctx.roles, "assembly:read") ||
-    can(ctx.roles, "announcement:read"),
+    can(ctx, "charge:read") ||
+    can(ctx, "assembly:read") ||
+    can(ctx, "announcement:read"),
   // Delivery documents (PV de remise des clés, PV de levée des réserves): the deliveries team,
   // and whoever sees the sale.
   handover: async (tx, ctx, entityId) => {
-    if (can(ctx.roles, "handover:read")) return true;
-    if (!can(ctx.roles, "sale:read")) return false;
+    if (can(ctx, "handover:read")) return true;
+    if (!can(ctx, "sale:read")) return false;
     const [row] = await tx
       .select({ id: handover.id })
       .from(handover)
@@ -70,24 +70,24 @@ const readers: Record<string, Reader> = {
     return row !== undefined;
   },
   // Lease documents: quittances, deposit receipts, signed contract scans.
-  lease: async (_tx, ctx) => can(ctx.roles, "lease:read"),
+  lease: async (_tx, ctx) => can(ctx, "lease:read"),
   // Supplier contract and invoice scans.
-  supplier_contract: async (_tx, ctx) => can(ctx.roles, "supplier:read"),
-  supplier_invoice: async (_tx, ctx) => can(ctx.roles, "supplier:read"),
-  residence_check: async (_tx, ctx) => can(ctx.roles, "residence:read"),
+  supplier_contract: async (_tx, ctx) => can(ctx, "supplier:read"),
+  supplier_invoice: async (_tx, ctx) => can(ctx, "supplier:read"),
+  residence_check: async (_tx, ctx) => can(ctx, "residence:read"),
   // Regulatory documents of a project: whoever reads the projects.
-  project_document: async (_tx, ctx) => can(ctx.roles, "inventory:read"),
+  project_document: async (_tx, ctx) => can(ctx, "inventory:read"),
   // Works contracts and their progress invoices: the construction costs' readers.
-  works_contract: async (_tx, ctx) => can(ctx.roles, "cost:read"),
+  works_contract: async (_tx, ctx) => can(ctx, "cost:read"),
   // Owner statements (management mandates) are filed under their owner.
-  property_owner: async (_tx, ctx) => can(ctx.roles, "lease:read"),
+  property_owner: async (_tx, ctx) => can(ctx, "lease:read"),
   // Cheque deposit slips are filed under their account.
-  treasury_account: async (_tx, ctx) => can(ctx.roles, "treasury:read"),
+  treasury_account: async (_tx, ctx) => can(ctx, "treasury:read"),
   // Site photos of construction progress reports.
-  construction_report: async (_tx, ctx) => can(ctx.roles, "construction:read"),
+  construction_report: async (_tx, ctx) => can(ctx, "construction:read"),
   // A quotation PDF follows its lead: commercials only see their own leads' quotations.
   quotation: async (tx, ctx, entityId) => {
-    if (!can(ctx.roles, "lead:read")) return false;
+    if (!can(ctx, "lead:read")) return false;
     const [row] = await tx
       .select({ id: quotation.id })
       .from(quotation)

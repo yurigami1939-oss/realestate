@@ -10,7 +10,7 @@ import type { TenantCtx } from "@/server/auth/session";
 import { forSale } from "@/server/inventory/third-party";
 
 /** Managers see every lead; a commercial sees the leads assigned to them (CLAUDE.md §12). */
-export const seesAllLeads = (ctx: Pick<TenantCtx, "roles">) => can(ctx.roles, "lead:read_all");
+export const seesAllLeads = (ctx: Pick<TenantCtx, "roles">) => can(ctx, "lead:read_all");
 
 /** Extra WHERE condition limiting leads to what `ctx` may see (undefined = no limit). */
 export function visibleLeads(ctx: TenantCtx): SQL | undefined {

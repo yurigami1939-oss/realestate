@@ -6,6 +6,7 @@ import type { CompanyIdentity } from "@/server/organizations/settings";
 
 import { PdfDocument } from "../document";
 
+import { CompanyNote } from "./company-note";
 import { Letterhead } from "./letterhead";
 
 /** Everything printed on a payment call, already resolved (no lookups in templates). */
@@ -164,6 +165,8 @@ export function PaymentCallTemplate({
         يتم التسديد لدى صندوق الشركة (نقداً، بصك، بتحويل، عبر الحساب البريدي الجاري)، ويُسلَّم لكم
         وصل عن كل دفعة.
       </p>
+
+      <CompanyNote company={company} kind="payment_call" />
 
       <div className="signatures">
         <div className="muted">Le promoteur · المرقي</div>

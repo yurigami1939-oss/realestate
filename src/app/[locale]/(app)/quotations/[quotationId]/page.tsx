@@ -61,7 +61,7 @@ export default async function QuotationPage({
           { label: q.leadName, href: `/leads/${q.leadId}` },
         ]}
         actions={
-          q.status === "issued" && can(ctx.roles, "quotation:cancel") ? (
+          q.status === "issued" && can(ctx, "quotation:cancel") ? (
             <CancelQuotationDialog quotationId={q.id} number={q.number} />
           ) : null
         }

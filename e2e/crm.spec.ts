@@ -181,6 +181,47 @@ test.describe("gérant", () => {
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("المعطيات الشخصية");
   });
 
+  test("sets the company's wording on its receipts", async ({ page }) => {
+    await page.goto("/fr/settings/documents");
+    const receipts = page.getByLabel("Reçus et quittances — en français");
+    await receipts.fill("Caisse ouverte du dimanche au jeudi, de 8 h à 15 h.");
+    await page.getByRole("button", { name: "Enregistrer" }).click();
+    await expect(page.getByText("Textes des documents enregistrés.")).toBeVisible();
+    await page.reload();
+    await expect(receipts).toHaveValue("Caisse ouverte du dimanche au jeudi, de 8 h à 15 h.");
+  });
+
+  test("defines a custom role and gives it to a commercial, then takes it back", async ({
+    page,
+  }) => {
+    await page.goto("/fr/settings/roles");
+    await page.getByRole("button", { name: "Nouveau rôle" }).click();
+    const dialog = page.getByRole("dialog");
+    await dialog.getByLabel("Nom du rôle").fill("Assistante commerciale");
+    // Prefilled with the commercial's rights; every lead added.
+    await expect(dialog.getByRole("checkbox", { name: "Prospects · Consulter" })).toBeChecked();
+    await dialog.getByRole("checkbox", { name: "Prospects · Tout consulter" }).check();
+    await dialog.getByRole("button", { name: "Créer" }).click();
+    await expect(page.getByText("Rôle créé.")).toBeVisible();
+    const card = page.getByTestId("custom-roles").locator('[data-role="Assistante commerciale"]');
+    await expect(card).toContainText("Prospects · Tout consulter");
+
+    await page.goto("/fr/settings/members");
+    const menu = () => page.getByRole("button", { name: "Actions pour Lina Saadi" }).click();
+    await menu();
+    await page.getByRole("menuitemradio", { name: "Assistante commerciale" }).click();
+    await expect(page.getByText("Rôles mis à jour.").first()).toBeVisible();
+    const row = page
+      .getByTestId("members-table")
+      .getByRole("row")
+      .filter({ hasText: "Lina Saadi" });
+    await expect(row).toContainText("Assistante commerciale");
+    await menu();
+    await page.getByRole("menuitemradio", { name: "Aucun (rôles ci-dessus)" }).click();
+    await expect(row).toContainText("Commercial");
+    await expect(row).not.toContainText("Assistante commerciale");
+  });
+
   test("records a buyer's consent to commercial offers and sees who read the file", async ({
     page,
   }) => {

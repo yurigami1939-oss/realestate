@@ -41,7 +41,7 @@ export default async function SalesPage({ params, searchParams }: PageProps<"/[l
         actions={
           <>
             <ExportButton kind="sales" params={{ q: filters.q, status: filters.status }} />
-            {can(ctx.roles, "sale:create") ? (
+            {can(ctx, "sale:create") ? (
               <Button asChild>
                 <Link href="/sales/new">
                   <Plus data-icon="inline-start" />

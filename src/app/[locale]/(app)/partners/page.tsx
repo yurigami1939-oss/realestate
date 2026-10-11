@@ -35,12 +35,12 @@ export default async function PartnersPage({ params }: PageProps<"/[locale]/part
   const locale = toLocale(raw);
   setRequestLocale(locale);
   const ctx = await requireTenantCtx();
-  const manages = can(ctx.roles, "lead:assign");
-  const readsCommissions = can(ctx.roles, "commission:read_all");
+  const manages = can(ctx, "lead:assign");
+  const readsCommissions = can(ctx, "commission:read_all");
   if (!manages && !readsCommissions) notFound();
   const partners = await listPartners(ctx);
   const commissions = readsCommissions ? await listPartnerCommissions(ctx) : [];
-  const canPay = can(ctx.roles, "commission:update");
+  const canPay = can(ctx, "commission:update");
   const accounts = canPay ? await listAccountChoices(ctx) : [];
   const t = await getTranslations("partners");
   const money = (v: bigint) => formatDZD(v, locale);

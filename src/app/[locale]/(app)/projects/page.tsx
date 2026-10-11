@@ -31,7 +31,7 @@ export default async function ProjectsPage({ params }: PageProps<"/[locale]/proj
         title={t("title")}
         description={t("description")}
         actions={
-          can(ctx.roles, "project:create") ? (
+          can(ctx, "project:create") ? (
             <Button asChild>
               <Link href="/projects/new">
                 <Plus data-icon="inline-start" />

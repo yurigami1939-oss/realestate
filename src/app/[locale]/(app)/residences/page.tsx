@@ -35,7 +35,7 @@ export default async function ResidencesPage({ params }: PageProps<"/[locale]/re
         title={t("title")}
         description={t("description")}
         actions={
-          can(ctx.roles, "residence:create") ? (
+          can(ctx, "residence:create") ? (
             <Button asChild>
               <Link href="/residences/new">
                 <Plus data-icon="inline-start" />

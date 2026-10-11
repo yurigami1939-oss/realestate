@@ -78,6 +78,7 @@ export async function loadReceiptData(
         nis: company.nis ?? "",
         aiNumber: company.aiNumber ?? "",
         logo: company.logo,
+        note: company.documentTexts?.receipt ?? null,
       },
       payer: { fr: p.payerName, ar: arabicName || p.payerName },
       reference: {

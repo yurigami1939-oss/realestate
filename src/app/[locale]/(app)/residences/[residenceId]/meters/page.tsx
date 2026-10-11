@@ -6,7 +6,7 @@ import { PageHeader } from "@/components/app-shell/page-header";
 import { MeterReadingsForm } from "@/components/residences/meter-readings-form";
 import { toLocale } from "@/i18n/locales";
 import { todayInAlgiers } from "@/lib/dates";
-import { can } from "@/lib/permissions";
+import { accessOf, can } from "@/lib/permissions";
 import { requirePermission } from "@/server/auth/page-guard";
 import { getMeterBoard } from "@/server/charges/meters";
 
@@ -46,12 +46,12 @@ export default async function ResidenceMetersPage({
         description={t("title")}
         crumbs={[{ label: tr("title"), href: "/residences" }]}
       />
-      <ResidenceNav residenceId={residenceId} current="meters" roles={ctx.roles} />
+      <ResidenceNav residenceId={residenceId} current="meters" roles={accessOf(ctx)} />
       <p className="text-sm text-muted-foreground">{t("description")}</p>
       <MeterReadingsForm
         residenceId={residenceId}
         today={todayInAlgiers()}
-        editable={can(ctx.roles, "charge:create")}
+        editable={can(ctx, "charge:create")}
         rows={board.units.map((u) => ({
           unitId: u.unitId,
           code: u.code,

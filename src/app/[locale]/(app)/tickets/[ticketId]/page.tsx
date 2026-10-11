@@ -32,7 +32,7 @@ export default async function TicketPage({ params }: PageProps<"/[locale]/ticket
   const ticket = await getTicket(ctx, ticketId);
   if (!ticket) notFound();
   const t = await getTranslations("tickets");
-  const editable = can(ctx.roles, "ticket:update");
+  const editable = can(ctx, "ticket:update");
   const live = ticket.status !== "closed" && ticket.status !== "cancelled";
 
   return (

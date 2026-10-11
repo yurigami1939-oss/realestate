@@ -69,7 +69,7 @@ export default async function AccountPage({
   const today = todayInAlgiers();
   const { account } = ledger;
   const open = account.closedOn === null;
-  const canUpdate = open && can(ctx.roles, "treasury:update");
+  const canUpdate = open && can(ctx, "treasury:update");
   const accounts = canUpdate ? (await listAccounts(ctx)).filter((a) => a.closedOn === null) : [];
   // Cheques of a bank or CCP account are handed to the bank on deposit slips.
   const banked = account.kind !== "cash";
@@ -113,7 +113,7 @@ export default async function AccountPage({
                 today={today}
               />
             ) : null}
-            {open && account.kind === "cash" && can(ctx.roles, "treasury:count") ? (
+            {open && account.kind === "cash" && can(ctx, "treasury:count") ? (
               <CashCountDialog accountId={account.id} balance={ledger.balance} today={today} />
             ) : null}
             {canUpdate ? <EditAccountDialog account={account} /> : null}
@@ -258,7 +258,7 @@ export default async function AccountPage({
               accountId={account.id}
               cheques={pendingCheques}
               today={today}
-              canDeposit={open && can(ctx.roles, "treasury:count")}
+              canDeposit={open && can(ctx, "treasury:count")}
             />
             {deposits.length > 0 ? (
               <ul className="divide-y text-sm" data-testid="deposit-slips">
@@ -282,7 +282,7 @@ export default async function AccountPage({
                         <Badge variant="secondary">
                           {t("deposits.clearedOnBadge", { date: formatDate(d.clearedOn) })}
                         </Badge>
-                      ) : can(ctx.roles, "payment:create") ? (
+                      ) : can(ctx, "payment:create") ? (
                         <ClearDepositDialog
                           depositId={d.id}
                           number={d.number}

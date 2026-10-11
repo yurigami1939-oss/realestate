@@ -53,7 +53,7 @@ export default async function OwnerPage({
   const ctx = await requirePermission("lease:read");
   const owner = await getOwner(ctx, ownerId);
   if (!owner) notFound();
-  const editable = can(ctx.roles, "lease:update");
+  const editable = can(ctx, "lease:update");
   const units = editable ? await listMandatableUnits(ctx) : [];
   const accounts = editable ? await listAccountChoices(ctx) : [];
   const t = await getTranslations("mandates");

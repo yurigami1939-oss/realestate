@@ -7,15 +7,26 @@ import { z } from "zod";
 import { defineAction } from "@/server/action";
 
 import {
+  archiveCustomRoleSchema,
+  assignCustomRoleSchema,
   cancelInvitationSchema,
   companySettingsSchema,
+  customRoleSchema,
+  documentTextsSchema,
   inviteMemberSchema,
   removeMemberSchema,
+  updateCustomRoleSchema,
   updateMemberRolesSchema,
 } from "./schemas";
 import { listCommunes } from "./communes";
+import {
+  archiveCustomRole,
+  assignCustomRole,
+  createCustomRole,
+  updateCustomRole,
+} from "./custom-roles";
 import { cancelInvitation, inviteMember, removeMember, updateMemberRoles } from "./service";
-import { removeCompanyLogo, updateCompanySettings } from "./settings";
+import { removeCompanyLogo, saveDocumentTexts, updateCompanySettings } from "./settings";
 
 const MEMBERS_PAGE = "/[locale]/settings/members";
 
@@ -72,4 +83,49 @@ export const updateCompanySettingsAction = defineAction(
 /** The communes already named in the organization's records (address fields' suggestions). */
 export const listCommunesAction = defineAction({ input: z.object({}) }, (_input, ctx) =>
   listCommunes(ctx),
+);
+
+const ROLES_PAGE = "/[locale]/settings/roles";
+
+export const createCustomRoleAction = defineAction(
+  { input: customRoleSchema, permission: "member:update" },
+  async (input, ctx) => {
+    const result = await createCustomRole(ctx, input);
+    revalidatePath(ROLES_PAGE, "page");
+    return result;
+  },
+);
+
+export const updateCustomRoleAction = defineAction(
+  { input: updateCustomRoleSchema, permission: "member:update" },
+  async (input, ctx) => {
+    await updateCustomRole(ctx, await headers(), input);
+    revalidatePath(ROLES_PAGE, "page");
+    revalidatePath(MEMBERS_PAGE, "page");
+  },
+);
+
+export const archiveCustomRoleAction = defineAction(
+  { input: archiveCustomRoleSchema, permission: "member:update" },
+  async (input, ctx) => {
+    await archiveCustomRole(ctx, input);
+    revalidatePath(ROLES_PAGE, "page");
+  },
+);
+
+export const assignCustomRoleAction = defineAction(
+  { input: assignCustomRoleSchema, permission: "member:update" },
+  async (input, ctx) => {
+    await assignCustomRole(ctx, await headers(), input);
+    revalidatePath(MEMBERS_PAGE, "page");
+    revalidatePath(ROLES_PAGE, "page");
+  },
+);
+
+export const saveDocumentTextsAction = defineAction(
+  { input: documentTextsSchema, permission: "organization:update" },
+  async (input, ctx) => {
+    await saveDocumentTexts(ctx, input);
+    revalidatePath("/[locale]/settings/documents", "page");
+  },
 );

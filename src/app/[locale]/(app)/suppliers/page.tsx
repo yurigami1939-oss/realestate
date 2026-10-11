@@ -35,7 +35,7 @@ export default async function SuppliersPage({ params }: PageProps<"/[locale]/sup
       <PageHeader
         title={t("title")}
         description={t("description")}
-        actions={can(ctx.roles, "supplier:update") ? <SupplierDialog /> : null}
+        actions={can(ctx, "supplier:update") ? <SupplierDialog /> : null}
       />
       {suppliers.length === 0 ? (
         <p className="text-sm text-muted-foreground">{t("empty")}</p>

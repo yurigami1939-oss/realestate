@@ -15,7 +15,7 @@ import { toLocale } from "@/i18n/locales";
 import { formatDate, todayInAlgiers } from "@/lib/dates";
 import type { CheckState } from "@/lib/maintenance";
 import { formatDZD } from "@/lib/money";
-import { can } from "@/lib/permissions";
+import { accessOf, can } from "@/lib/permissions";
 import { requirePermission } from "@/server/auth/page-guard";
 import { listChecks } from "@/server/maintenance/service";
 import { getResidence } from "@/server/residences/queries";
@@ -49,7 +49,7 @@ export default async function ResidenceChecksPage({
   const home = await getResidence(ctx, residenceId);
   if (!home) notFound();
   const checks = await listChecks(ctx, { residenceId });
-  const editable = can(ctx.roles, "residence:update");
+  const editable = can(ctx, "residence:update");
   const suppliers = editable
     ? (await listSuppliers(ctx)).map((s) => ({ id: s.id, name: s.name }))
     : [];
@@ -69,7 +69,7 @@ export default async function ResidenceChecksPage({
           ) : null
         }
       />
-      <ResidenceNav residenceId={residenceId} current="checks" roles={ctx.roles} />
+      <ResidenceNav residenceId={residenceId} current="checks" roles={accessOf(ctx)} />
       <p className="text-sm text-muted-foreground">{t("description")}</p>
 
       {checks.length === 0 ? (

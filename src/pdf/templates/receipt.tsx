@@ -18,6 +18,8 @@ export type ReceiptData = {
     aiNumber: string;
     /** Data URI of the company logo, when there is one. */
     logo?: string | null;
+    /** The organization's wording on its receipts (« mentions de la société »). */
+    note?: { fr: string; ar: string } | null;
   };
   payer: { fr: string; ar: string };
   reference: { fr: string; ar: string };
@@ -44,6 +46,8 @@ b{font-weight:600}
 .signatures{display:flex;justify-content:space-between;margin-top:26pt}
 .signatures div{width:45%;border-top:1pt solid #a3a3a3;padding-top:4pt}
 .code{white-space:nowrap}
+.note{border:0.75pt solid #d4d4d4;border-radius:4pt;padding:4pt 6pt;margin:6pt 0;font-size:8pt;white-space:pre-line}
+.note p{margin:0}
 `;
 
 /** Document numbers and unit codes (BAL-2026-000001, A-03-12, VIR-118). */
@@ -132,6 +136,18 @@ export function ReceiptTemplate({ data }: { data: ReceiptData }) {
       <p dir="rtl" lang="ar">
         أوقف هذا الوصل على مبلغ: {amountInWordsAr(data.amount)}.
       </p>
+
+      {data.organization.note &&
+      (data.organization.note.fr.trim() || data.organization.note.ar.trim()) ? (
+        <div className="note" data-company-note="receipt">
+          {data.organization.note.fr.trim() ? <p>{data.organization.note.fr}</p> : null}
+          {data.organization.note.ar.trim() ? (
+            <p dir="rtl" lang="ar">
+              {data.organization.note.ar}
+            </p>
+          ) : null}
+        </div>
+      ) : null}
 
       <div className="signatures">
         {data.online ? (

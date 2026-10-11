@@ -63,7 +63,7 @@ export default async function LeasePage({ params }: PageProps<"/[locale]/rentals
   const locale = toLocale(raw);
   setRequestLocale(locale);
   const ctx = await requirePermission("lease:read");
-  const accounts = can(ctx.roles, "payment:create") ? await listAccountChoices(ctx) : [];
+  const accounts = can(ctx, "payment:create") ? await listAccountChoices(ctx) : [];
   const lease = await getLease(ctx, leaseId);
   if (!lease) notFound();
   const t = await getTranslations("rentals");
@@ -73,15 +73,15 @@ export default async function LeasePage({ params }: PageProps<"/[locale]/rentals
   const today = todayInAlgiers();
   const st = lease.statement;
   const active = lease.status === "active";
-  const editable = active && can(ctx.roles, "lease:update");
-  const canPay = can(ctx.roles, "payment:create");
+  const editable = active && can(ctx, "lease:update");
+  const canPay = can(ctx, "payment:create");
   const depositMissing = lease.deposit - lease.depositHeld;
   const settleable =
     lease.status === "ended" &&
     lease.renewal === null &&
     lease.depositSettledOn === null &&
     lease.depositHeld > 0n &&
-    can(ctx.roles, "lease:update");
+    can(ctx, "lease:update");
   const pending =
     lease.payments.some((p) => p.pdfFileId === null) ||
     lease.inspections.some((i) => i.pdfFileId === null);
@@ -89,14 +89,14 @@ export default async function LeasePage({ params }: PageProps<"/[locale]/rentals
     lease.inspections.find((i) => i.kind === kind) ?? null;
   const checkIn = inspectionOf("check_in");
   const checkOut = inspectionOf("check_out");
-  const canInspect = can(ctx.roles, "lease:update");
+  const canInspect = can(ctx, "lease:update");
   // A revision starts with a period after the first one and after the latest revision.
   const lastRevision = lease.revisions.at(-1)?.effectiveOn ?? lease.startOn;
   const revisable = st.lines
     .filter((l) => l.settlementYear === undefined)
     .map((l) => l.fromOn)
     .filter((day) => day > lastRevision);
-  const canSettle = can(ctx.roles, "lease:update");
+  const canSettle = can(ctx, "lease:update");
   const toSettle = lease.settlementChoices.filter((c) => !c.settled).reverse();
   const credit = lease.settlements
     .filter((s) => s.cancelledAt === null && s.balance < 0n)
@@ -476,7 +476,7 @@ export default async function LeasePage({ params }: PageProps<"/[locale]/rentals
                                 {pendingCheque && canPay ? (
                                   <ClearRentChequeDialog paymentId={p.id} today={today} />
                                 ) : null}
-                                {!cancelled && can(ctx.roles, "payment:cancel") ? (
+                                {!cancelled && can(ctx, "payment:cancel") ? (
                                   <CancelRentPaymentDialog
                                     paymentId={p.id}
                                     receiptNumber={p.receiptNumber}
@@ -588,7 +588,7 @@ export default async function LeasePage({ params }: PageProps<"/[locale]/rentals
                   })}
                 </p>
               ) : null}
-              {can(ctx.roles, "lease:update") ? (
+              {can(ctx, "lease:update") ? (
                 <RegisterLeaseDialog
                   leaseId={lease.id}
                   today={today}
@@ -743,7 +743,7 @@ export default async function LeasePage({ params }: PageProps<"/[locale]/rentals
                 leaseId={lease.id}
                 fileId={lease.contractScanFileId}
                 fileName={lease.scanFileName}
-                editable={can(ctx.roles, "lease:update")}
+                editable={can(ctx, "lease:update")}
               />
               {lease.notes ? (
                 <p className="whitespace-pre-line text-muted-foreground">{lease.notes}</p>

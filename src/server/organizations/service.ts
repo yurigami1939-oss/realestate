@@ -1,8 +1,10 @@
 import "server-only";
 
 import { APIError } from "better-auth/api";
+import { eq } from "drizzle-orm";
 import type { z } from "zod";
 
+import { memberCustomRole } from "@/db/schema";
 import { withTenant } from "@/db/tenant";
 import { AppError } from "@/lib/result";
 import { recordAudit } from "@/server/audit/record-audit";
@@ -93,6 +95,8 @@ export async function updateMemberRoles(
   ctx: TenantCtx,
   headers: Headers,
   input: z.output<typeof updateMemberRolesSchema>,
+  /** A custom role's assignment sets its base role without taking the custom role back. */
+  options: { keepCustomRole?: boolean } = {},
 ) {
   assertCan(ctx, "member:update");
   const target = await assertNotOwner(ctx, input.memberId);
@@ -102,16 +106,20 @@ export async function updateMemberRoles(
       body: { memberId: input.memberId, role: input.roles, organizationId: ctx.orgId },
     }),
   );
-  await withTenant(ctx, (tx) =>
-    recordAudit(tx, ctx, {
+  await withTenant(ctx, async (tx) => {
+    // Choosing a member's roles by hand ends their custom role (CLAUDE.md §5).
+    if (!options.keepCustomRole) {
+      await tx.delete(memberCustomRole).where(eq(memberCustomRole.userId, target.userId));
+    }
+    await recordAudit(tx, ctx, {
       actorUserId: ctx.userId,
       action: "member.update_roles",
       entityType: "member",
       entityId: input.memberId,
       before: { roles: target.roles },
       after: { roles: input.roles },
-    }),
-  );
+    });
+  });
 }
 
 export async function removeMember(

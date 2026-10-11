@@ -1,7 +1,7 @@
 import { useTranslations } from "next-intl";
 
 import { Link } from "@/i18n/navigation";
-import { can, type Permission, type Role } from "@/lib/permissions";
+import { type Access, can, type Permission } from "@/lib/permissions";
 import { cn } from "@/lib/utils";
 
 const sections = [
@@ -28,7 +28,7 @@ export function ResidenceNav({
 }: {
   residenceId: string;
   current: ResidenceSection;
-  roles: readonly Role[];
+  roles: Access;
 }) {
   const t = useTranslations("residences.tabs");
   return (

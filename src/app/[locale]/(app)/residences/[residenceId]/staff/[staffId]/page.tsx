@@ -45,14 +45,14 @@ export default async function StaffMemberPage({
   const today = todayInAlgiers();
   const pays = await listStaffPays(ctx, staffId);
   const tp = await getTranslations("charges.period");
-  const categories = can(ctx.roles, "charge:read")
+  const categories = can(ctx, "charge:read")
     ? ((await getChargesSetup(ctx, residenceId, Number(today.slice(0, 4))))?.categories ?? [])
     : [];
   const t = await getTranslations("staff");
   const tr = await getTranslations("residences");
   const moneyLocale = (await getLocale()) === "ar" ? "ar" : "fr";
   const money = (v: bigint) => formatDZD(v, moneyLocale);
-  const editable = can(ctx.roles, "staff:update");
+  const editable = can(ctx, "staff:update");
   const arabicName = [agent.lastNameAr, agent.firstNameAr].filter(Boolean).join(" ");
 
   return (

@@ -133,7 +133,7 @@ function visibleTo(ctx: TenantCtx): SQL | undefined {
       ["charges", "charge:read"],
       ["rent", "lease:read"],
     ] as const
-  ).flatMap(([purpose, permission]) => (can(ctx.roles, permission) ? [purpose] : []));
+  ).flatMap(([purpose, permission]) => (can(ctx, permission) ? [purpose] : []));
   if (seen.length === 3) return undefined;
   if (seen.length === 0) return sql`false`;
   return inArray(onlinePayment.purpose, seen);

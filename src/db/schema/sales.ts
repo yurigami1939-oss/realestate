@@ -18,6 +18,7 @@ import {
 
 import type { TaxSettings } from "../../lib/accounting";
 import type { StoredHousingAid } from "../../lib/housing-aid";
+import type { DocumentTexts } from "../../lib/document-texts";
 import type { PrivacySettings } from "../../lib/privacy";
 import { discountRequestStatuses } from "../../lib/discounts";
 import { planStepTriggers } from "../../lib/payment-plans";
@@ -113,6 +114,11 @@ export const organizationSetting = pgTable(
     /** Accounting export: when sales are booked, VAT rates, stamp duty (CLAUDE.md §7 Treasury). */
     taxSettings: jsonb()
       .$type<Partial<TaxSettings>>()
+      .notNull()
+      .default(sql`'{}'::jsonb`),
+    /** The organization's wording printed on its documents, per kind (FR / AR). */
+    documentTexts: jsonb()
+      .$type<DocumentTexts>()
       .notNull()
       .default(sql`'{}'::jsonb`),
     /** Loi 18-07: retention periods applied by the daily job (CLAUDE.md §7 Personal data). */

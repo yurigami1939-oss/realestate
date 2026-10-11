@@ -10,7 +10,7 @@ import { Link } from "@/i18n/navigation";
 import { toLocale } from "@/i18n/locales";
 import { todayInAlgiers } from "@/lib/dates";
 import { formatShare } from "@/lib/payment-plans";
-import { can } from "@/lib/permissions";
+import { accessOf, can } from "@/lib/permissions";
 import { requirePermission } from "@/server/auth/page-guard";
 import { getPortalAccess } from "@/server/portal/invitations";
 import { getResidence, listUnitResidents } from "@/server/residences/queries";
@@ -41,14 +41,14 @@ export default async function ResidencePage({
   );
   const t = await getTranslations("residences");
   const tc = await getTranslations("common");
-  const editable = can(ctx.roles, "residence:update");
+  const editable = can(ctx, "residence:update");
   const portalAccess = await getPortalAccess(
     ctx,
     history.filter((r) => r.untilOn === null).map((r) => ({ kind: "resident" as const, id: r.id })),
   );
   const portal = {
     access: Object.fromEntries(portalAccess),
-    editable: editable && can(ctx.roles, "portal:invite"),
+    editable: editable && can(ctx, "portal:invite"),
   };
   const place = [residence.address, residence.commune, residence.wilaya].filter(Boolean).join(", ");
 
@@ -69,7 +69,7 @@ export default async function ResidencePage({
           ) : null
         }
       />
-      <ResidenceNav residenceId={residence.id} current="units" roles={ctx.roles} />
+      <ResidenceNav residenceId={residence.id} current="units" roles={accessOf(ctx)} />
       <dl className="grid gap-2 text-sm sm:grid-cols-4" data-testid="residence-settings">
         <div className="rounded-md border p-2">
           <dt className="text-muted-foreground">{t("fields.chargeFrequency")}</dt>

@@ -13,7 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toLocale } from "@/i18n/locales";
 import type { AnnouncementState } from "@/lib/announcements";
 import { formatDate } from "@/lib/dates";
-import { can } from "@/lib/permissions";
+import { accessOf, can } from "@/lib/permissions";
 import { cn } from "@/lib/utils";
 import {
   archiveAnnouncementAction,
@@ -50,7 +50,7 @@ export default async function ResidenceAnnouncementsPage({
   const t = await getTranslations("announcements");
   const tr = await getTranslations("residences");
   const tc = await getTranslations("common");
-  const editable = can(ctx.roles, "announcement:update");
+  const editable = can(ctx, "announcement:update");
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
@@ -59,7 +59,7 @@ export default async function ResidenceAnnouncementsPage({
         description={home.projectName}
         crumbs={[{ label: tr("title"), href: "/residences" }]}
       />
-      <ResidenceNav residenceId={residenceId} current="announcements" roles={ctx.roles} />
+      <ResidenceNav residenceId={residenceId} current="announcements" roles={accessOf(ctx)} />
       <Card>
         <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
           <div className="space-y-1">

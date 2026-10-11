@@ -58,7 +58,7 @@ export default async function SmsLogPage({ params, searchParams }: PageProps<"/[
   const { rows, total, page, optOuts } = await listSmsMessages(ctx, filters);
   const t = await getTranslations("sms");
   const tw = await getTranslations("whatsapp");
-  const editable = can(ctx.roles, "notification:update");
+  const editable = can(ctx, "notification:update");
 
   return (
     <div className="mx-auto max-w-7xl space-y-6">

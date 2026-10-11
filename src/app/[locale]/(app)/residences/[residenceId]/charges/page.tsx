@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "@/i18n/navigation";
 import { toLocale } from "@/i18n/locales";
 import { yearInAlgiers } from "@/lib/dates";
-import { can } from "@/lib/permissions";
+import { accessOf, can } from "@/lib/permissions";
 import { requirePermission } from "@/server/auth/page-guard";
 import { getChargesSetup } from "@/server/charges/queries";
 
@@ -43,7 +43,7 @@ export default async function ResidenceChargesPage({
   if (!setup) notFound();
   const t = await getTranslations("charges");
   const tr = await getTranslations("residences");
-  const editable = can(ctx.roles, "charge:create");
+  const editable = can(ctx, "charge:create");
   const yearHref = (y: number) => `/residences/${residenceId}/charges?year=${y}`;
 
   return (
@@ -53,7 +53,7 @@ export default async function ResidenceChargesPage({
         description={setup.residence.projectName}
         crumbs={[{ label: tr("title"), href: "/residences" }]}
       />
-      <ResidenceNav residenceId={residenceId} current="charges" roles={ctx.roles} />
+      <ResidenceNav residenceId={residenceId} current="charges" roles={accessOf(ctx)} />
       <CategoriesCard setup={setup} editable={editable} />
       <Card>
         <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">

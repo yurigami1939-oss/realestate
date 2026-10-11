@@ -74,12 +74,7 @@ export default async function TargetsPage({
           {t("empty")}
         </p>
       ) : (
-        <TargetsTable
-          key={month}
-          month={month}
-          rows={rows}
-          editable={can(ctx.roles, "target:update")}
-        />
+        <TargetsTable key={month} month={month} rows={rows} editable={can(ctx, "target:update")} />
       )}
       <p className="text-sm text-muted-foreground">{t("hint")}</p>
     </div>

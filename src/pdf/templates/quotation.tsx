@@ -8,6 +8,7 @@ import type { QuotationDocument } from "@/server/quotations/queries";
 
 import { PdfDocument } from "../document";
 
+import { CompanyNote } from "./company-note";
 import { Letterhead } from "./letterhead";
 
 const CSS = `
@@ -219,6 +220,7 @@ export function QuotationTemplate({ doc }: { doc: Doc }) {
           <bdi>{doc.issuerName}</bdi>.
         </p>
       </div>
+      <CompanyNote company={c} kind="quotation" />
     </PdfDocument>
   );
 }

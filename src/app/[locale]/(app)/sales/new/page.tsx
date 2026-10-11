@@ -30,7 +30,7 @@ export default async function NewReservationPage({
   const buyers = await listBuyerOptions(ctx);
   const setups = await listPaymentSetups(ctx);
   const { vspLimits, paymentCallDelayDays } = await getSalesSettings(ctx);
-  const canDiscount = can(ctx.roles, "sale:discount");
+  const canDiscount = can(ctx, "sale:discount");
   const approvedDiscounts = canDiscount ? [] : await listApprovedDiscounts(ctx);
   const t = await getTranslations();
 

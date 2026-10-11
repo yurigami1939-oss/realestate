@@ -86,6 +86,7 @@ export async function loadRentReceiptData(
         nis: company.nis ?? "",
         aiNumber: company.aiNumber ?? "",
         logo: company.logo,
+        note: company.documentTexts?.receipt ?? null,
       },
       payer: { fr: p.payerName, ar: p.payerName },
       reference: deposit

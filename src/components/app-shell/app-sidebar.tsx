@@ -12,6 +12,7 @@ import {
   FileSignature,
   FileLock2,
   FileSpreadsheet,
+  FileText,
   FileUp,
   Handshake,
   Network,
@@ -34,6 +35,7 @@ import {
   Truck,
   type LucideIcon,
   Users,
+  UserCog,
   Wallet,
   Webhook,
   Wrench,
@@ -54,7 +56,7 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar";
 import { Link, usePathname } from "@/i18n/navigation";
-import { can, type Permission, type Role } from "@/lib/permissions";
+import { type Access, can, type Permission } from "@/lib/permissions";
 
 import { NavUser } from "./nav-user";
 import { type OrgOption, OrgSwitcher } from "./org-switcher";
@@ -93,6 +95,8 @@ type NavKey =
   | "smsLog"
   | "smsSettings"
   | "privacy"
+  | "customRoles"
+  | "documentTexts"
   | "exports"
   | "imports"
   | "treasury"
@@ -199,6 +203,18 @@ const settingsNav: NavItem[] = [
     permission: "organization:update",
   },
   {
+    href: "/settings/documents",
+    key: "documentTexts",
+    icon: FileText,
+    permission: "organization:update",
+  },
+  {
+    href: "/settings/roles",
+    key: "customRoles",
+    icon: UserCog,
+    permission: "member:update",
+  },
+  {
     href: "/settings/privacy",
     key: "privacy",
     icon: FileLock2,
@@ -245,7 +261,7 @@ export function AppSidebar({
   group = false,
 }: {
   side: "left" | "right";
-  roles: Role[];
+  roles: Access;
   /** The member runs several companies: the consolidated view is offered. */
   group?: boolean;
   organizations: OrgOption[];

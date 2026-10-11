@@ -30,7 +30,7 @@ export default async function NewBuyerPage({
   const ctx = await requirePermission("buyer:create");
   const leadId = (await searchParams).leadId;
   const lead =
-    typeof leadId === "string" && can(ctx.roles, "lead:read") ? await getLead(ctx, leadId) : null;
+    typeof leadId === "string" && can(ctx, "lead:read") ? await getLead(ctx, leadId) : null;
   const t = await getTranslations("buyers");
 
   return (

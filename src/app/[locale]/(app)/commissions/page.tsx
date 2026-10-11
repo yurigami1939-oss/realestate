@@ -52,9 +52,9 @@ export default async function CommissionsPage({
     page: typeof raw.page === "string" ? raw.page : undefined,
   });
   const result = await listCommissions(ctx, filters);
-  const earners = can(ctx.roles, "commission:read_all") ? await listCommissionEarners(ctx) : null;
-  const rates = can(ctx.roles, "organization:update") ? await getCommissionRates(ctx) : null;
-  const canPay = can(ctx.roles, "commission:update");
+  const earners = can(ctx, "commission:read_all") ? await listCommissionEarners(ctx) : null;
+  const rates = can(ctx, "organization:update") ? await getCommissionRates(ctx) : null;
+  const canPay = can(ctx, "commission:update");
   const t = await getTranslations();
   const money = (v: bigint) => formatDZD(v, locale);
   const today = todayInAlgiers();

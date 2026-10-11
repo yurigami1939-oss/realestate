@@ -5,7 +5,7 @@ import { Separator } from "@/components/ui/separator";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { redirect } from "@/i18n/navigation";
 import { localeDirection, toLocale } from "@/i18n/locales";
-import { isPortalOnly } from "@/lib/permissions";
+import { accessOf, isPortalOnly } from "@/lib/permissions";
 import { getSession, getTenantCtx } from "@/server/auth/session";
 import { listUserOrganizations } from "@/server/organizations/queries";
 
@@ -31,7 +31,7 @@ export default async function AppLayout({ children, params }: LayoutProps<"/[loc
         organizations={organizations.map(({ id, name }) => ({ id, name }))}
         activeOrgId={activeOrgId}
         user={{ name: session.user.name, email: session.user.email }}
-        roles={ctx.roles}
+        roles={accessOf(ctx)}
         group={organizations.filter((o) => o.roles.includes("owner")).length > 1}
       />
       {/* min-w-0: wide tables scroll inside their own container, not the page. */}

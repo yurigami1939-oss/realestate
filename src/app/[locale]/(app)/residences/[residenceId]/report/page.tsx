@@ -20,7 +20,7 @@ import {
 import { Link } from "@/i18n/navigation";
 import { toLocale } from "@/i18n/locales";
 import { yearInAlgiers } from "@/lib/dates";
-import { can } from "@/lib/permissions";
+import { accessOf, can } from "@/lib/permissions";
 import { formatDZD } from "@/lib/money";
 import { cn } from "@/lib/utils";
 import { requirePermission } from "@/server/auth/page-guard";
@@ -78,7 +78,7 @@ export default async function ResidenceReportPage({
         description={report.residence.projectName}
         crumbs={[{ label: tr("title"), href: "/residences" }]}
         actions={
-          can(ctx.roles, "supplier:read") ? (
+          can(ctx, "supplier:read") ? (
             <ExportButton
               kind="assembly_pack"
               params={{ residence: residenceId, year }}
@@ -87,7 +87,7 @@ export default async function ResidenceReportPage({
           ) : null
         }
       />
-      <ResidenceNav residenceId={residenceId} current="report" roles={ctx.roles} />
+      <ResidenceNav residenceId={residenceId} current="report" roles={accessOf(ctx)} />
       <Card>
         <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
           <CardTitle className="flex items-center gap-2 text-base">

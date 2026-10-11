@@ -65,8 +65,8 @@ export default async function WorksContractPage({
   const money = (v: bigint) => formatDZD(v, locale);
   const today = todayInAlgiers();
   const open = contract.state === "active" || contract.state === "provisional";
-  const canUpdate = can(ctx.roles, "cost:update");
-  const canPay = can(ctx.roles, "cost:pay");
+  const canUpdate = can(ctx, "cost:update");
+  const canPay = can(ctx, "cost:pay");
   const contractors = canUpdate && open ? await listContractorChoices(ctx) : [];
   const accounts = canPay ? await listAccountChoices(ctx) : [];
   const lastPosition = contract.invoices.at(-1)?.position;

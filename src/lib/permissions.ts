@@ -297,7 +297,21 @@ export function parseRoles(value: string | null | undefined): Role[] {
 export const isPortalOnly = (userRoles: readonly Role[]): boolean =>
   userRoles.length > 0 && userRoles.every((role) => role === "resident");
 
-export function can(userRoles: readonly Role[], permission: Permission): boolean {
+/**
+ * What a member may do: their roles, or — when the organization gave them a custom role — its
+ * exact permissions (CLAUDE.md §5 Auth & roles). A plain role list is accepted too.
+ */
+export type Access =
+  readonly Role[] | { roles: readonly Role[]; permissions?: readonly Permission[] | null };
+
+export function can(access: Access, permission: Permission): boolean {
+  if (!Array.isArray(access)) {
+    const custom = (access as { permissions?: readonly Permission[] | null }).permissions;
+    if (custom) return custom.includes(permission);
+  }
+  const userRoles: readonly Role[] = Array.isArray(access)
+    ? (access as readonly Role[])
+    : (access as { roles: readonly Role[] }).roles;
   const [resource, action] = permission.split(":") as [keyof Statement, string];
   return userRoles.some(
     (role) =>
@@ -306,3 +320,37 @@ export function can(userRoles: readonly Role[], permission: Permission): boolean
       >[0]).success,
   );
 }
+
+/** Better Auth's own resources (organization, members, invitations…): never in a custom role. */
+const reservedResources = new Set(["organization", "member", "invitation", "team", "ac"]);
+
+/** Every permission a custom role may hold, resource by resource, in the statement's order. */
+export const grantablePermissions = (Object.entries(statement) as [string, readonly string[]][])
+  .filter(([resource]) => !reservedResources.has(resource))
+  .flatMap(([resource, actions]) => actions.map((action) => `${resource}:${action}` as Permission));
+
+export const isGrantablePermission = (value: string): value is Permission =>
+  (grantablePermissions as readonly string[]).includes(value);
+
+/** The permissions a built-in role holds (a custom role's starting point). */
+export const rolePermissions = (role: Role): Permission[] =>
+  grantablePermissions.filter((p) => can([role], p));
+
+/** A member's access as plain data, for client components (navigation). */
+export const accessOf = (ctx: {
+  roles: readonly Role[];
+  permissions?: readonly Permission[] | null;
+}): Access => ({
+  roles: [...ctx.roles],
+  permissions: ctx.permissions ? [...ctx.permissions] : null,
+});
+
+/** The resources and actions a custom role's permissions are made of (labels in the UI). */
+export type PermissionResource = Exclude<
+  keyof Statement,
+  "organization" | "member" | "invitation" | "team" | "ac"
+>;
+export type PermissionAction = Statement[PermissionResource][number];
+
+export const splitPermission = (permission: Permission) =>
+  permission.split(":") as [PermissionResource, PermissionAction];

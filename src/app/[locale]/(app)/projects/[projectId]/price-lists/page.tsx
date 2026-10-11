@@ -48,9 +48,7 @@ export default async function PriceListsPage({
           { label: t("projects.title"), href: "/projects" },
           { label: project.name, href: `/projects/${projectId}` },
         ]}
-        actions={
-          can(ctx.roles, "price:update") ? <NewPriceListDialog projectId={projectId} /> : null
-        }
+        actions={can(ctx, "price:update") ? <NewPriceListDialog projectId={projectId} /> : null}
       />
       {lists.length === 0 ? (
         <p className="rounded-lg border border-dashed p-8 text-center text-muted-foreground">

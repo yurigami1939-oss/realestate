@@ -25,7 +25,7 @@ export default async function ExportsPage({ params }: PageProps<"/[locale]/expor
   setRequestLocale(toLocale((await params).locale));
   const ctx = await requireTenantCtx();
   const t = await getTranslations("exports.page");
-  const allowed = (permission: Permission) => can(ctx.roles, permission);
+  const allowed = (permission: Permission) => can(ctx, permission);
   const today = todayInAlgiers();
   const projects = allowed("inventory:read") ? await listProjectOptions(ctx) : [];
   const residences = allowed("residence:read") ? await listResidences(ctx) : [];

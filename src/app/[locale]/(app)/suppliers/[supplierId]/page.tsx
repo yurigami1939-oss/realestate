@@ -38,7 +38,7 @@ export default async function SupplierPage({
   const targets = await listContractTargets(ctx);
   const invoices = await listInvoices(ctx, { supplierId: supplier.id });
   const t = await getTranslations("suppliers");
-  const editable = can(ctx.roles, "supplier:update");
+  const editable = can(ctx, "supplier:update");
   const accounts = editable ? await listAccountChoices(ctx) : [];
   const today = todayInAlgiers();
   const details = [

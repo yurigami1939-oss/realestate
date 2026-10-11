@@ -184,7 +184,7 @@ export async function cancelDiscountRequest(
 ) {
   return withTenant(ctx, async (tx) => {
     const request = await loadPending(tx, ctx, input.requestId);
-    if (request.requestedBy !== ctx.userId && !can(ctx.roles, "discount:decide")) {
+    if (request.requestedBy !== ctx.userId && !can(ctx, "discount:decide")) {
       throw new AppError("FORBIDDEN");
     }
     await tx
@@ -238,7 +238,7 @@ export async function assertDiscountAllowed(
   leadIds: string[],
   unitId: string,
 ) {
-  if (discount <= 0n || can(ctx.roles, right)) return;
+  if (discount <= 0n || can(ctx, right)) return;
   const approved = await approvedDiscount(tx, leadIds, unitId);
   if (approved === 0n) throw new AppError("FORBIDDEN", "quotations.errors.discountForbidden");
   if (discount > approved) throw invalid("discount", "discounts.errors.aboveApproved");

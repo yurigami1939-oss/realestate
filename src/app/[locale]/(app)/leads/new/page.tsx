@@ -20,7 +20,7 @@ export default async function NewLeadPage({ params }: PageProps<"/[locale]/leads
   setRequestLocale(toLocale((await params).locale));
   const ctx = await requirePermission("lead:create");
   const projects = await listProjectOptions(ctx);
-  const owners = can(ctx.roles, "lead:assign") ? await listLeadOwners(ctx) : null;
+  const owners = can(ctx, "lead:assign") ? await listLeadOwners(ctx) : null;
   const t = await getTranslations("crm.leads");
 
   return (

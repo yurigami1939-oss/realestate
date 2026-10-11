@@ -55,19 +55,17 @@ export default async function UnitPage({
   const unit = await getUnit(ctx, unitId);
   if (!unit || unit.projectId !== projectId) notFound();
 
-  const canSell = can(ctx.roles, "sale:create");
+  const canSell = can(ctx, "sale:create");
   const option = unit.status === "optioned" ? await getUnitOption(ctx, unit.id) : null;
   const sale =
-    can(ctx.roles, "sale:read") && ["reserved", "sold", "delivered"].includes(unit.status)
+    can(ctx, "sale:read") && ["reserved", "sold", "delivered"].includes(unit.status)
       ? await getUnitSale(ctx, unit.id)
       : null;
   const leads = canSell && unit.status === "available" ? await listLeadChoices(ctx) : [];
   const lease =
-    unit.status === "rented" && can(ctx.roles, "lease:read")
-      ? await getUnitLease(ctx, unit.id)
-      : null;
+    unit.status === "rented" && can(ctx, "lease:read") ? await getUnitLease(ctx, unit.id) : null;
   const leasable =
-    (unit.status === "available" || unit.status === "blocked") && can(ctx.roles, "lease:update");
+    (unit.status === "available" || unit.status === "blocked") && can(ctx, "lease:update");
   const { optionHours } = await getSalesSettings(ctx);
   const t = await getTranslations("inventory");
   const tc = await getTranslations("common");
@@ -96,7 +94,7 @@ export default async function UnitPage({
                 </Link>
               </Button>
             ) : null}
-            {can(ctx.roles, "unit:update") ? (
+            {can(ctx, "unit:update") ? (
               <Button asChild variant="outline">
                 <Link href={`/projects/${projectId}/units/${unit.id}/edit`}>
                   <Pencil data-icon="inline-start" />
@@ -104,7 +102,7 @@ export default async function UnitPage({
                 </Link>
               </Button>
             ) : null}
-            {forSale && can(ctx.roles, "price:update") ? (
+            {forSale && can(ctx, "price:update") ? (
               <ChangePriceDialog
                 unitId={unit.id}
                 code={unit.code}
@@ -113,7 +111,7 @@ export default async function UnitPage({
                 }
               />
             ) : null}
-            {can(ctx.roles, "unit:block") &&
+            {can(ctx, "unit:block") &&
             (unit.status === "available" || unit.status === "blocked") ? (
               <BlockUnitDialog
                 unitId={unit.id}
@@ -121,7 +119,7 @@ export default async function UnitPage({
                 blocked={unit.status === "blocked"}
               />
             ) : null}
-            {can(ctx.roles, "unit:delete") && deletable ? (
+            {can(ctx, "unit:delete") && deletable ? (
               <ConfirmAction
                 action={deleteUnitAction}
                 input={{ unitId: unit.id }}
@@ -189,7 +187,7 @@ export default async function UnitPage({
             unitId={unit.id}
             code={unit.code}
             plan={unit.floorPlan}
-            editable={can(ctx.roles, "unit:update")}
+            editable={can(ctx, "unit:update")}
           />
           {forSale ? (
             <UnitSheetsCard unitId={unit.id} sheets={await listUnitSheets(ctx, unit.id)} />

@@ -55,8 +55,8 @@ export default async function OnlinePaymentsPage({
   const t = await getTranslations("onlinePayments");
   const ti = await getTranslations();
   const money = (v: bigint) => formatDZD(v, locale);
-  const mayRecheck = can(ctx.roles, "payment:create");
-  const mayRefund = can(ctx.roles, "payment:cancel");
+  const mayRecheck = can(ctx, "payment:create");
+  const mayRefund = can(ctx, "payment:cancel");
 
   return (
     <div className="mx-auto max-w-7xl space-y-6">

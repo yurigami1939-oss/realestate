@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "@/i18n/navigation";
 import { toLocale } from "@/i18n/locales";
 import { addMonths, todayInAlgiers } from "@/lib/dates";
-import { can } from "@/lib/permissions";
+import { accessOf, can } from "@/lib/permissions";
 import { requirePermission } from "@/server/auth/page-guard";
 import { getResidence } from "@/server/residences/queries";
 import { getAttendanceMonth } from "@/server/staff/attendance";
@@ -56,7 +56,7 @@ export default async function AttendancePage({
         description={home.projectName}
         crumbs={[{ label: tr("title"), href: "/residences" }]}
       />
-      <ResidenceNav residenceId={residenceId} current="staff" roles={ctx.roles} />
+      <ResidenceNav residenceId={residenceId} current="staff" roles={accessOf(ctx)} />
       <Card>
         <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
           <CardTitle className="text-base">
@@ -82,7 +82,7 @@ export default async function AttendancePage({
             key={month}
             residenceId={residenceId}
             sheet={sheet}
-            editable={can(ctx.roles, "staff:update")}
+            editable={can(ctx, "staff:update")}
           />
         </CardContent>
       </Card>

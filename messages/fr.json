@@ -77,7 +77,8 @@
     "dateTime": "Date et heure invalides.",
     "nin": "NIN invalide (18 chiffres).",
     "time": "Heure invalide (HH:MM).",
-    "accountCode": "Chiffres et lettres uniquement."
+    "accountCode": "Chiffres et lettres uniquement.",
+    "permission": "Droit inconnu."
   },
   "auth": {
     "fields": {
@@ -300,7 +301,9 @@
     "security": "Sécurité",
     "smsLog": "Messages SMS",
     "smsSettings": "SMS",
-    "privacy": "Données personnelles"
+    "privacy": "Données personnelles",
+    "customRoles": "Rôles personnalisés",
+    "documentTexts": "Textes des documents"
   },
   "shell": {
     "organizations": "Sociétés",
@@ -345,7 +348,9 @@
       "expires": "Expire le {date}",
       "cancel": "Annuler l'invitation",
       "cancelled": "Invitation annulée."
-    }
+    },
+    "customRole": "Rôle personnalisé",
+    "noCustomRole": "Aucun (rôles ci-dessus)"
   },
   "inventory": {
     "projectStatus": {
@@ -5821,6 +5826,109 @@
       "sender": "3 à 11 lettres, chiffres, points ou tirets.",
       "disabled": "Activez d'abord l'envoi de SMS.",
       "notMobile": "Ce numéro n'est pas un mobile, ou il a demandé l'arrêt des SMS."
+    }
+  },
+  "customRoles": {
+    "title": "Rôles personnalisés",
+    "description": "Les rôles propres à la société : un nom, le rôle dont il part et les droits exacts de ceux qui le tiennent. Ils se donnent aux membres sur la page Membres.",
+    "empty": "Aucun rôle personnalisé.",
+    "new": "Nouveau rôle",
+    "newTitle": "Nouveau rôle personnalisé",
+    "edit": "Modifier",
+    "editTitle": "Modifier le rôle « {name} »",
+    "dialogDescription": "Les membres qui tiennent ce rôle ont exactement les droits cochés (leurs autres rôles ne comptent plus). Les droits de gestion des membres restent au gérant.",
+    "name": "Nom du rôle",
+    "baseRole": "Rôle de départ",
+    "baseRoleHint": "Ses droits sont proposés ; il reste le rôle des membres pour leurs listes.",
+    "permissions": "Droits",
+    "create": "Créer",
+    "save": "Enregistrer",
+    "created": "Rôle créé.",
+    "saved": "Rôle enregistré.",
+    "line": "D'après « {base} » · {count, plural, one {# droit} other {# droits}} · {members, plural, =0 {aucun membre} one {# membre} other {# membres}}",
+    "archive": "Archiver",
+    "archiveTitle": "Archiver le rôle « {name} » ?",
+    "archiveDescription": "Plus aucun membre ne le tient ; il ne sera plus proposé.",
+    "archived": "Rôle archivé.",
+    "errors": {
+      "nameTaken": "Un rôle porte déjà ce nom.",
+      "held": "Des membres tiennent encore ce rôle.",
+      "noPermission": "Cochez au moins un droit."
+    },
+    "resources": {
+      "audit": "Journal d'audit",
+      "inventory": "Stock (lecture)",
+      "project": "Projets",
+      "unit": "Lots",
+      "price": "Prix",
+      "lead": "Prospects",
+      "quotation": "Devis",
+      "discount": "Remises",
+      "target": "Objectifs",
+      "buyer": "Acquéreurs",
+      "sale": "Ventes",
+      "payment": "Encaissements",
+      "milestone": "Étapes des travaux",
+      "commission": "Commissions",
+      "residence": "Résidences",
+      "charge": "Charges",
+      "supplier": "Fournisseurs",
+      "staff": "Personnel",
+      "ticket": "Réclamations",
+      "assembly": "Assemblées",
+      "announcement": "Annonces",
+      "portal": "Espace client",
+      "construction": "Chantier",
+      "handover": "Livraisons",
+      "lease": "Locations",
+      "notification": "Messages",
+      "treasury": "Trésorerie",
+      "cost": "Coûts de construction",
+      "report": "Rapports",
+      "personal_data": "Données personnelles"
+    },
+    "actions": {
+      "read": "Consulter",
+      "read_all": "Tout consulter",
+      "create": "Créer",
+      "update": "Modifier",
+      "delete": "Supprimer",
+      "block": "Bloquer",
+      "assign": "Attribuer",
+      "merge": "Fusionner",
+      "discount": "Remiser",
+      "cancel": "Annuler",
+      "request": "Demander",
+      "decide": "Décider",
+      "sign": "Signer la VSP",
+      "withdraw": "Désistement",
+      "approve": "Approuver",
+      "remind": "Relancer",
+      "certify": "Attestations",
+      "finance": "Plan de financement",
+      "validate": "Valider",
+      "invite": "Inviter",
+      "count": "Arrêté de caisse",
+      "pay": "Payer",
+      "export": "Exporter",
+      "erase": "Effacer"
+    }
+  },
+  "documentTexts": {
+    "title": "Textes des documents",
+    "description": "Les mentions propres à la société, imprimées sur chaque sorte de document (conditions, coordonnées bancaires, horaires de la caisse…), en français et en arabe. Elles figurent sur les documents émis après l'enregistrement.",
+    "fr": "{document} — en français",
+    "ar": "{document} — en arabe",
+    "save": "Enregistrer",
+    "saved": "Textes des documents enregistrés.",
+    "kinds": {
+      "quotation": "Devis",
+      "reservation_sheet": "Fiche de réservation",
+      "receipt": "Reçus et quittances",
+      "payment_call": "Appels de fonds",
+      "reminder_letter": "Lettres de relance et mises en demeure",
+      "charge_call": "Appels de charges",
+      "certificate": "Attestations et relevés"
     }
   }
 }

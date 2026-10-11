@@ -17,6 +17,7 @@ import { Link } from "@/i18n/navigation";
 import { toLocale } from "@/i18n/locales";
 import { formatDZD } from "@/lib/money";
 import { cn } from "@/lib/utils";
+import { accessOf } from "@/lib/permissions";
 import { requirePermission } from "@/server/auth/page-guard";
 import { listUnitAccounts } from "@/server/charges/queries";
 
@@ -57,7 +58,7 @@ export default async function ResidenceAccountsPage({
         crumbs={[{ label: tr("title"), href: "/residences" }]}
         actions={<ExportButton kind="charges" params={{ residence: residenceId }} />}
       />
-      <ResidenceNav residenceId={residenceId} current="accounts" roles={ctx.roles} />
+      <ResidenceNav residenceId={residenceId} current="accounts" roles={accessOf(ctx)} />
       <dl
         className="grid gap-2 text-sm sm:grid-cols-3 lg:grid-cols-6"
         data-testid="accounts-totals"

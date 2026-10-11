@@ -1,7 +1,8 @@
 /** Isomorphic: shared by the members page forms and the organization actions. */
 import { z } from "zod";
 
-import { staffRoles } from "@/lib/permissions";
+import { type DocumentTextKind, documentTextKinds, MAX_DOCUMENT_TEXT } from "@/lib/document-texts";
+import { grantablePermissions, isGrantablePermission, staffRoles } from "@/lib/permissions";
 import { intText, optionalPercentText, optionalText, percentText, requiredText } from "@/lib/zod";
 
 /** Staff roles only: the portal role is given by a portal invitation from a record. */
@@ -54,4 +55,39 @@ export const companySettingsSchema = z.object({
   vspLimitFoundations: optionalPercentText(0, 100),
   vspLimitStructure: optionalPercentText(0, 100),
   vspLimitCompletion: optionalPercentText(0, 100),
+});
+
+/** A custom role (CLAUDE.md §5 Auth & roles): its name, base staff role and permissions. */
+export const customRoleSchema = z.object({
+  name: requiredText(60),
+  baseRole: staffRole,
+  permissions: z
+    .array(z.string().refine(isGrantablePermission, "validation.permission"))
+    .min(1, "customRoles.errors.noPermission")
+    .max(grantablePermissions.length),
+});
+export const updateCustomRoleSchema = customRoleSchema.extend({ customRoleId: z.uuid() });
+export const archiveCustomRoleSchema = z.object({ customRoleId: z.uuid() });
+
+/** A member's custom role, or none (`""`). */
+export const assignCustomRoleSchema = z.object({
+  memberId: z.uuid(),
+  customRoleId: z
+    .uuid()
+    .or(z.literal(""))
+    .transform((v) => v || null),
+});
+
+/** The organization's wording per kind of document, French and Arabic (blank = none). */
+const documentText = z.object({
+  fr: z.string().trim().max(MAX_DOCUMENT_TEXT, "validation.tooLong").default(""),
+  ar: z.string().trim().max(MAX_DOCUMENT_TEXT, "validation.tooLong").default(""),
+});
+export const documentTextsSchema = z.object({
+  texts: z.object(
+    Object.fromEntries(documentTextKinds.map((kind) => [kind, documentText.optional()])) as Record<
+      DocumentTextKind,
+      z.ZodOptional<typeof documentText>
+    >,
+  ),
 });

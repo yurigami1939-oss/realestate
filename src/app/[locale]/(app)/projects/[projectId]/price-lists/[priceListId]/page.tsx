@@ -41,10 +41,7 @@ export default async function PriceListPage({
           { label: t("priceLists.title"), href: `/projects/${projectId}/price-lists` },
         ]}
       />
-      <PriceListEditor
-        list={list}
-        editable={list.status === "draft" && can(ctx.roles, "price:update")}
-      />
+      <PriceListEditor list={list} editable={list.status === "draft" && can(ctx, "price:update")} />
     </div>
   );
 }

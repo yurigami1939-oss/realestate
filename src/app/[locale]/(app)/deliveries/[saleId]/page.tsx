@@ -74,7 +74,7 @@ export default async function DeliveryPage({ params }: PageProps<"/[locale]/deli
   const money = (v: bigint) => formatDZD(v, locale);
   const today = todayInAlgiers();
   const h = delivery.handover;
-  const editable = can(ctx.roles, "handover:update");
+  const editable = can(ctx, "handover:update");
   const signed = h?.status === "signed";
   const closed = h?.reservesClosedOn !== null && h?.reservesClosedOn !== undefined;
   const open = delivery.items.filter((i) => i.status === "open");
@@ -100,7 +100,7 @@ export default async function DeliveryPage({ params }: PageProps<"/[locale]/deli
         badge={<DeliveryStateBadge state={delivery.state} />}
         actions={
           <>
-            {can(ctx.roles, "sale:read") ? (
+            {can(ctx, "sale:read") ? (
               <Button asChild variant="outline">
                 <Link href={`/sales/${delivery.id}`}>
                   <FileSignature data-icon="inline-start" />

@@ -43,16 +43,16 @@ export default async function BuyerPage({ params }: PageProps<"/[locale]/buyers/
   if (!buyer) notFound();
   const t = await getTranslations("buyers");
   const tc = await getTranslations("common");
-  const editable = can(ctx.roles, "buyer:update");
+  const editable = can(ctx, "buyer:update");
   const civility = buyer.civility ? `${t(`civility.${buyer.civility}`)} ` : "";
-  const sales = can(ctx.roles, "sale:read") ? await listBuyerSales(ctx, buyer.id) : null;
+  const sales = can(ctx, "sale:read") ? await listBuyerSales(ctx, buyer.id) : null;
   const ts = await getTranslations("sales");
   const tp = await getTranslations("privacy");
   const money = (v: bigint) => formatDZD(v, toLocale(locale));
   const privacy = await getPersonPrivacy(ctx, { type: "buyer", id: buyer.id });
   const portal = {
     access: (await getPortalAccess(ctx, [{ kind: "buyer", id: buyer.id }])).get(buyer.id) ?? null,
-    editable: editable && can(ctx.roles, "portal:invite"),
+    editable: editable && can(ctx, "portal:invite"),
   };
 
   return (
@@ -69,7 +69,7 @@ export default async function BuyerPage({ params }: PageProps<"/[locale]/buyers/
         crumbs={[{ label: t("title"), href: "/buyers" }]}
         actions={
           <>
-            {can(ctx.roles, "sale:create") ? (
+            {can(ctx, "sale:create") ? (
               <Button asChild>
                 <Link href={`/sales/new?buyerId=${buyer.id}`}>
                   <FileSignature data-icon="inline-start" />
@@ -85,7 +85,7 @@ export default async function BuyerPage({ params }: PageProps<"/[locale]/buyers/
                 </Link>
               </Button>
             ) : null}
-            {can(ctx.roles, "personal_data:export") ? (
+            {can(ctx, "personal_data:export") ? (
               <ExportButton kind="person" params={{ buyer: buyer.id }} label={tp("export")} />
             ) : null}
           </>

@@ -62,7 +62,7 @@ export default async function ChargePeriodPage({
           <Badge variant={live ? "secondary" : "outline"}>{t(`status.${period.status}`)}</Badge>
         }
         actions={
-          live && can(ctx.roles, "charge:cancel") ? (
+          live && can(ctx, "charge:cancel") ? (
             <CancelPeriodDialog periodId={period.id} period={label} />
           ) : null
         }

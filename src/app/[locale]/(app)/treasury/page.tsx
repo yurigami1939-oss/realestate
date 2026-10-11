@@ -35,7 +35,7 @@ export default async function TreasuryPage({ params }: PageProps<"/[locale]/trea
   const money = (v: bigint) => formatDZD(v, locale);
   const today = todayInAlgiers();
   const open = accounts.filter((a) => a.closedOn === null);
-  const canUpdate = can(ctx.roles, "treasury:update");
+  const canUpdate = can(ctx, "treasury:update");
   const totals = treasuryAccountKinds
     .map((kind) => ({
       kind,

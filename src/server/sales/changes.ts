@@ -125,7 +125,7 @@ export async function transferReservation(
  */
 export async function swapUnit(ctx: TenantCtx, input: In<typeof swapUnitSchema>) {
   assertCan(ctx, "sale:update");
-  if (input.discount > 0n && !can(ctx.roles, "sale:discount")) {
+  if (input.discount > 0n && !can(ctx, "sale:discount")) {
     throw new AppError("FORBIDDEN", "quotations.errors.discountForbidden");
   }
   assertNotFuture(input.swappedOn, "swappedOn");

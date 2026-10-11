@@ -28,7 +28,7 @@ export default async function LeadsPage({ params, searchParams }: PageProps<"/[l
   setRequestLocale(toLocale((await params).locale));
   const ctx = await requirePermission("lead:read");
   const filters = leadListParams.parse(firstValues(await searchParams));
-  const managers = can(ctx.roles, "lead:read_all");
+  const managers = can(ctx, "lead:read_all");
   const result = await listLeads(ctx, filters);
   const owners = managers ? await listLeadOwners(ctx) : null;
   const t = await getTranslations("crm");
@@ -51,7 +51,7 @@ export default async function LeadsPage({ params, searchParams }: PageProps<"/[l
                 duplicates: filters.duplicates,
               }}
             />
-            {can(ctx.roles, "lead:merge") ? (
+            {can(ctx, "lead:merge") ? (
               <Button asChild variant="outline">
                 <Link href="/leads/duplicates">
                   <Copy data-icon="inline-start" />

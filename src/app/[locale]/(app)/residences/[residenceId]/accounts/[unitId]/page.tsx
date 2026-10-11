@@ -55,8 +55,8 @@ export default async function UnitAccountPage({
   if (!account) notFound();
   const reminders = await listUnitReminders(ctx, residenceId, unitId);
   const recovery = await getUnitRecovery(ctx, residenceId, unitId);
-  const canRecover = can(ctx.roles, "charge:remind");
-  const accounts = can(ctx.roles, "payment:create") ? await listAccountChoices(ctx) : [];
+  const canRecover = can(ctx, "charge:remind");
+  const accounts = can(ctx, "payment:create") ? await listAccountChoices(ctx) : [];
   const t = await getTranslations("charges.accounts");
   const tp = await getTranslations("charges.period");
   const tpay = await getTranslations("payments");
@@ -94,7 +94,7 @@ export default async function UnitAccountPage({
         ]}
         actions={
           <>
-            {statement.overdue > 0n && can(ctx.roles, "charge:remind") ? (
+            {statement.overdue > 0n && can(ctx, "charge:remind") ? (
               <ChargeReminderDialog
                 residenceId={residenceId}
                 unitId={unitId}
@@ -103,7 +103,7 @@ export default async function UnitAccountPage({
                 today={today}
               />
             ) : null}
-            {can(ctx.roles, "payment:create") ? (
+            {can(ctx, "payment:create") ? (
               <RecordChargePaymentDialog
                 residenceId={residenceId}
                 unitId={unitId}
@@ -373,10 +373,10 @@ export default async function UnitAccountPage({
                         </TableCell>
                         <TableCell className="text-end">
                           <div className="flex justify-end gap-1">
-                            {pendingCheque && can(ctx.roles, "payment:create") ? (
+                            {pendingCheque && can(ctx, "payment:create") ? (
                               <ClearChargeChequeDialog paymentId={p.id} today={today} />
                             ) : null}
-                            {valid && can(ctx.roles, "payment:cancel") ? (
+                            {valid && can(ctx, "payment:cancel") ? (
                               <CancelChargePaymentDialog
                                 paymentId={p.id}
                                 receiptNumber={p.receiptNumber}
