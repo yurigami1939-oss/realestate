@@ -70,9 +70,7 @@ export default async function TargetsPage({
         }
       />
       {rows.length === 0 ? (
-        <p className="rounded-lg border border-dashed p-8 text-center text-muted-foreground">
-          {t("empty")}
-        </p>
+        <p className="empty-state">{t("empty")}</p>
       ) : (
         <TargetsTable key={month} month={month} rows={rows} editable={can(ctx, "target:update")} />
       )}

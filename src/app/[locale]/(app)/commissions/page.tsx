@@ -78,9 +78,7 @@ export default async function CommissionsPage({
       </dl>
       <CommissionFilters earners={earners} />
       {result.rows.length === 0 ? (
-        <p className="rounded-lg border border-dashed p-8 text-center text-muted-foreground">
-          {t("commissions.empty")}
-        </p>
+        <p className="empty-state">{t("commissions.empty")}</p>
       ) : (
         <div className="overflow-x-auto rounded-lg border">
           <Table data-testid="commissions">

@@ -185,9 +185,7 @@ export default async function ProjectPage({ params }: PageProps<"/[locale]/proje
           {canEdit ? <BuildingDialog projectId={project.id} /> : null}
         </div>
         {project.buildings.length === 0 ? (
-          <p className="rounded-lg border border-dashed p-8 text-center text-muted-foreground">
-            {t("buildings.empty")}
-          </p>
+          <p className="empty-state">{t("buildings.empty")}</p>
         ) : (
           <div className="grid gap-4 md:grid-cols-2" data-testid="building-list">
             {project.buildings.map((b) => (

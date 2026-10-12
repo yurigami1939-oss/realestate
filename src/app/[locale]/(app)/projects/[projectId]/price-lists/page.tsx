@@ -51,9 +51,7 @@ export default async function PriceListsPage({
         actions={can(ctx, "price:update") ? <NewPriceListDialog projectId={projectId} /> : null}
       />
       {lists.length === 0 ? (
-        <p className="rounded-lg border border-dashed p-8 text-center text-muted-foreground">
-          {t("priceLists.empty")}
-        </p>
+        <p className="empty-state">{t("priceLists.empty")}</p>
       ) : (
         <div className="overflow-x-auto rounded-lg border">
           <Table>

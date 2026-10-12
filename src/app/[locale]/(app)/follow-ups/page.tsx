@@ -53,9 +53,7 @@ export default async function FollowUpsPage({
         actions={owners ? <AssigneeFilter owners={owners} /> : null}
       />
       {followUps.length === 0 ? (
-        <p className="rounded-lg border border-dashed p-8 text-center text-muted-foreground">
-          {t("empty")}
-        </p>
+        <p className="empty-state">{t("empty")}</p>
       ) : (
         groups
           .filter((g) => g.items.length > 0)

@@ -32,9 +32,7 @@ export default async function DuplicatesPage({ params }: PageProps<"/[locale]/le
         crumbs={[{ label: t("leads.title"), href: "/leads" }]}
       />
       {groups.length === 0 ? (
-        <p className="rounded-lg border border-dashed p-8 text-center text-muted-foreground">
-          {t("duplicates.empty")}
-        </p>
+        <p className="empty-state">{t("duplicates.empty")}</p>
       ) : (
         groups.map((group) => (
           <Card key={group.phone} data-testid="duplicate-group">

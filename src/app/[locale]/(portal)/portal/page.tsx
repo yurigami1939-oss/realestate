@@ -28,9 +28,7 @@ export default async function PortalHomePage({ params }: PageProps<"/[locale]/po
     <div className="space-y-6">
       <h1 className="text-large-title">{t("welcome", { name: ctx.name })}</h1>
       {sales.length === 0 && units.length === 0 && leases.length === 0 ? (
-        <p className="rounded-lg border border-dashed p-6 text-center text-muted-foreground">
-          {t("empty")}
-        </p>
+        <p className="empty-state">{t("empty")}</p>
       ) : null}
       {sales.length > 0 ? (
         <section className="space-y-3">

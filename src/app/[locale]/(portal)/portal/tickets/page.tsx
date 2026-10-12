@@ -31,9 +31,7 @@ export default async function PortalTicketsPage({ params }: PageProps<"/[locale]
         {targets.length > 0 ? <PortalTicketDialog targets={targets} /> : null}
       </div>
       {tickets.length === 0 ? (
-        <p className="rounded-lg border border-dashed p-6 text-center text-muted-foreground">
-          {t("empty")}
-        </p>
+        <p className="empty-state">{t("empty")}</p>
       ) : (
         <ul className="space-y-2" data-testid="portal-tickets">
           {tickets.map((ticket) => (

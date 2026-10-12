@@ -47,9 +47,7 @@ export default async function PortalRequestsPage({
       />
       <RequestFilters status={filters.status} />
       {result.rows.length === 0 ? (
-        <p className="rounded-lg border border-dashed p-8 text-center text-muted-foreground">
-          {t("empty")}
-        </p>
+        <p className="empty-state">{t("empty")}</p>
       ) : (
         <div className="overflow-x-auto rounded-lg border">
           <Table data-testid="portal-requests">

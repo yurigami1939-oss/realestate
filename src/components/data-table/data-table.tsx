@@ -6,6 +6,7 @@ import {
   tableFeatures,
   useTable,
 } from "@tanstack/react-table";
+import { Inbox } from "lucide-react";
 
 import {
   Table,
@@ -63,8 +64,11 @@ export function DataTable<TData extends { id: string }>({
             <TableRow>
               <TableCell
                 colSpan={table.getAllLeafColumns().length}
-                className="py-10 text-center text-muted-foreground"
+                className="py-12 text-center whitespace-normal text-muted-foreground"
               >
+                <span className="mx-auto mb-3 flex size-11 items-center justify-center rounded-full bg-muted">
+                  <Inbox className="size-5.5 text-gray-vivid" aria-hidden />
+                </span>
                 {empty}
               </TableCell>
             </TableRow>

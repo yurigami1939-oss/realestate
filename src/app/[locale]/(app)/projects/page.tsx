@@ -42,9 +42,7 @@ export default async function ProjectsPage({ params }: PageProps<"/[locale]/proj
         }
       />
       {projects.length === 0 ? (
-        <p className="rounded-lg border border-dashed p-8 text-center text-muted-foreground">
-          {t("empty")}
-        </p>
+        <p className="empty-state">{t("empty")}</p>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3" data-testid="project-list">
           {projects.map((p) => (

@@ -29,9 +29,7 @@ export default async function PortalAnnouncementsPage({
     <div className="space-y-4">
       <h1 className="text-large-title">{t("title")}</h1>
       {announcements.length === 0 ? (
-        <p className="rounded-lg border border-dashed p-6 text-center text-muted-foreground">
-          {t("empty")}
-        </p>
+        <p className="empty-state">{t("empty")}</p>
       ) : (
         <ul className="space-y-3" data-testid="portal-announcements">
           {announcements.map((a) => (

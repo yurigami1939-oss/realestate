@@ -39,9 +39,7 @@ export default async function VisitsPage({ params }: PageProps<"/[locale]/visits
     <div className="mx-auto max-w-5xl space-y-6">
       <PageHeader title={t("visits.title")} description={t("visits.description")} />
       {visits.length === 0 ? (
-        <p className="rounded-lg border border-dashed p-8 text-center text-muted-foreground">
-          {t("visits.empty")}
-        </p>
+        <p className="empty-state">{t("visits.empty")}</p>
       ) : (
         days.map((day) => (
           <Card key={day}>

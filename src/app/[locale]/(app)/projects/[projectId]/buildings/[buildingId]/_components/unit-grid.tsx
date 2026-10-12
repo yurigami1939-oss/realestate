@@ -46,11 +46,7 @@ export function UnitGrid({
   }, [units, lowestFloor, topFloor]);
 
   if (units.length === 0) {
-    return (
-      <p className="rounded-lg border border-dashed p-8 text-center text-muted-foreground">
-        {t("grid.empty")}
-      </p>
-    );
+    return <p className="empty-state">{t("grid.empty")}</p>;
   }
 
   return (

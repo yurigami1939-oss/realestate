@@ -92,9 +92,7 @@ export default async function ProjectConstructionPage({
         <section className="min-w-0 space-y-4 lg:col-span-2" data-testid="construction-reports">
           <h2 className="text-title">{t("reports")}</h2>
           {project.reports.length === 0 ? (
-            <p className="rounded-lg border border-dashed p-8 text-center text-muted-foreground">
-              {t("noReports")}
-            </p>
+            <p className="empty-state">{t("noReports")}</p>
           ) : (
             project.reports.map((report) => (
               <ReportCard

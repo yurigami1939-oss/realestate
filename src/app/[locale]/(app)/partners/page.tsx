@@ -54,9 +54,7 @@ export default async function PartnersPage({ params }: PageProps<"/[locale]/part
         actions={manages ? <PartnerDialog /> : null}
       />
       {partners.length === 0 ? (
-        <p className="rounded-lg border border-dashed p-8 text-center text-muted-foreground">
-          {t("none")}
-        </p>
+        <p className="empty-state">{t("none")}</p>
       ) : (
         <div className="overflow-x-auto rounded-lg border">
           <Table data-testid="partners">

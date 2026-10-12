@@ -27,9 +27,7 @@ export default async function NewLeasePage({
     <div className="mx-auto max-w-7xl space-y-6">
       <PageHeader title={t("newTitle")} crumbs={[{ label: t("title"), href: "/rentals" }]} />
       {units.length === 0 ? (
-        <p className="rounded-lg border border-dashed p-8 text-center text-muted-foreground">
-          {t("noUnits")}
-        </p>
+        <p className="empty-state">{t("noUnits")}</p>
       ) : (
         <LeaseForm
           units={units}

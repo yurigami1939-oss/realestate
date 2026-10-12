@@ -6335,5 +6335,11 @@
     "empty": "Aucun résultat.",
     "searching": "Recherche…",
     "hint": "↑ ↓ pour choisir · Entrée pour ouvrir · Échap pour fermer"
+  },
+  "errorPage": {
+    "title": "Un problème est survenu",
+    "description": "Cette page n'a pas pu s'afficher. Réessayez ; si le problème continue, prévenez votre administrateur.",
+    "retry": "Réessayer",
+    "reference": "Référence : {digest}"
   }
 }

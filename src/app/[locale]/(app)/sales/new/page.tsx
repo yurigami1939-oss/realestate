@@ -44,9 +44,7 @@ export default async function NewReservationPage({
         crumbs={[{ label: t("sales.title"), href: "/sales" }]}
       />
       {units.length === 0 ? (
-        <p className="rounded-lg border border-dashed p-8 text-center text-muted-foreground">
-          {t("sales.noUnits")}
-        </p>
+        <p className="empty-state">{t("sales.noUnits")}</p>
       ) : (
         <ReservationForm
           units={units}

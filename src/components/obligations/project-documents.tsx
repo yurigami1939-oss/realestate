@@ -65,9 +65,7 @@ export function ProjectDocuments({
         })}
       </ul>
       {documents.length === 0 ? (
-        <p className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
-          {t("empty")}
-        </p>
+        <p className="empty-state">{t("empty")}</p>
       ) : (
         <div className="rounded-lg border">
           <Table>

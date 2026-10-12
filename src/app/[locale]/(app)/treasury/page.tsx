@@ -82,9 +82,7 @@ export default async function TreasuryPage({ params }: PageProps<"/[locale]/trea
         </dl>
       ) : null}
       {accounts.length === 0 ? (
-        <p className="rounded-lg border border-dashed p-8 text-center text-muted-foreground">
-          {t("empty")}
-        </p>
+        <p className="empty-state">{t("empty")}</p>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3" data-testid="treasury-accounts">
           {accounts.map((a) => (

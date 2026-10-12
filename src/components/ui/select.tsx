@@ -5,8 +5,47 @@ import { cn } from "cn";
 import { Select as SelectPrimitive } from "radix-ui";
 import { ChevronDownIcon, CheckIcon, ChevronUpIcon } from "lucide-react";
 
-function Select({ ...props }: React.ComponentProps<typeof SelectPrimitive.Root>) {
-  return <SelectPrimitive.Root data-slot="select" {...props} />;
+/**
+ * The label of the chosen item, found among the select's own children (CLAUDE.md §14 item 9):
+ * Radix fills `SelectValue` only once the page is hydrated, so filters showed empty boxes on
+ * first paint; rendering the label ourselves shows it from the server's HTML on.
+ */
+const SelectLabelContext = React.createContext<React.ReactNode>(undefined);
+
+function findItemLabel(children: React.ReactNode, value: string | undefined): React.ReactNode {
+  if (value === undefined) return undefined;
+  let found: React.ReactNode = undefined;
+  React.Children.forEach(children, (child) => {
+    if (found !== undefined || !React.isValidElement(child)) return;
+    const props = child.props as { value?: unknown; children?: React.ReactNode };
+    if (child.type === SelectItem && props.value === value) found = props.children;
+    else if (props.children !== undefined) found = findItemLabel(props.children, value);
+  });
+  return found;
+}
+
+function Select({
+  children,
+  onValueChange,
+  ...props
+}: React.ComponentProps<typeof SelectPrimitive.Root>) {
+  // Uncontrolled selects: follow the choice so the label stays right after a change.
+  const [chosen, setChosen] = React.useState(props.defaultValue);
+  const label = findItemLabel(children, props.value ?? chosen);
+  return (
+    <SelectLabelContext.Provider value={label}>
+      <SelectPrimitive.Root
+        data-slot="select"
+        onValueChange={(value) => {
+          setChosen(value);
+          onValueChange?.(value);
+        }}
+        {...props}
+      >
+        {children}
+      </SelectPrimitive.Root>
+    </SelectLabelContext.Provider>
+  );
 }
 
 function SelectGroup({ className, ...props }: React.ComponentProps<typeof SelectPrimitive.Group>) {
@@ -19,8 +58,13 @@ function SelectGroup({ className, ...props }: React.ComponentProps<typeof Select
   );
 }
 
-function SelectValue({ ...props }: React.ComponentProps<typeof SelectPrimitive.Value>) {
-  return <SelectPrimitive.Value data-slot="select-value" {...props} />;
+function SelectValue({ children, ...props }: React.ComponentProps<typeof SelectPrimitive.Value>) {
+  const label = React.useContext(SelectLabelContext);
+  return (
+    <SelectPrimitive.Value data-slot="select-value" {...props}>
+      {children ?? label}
+    </SelectPrimitive.Value>
+  );
 }
 
 function SelectTrigger({

@@ -86,9 +86,7 @@ export default async function PaymentPlansPage({
       <section className="space-y-3">
         <h2 className="text-title">{t("paymentPlans.plans")}</h2>
         {plans.length === 0 ? (
-          <p className="rounded-lg border border-dashed p-8 text-center text-muted-foreground">
-            {t("paymentPlans.noPlans")}
-          </p>
+          <p className="empty-state">{t("paymentPlans.noPlans")}</p>
         ) : (
           plans.map((plan) => (
             <PlanCard
