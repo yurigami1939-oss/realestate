@@ -131,7 +131,8 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
     │   ├── settings/         # the settings hub (SettingsFrame, SettingsNav, SettingsTile), settings forms
     │   ├── app-shell/        # nav-items.ts (the back office's pages and sections: sidebar, top bar,
     │   │                     # palette), sidebar (folding groups), top bar, command-palette.tsx (⌘K / Ctrl K:
-    │   │                     # pages and records), more-actions.tsx (a header's « … » menu), org switcher, user menu
+    │   │                     # pages and records), more-actions.tsx (a header's « … » menu), page-skeleton.tsx
+    │   │                     # (loading placeholders), org switcher, user menu
     │   ├── forms/            # TextField, fields, FormDialog, ConfirmAction, useAction, useTranslateKey
     │   ├── files/            # UploadButton (posts to /api/files)
     │   ├── data-table/       # DataTable (TanStack columns), Pagination (links), useSearchParamsState
@@ -774,7 +775,7 @@ The WhatsApp message log (`notification:read`) is open to the gérant, the direc
 - **i18n**: no hard-coded UI strings (incl. aria labels); every key in `fr.json` **and** `ar.json` in the same change (tested, incl. ICU arguments). Arabic = Modern Standard Arabic. Latin digits in both locales. `<html lang dir>` set per locale. Use `Link`/`redirect`/`useRouter` from `@/i18n/navigation` with locale-less paths. Page params: `toLocale(params.locale)`.
 - **RTL/UI**: Tailwind logical utilities only (`ms-/me-/ps-/pe-/start-/end-/text-start/rounded-s/border-e`), enforced by `pnpm lint`; directional icons get `rtl:rotate-180`; physical `side` props (sidebar, toaster) are set from the locale direction. Emails, passwords, codes and numbers in inputs/cells get `dir="ltr"`. shadcn/ui for primitives; forms with react-hook-form + `TextField`; data grids with `DataTable` (below).
 - **Look (tokens in `src/app/globals.css`)**: Apple's — the grouped gray canvas (`bg-background`) with white surfaces (`bg-card`, `shadow-card`; menus and dialogs `shadow-raised`), hairline borders, the accent (`primary`, system blue) for the main action, links, focus and the current page. Colors only through tokens: statuses use the tones `success`, `warning`, `orange`, `danger`, `info`, `purple`, `pink`, `teal`, `indigo`, `gray` — `text-<tone>` for text and icons, `bg-<tone>-soft` for tints, `bg-<tone>-vivid` for dots and bars, `border-<tone>/25` — never Tailwind's raw palette (`pnpm lint` rejects it). Type scale: `text-large-title` (page titles), `text-title` (sections), `text-headline` (card and dialog titles, CardTitle's default), body `text-sm`, `text-footnote`; Arabic is never letter-spaced. Latin text in the system font, Arabic in IBM Plex Sans Arabic (`src/app/fonts.ts`, `unicode-range`). Controls 36 px (`h-9`), status pills as capsules, amounts in tables in tabular figures.
-- **Page layout**: every back-office page starts with `PageHeader` (title, description, crumbs, actions) inside one of three widths — `max-w-3xl` (hubs and short forms), `max-w-5xl` (records and settings pages), `max-w-7xl` (lists, boards, dashboards). A header shows at most three actions (the main one first); the others go into `MoreActions` (« … »), which keeps dialogs opened from it mounted.
+- **Page layout**: every back-office page starts with `PageHeader` (title, description, crumbs, actions) inside one of three widths — `max-w-3xl` (hubs and short forms), `max-w-5xl` (records and settings pages), `max-w-7xl` (lists, boards, dashboards). A header shows at most three actions (the main one first); the others go into `MoreActions` (« … »), which keeps dialogs opened from it mounted. While a page loads, its area's `loading.tsx` shows its shape (`ListSkeleton`, `RecordSkeleton`, `DashboardSkeleton`, else `PageSkeleton`; one at the back office's root, one inside the settings frame); a new list or record area adds its own.
 - **Source text**: never paste invisible or bidi-control characters (U+00A0, U+202F, U+200E…) in code — write `\u00a0`-style escapes (`pnpm lint` rejects them; tools may decode `\u` escapes when writing files, so check with grep).
 - **TypeScript**: no `any`, no `!` outside tests, `import type` for types, exhaustive `switch` on enums.
 - **Phones**: stored E.164 (`+213…`) via `normalizePhone` / zod `phoneText()`; shown with `PhoneText` (national for Algeria, international otherwise, always LTR); searched with `phoneSearchDigits`.
@@ -1301,7 +1302,7 @@ Goal (user): a product that feels professional and Apple-like — calm, consiste
 - [x] **9. Page layout**: every page through `PageHeader` (27 pages without), three content widths instead of five, actions as one primary button plus a « … » menu (lead and project pages show 6–7 buttons in a row), filters with their placeholder shown (« Toutes les étapes » instead of empty boxes).
 
 ### Priority 3 — feedback and states
-- [ ] **10. Loading**: skeletons (`loading.tsx`) for the dashboard, lists and records instead of a frozen page (none today).
+- [x] **10. Loading**: skeletons (`loading.tsx`) for the dashboard, lists and records instead of a frozen page (none today).
 - [ ] **11. Errors and empty states**: an error boundary per area with « Réessayer » (none today); empty states with an icon, a sentence and the main action.
 - [ ] **12. Motion**: short, eased transitions (dialogs, sheets, hover, press), `prefers-reduced-motion` honoured; toasts in the new style.
 

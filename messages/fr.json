@@ -27,7 +27,8 @@
       "next": "Suivant"
     },
     "total": "Total",
-    "moreActions": "Plus d'actions"
+    "moreActions": "Plus d'actions",
+    "loading": "Chargement…"
   },
   "locale": {
     "fr": "Français",

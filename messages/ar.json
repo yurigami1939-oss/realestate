@@ -27,7 +27,8 @@
       "next": "التالي"
     },
     "total": "المجموع",
-    "moreActions": "إجراءات أخرى"
+    "moreActions": "إجراءات أخرى",
+    "loading": "جارٍ التحميل…"
   },
   "locale": {
     "fr": "Français",
