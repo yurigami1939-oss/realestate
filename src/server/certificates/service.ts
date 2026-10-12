@@ -12,6 +12,7 @@ import { toCalendarDate, todayInAlgiers } from "@/lib/dates";
 import { AppError } from "@/lib/result";
 import { recordAudit } from "@/server/audit/record-audit";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
+import { assertModule } from "@/server/entitlements/access";
 import { nextDocumentNumber } from "@/server/numbering/next-document-number";
 import type { PortalCtx } from "@/server/portal/context";
 import { isPortalSale } from "@/server/portal/sales";
@@ -81,6 +82,8 @@ async function insertCertificate(
  */
 export async function issueCertificate(ctx: TenantCtx, input: IssueInput) {
   assertCan(ctx, "sale:certify");
+  // The progress of the works comes from the construction follow-up.
+  if (input.kind === "progress") assertModule(ctx, "construction");
   return withTenant(ctx, async (tx) => {
     const sale = await loadVisibleReservation(tx, ctx, input.reservationId, { forUpdate: true });
     if (sale.status === "withdrawn") throw new AppError("CONFLICT", "sales.errors.closed");

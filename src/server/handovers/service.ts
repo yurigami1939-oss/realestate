@@ -18,6 +18,7 @@ import { nextDocumentNumber } from "@/server/numbering/next-document-number";
 import { addSaleBuyersAsCoOwners, hasCurrentCoOwner } from "@/server/residences/service";
 import { paidTotals } from "@/server/sales/sale-queries";
 import { notifyHandoverAppointment } from "@/server/whatsapp/notify";
+import { moduleEnabled } from "@/server/entitlements/access";
 
 import type {
   addPunchItemSchema,
@@ -270,9 +271,11 @@ export async function signHandover(ctx: TenantCtx, input: In<typeof signHandover
       refId: row.id,
     });
 
-    // The new owners join the residence the unit (and its annexes) belongs to, if any.
+    // The new owners join the residence the unit (and its annexes) belongs to, if any — with
+    // the residence module on (CLAUDE.console.md §5).
     let coOwners = 0;
-    for (const unitId of [sale.unitId, ...annexes.map((a) => a.unitId)]) {
+    const syndic = await moduleEnabled(tx, "syndic");
+    for (const unitId of syndic ? [sale.unitId, ...annexes.map((a) => a.unitId)] : []) {
       const [member] = await tx
         .select({ residenceId: residenceUnit.residenceId })
         .from(residenceUnit)

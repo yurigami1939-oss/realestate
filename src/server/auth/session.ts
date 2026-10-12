@@ -7,8 +7,10 @@ import { cache } from "react";
 import { db } from "@/db/client";
 import { member } from "@/db/schema";
 import { defaultLocale, isLocale, type Locale } from "@/i18n/locales";
+import { resourceAllowed } from "@/lib/modules";
 import { can, parseRoles, type Permission, type Role } from "@/lib/permissions";
 import { AppError } from "@/lib/result";
+import { loadTenantAccess, type TenantAccess } from "@/server/entitlements/access";
 
 import { loadCustomPermissions } from "@/server/organizations/custom-roles";
 
@@ -25,6 +27,12 @@ export type TenantCtx = {
    */
   permissions?: readonly Permission[] | null;
   locale: Locale;
+  /**
+   * What the organization's subscription allows (CLAUDE.console.md §4): its modules on, its
+   * state. Always set for a request; contexts built by the seed and jobs leave it out (not
+   * restricted).
+   */
+  access?: TenantAccess;
 };
 
 /** Current Better Auth session, or null. Cached per request. */
@@ -57,14 +65,19 @@ export const getTenantCtx = cache(async (): Promise<TenantCtx> => {
     // A custom role, when the organization gave one, decides the member's permissions.
     permissions: await loadCustomPermissions(orgId, session.user.id),
     locale: isLocale(locale) ? locale : defaultLocale,
+    access: await loadTenantAccess(orgId),
   };
 });
 
 /** Service-layer permission check (CLAUDE.md §5). Throws FORBIDDEN. */
 export function assertCan(
-  ctx: Pick<TenantCtx, "roles" | "permissions">,
+  ctx: Pick<TenantCtx, "roles" | "permissions" | "access">,
   permission: Permission,
 ): void {
+  // A module switched off or not subscribed refuses its permissions (CLAUDE.console.md §5).
+  if (ctx.access && !resourceAllowed(permission.split(":")[0] ?? "", ctx.access.modules)) {
+    throw new AppError("FORBIDDEN", "errors.moduleOff", { details: { permission } });
+  }
   if (!can(ctx, permission)) {
     throw new AppError("FORBIDDEN", "errors.FORBIDDEN", { details: { permission } });
   }

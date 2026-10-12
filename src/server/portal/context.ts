@@ -10,6 +10,7 @@ import { todayInAlgiers } from "@/lib/dates";
 import { parseRoles } from "@/lib/permissions";
 import { AppError } from "@/lib/result";
 import { getSession } from "@/server/auth/session";
+import { loadTenantAccess, type TenantAccess } from "@/server/entitlements/access";
 import { currentResident } from "@/server/residences/service";
 
 /** A portal account acting in one organization (CLAUDE.md §5: own records only). */
@@ -18,6 +19,8 @@ export type PortalCtx = {
   orgId: string;
   name: string;
   locale: Locale;
+  /** The organization's subscription (CLAUDE.console.md §4); the portal needs module `portal`. */
+  access?: TenantAccess;
 };
 
 /** Resolves the portal account from the session; throws for staff and anonymous users. */
@@ -39,6 +42,7 @@ export const getPortalCtx = cache(async (): Promise<PortalCtx> => {
     orgId,
     name: session.user.name,
     locale: isLocale(locale) ? locale : defaultLocale,
+    access: await loadTenantAccess(orgId),
   };
 });
 

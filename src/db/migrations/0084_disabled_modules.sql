@@ -1,0 +1,1 @@
+ALTER TABLE "organization_setting" ADD COLUMN "disabled_modules" text[] DEFAULT '{}' NOT NULL;

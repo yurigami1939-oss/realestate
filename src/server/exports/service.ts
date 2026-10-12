@@ -5,9 +5,10 @@ import type { Locale } from "@/i18n/locales";
 import { AppError } from "@/lib/result";
 import { recordAudit } from "@/server/audit/record-audit";
 import type { TenantCtx } from "@/server/auth/session";
+import { assertModule } from "@/server/entitlements/access";
 
 import { builders, type Translate } from "./builders";
-import { type ExportKind, exportParams } from "./schemas";
+import { type ExportKind, exportModules, exportParams } from "./schemas";
 import { buildWorkbook } from "./xlsx";
 
 /**
@@ -22,6 +23,8 @@ export async function buildExport(
   locale: Locale,
   t: Translate,
 ): Promise<{ file: string; bytes: Buffer }> {
+  const owner = exportModules[kind];
+  if (owner) assertModule(ctx, owner);
   const parsed = exportParams[kind].safeParse(query);
   if (!parsed.success) throw new AppError("VALIDATION");
   // Each builder takes the parsed filters of its own kind.

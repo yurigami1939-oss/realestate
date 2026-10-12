@@ -16,7 +16,7 @@ export async function generateMetadata(): Promise<Metadata> {
 /** The gérant's SMS account and the notifications sent by SMS (CLAUDE.md §7 SMS). */
 export default async function SmsSettingsPage({ params }: PageProps<"/[locale]/settings/sms">) {
   setRequestLocale(toLocale((await params).locale));
-  const ctx = await requirePermission("organization:update");
+  const ctx = await requirePermission("organization:update", "whatsapp");
   const { settings, standIn } = await getSmsSettings(ctx);
   const t = await getTranslations("sms.settings");
 

@@ -9,6 +9,7 @@ import { enqueueInTx } from "@/jobs/enqueue";
 import { parseRoles } from "@/lib/permissions";
 import { rentsDigestEmail } from "@/server/email/templates";
 import { loadCompanyProfile } from "@/server/organizations/settings";
+import { moduleEnabled } from "@/server/entitlements/access";
 
 import { loadEndingLeases, loadOverdueRents } from "./queries";
 
@@ -25,6 +26,7 @@ const DIGEST_ENDING_DAYS = 30;
  */
 export async function sendRentsDigest(organizationId: string, date: string): Promise<number> {
   return withTenant({ orgId: organizationId }, async (tx) => {
+    if (!(await moduleEnabled(tx, "rentals"))) return 0;
     const overdue = await loadOverdueRents(tx, date);
     const ending = await loadEndingLeases(tx, date, DIGEST_ENDING_DAYS);
     if (overdue.length === 0 && ending.length === 0) return 0;

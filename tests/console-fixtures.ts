@@ -3,7 +3,8 @@ import { randomUUID } from "node:crypto";
 import { and, eq, isNull } from "drizzle-orm";
 
 import { consoleDb } from "@/db/console-client";
-import { addon } from "@/db/schema";
+import { addon, plan } from "@/db/schema";
+import { modules } from "@/lib/modules";
 import { addonCodes } from "@/lib/subscriptions";
 import { openBillingAccount } from "@/server/console/accounts";
 import { systemOperator } from "@/server/console/context";
@@ -15,24 +16,22 @@ export async function createTestPlan(
   values: Partial<Record<keyof typeof planSchema.shape, unknown>> = {},
 ) {
   const code = `t-${randomUUID().slice(0, 8)}`;
-  await createPlan(
-    systemOperator,
-    planSchema.parse({
-      code,
-      nameFr: `Formule ${code}`,
-      nameAr: `صيغة ${code}`,
-      yearlyPrice: "900000",
-      quarterlyPrice: "270000",
-      setupFee: "250000",
-      modules: ["imports", "treasury", "portal"],
-      activeUnits: "300",
-      organizations: "2",
-      storageGb: "100",
-      onQuote: false,
-      ...values,
-    }),
-  );
-  return code;
+  const parsed = planSchema.parse({
+    code,
+    nameFr: `Formule ${code}`,
+    nameAr: `صيغة ${code}`,
+    yearlyPrice: "900000",
+    quarterlyPrice: "270000",
+    setupFee: "250000",
+    modules: ["imports", "treasury", "portal"],
+    activeUnits: "300",
+    organizations: "2",
+    storageGb: "100",
+    onQuote: false,
+    ...values,
+  });
+  await createPlan(systemOperator, parsed);
+  return parsed.code;
 }
 
 /** The four add-ons of the catalog, created once in the test database. */
@@ -80,4 +79,38 @@ export async function openTestAccount(
       ...values,
     }),
   );
+}
+
+/** Every module, no cap: the plan of the organizations the factories create. */
+const ALL_MODULES_PLAN = "test-all-modules";
+
+async function ensureAllModulesPlan(): Promise<void> {
+  const [found] = await consoleDb
+    .select({ id: plan.id })
+    .from(plan)
+    .where(eq(plan.code, ALL_MODULES_PLAN));
+  if (found) return;
+  await createTestPlan({
+    code: ALL_MODULES_PLAN,
+    modules: [...modules],
+    activeUnits: "",
+    organizations: "",
+    storageGb: "",
+  }).catch(async (error: unknown) => {
+    // Another test file may have created it meanwhile.
+    const [now] = await consoleDb
+      .select({ id: plan.id })
+      .from(plan)
+      .where(eq(plan.code, ALL_MODULES_PLAN));
+    if (!now) throw error;
+  });
+}
+
+/**
+ * Entitles a test organization to every module (its own account, active): side effects that
+ * follow the modules (WhatsApp, occupants, treasury accounts) work as before the console.
+ */
+export async function entitleForTests(organizationId: string): Promise<void> {
+  await ensureAllModulesPlan();
+  await openTestAccount([organizationId], { planCode: ALL_MODULES_PLAN });
 }

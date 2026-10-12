@@ -45,7 +45,8 @@
     "notFoundTitle": "Page introuvable",
     "notFoundText": "La page demandée n'existe pas ou a été déplacée.",
     "noActiveOrganization": "Aucune société n'est sélectionnée.",
-    "tooManyRequests": "Trop de tentatives. Réessayez dans quelques secondes."
+    "tooManyRequests": "Trop de tentatives. Réessayez dans quelques secondes.",
+    "moduleOff": "Ce module n'est pas actif pour votre société."
   },
   "files": {
     "errors": {
@@ -319,7 +320,8 @@
     "notifications": "Notifications",
     "promotionGroup": "Promotion",
     "financeGroup": "Finance",
-    "communicationGroup": "Communication"
+    "communicationGroup": "Communication",
+    "subscription": "Abonnement"
   },
   "shell": {
     "organizations": "Sociétés",
@@ -3741,7 +3743,8 @@
         "more": "Plus",
         "account": "Compte",
         "language": "Langue"
-      }
+      },
+      "unavailable": "L’espace client de {company} est indisponible pour le moment. Vos documents et paiements restent enregistrés : contactez la société."
     },
     "home": {
       "welcome": "Bonjour {name}",
@@ -5966,7 +5969,8 @@
       "cost": "Coûts de construction",
       "report": "Rapports",
       "personal_data": "Données personnelles",
-      "visitor": "Visiteurs des résidences"
+      "visitor": "Visiteurs des résidences",
+      "subscription": "Abonnement"
     },
     "actions": {
       "read": "Consulter",
@@ -6338,7 +6342,8 @@
       "exports": "Journal des encaissements, listes, comptes",
       "imports": "Reprise de vos données existantes",
       "privacy": "Durées de conservation et registre des traitements",
-      "audit": "Qui a fait quoi, et quand"
+      "audit": "Qui a fait quoi, et quand",
+      "subscription": "Formule, options et modules"
     }
   },
   "palette": {
@@ -6392,6 +6397,107 @@
       "organizationUnknown": "Société introuvable.",
       "alreadyAttached": "Cette société appartient déjà à un compte client.",
       "organizationsCap": "La formule permet {cap} société(s) au plus."
+    }
+  },
+  "modules": {
+    "imports": {
+      "name": "Reprise de données",
+      "description": "Import Excel des lots, acquéreurs, ventes en cours et résidents."
+    },
+    "construction": {
+      "name": "Chantier et livraisons",
+      "description": "Avancement des travaux, remises des clés, réserves et garanties."
+    },
+    "costs": {
+      "name": "Coûts de construction",
+      "description": "Budget, marchés, situations de travaux, marge et prévisions."
+    },
+    "treasury": {
+      "name": "Trésorerie",
+      "description": "Caisses, comptes bancaires et CCP, rapprochements, export comptable."
+    },
+    "reports": {
+      "name": "Rapports",
+      "description": "Ventes, commerciaux, créances par ancienneté, stock."
+    },
+    "portal": {
+      "name": "Espace client",
+      "description": "Le portail des acquéreurs, copropriétaires et locataires."
+    },
+    "lead_capture": {
+      "name": "Capture de prospects",
+      "description": "Les prospects de votre site et de Facebook arrivent seuls."
+    },
+    "syndic": {
+      "name": "Syndic",
+      "description": "Résidences, charges, assemblées générales, réclamations, personnel."
+    },
+    "rentals": {
+      "name": "Locations",
+      "description": "Baux, loyers et quittances, états des lieux, gestion pour compte de tiers."
+    },
+    "whatsapp": {
+      "name": "WhatsApp et SMS",
+      "description": "Les clients sont prévenus de leurs paiements, appels de fonds et rendez-vous."
+    },
+    "online_payment": {
+      "name": "Paiement en ligne",
+      "description": "Paiement par carte CIB ou Edahabia depuis l'espace client."
+    }
+  },
+  "subscription": {
+    "title": "Abonnement",
+    "description": "La formule de votre compte, ses options et les modules de la société.",
+    "none": "Cette société n'est rattachée à aucun abonnement : elle reste en lecture seule. Contactez-nous pour l'activer.",
+    "status": {
+      "pilot": "Pilote",
+      "active": "Actif",
+      "past_due": "Paiement en retard",
+      "suspended": "Suspendu",
+      "terminated": "Résilié"
+    },
+    "designPartner": "Partenaire fondateur",
+    "plan": "Formule",
+    "price": "Prix HT",
+    "perPeriod": {
+      "yearly": "{amount} par an",
+      "quarterly": "{amount} par trimestre"
+    },
+    "onQuote": "Sur devis",
+    "discount": "Remise",
+    "pilotEnds": "Fin du pilote",
+    "period": "Période en cours",
+    "periodRange": "du {from} au {to}",
+    "priceLocked": "Prix garanti jusqu'au",
+    "addons": {
+      "title": "Options",
+      "none": "Aucune option.",
+      "perLot": "{amount} par lot et par mois"
+    },
+    "organizations": {
+      "title": "Sociétés du compte",
+      "current": "Cette société"
+    },
+    "modules": {
+      "title": "Modules",
+      "description": "Désactivez les modules que la société n'utilise pas : rien n'est effacé, tout revient en les réactivant.",
+      "notIncluded": "Non inclus",
+      "needs": "Nécessite : {module}",
+      "turnedOn": "Module activé.",
+      "turnedOff": "Module désactivé."
+    },
+    "errors": {
+      "notIncluded": "Ce module n'est pas inclus dans votre formule.",
+      "needs": "Activez d'abord : {module}.",
+      "dependant": "Désactivez d'abord : {module}."
+    },
+    "blocked": {
+      "construction": "Encore utilisé — remises des clés planifiées et désordres en cours : {count}. Terminez-les d'abord.",
+      "costs": "Encore utilisé — situations impayées et retenues de garantie en cours : {count}. Réglez-les d'abord.",
+      "treasury": "Encore utilisée — caisses et comptes ouverts : {count}. Clôturez-les d'abord.",
+      "syndic": "Encore utilisé — résidences gérées : {count}. Supprimez-les d'abord.",
+      "rentals": "Encore utilisé — baux en cours : {count}. Terminez-les d'abord.",
+      "online_payment": "Encore utilisé — paiements en ligne en cours ou à traiter : {count}. Réglez-les d'abord."
     }
   }
 }

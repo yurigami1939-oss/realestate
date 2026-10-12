@@ -21,7 +21,7 @@ export default async function OnlinePaymentSettingsPage({
   params,
 }: PageProps<"/[locale]/settings/online-payment">) {
   setRequestLocale(toLocale((await params).locale));
-  const ctx = await requirePermission("organization:update");
+  const ctx = await requirePermission("organization:update", "online_payment");
   const { settings, testIsStandIn } = await getGatewaySettings(ctx);
   const t = await getTranslations("onlinePayments.settings");
 

@@ -1,5 +1,6 @@
 import {
   AlarmClock,
+  BadgeCheck,
   BadgePercent,
   Bell,
   Building,
@@ -41,6 +42,7 @@ import {
   Wrench,
 } from "lucide-react";
 
+import { type Module, moduleOn } from "@/lib/modules";
 import { type Access, can, type Permission } from "@/lib/permissions";
 
 /**
@@ -92,6 +94,7 @@ export type NavKey =
   | "group"
   | "security"
   | "notifications"
+  | "subscription"
   | "settings";
 
 export type NavItem = {
@@ -99,6 +102,8 @@ export type NavItem = {
   key: NavKey;
   icon: LucideIcon;
   permission?: Permission | Permission[];
+  /** Shown only when the organization has this module (CLAUDE.console.md §5). */
+  module?: Module;
   /** Shown only to a gérant of several companies. */
   groupOnly?: boolean;
   /** Its icon's tile in the settings hub (a tone of globals.css). */
@@ -185,6 +190,7 @@ export const navSections: NavSection[] = [
         key: "onlinePayments",
         icon: CreditCard,
         permission: "payment:read",
+        module: "online_payment",
       },
       { href: "/reports", key: "reports", icon: ChartColumn, permission: "report:read" },
     ],
@@ -265,6 +271,13 @@ export const settingsGroups: SettingsGroup[] = [
       },
       { href: "/settings/members", key: "members", icon: Users, tile: "bg-indigo-vivid" },
       {
+        href: "/settings/subscription",
+        key: "subscription",
+        icon: BadgeCheck,
+        permission: "subscription:read",
+        tile: "bg-purple-vivid",
+      },
+      {
         href: "/settings/roles",
         key: "customRoles",
         icon: UserCog,
@@ -288,6 +301,7 @@ export const settingsGroups: SettingsGroup[] = [
         key: "paymentGateway",
         icon: Landmark,
         permission: "organization:update",
+        module: "online_payment",
         tile: "bg-success-vivid",
       },
       {
@@ -295,6 +309,7 @@ export const settingsGroups: SettingsGroup[] = [
         key: "leadCapture",
         icon: Webhook,
         permission: "lead:assign",
+        module: "lead_capture",
         tile: "bg-teal-vivid",
       },
       {
@@ -302,6 +317,7 @@ export const settingsGroups: SettingsGroup[] = [
         key: "whatsappSettings",
         icon: MessageCircle,
         permission: "organization:update",
+        module: "whatsapp",
         tile: "bg-success-vivid",
       },
       {
@@ -309,6 +325,7 @@ export const settingsGroups: SettingsGroup[] = [
         key: "smsSettings",
         icon: MessageSquareText,
         permission: "organization:update",
+        module: "whatsapp",
         tile: "bg-info-vivid",
       },
     ],
@@ -322,6 +339,7 @@ export const settingsGroups: SettingsGroup[] = [
         key: "imports",
         icon: FileUp,
         permission: ["unit:create", "buyer:create", "residence:update", "lead:create"],
+        module: "imports",
         tile: "bg-teal-vivid",
       },
       {
@@ -352,9 +370,11 @@ export const allNavItems: NavItem[] = [
 
 /** The items a member may open (`group`: they run several companies). */
 export function visibleItems(items: NavItem[], access: Access, group: boolean): NavItem[] {
+  const modules = Array.isArray(access) ? null : (access as { modules?: Module[] | null }).modules;
   return items.filter(
     (item) =>
       (!item.groupOnly || group) &&
+      (!item.module || moduleOn(modules, item.module)) &&
       (!item.permission || [item.permission].flat().some((p) => can(access, p))),
   );
 }

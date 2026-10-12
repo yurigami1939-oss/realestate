@@ -21,7 +21,7 @@ export default async function WhatsappSettingsPage({
   params,
 }: PageProps<"/[locale]/settings/whatsapp">) {
   setRequestLocale(toLocale((await params).locale));
-  const ctx = await requirePermission("organization:update");
+  const ctx = await requirePermission("organization:update", "whatsapp");
   const { settings, webhookUrl, standIn } = await getWhatsappSettings(ctx);
   const t = await getTranslations("whatsapp.settings");
 

@@ -19,6 +19,7 @@ import { uploadPortalBuyerDocument } from "@/server/portal/documents";
 import { setInvoiceScan } from "@/server/suppliers/invoices";
 import { setContractScan } from "@/server/suppliers/service";
 import { assertSameOrigin, jsonResult, readFormData } from "@/server/route-handler";
+import { assertModule } from "@/server/entitlements/access";
 
 const uploadFields = z.object({
   purpose: z.enum(uploadPurposeNames),
@@ -56,7 +57,9 @@ export async function POST(request: Request) {
     if (fields.data.purpose === "portal.buyer_document") {
       const kind = z.enum(buyerDocumentKinds).safeParse(fields.data.variant);
       if (!kind.success) throw new AppError("VALIDATION");
-      const result = await uploadPortalBuyerDocument(await getPortalCtx(), {
+      const portal = await getPortalCtx();
+      assertModule(portal, "portal");
+      const result = await uploadPortalBuyerDocument(portal, {
         buyerId: fields.data.entityId,
         kind: kind.data,
         upload,

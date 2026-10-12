@@ -4,6 +4,7 @@ import { withTenant } from "@/db/tenant";
 import { AppError } from "@/lib/result";
 import { recordAudit } from "@/server/audit/record-audit";
 import type { TenantCtx } from "@/server/auth/session";
+import { assertModule } from "@/server/entitlements/access";
 
 import { prepareBankStatement } from "./bank-statement";
 import { prepareBuyers } from "./buyers";
@@ -27,6 +28,9 @@ export async function runImport(
   bytes: Buffer,
   options: { projectId?: string; residenceId?: string; accountId?: string; commit: boolean },
 ): Promise<ImportReport> {
+  assertModule(ctx, "imports");
+  if (kind === "residents") assertModule(ctx, "syndic");
+  if (kind === "bank_statement") assertModule(ctx, "treasury");
   const workbook = await readWorkbook(bytes);
   if (!workbook) throw new AppError("VALIDATION", "imports.errors.notExcel");
   let plan: ImportPlan;

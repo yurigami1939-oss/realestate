@@ -23,6 +23,7 @@ import { recordConsentChanges } from "@/server/privacy/consents";
 import { nextDocumentNumber } from "@/server/numbering/next-document-number";
 import { addLeaseOccupant, endLeaseOccupant } from "@/server/residences/service";
 import { notifyRentPayment } from "@/server/whatsapp/notify";
+import { assertModule } from "@/server/entitlements/access";
 
 import { leaseExtras, leasePaid, leaseRevisions, rentStatement } from "./accounts";
 import type {
@@ -390,6 +391,7 @@ export async function reviseRent(ctx: TenantCtx, input: In<typeof reviseRentSche
  * quittance PDF is rendered by the worker.
  */
 export async function recordRentPayment(ctx: TenantCtx, input: In<typeof recordRentPaymentSchema>) {
+  assertModule(ctx, "rentals");
   assertCan(ctx, "payment:create");
   assertNotFuture(input.paidOn, "paidOn");
   return withTenant(ctx, async (tx) => {
@@ -504,6 +506,7 @@ export async function cancelRentPayment(
   input: In<typeof cancelRentPaymentSchema>,
   outer?: Tx,
 ) {
+  assertModule(ctx, "rentals");
   assertCan(ctx, "payment:cancel");
   await withTenant(
     ctx,
@@ -553,6 +556,7 @@ export async function cancelRentPayment(
 
 /** Records the day the bank cleared a cheque (its receipt was « sous réserve »). Audited. */
 export async function clearRentCheque(ctx: TenantCtx, input: In<typeof clearRentChequeSchema>) {
+  assertModule(ctx, "rentals");
   assertCan(ctx, "payment:create");
   assertNotFuture(input.clearedOn, "clearedOn");
   await withTenant(ctx, async (tx) => {

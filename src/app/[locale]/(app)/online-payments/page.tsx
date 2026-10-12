@@ -42,7 +42,7 @@ export default async function OnlinePaymentsPage({
 }: PageProps<"/[locale]/online-payments">) {
   const locale = toLocale((await params).locale);
   setRequestLocale(locale);
-  const ctx = await requirePermission("payment:read");
+  const ctx = await requirePermission("payment:read", "online_payment");
   const query = await searchParams;
   const value = (key: string) => (typeof query[key] === "string" ? query[key] : undefined);
   const filters = onlinePaymentListParams.parse({

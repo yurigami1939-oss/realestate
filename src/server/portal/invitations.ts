@@ -13,6 +13,7 @@ import { assertCan, type TenantCtx } from "@/server/auth/session";
 import { loadVisibleBuyer } from "@/server/buyers/access";
 import { sendEmailLater } from "@/server/email/send-later";
 import { portalInvitationEmail } from "@/server/email/templates";
+import { assertModule } from "@/server/entitlements/access";
 
 /** Same lifetime as the staff invitations. */
 const INVITATION_TTL_MS = 7 * 24 * 60 * 60 * 1000;
@@ -48,6 +49,7 @@ async function loadTarget(tx: Tx, ctx: TenantCtx, target: PortalTarget) {
  * organization, the record joins it at once. Inviting again renews a pending invitation.
  */
 export async function inviteToPortal(ctx: TenantCtx, target: PortalTarget) {
+  assertModule(ctx, "portal");
   assertCan(ctx, "portal:invite");
   const sent = await withTenant(ctx, async (tx) => {
     const record = await loadTarget(tx, ctx, target);

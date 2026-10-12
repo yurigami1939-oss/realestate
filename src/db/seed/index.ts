@@ -12,6 +12,7 @@ import {
   attachToDemoAccount,
   openDemoAccount,
   seedConsoleCatalog,
+  seedPilotPromoter,
 } from "./console";
 import { seedConstruction } from "./construction";
 import { seedCosts } from "./costs";
@@ -78,7 +79,7 @@ export async function seedDemo(): Promise<void> {
   for (const { members, ...org } of demoOrganizations) {
     const created = await auth.api.createOrganization({ body: { ...org, userId: ownerId } });
     if (!created) throw new Error(`seed: organization ${org.slug} not created`);
-    if (billingAccountId) await attachToDemoAccount(billingAccountId, created.id);
+    if (billingAccountId) await attachToDemoAccount(billingAccountId, created.id, ownerId);
     else billingAccountId = await openDemoAccount(created.id);
     if (members !== "all") continue;
     for (const user of demoUsers.slice(1)) {
@@ -178,5 +179,6 @@ export async function seedDemo(): Promise<void> {
     await seedSms(ctx("owner", ["owner"]));
     await seedPrivacy(ctx("owner", ["owner"]));
   }
+  await seedPilotPromoter();
   await assertEveryOrganizationEntitled();
 }

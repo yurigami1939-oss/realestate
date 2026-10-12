@@ -21,6 +21,7 @@ import { AppError } from "@/lib/result";
 import { recordAudit } from "@/server/audit/record-audit";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
 import { recordConsentChanges } from "@/server/privacy/consents";
+import { moduleEnabled } from "@/server/entitlements/access";
 
 import type {
   addResidentSchema,
@@ -294,6 +295,8 @@ export async function addLeaseOccupant(
     sinceOn: string;
   },
 ): Promise<string | null> {
+  // Occupants belong to the residence module (CLAUDE.console.md §5): none while it is off.
+  if (!(await moduleEnabled(tx, "syndic"))) return null;
   const [member] = await tx
     .select({ residenceId: residenceUnit.residenceId })
     .from(residenceUnit)

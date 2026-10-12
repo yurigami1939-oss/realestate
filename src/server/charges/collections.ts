@@ -18,6 +18,7 @@ import { chargesDigestEmail } from "@/server/email/templates";
 import { loadCompanyProfile } from "@/server/organizations/settings";
 import { loadResidence } from "@/server/residences/service";
 import { notifyChargeReminder } from "@/server/whatsapp/notify";
+import { moduleEnabled } from "@/server/entitlements/access";
 
 import { chargeStatement, liveCalls, paidByUnit } from "./accounts";
 import { recoveryStatus } from "./recovery";
@@ -198,6 +199,7 @@ const digestRoles = new Set(["property_manager", "cashier"]);
  */
 export async function sendChargesDigest(organizationId: string, date: string): Promise<number> {
   return withTenant({ orgId: organizationId }, async (tx) => {
+    if (!(await moduleEnabled(tx, "syndic"))) return 0;
     const overdue = await loadOverdueCharges(tx);
     if (overdue.length === 0) return 0;
     // `member` has no RLS (Better Auth): always filter on the organization.

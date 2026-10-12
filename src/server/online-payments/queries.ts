@@ -21,6 +21,7 @@ import { isUuid } from "@/lib/ids";
 import { can } from "@/lib/permissions";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
 import type { PortalCtx } from "@/server/portal/context";
+import { assertModule, moduleEnabled } from "@/server/entitlements/access";
 
 import { satimBaseUrl, satimStandInUrl } from "./gateway";
 import type { OnlinePaymentListParams } from "./schemas";
@@ -29,6 +30,7 @@ export const ONLINE_PAYMENTS_PAGE_SIZE = 50;
 
 /** The SATIM settings page (gérant): everything but the password, which is never sent back. */
 export async function getGatewaySettings(ctx: TenantCtx) {
+  assertModule(ctx, "online_payment");
   assertCan(ctx, "organization:update");
   const [row] = await withTenant(ctx, (tx) =>
     tx
@@ -50,6 +52,7 @@ export async function getGatewaySettings(ctx: TenantCtx) {
 
 /** What the portal offers to pay online (null when the gateway is off). */
 export async function portalPaymentOptions(tx: Tx, orgId: string) {
+  if (!(await moduleEnabled(tx, "online_payment"))) return null;
   const [row] = await tx
     .select({
       enabled: paymentGateway.enabled,
@@ -141,6 +144,7 @@ function visibleTo(ctx: TenantCtx): SQL | undefined {
 
 /** Staff list (`payment:read`), latest first, with the ones paid but not recorded on demand. */
 export async function listOnlinePayments(ctx: TenantCtx, params: OnlinePaymentListParams) {
+  assertModule(ctx, "online_payment");
   assertCan(ctx, "payment:read");
   const page = params.page ?? 1;
   const q = params.q ? `%${params.q.replace(/[%_\\]/g, (c) => `\\${c}`)}%` : null;

@@ -17,12 +17,15 @@ import { AppError } from "@/lib/result";
 import type { BillingPeriod, PlanLimits } from "@/lib/subscriptions";
 
 import { recordConsoleAudit } from "./audit";
-import type { OperatorCtx } from "./context";
+import { type OperatorCtx, systemOperator } from "./context";
 import { syncEntitlement } from "./entitlements";
 import type { OpenAccountInput } from "./schemas";
 
 /** Pilot length when none is given (CLAUDE.console.md §18, proposed figures). */
 export const PILOT_DAYS = { standard: 30, design_partner: 90 } as const;
+
+/** The plan a client pilots when nothing else was agreed (the one we push, §2). */
+export const DEFAULT_PLAN_CODE = "promoteur";
 
 const priceFor = (row: { yearlyPrice: bigint; quarterlyPrice: bigint }, period: BillingPeriod) =>
   period === "yearly" ? row.yearlyPrice : row.quarterlyPrice;
@@ -196,4 +199,34 @@ export async function attachOrganization(
     });
   };
   return tx ? run(tx) : consoleDb.transaction(run);
+}
+
+/**
+ * An organization created from the onboarding starts its own client account, piloting the
+ * default plan (CLAUDE.console.md §8) — until provisions decide it. Never fails the creation:
+ * without the plan in the catalog the organization stays unentitled (read-only, fail closed).
+ */
+export async function startPilotForNewOrganization(organizationId: string): Promise<void> {
+  try {
+    await openBillingAccount(systemOperator, {
+      legalName: null,
+      contactName: null,
+      email: null,
+      phone: null,
+      organizationIds: [organizationId],
+      planCode: DEFAULT_PLAN_CODE,
+      status: "pilot",
+      program: "standard",
+      billingPeriod: "yearly",
+      price: null,
+      pilotEndsOn: null,
+      currentPeriodStart: null,
+      currentPeriodEnd: null,
+      priceLockedUntil: null,
+      addons: [],
+      notes: null,
+    });
+  } catch (error) {
+    console.error(`[console] no pilot for organization ${organizationId}`, error);
+  }
 }

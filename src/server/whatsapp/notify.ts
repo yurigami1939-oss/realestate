@@ -37,6 +37,7 @@ import {
 import { currentResident } from "@/server/residences/service";
 import { loadSmsAccount, sendsSms } from "@/server/sms/account";
 import { queueSms } from "@/server/sms/service";
+import { moduleEnabled } from "@/server/entitlements/access";
 
 import { companyName, loadWhatsappAccount, templateFor } from "./account";
 
@@ -63,6 +64,8 @@ export async function queueWhatsapp(
   kind: WhatsappKind,
   build: (company: string) => Promise<Message>,
 ): Promise<number> {
+  // WhatsApp and SMS are the `whatsapp` module (CLAUDE.console.md §5): nothing while it is off.
+  if (!(await moduleEnabled(tx, "whatsapp"))) return 0;
   const account = await loadWhatsappAccount(tx, scope.orgId);
   const template = account ? templateFor(account, kind) : null;
   const sms = await loadSmsAccount(tx, scope.orgId);

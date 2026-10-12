@@ -55,7 +55,7 @@ export default defineConfig([
   },
   {
     files: ["src/server/**"],
-    ignores: ["src/server/console/**"],
+    ignores: ["src/server/console/**", "**/*.test.ts"],
     rules: { "no-restricted-imports": ["error", consoleClientOnly] },
   },
   {

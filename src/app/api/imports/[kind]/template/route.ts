@@ -1,5 +1,6 @@
 import { isLocale } from "@/i18n/locales";
 import { getTenantCtx } from "@/server/auth/session";
+import { assertModule } from "@/server/entitlements/access";
 import { importKinds } from "@/server/imports/schemas";
 import { buildTemplate } from "@/server/imports/templates";
 import { toHttpError } from "@/server/route-handler";
@@ -16,6 +17,7 @@ export async function GET(
     return new Response(null, { status: 404 });
   try {
     const ctx = await getTenantCtx();
+    assertModule(ctx, "imports");
     const locale = new URL(request.url).searchParams.get("locale");
     const { file, bytes } = await buildTemplate(
       kind as (typeof importKinds)[number],

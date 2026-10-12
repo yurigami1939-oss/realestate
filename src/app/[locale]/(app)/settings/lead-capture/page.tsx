@@ -31,7 +31,7 @@ export default async function LeadCapturePage({
   params,
 }: PageProps<"/[locale]/settings/lead-capture">) {
   setRequestLocale(toLocale((await params).locale));
-  const ctx = await requirePermission("lead:assign");
+  const ctx = await requirePermission("lead:assign", "lead_capture");
   const keys = await listCaptureKeys(ctx);
   const projects = await listProjectOptions(ctx);
   const endpoint = captureEndpoint(ctx.orgId);

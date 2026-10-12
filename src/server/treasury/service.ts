@@ -12,6 +12,7 @@ import type { PaymentMethod } from "@/lib/sales";
 import { accountKindsFor, defaultKindFor, type TreasuryAccountKind } from "@/lib/treasury";
 import { recordAudit } from "@/server/audit/record-audit";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
+import { moduleEnabled } from "@/server/entitlements/access";
 
 import { balanceOn } from "./balances";
 import { unmatchEntry } from "./reconciliation-entries";
@@ -55,6 +56,8 @@ export async function resolvePaymentAccount(
   method: PaymentMethod,
   accountId: string | null | undefined,
 ): Promise<string | null> {
+  // Without the treasury module, money lands on no account (CLAUDE.console.md §5).
+  if (!(await moduleEnabled(tx, "treasury"))) return null;
   const kinds = accountKindsFor(method);
   if (accountId) {
     const [row] = await tx

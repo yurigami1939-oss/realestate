@@ -45,6 +45,22 @@ export const demoUsers = [
   { key: "resident", name: "Mohamed Cherif", email: "acquereur@demo.test", roles: ["resident"] },
 ] as const satisfies readonly DemoUser[];
 
+/**
+ * A small promoter piloting the Essentiel plan (CLAUDE.console.md §15): its own gérant and
+ * SARL, one project of a few units; its pilot ends in five days.
+ */
+export const pilotPromoter = {
+  user: { name: "Sofiane Mebarki", email: "pilote@demo.test" },
+  organization: {
+    slug: "promotion-tafna",
+    name: "Promotion Tafna",
+    legalName: "SARL Promotion Tafna",
+    address: "Boulevard de l'Indépendance, Tlemcen",
+    wilaya: "13 - Tlemcen",
+    phone: "+213 43 27 18 64",
+  },
+} as const;
+
 export const demoOrganizations = [
   {
     slug: "el-bahdja-immobilier",

@@ -6,6 +6,7 @@ import { LocaleSwitcher } from "@/components/i18n/locale-switcher";
 import { PortalNav, PortalTabBar } from "@/components/portal/portal-nav";
 import { redirect } from "@/i18n/navigation";
 import { toLocale } from "@/i18n/locales";
+import { moduleOn } from "@/lib/modules";
 import { AppError } from "@/lib/result";
 import { getSession } from "@/server/auth/session";
 import { listUserOrganizations } from "@/server/organizations/queries";
@@ -31,7 +32,9 @@ export default async function PortalLayout({ children, params }: LayoutProps<"/[
     (o) => o.id === ctx.orgId,
   );
   const t = await getTranslations("portal.shell");
-  const sections = await portalNavSections(ctx);
+  // Without the portal module (CLAUDE.console.md §5) the links stay, the space is closed.
+  const open = moduleOn(ctx.access?.modules, "portal");
+  const sections = open ? await portalNavSections(ctx) : [];
 
   return (
     <div className="flex min-h-dvh flex-col bg-background">
@@ -48,13 +51,26 @@ export default async function PortalLayout({ children, params }: LayoutProps<"/[
           </div>
         </div>
       </header>
-      <div className="mx-auto hidden w-full max-w-5xl px-4 pt-4 sm:block">
-        <PortalNav sections={sections} />
-      </div>
-      <main className="mx-auto w-full max-w-5xl flex-1 px-4 pt-5 pb-24 sm:pt-6 sm:pb-10">
-        {children}
-      </main>
-      <PortalTabBar sections={sections} />
+      {open ? (
+        <>
+          <div className="mx-auto hidden w-full max-w-5xl px-4 pt-4 sm:block">
+            <PortalNav sections={sections} />
+          </div>
+          <main className="mx-auto w-full max-w-5xl flex-1 px-4 pt-5 pb-24 sm:pt-6 sm:pb-10">
+            {children}
+          </main>
+          <PortalTabBar sections={sections} />
+        </>
+      ) : (
+        <main className="mx-auto w-full max-w-2xl flex-1 space-y-6 px-4 pt-10 pb-10">
+          <p className="empty-state" data-testid="portal-unavailable">
+            {t("unavailable", { company: organization?.name ?? "" })}
+          </p>
+          <div className="flex justify-center sm:hidden">
+            <SignOutButton />
+          </div>
+        </main>
+      )}
     </div>
   );
 }

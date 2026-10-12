@@ -39,6 +39,7 @@ import { type MovementKind, runningBalance } from "@/lib/treasury";
 import { can } from "@/lib/permissions";
 import { AppError } from "@/lib/result";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
+import { moduleOn } from "@/lib/modules";
 
 import { accountTotals, balanceOn } from "./balances";
 import type { LedgerParams } from "./schemas";
@@ -77,6 +78,8 @@ export type AccountRow = Awaited<ReturnType<typeof listAccounts>>[number];
  * collections, pays supplier invoices or contractors, or reads the treasury.
  */
 export async function listAccountChoices(ctx: TenantCtx) {
+  // Without the treasury module money lands on no account: the field is hidden.
+  if (!moduleOn(ctx.access?.modules, "treasury")) return [];
   if (
     !(
       [

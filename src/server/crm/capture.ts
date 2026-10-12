@@ -15,6 +15,7 @@ import { recordAudit } from "@/server/audit/record-audit";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
 import { loadCustomPermissions } from "@/server/organizations/custom-roles";
 import { forSale } from "@/server/inventory/third-party";
+import { assertModule, moduleEnabled } from "@/server/entitlements/access";
 
 import { assertLiveProject } from "./access";
 import { createLead } from "./leads";
@@ -37,6 +38,7 @@ const hash = (key: string) => createHash("sha256").update(key).digest("hex");
  * shown once; only its SHA-256 is kept. Audited.
  */
 export async function createCaptureKey(ctx: TenantCtx, input: In<typeof createCaptureKeySchema>) {
+  assertModule(ctx, "lead_capture");
   assertCan(ctx, "lead:assign");
   const key = `lck_${randomBytes(24).toString("base64url")}`;
   return withTenant(ctx, async (tx) => {
@@ -67,6 +69,7 @@ export async function createCaptureKey(ctx: TenantCtx, input: In<typeof createCa
 
 /** A key stops working at once; kept in the list. Audited. */
 export async function revokeCaptureKey(ctx: TenantCtx, input: In<typeof captureKeyIdSchema>) {
+  assertModule(ctx, "lead_capture");
   assertCan(ctx, "lead:assign");
   await withTenant(ctx, async (tx) => {
     const [row] = await tx
@@ -89,6 +92,7 @@ const creator = alias(user, "creator");
 
 /** The organization's capture keys (managers), newest first. */
 export async function listCaptureKeys(ctx: TenantCtx) {
+  assertModule(ctx, "lead_capture");
   assertCan(ctx, "lead:assign");
   return withTenant(ctx, (tx) =>
     tx
@@ -131,6 +135,10 @@ export async function captureLead(
       .where(and(eq(leadCaptureKey.keyHash, hash(rawKey)), isNull(leadCaptureKey.revokedAt)))
       .for("update");
     if (!key) throw new AppError("UNAUTHENTICATED");
+    // Keys are kept while the module is off; the endpoint answers 403 (CLAUDE.console.md §5).
+    if (!(await moduleEnabled(tx, "lead_capture"))) {
+      throw new AppError("FORBIDDEN", "errors.moduleOff", { details: { module: "lead_capture" } });
+    }
     const [updated] = await tx
       .update(leadCaptureKey)
       .set({

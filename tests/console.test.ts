@@ -22,12 +22,15 @@ async function privileges(role: string, schema: string) {
 }
 
 describe("console catalog (CLAUDE.console.md §3)", () => {
-  it("gives the app role nothing in schema console", async () => {
+  it("lets the app role reach nothing in schema console but the tenant functions", async () => {
     expect(await privileges(APP, "console")).toEqual([]);
-    const { rows } = await db.execute<{ usage: boolean }>(
-      sql`select has_schema_privilege(${APP}, 'console', 'USAGE') as usage`,
-    );
-    expect(rows[0]?.usage).toBe(false);
+    const { rows } = await db.execute<{ name: string }>(sql`
+      select p.proname as name
+      from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+      where n.nspname = 'console' and has_function_privilege(${APP}, p.oid, 'EXECUTE')
+      order by 1
+    `);
+    expect(rows.map((r) => r.name)).toEqual(["tenant_subscription"]);
   });
 
   it("lets the app read its entitlement, never write it", async () => {

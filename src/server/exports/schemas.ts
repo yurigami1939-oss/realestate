@@ -1,6 +1,8 @@
 /** Isomorphic: the spreadsheet exports, their filters (URL search params) and the page's links. */
 import { z } from "zod";
 
+import type { Module } from "@/lib/modules";
+
 import { buyerListParams } from "@/server/buyers/schemas";
 import { leadListParams } from "@/server/crm/schemas";
 import { saleListParams } from "@/server/sales/schemas";
@@ -23,6 +25,18 @@ export const exportKinds = [
   "rent_taxes",
 ] as const;
 export type ExportKind = (typeof exportKinds)[number];
+
+/** The module an export kind belongs to (CLAUDE.console.md §5); the others are core. */
+export const exportModules: Partial<Record<ExportKind, Module>> = {
+  charges: "syndic",
+  invoices: "syndic",
+  assembly_pack: "syndic",
+  leases: "rentals",
+  rent_taxes: "rentals",
+  ledger: "treasury",
+  accounting: "treasury",
+  report: "reports",
+};
 
 const day = z
   .string()

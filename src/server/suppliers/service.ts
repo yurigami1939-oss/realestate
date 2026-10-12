@@ -10,6 +10,7 @@ import { AppError } from "@/lib/result";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
 import { checkUpload, discardFile, storeFile, type Upload } from "@/server/files/service";
 import { loadResidence } from "@/server/residences/service";
+import { assertModule } from "@/server/entitlements/access";
 
 import type {
   createContractSchema,
@@ -89,6 +90,7 @@ export async function checkCategory(tx: Tx, residenceId: string, categoryId: str
 
 /** Contract of a supplier for a residence. */
 export async function createContract(ctx: TenantCtx, input: In<typeof createContractSchema>) {
+  assertModule(ctx, "syndic");
   assertCan(ctx, "supplier:update");
   return withTenant(ctx, async (tx) => {
     await loadSupplier(tx, input.supplierId);
@@ -114,6 +116,7 @@ async function loadContract(tx: Tx, contractId: string) {
 }
 
 export async function updateContract(ctx: TenantCtx, input: In<typeof updateContractSchema>) {
+  assertModule(ctx, "syndic");
   assertCan(ctx, "supplier:update");
   const { contractId, ...fields } = input;
   await withTenant(ctx, async (tx) => {
@@ -124,6 +127,7 @@ export async function updateContract(ctx: TenantCtx, input: In<typeof updateCont
 }
 
 export async function deleteContract(ctx: TenantCtx, contractId: string) {
+  assertModule(ctx, "syndic");
   assertCan(ctx, "supplier:update");
   await withTenant(ctx, async (tx) => {
     await loadContract(tx, contractId);
@@ -142,6 +146,7 @@ export async function setContractScan(
   ctx: TenantCtx,
   input: { contractId: string; upload: Upload },
 ): Promise<{ fileId: string }> {
+  assertModule(ctx, "syndic");
   assertCan(ctx, "supplier:update");
   const contentType = checkUpload("supplier_contract.scan", input.upload);
   return withTenant(ctx, async (tx) => {

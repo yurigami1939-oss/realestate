@@ -28,7 +28,10 @@ const entitlementOf = (orgId: string) =>
 
 describe("client accounts and entitlements (CLAUDE.console.md §3)", () => {
   it("entitles every organization of an account to its plan and add-ons", async () => {
-    const [a, b] = await Promise.all([createOrganization(), createOrganization()]);
+    const [a, b] = await Promise.all([
+      createOrganization({}, { entitle: false }),
+      createOrganization({}, { entitle: false }),
+    ]);
     const { billingAccountId } = await openTestAccount([a.id, b.id], {
       addons: [{ code: "syndic" }, { code: "rentals", price: "90000" }],
     });
@@ -56,7 +59,7 @@ describe("client accounts and entitlements (CLAUDE.console.md §3)", () => {
   });
 
   it("starts a pilot for 30 days (90 for a design partner)", async () => {
-    const org = await createOrganization();
+    const org = await createOrganization({}, { entitle: false });
     await openTestAccount([org.id], { status: "pilot", program: "design_partner" });
     const [row] = await entitlementOf(org.id);
     expect(row?.status).toBe("pilot");
@@ -66,7 +69,10 @@ describe("client accounts and entitlements (CLAUDE.console.md §3)", () => {
   });
 
   it("keeps each organization's entitlement to itself", async () => {
-    const [a, b] = await Promise.all([createOrganization(), createOrganization()]);
+    const [a, b] = await Promise.all([
+      createOrganization({}, { entitle: false }),
+      createOrganization({}, { entitle: false }),
+    ]);
     await openTestAccount([a.id]);
     const seenFromB = await withTenant({ orgId: b.id }, (tx) =>
       tx.select().from(tenantEntitlement).where(eq(tenantEntitlement.organizationId, a.id)),
@@ -84,7 +90,7 @@ describe("client accounts and entitlements (CLAUDE.console.md §3)", () => {
   });
 
   it("never lets the app write an entitlement", async () => {
-    const org = await createOrganization();
+    const org = await createOrganization({}, { entitle: false });
     await openTestAccount([org.id]);
     await expect(
       withTenant({ orgId: org.id }, (tx) =>
@@ -105,9 +111,9 @@ describe("client accounts and entitlements (CLAUDE.console.md §3)", () => {
   it("adds a SARL within the plan's cap, never an organization another client holds", async () => {
     const plan = await createTestPlan({ organizations: "2" });
     const [a, b, c] = await Promise.all([
-      createOrganization(),
-      createOrganization(),
-      createOrganization(),
+      createOrganization({}, { entitle: false }),
+      createOrganization({}, { entitle: false }),
+      createOrganization({}, { entitle: false }),
     ]);
     const { billingAccountId } = await openTestAccount([a.id], { planCode: plan });
     await attachOrganization(systemOperator, { billingAccountId, organizationId: b.id });
@@ -124,12 +130,12 @@ describe("client accounts and entitlements (CLAUDE.console.md §3)", () => {
   });
 
   it("refuses an unknown or archived plan, and more organizations than the plan allows", async () => {
-    const org = await createOrganization();
+    const org = await createOrganization({}, { entitle: false });
     await expect(openTestAccount([org.id], { planCode: "no-such-plan" })).rejects.toMatchObject({
       code: "NOT_FOUND",
     });
     const solo = await createTestPlan({ organizations: "1" });
-    const other = await createOrganization();
+    const other = await createOrganization({}, { entitle: false });
     await expect(openTestAccount([org.id, other.id], { planCode: solo })).rejects.toMatchObject({
       messageKey: "console.errors.organizationsCap",
     });

@@ -38,6 +38,7 @@ import { cancelRentPayment, insertRentPayment, loadLease } from "@/server/rental
 import { loadResidence } from "@/server/residences/service";
 import { paidTotals } from "@/server/sales/sale-queries";
 import { encryptSecret } from "@/server/secrets";
+import { assertModule } from "@/server/entitlements/access";
 
 import { loadGateway } from "./gateway";
 import {
@@ -69,6 +70,7 @@ const languageOf = (locale: string): SatimLanguage => (locale === "ar" ? "ar" : 
 
 /** Saves the SATIM merchant account (gérant). An empty password keeps the saved one. Audited. */
 export async function saveGatewaySettings(ctx: TenantCtx, input: In<typeof gatewaySettingsSchema>) {
+  assertModule(ctx, "online_payment");
   assertCan(ctx, "organization:update");
   await withTenant(ctx, async (tx) => {
     const [current] = await tx
@@ -209,6 +211,7 @@ export async function startOnlinePayment(
   ctx: PortalCtx,
   input: In<typeof startOnlinePaymentSchema>,
 ): Promise<{ id: string; formUrl: string }> {
+  assertModule(ctx, "online_payment");
   const prepared = await withTenant(ctx, async (tx) => {
     const gateway = await loadGateway(tx, ctx.orgId);
     const open =
@@ -484,6 +487,7 @@ async function loadForStaff(ctx: TenantCtx, onlinePaymentId: string) {
 
 /** Staff: asks the gateway again (a payment still pending, or paid later than expected). */
 export async function recheckOnlinePayment(ctx: TenantCtx, onlinePaymentId: string) {
+  assertModule(ctx, "online_payment");
   assertCan(ctx, "payment:create");
   await loadForStaff(ctx, onlinePaymentId);
   return gatewayCall(() => finalizeOnlinePayment(ctx.orgId, onlinePaymentId, { expireOpen: true }));
@@ -522,6 +526,7 @@ export async function refundOnlinePayment(
   ctx: TenantCtx,
   input: In<typeof refundOnlinePaymentSchema>,
 ) {
+  assertModule(ctx, "online_payment");
   assertCan(ctx, "payment:cancel");
   const row = await loadForStaff(ctx, input.onlinePaymentId);
   if (row.status !== "paid" || !row.gatewayOrderId) {

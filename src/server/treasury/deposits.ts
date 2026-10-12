@@ -23,6 +23,7 @@ import type { ChequeSource } from "@/lib/treasury";
 import { recordAudit } from "@/server/audit/record-audit";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
 import { nextDocumentNumber } from "@/server/numbering/next-document-number";
+import { assertModule } from "@/server/entitlements/access";
 
 import type { clearChequeDepositSchema, createChequeDepositSchema } from "./schemas";
 
@@ -177,6 +178,7 @@ export async function clearChequeDeposit(
   ctx: TenantCtx,
   input: In<typeof clearChequeDepositSchema>,
 ) {
+  assertModule(ctx, "treasury");
   assertCan(ctx, "payment:create");
   if (input.clearedOn > todayInAlgiers()) throw invalid("clearedOn", "sales.errors.futureDate");
   await withTenant(ctx, async (tx) => {

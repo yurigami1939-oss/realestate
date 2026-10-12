@@ -18,6 +18,7 @@ import {
 } from "drizzle-orm/pg-core";
 
 import type { TaxSettings } from "../../lib/accounting";
+import type { Module } from "../../lib/modules";
 import { foreignCurrencies } from "../../lib/currencies";
 import type {
   StoredAcquisitionCosts,
@@ -137,6 +138,15 @@ export const organizationSetting = pgTable(
       .$type<Partial<PrivacySettings>>()
       .notNull()
       .default(sql`'{}'::jsonb`),
+    /**
+     * The entitled modules the gérant switched off (CLAUDE.console.md §5): kept as disabled so
+     * a module newly entitled starts on.
+     */
+    disabledModules: text()
+      .array()
+      .$type<Module[]>()
+      .notNull()
+      .default(sql`'{}'`),
     /** Company logo (PNG/JPEG), printed on the documents issued afterwards. */
     logoFileId: uuid(),
     updatedAt: updatedAt(),

@@ -23,6 +23,7 @@ import {
 } from "@/db/schema";
 import { withTenant } from "@/db/tenant";
 import { addDays, addMonths, type CalendarDate, todayInAlgiers } from "@/lib/dates";
+import { type Module, moduleOn } from "@/lib/modules";
 import { can } from "@/lib/permissions";
 import { computeStatement } from "@/lib/statement";
 import type { TenantCtx } from "@/server/auth/session";
@@ -341,34 +342,36 @@ async function todo(tx: Tx, ctx: TenantCtx, today: CalendarDate) {
     : null;
   const documents = can(ctx, "project:update") ? await loadDocumentAlerts(tx, today) : null;
   // Online payments SATIM confirmed but that could not be recorded: to refund (accountants).
-  const onlineIssues = can(ctx, "payment:cancel")
-    ? await countOnlinePaymentIssues(tx, ctx)
-    : null;
+  const on = (m: Module) => moduleOn(ctx.access?.modules, m);
+  const onlineIssues =
+    on("online_payment") && can(ctx, "payment:cancel")
+      ? await countOnlinePaymentIssues(tx, ctx)
+      : null;
   // Pieces buyers sent from the portal, to verify (who follows buyer files).
-  const [portalDocuments] = can(ctx, "buyer:update")
-    ? await tx
-        .select({ n: sql<number>`count(*)::int` })
-        .from(buyerDocument)
-        .innerJoin(buyer, eq(buyer.id, buyerDocument.buyerId))
-        .where(
-          and(
-            eq(buyerDocument.submittedFromPortal, true),
-            eq(buyerDocument.status, "received"),
-            isNull(buyer.deletedAt),
-            visibleBuyers(ctx),
-          ),
-        )
-    : [null];
+  const [portalDocuments] =
+    on("portal") && can(ctx, "buyer:update")
+      ? await tx
+          .select({ n: sql<number>`count(*)::int` })
+          .from(buyerDocument)
+          .innerJoin(buyer, eq(buyer.id, buyerDocument.buyerId))
+          .where(
+            and(
+              eq(buyerDocument.submittedFromPortal, true),
+              eq(buyerDocument.status, "received"),
+              isNull(buyer.deletedAt),
+              visibleBuyers(ctx),
+            ),
+          )
+      : [null];
   // Warranty claims to qualify, or past the contractor's deadline (deliveries team).
   const warrantyClaims = await loadWarrantyTodo(tx, ctx);
   // A residence's inspections, insurance and maintenance late or due soon (who keeps them).
   const checks = await loadCheckTodo(tx, ctx);
   // Requests buyers sent from the portal about the sales the member sees.
-  const requests = can(ctx, "sale:read") ? await countOpenPortalRequests(tx, ctx) : null;
+  const requests =
+    on("portal") && can(ctx, "sale:read") ? await countOpenPortalRequests(tx, ctx) : null;
   // Discounts the commercials asked for, to decide (managers).
-  const discounts = can(ctx, "discount:decide")
-    ? await countPendingDiscountRequests(tx)
-    : null;
+  const discounts = can(ctx, "discount:decide") ? await countPendingDiscountRequests(tx) : null;
   return {
     withdrawals,
     cheques: cheques ? { count: cheques.n, value: cheques.value } : null,

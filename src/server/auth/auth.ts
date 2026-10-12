@@ -2,7 +2,7 @@ import "server-only";
 
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { APIError, createAuthMiddleware } from "better-auth/api";
+import { APIError, createAuthMiddleware, isAPIError } from "better-auth/api";
 import { nextCookies } from "better-auth/next-js";
 import { organization, twoFactor } from "better-auth/plugins";
 import { asc, eq } from "drizzle-orm";
@@ -15,6 +15,7 @@ import { defaultLocale, isLocale } from "@/i18n/locales";
 import { BRAND_NAME } from "@/lib/brand";
 import { ac, parseRoles, roles } from "@/lib/permissions";
 import { recordAudit } from "@/server/audit/record-audit";
+import { startPilotForNewOrganization } from "@/server/console/accounts";
 import { sendEmailLater } from "@/server/email/send-later";
 import { invitationEmail, resetPasswordEmail } from "@/server/email/templates";
 import { linkPortalAccount } from "@/server/portal/link";
@@ -54,6 +55,16 @@ export const auth = betterAuth({
       if (ctx.path === "/sign-up/email" && ctx.request && env.DEMO_MODE === true) {
         throw new APIError("FORBIDDEN", { code: "SIGNUP_CLOSED", message: "Sign-up is closed." });
       }
+    }),
+    // An organization created from the onboarding (a request) gets its client account
+    // (CLAUDE.console.md §8); the seed's own calls open theirs.
+    after: createAuthMiddleware(async (ctx) => {
+      if (ctx.path !== "/organization/create" || !ctx.request) return;
+      const created: unknown = ctx.context.returned;
+      if (!created || isAPIError(created) || typeof created !== "object" || !("id" in created)) {
+        return;
+      }
+      await startPilotForNewOrganization(String(created.id));
     }),
   },
   databaseHooks: {

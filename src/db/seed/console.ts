@@ -8,14 +8,24 @@
 import { eq } from "drizzle-orm";
 
 import { addDays, addMonths, todayInAlgiers } from "@/lib/dates";
+import { auth } from "@/server/auth/auth";
 import { attachOrganization, openBillingAccount } from "@/server/console/accounts";
 import { systemOperator } from "@/server/console/context";
 import { createAddon, createPlan } from "@/server/console/plans";
 import { addonSchema, openAccountSchema, planSchema } from "@/server/console/schemas";
+import { setModuleEnabled } from "@/server/entitlements/switches";
+import {
+  createBuildingSchema,
+  createProjectSchema,
+  generateUnitsSchema,
+} from "@/server/inventory/schemas";
+import { createBuilding, createProject, generateUnits } from "@/server/inventory/service";
 
 import { consoleDb } from "../console-client";
 import { withConsoleTenant } from "../console-tenant";
 import { organization, tenantEntitlement } from "../schema";
+
+import { DEMO_PASSWORD, pilotPromoter } from "./demo";
 
 const corePlus = ["imports"] as const;
 const promoteurModules = [
@@ -108,12 +118,93 @@ export async function openDemoAccount(organizationId: string): Promise<string> {
   return billingAccountId;
 }
 
-/** Another SARL of the same client joins its account (and entitlement). */
+/**
+ * Another SARL of the same client joins its account (and entitlement); its gérant switched
+ * off the residence and rentals modules it does not use.
+ */
 export async function attachToDemoAccount(
   billingAccountId: string,
   organizationId: string,
+  ownerId: string,
 ): Promise<void> {
   await attachOrganization(systemOperator, { billingAccountId, organizationId });
+  const owner = {
+    userId: ownerId,
+    orgId: organizationId,
+    roles: ["owner" as const],
+    locale: "fr" as const,
+  };
+  await setModuleEnabled(owner, { module: "syndic", on: false });
+  await setModuleEnabled(owner, { module: "rentals", on: false });
+}
+
+/** The small promoter piloting Essentiel: its gérant, its SARL, one project of 12 flats. */
+export async function seedPilotPromoter(): Promise<void> {
+  const { user } = await auth.api.signUpEmail({
+    body: { ...pilotPromoter.user, password: DEMO_PASSWORD },
+  });
+  const org = await auth.api.createOrganization({
+    body: { ...pilotPromoter.organization, userId: user.id },
+  });
+  if (!org) throw new Error("seed: pilot organization not created");
+  const today = todayInAlgiers();
+  await openBillingAccount(
+    systemOperator,
+    openAccountSchema.parse({
+      legalName: "",
+      contactName: pilotPromoter.user.name,
+      email: pilotPromoter.user.email,
+      organizationIds: [org.id],
+      planCode: "essentiel",
+      status: "pilot",
+      program: "standard",
+      billingPeriod: "yearly",
+      pilotEndsOn: addDays(today, 5),
+      addons: [],
+    }),
+  );
+  const owner = {
+    userId: user.id,
+    orgId: org.id,
+    roles: ["owner" as const],
+    locale: "fr" as const,
+  };
+  const project = await createProject(
+    owner,
+    createProjectSchema.parse({
+      code: "TAFN",
+      name: "Résidence Tafna",
+      status: "under_construction",
+      address: "Route de Mansourah",
+      wilaya: "13 - Tlemcen",
+      commune: "Tlemcen",
+      plannedDeliveryOn: addMonths(today, 18),
+      description: "Un bloc R+4 de douze appartements.",
+    }),
+  );
+  if (!project) throw new Error("seed: pilot project not created");
+  const building = await createBuilding(
+    owner,
+    createBuildingSchema.parse({
+      projectId: project.id,
+      code: "A",
+      name: "Bloc A",
+      lowestFloor: "0",
+      topFloor: "4",
+    }),
+  );
+  await generateUnits(
+    owner,
+    generateUnitsSchema.parse({
+      buildingId: building.id,
+      fromFloor: "1",
+      toFloor: "4",
+      unitsPerFloor: "3",
+      type: "apartment",
+      typology: "F3",
+      livingArea: "92",
+    }),
+  );
 }
 
 /** Fail closed (CLAUDE.console.md §3): the seed refuses to finish with an organization unentitled. */

@@ -6,7 +6,7 @@ import { ImportPanel } from "@/components/imports/import-panel";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toLocale } from "@/i18n/locales";
 import { can, type Permission } from "@/lib/permissions";
-import { requireTenantCtx } from "@/server/auth/page-guard";
+import { requireModule } from "@/server/auth/page-guard";
 import type { ImportKind } from "@/server/imports/schemas";
 import { listProjectOptions } from "@/server/inventory/queries";
 import { listResidences } from "@/server/residences/queries";
@@ -23,7 +23,7 @@ export async function generateMetadata(): Promise<Metadata> {
  */
 export default async function ImportsPage({ params }: PageProps<"/[locale]/imports">) {
   setRequestLocale(toLocale((await params).locale));
-  const ctx = await requireTenantCtx();
+  const ctx = await requireModule("imports");
   const t = await getTranslations("imports");
   const allowed = (...permissions: Permission[]) => permissions.every((p) => can(ctx, p));
   const projects = allowed("unit:create")

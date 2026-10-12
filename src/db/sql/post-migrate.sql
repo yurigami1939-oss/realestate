@@ -201,3 +201,49 @@ GRANT SELECT, INSERT, UPDATE ON public.tenant_entitlement TO realestate_console;
 GRANT INSERT ON public.audit_log TO realestate_console;
 -- The app reads its organization's entitlement, never writes it.
 REVOKE INSERT, UPDATE, DELETE, TRUNCATE ON public.tenant_entitlement FROM realestate_app;
+
+-- 6. What a tenant may read of the console (CLAUDE.console.md §3): SECURITY DEFINER functions
+--    resolving the current organization's billing account from `app.current_org` (unset → no
+--    row). The app role may call them — USAGE on the schema, no privilege on its tables.
+CREATE OR REPLACE FUNCTION console.tenant_subscription()
+RETURNS jsonb
+LANGUAGE sql STABLE SECURITY DEFINER
+SET search_path = console, pg_temp
+AS $$
+  SELECT jsonb_build_object(
+    'status', s.status,
+    'program', s.program,
+    'billingPeriod', s.billing_period,
+    'price', s.price::text,
+    'discountBp', s.discount_bp,
+    'priceLockedUntil', s.price_locked_until,
+    'activatedAt', s.activated_at,
+    'pilotEndsOn', s.pilot_ends_on,
+    'currentPeriodStart', s.current_period_start,
+    'currentPeriodEnd', s.current_period_end,
+    'plan', jsonb_build_object(
+      'code', p.code, 'nameFr', p.name_fr, 'nameAr', p.name_ar,
+      'modules', p.modules, 'limits', p.limits, 'onQuote', p.on_quote
+    ),
+    'addons', coalesce((
+      SELECT jsonb_agg(jsonb_build_object('code', a.addon_code, 'price', a.price::text,
+                                          'addedOn', a.added_on) ORDER BY a.addon_code)
+      FROM subscription_addon a
+      WHERE a.subscription_id = s.id AND a.removed_on IS NULL
+    ), '[]'::jsonb),
+    'organizations', (
+      SELECT jsonb_agg(jsonb_build_object('id', o.id, 'name', o.name) ORDER BY ao.added_at)
+      FROM account_organization ao
+      JOIN public.organization o ON o.id = ao.organization_id
+      WHERE ao.billing_account_id = s.billing_account_id
+    )
+  )
+  FROM account_organization me
+  JOIN subscription s ON s.billing_account_id = me.billing_account_id
+  JOIN plan p ON p.id = s.plan_id
+  WHERE me.organization_id = nullif(current_setting('app.current_org', true), '')::uuid
+$$;
+REVOKE ALL ON FUNCTION console.tenant_subscription() FROM PUBLIC;
+GRANT USAGE ON SCHEMA console TO realestate_app;
+GRANT EXECUTE ON FUNCTION console.tenant_subscription() TO realestate_app;
+

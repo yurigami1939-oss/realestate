@@ -18,6 +18,7 @@ import { assertCan, type TenantCtx } from "@/server/auth/session";
 import { nextDocumentNumber } from "@/server/numbering/next-document-number";
 import { loadResidence } from "@/server/residences/service";
 import { notifyChargePayment } from "@/server/whatsapp/notify";
+import { assertModule } from "@/server/entitlements/access";
 
 import { chargeStatement, liveCalls, paidByUnit } from "./accounts";
 import type {
@@ -41,6 +42,7 @@ export async function recordChargePayment(
   ctx: TenantCtx,
   input: In<typeof recordChargePaymentSchema>,
 ) {
+  assertModule(ctx, "syndic");
   assertCan(ctx, "payment:create");
   if (input.paidOn > todayInAlgiers()) throw invalid("paidOn", "charges.errors.futureDate");
   return withTenant(ctx, async (tx) => {
@@ -154,6 +156,7 @@ export async function cancelChargePayment(
   input: In<typeof cancelChargePaymentSchema>,
   outer?: Tx,
 ) {
+  assertModule(ctx, "syndic");
   assertCan(ctx, "payment:cancel");
   await withTenant(
     ctx,
@@ -197,6 +200,7 @@ export async function cancelChargePayment(
 
 /** Records the day the bank cleared a cheque (its receipt was « sous réserve »). Audited. */
 export async function clearChargeCheque(ctx: TenantCtx, input: In<typeof clearChargeChequeSchema>) {
+  assertModule(ctx, "syndic");
   assertCan(ctx, "payment:create");
   if (input.clearedOn > todayInAlgiers()) throw invalid("clearedOn", "charges.errors.futureDate");
   await withTenant(ctx, async (tx) => {

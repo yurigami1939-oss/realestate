@@ -14,6 +14,7 @@ import { assertCan, type TenantCtx } from "@/server/auth/session";
 import { checkUpload, discardFile, storeFile, type Upload } from "@/server/files/service";
 import { loadResidence } from "@/server/residences/service";
 import { resolvePaymentAccount } from "@/server/treasury/service";
+import { assertModule } from "@/server/entitlements/access";
 
 import type { createInvoiceSchema, payInvoiceSchema, updateInvoiceSchema } from "./schemas";
 import { checkCategory, loadSupplier } from "./service";
@@ -69,6 +70,7 @@ const values = (fields: InvoiceFields) => ({
 
 /** Records a supplier invoice of a residence (supplier:update). Audited. */
 export async function recordInvoice(ctx: TenantCtx, input: In<typeof createInvoiceSchema>) {
+  assertModule(ctx, "syndic");
   assertCan(ctx, "supplier:update");
   const { supplierId, residenceId, ...fields } = input;
   return withTenant(ctx, async (tx) => {
@@ -112,6 +114,7 @@ async function loadInvoice(tx: Tx, invoiceId: string) {
 
 /** Edits an unpaid invoice. Audited. */
 export async function updateInvoice(ctx: TenantCtx, input: In<typeof updateInvoiceSchema>) {
+  assertModule(ctx, "syndic");
   assertCan(ctx, "supplier:update");
   const { invoiceId, ...fields } = input;
   await withTenant(ctx, async (tx) => {
@@ -139,6 +142,7 @@ export async function updateInvoice(ctx: TenantCtx, input: In<typeof updateInvoi
 
 /** Records the payment of an invoice (date, method, reference); then it is read-only. */
 export async function payInvoice(ctx: TenantCtx, input: In<typeof payInvoiceSchema>) {
+  assertModule(ctx, "syndic");
   assertCan(ctx, "supplier:update");
   if (input.paidOn > todayInAlgiers()) throw invalid("paidOn", "charges.errors.futureDate");
   await withTenant(ctx, async (tx) => {
@@ -173,6 +177,7 @@ export async function payInvoice(ctx: TenantCtx, input: In<typeof payInvoiceSche
 
 /** Removes an invoice recorded by mistake (soft delete), only while unpaid. Audited. */
 export async function deleteInvoice(ctx: TenantCtx, invoiceId: string) {
+  assertModule(ctx, "syndic");
   assertCan(ctx, "supplier:update");
   await withTenant(ctx, async (tx) => {
     const current = await loadInvoice(tx, invoiceId);
@@ -199,6 +204,7 @@ export async function setInvoiceScan(
   ctx: TenantCtx,
   input: { invoiceId: string; upload: Upload },
 ): Promise<{ fileId: string }> {
+  assertModule(ctx, "syndic");
   assertCan(ctx, "supplier:update");
   const contentType = checkUpload("supplier_invoice.scan", input.upload);
   return withTenant(ctx, async (tx) => {

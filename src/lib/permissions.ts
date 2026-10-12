@@ -6,6 +6,8 @@
 import { createAccessControl } from "better-auth/plugins/access";
 import { defaultStatements, ownerAc } from "better-auth/plugins/organization/access";
 
+import { type Module, resourceAllowed } from "./modules";
+
 export const statement = {
   ...defaultStatements,
   audit: ["read"],
@@ -108,6 +110,8 @@ export const statement = {
    * (anonymize) a prospect who never bought.
    */
   personal_data: ["export", "erase"],
+  /** The organization's subscription (CLAUDE.console.md §11): plan, modules, invoices. */
+  subscription: ["read"],
 } as const;
 
 export const ac = createAccessControl(statement);
@@ -158,6 +162,7 @@ export const roles = {
     cost: ["read", "update", "pay"],
     report: ["read"],
     personal_data: ["export", "erase"],
+    subscription: ["read"],
   }),
   sales_manager: ac.newRole({
     inventory: ["read"],
@@ -219,6 +224,7 @@ export const roles = {
     treasury: ["read", "update", "count"],
     cost: ["read", "pay"],
     report: ["read"],
+    subscription: ["read"],
   }),
   cashier: ac.newRole({
     inventory: ["read"],
@@ -309,17 +315,29 @@ export const isPortalOnly = (userRoles: readonly Role[]): boolean =>
  * exact permissions (CLAUDE.md §5 Auth & roles). A plain role list is accepted too.
  */
 export type Access =
-  readonly Role[] | { roles: readonly Role[]; permissions?: readonly Permission[] | null };
+  | readonly Role[]
+  | {
+      roles: readonly Role[];
+      permissions?: readonly Permission[] | null;
+      /**
+       * The organization's modules on (CLAUDE.console.md §5): a permission of a module that is
+       * off is refused whatever the role. Null or absent: no restriction. A tenant context
+       * carries them as `access.modules`.
+       */
+      modules?: readonly Module[] | null;
+      access?: { modules: readonly Module[] } | null;
+    };
 
 export function can(access: Access, permission: Permission): boolean {
+  const [resource, action] = permission.split(":") as [keyof Statement, string];
   if (!Array.isArray(access)) {
-    const custom = (access as { permissions?: readonly Permission[] | null }).permissions;
-    if (custom) return custom.includes(permission);
+    const object = access as Exclude<Access, readonly Role[]>;
+    if (!resourceAllowed(resource, object.modules ?? object.access?.modules)) return false;
+    if (object.permissions) return object.permissions.includes(permission);
   }
   const userRoles: readonly Role[] = Array.isArray(access)
     ? (access as readonly Role[])
     : (access as { roles: readonly Role[] }).roles;
-  const [resource, action] = permission.split(":") as [keyof Statement, string];
   return userRoles.some(
     (role) =>
       roles[role].authorize({ [resource]: [action] } as Parameters<
@@ -347,9 +365,11 @@ export const rolePermissions = (role: Role): Permission[] =>
 export const accessOf = (ctx: {
   roles: readonly Role[];
   permissions?: readonly Permission[] | null;
+  access?: { modules: readonly Module[] } | null;
 }): Access => ({
   roles: [...ctx.roles],
   permissions: ctx.permissions ? [...ctx.permissions] : null,
+  modules: ctx.access ? [...ctx.access.modules] : null,
 });
 
 /** The resources and actions a custom role's permissions are made of (labels in the UI). */

@@ -5,16 +5,25 @@ import { member, organization, user } from "@/db/schema";
 import type { Role } from "@/lib/permissions";
 import type { TenantCtx } from "@/server/auth/session";
 
+import { entitleForTests } from "./console-fixtures";
+
 const suffix = () => randomUUID().slice(0, 8);
 
-/** A fresh organization per test keeps tests isolated without truncating tables. */
-export async function createOrganization(values: Partial<typeof organization.$inferInsert> = {}) {
+/**
+ * A fresh organization per test keeps tests isolated without truncating tables. It is entitled
+ * to every module (CLAUDE.console.md §3) unless `entitle: false` (a test opening its own account).
+ */
+export async function createOrganization(
+  values: Partial<typeof organization.$inferInsert> = {},
+  options: { entitle?: boolean } = {},
+) {
   const s = suffix();
   const [row] = await db
     .insert(organization)
     .values({ name: `Promotion ${s}`, slug: `promo-${s}`, createdAt: new Date(), ...values })
     .returning();
   if (!row) throw new Error("createOrganization: no row returned");
+  if (options.entitle !== false) await entitleForTests(row.id);
   return row;
 }
 

@@ -20,6 +20,7 @@ import { visibleLeads } from "@/server/crm/access";
 import { portalCanRead } from "@/server/portal/files";
 import { visibleSales } from "@/server/sales/access";
 import { recordAccess } from "@/server/privacy/consents";
+import { assertModule } from "@/server/entitlements/access";
 
 import { presignDownload, putObject, storageKey } from "./storage";
 
@@ -54,9 +55,7 @@ const readers: Record<string, Reader> = {
   // Residence documents: charge calls, receipts, reminders, assembly convocations and minutes,
   // announcement notices.
   residence: async (_tx, ctx) =>
-    can(ctx, "charge:read") ||
-    can(ctx, "assembly:read") ||
-    can(ctx, "announcement:read"),
+    can(ctx, "charge:read") || can(ctx, "assembly:read") || can(ctx, "announcement:read"),
   // Delivery documents (PV de remise des clés, PV de levée des réserves): the deliveries team,
   // and whoever sees the sale.
   handover: async (tx, ctx, entityId) => {
@@ -176,6 +175,7 @@ export async function getFileDownloadUrl(
     if (!found) throw new AppError("NOT_FOUND");
     // Portal accounts read the documents of their own records only (CLAUDE.md §5).
     if (isPortalOnly(ctx.roles)) {
+      assertModule(ctx, "portal");
       if (!(await portalCanRead(tx, ctx.userId, { ...found, id: fileId }))) {
         throw new AppError("FORBIDDEN");
       }
