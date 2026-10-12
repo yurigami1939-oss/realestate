@@ -1,7 +1,7 @@
 import "server-only";
 
 import { sql } from "drizzle-orm";
-import { fromDrizzle, PgBoss, type SendOptions } from "pg-boss";
+import { fromDrizzle, type JobInsert, PgBoss, type SendOptions } from "pg-boss";
 
 import type { Tx } from "@/db/client";
 import { JOBS_SCHEMA } from "@/db/jobs-schema";
@@ -37,6 +37,19 @@ export async function enqueue<Q extends QueueName>(
 ): Promise<string | null> {
   const boss = await sender();
   return boss.send(queue, data, options);
+}
+
+/**
+ * Enqueues many jobs of one queue, 500 per statement: the daily fan-outs over every
+ * organization (one `send` per tenant takes minutes once there are thousands). Each job keeps
+ * its own options, `singletonKey` / `singletonSeconds` included.
+ */
+export async function enqueueAll<Q extends QueueName>(
+  queue: Q,
+  jobs: (Omit<JobInsert, "data"> & { data: JobPayloads[Q] })[],
+): Promise<void> {
+  const boss = await sender();
+  for (let i = 0; i < jobs.length; i += 500) await boss.insert(queue, jobs.slice(i, i + 500));
 }
 
 /**

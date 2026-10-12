@@ -7,7 +7,7 @@ import { db } from "@/db/client";
 import { installment, member, organization, reminderLetter, user } from "@/db/schema";
 import { withTenant } from "@/db/tenant";
 import { env } from "@/env";
-import { enqueue, enqueueInTx } from "@/jobs/enqueue";
+import { enqueueAll, enqueueInTx } from "@/jobs/enqueue";
 import { addDays, todayInAlgiers } from "@/lib/dates";
 import { parseRoles } from "@/lib/permissions";
 import { AppError } from "@/lib/result";
@@ -130,9 +130,10 @@ export async function queueOverdueDigests(): Promise<number> {
   const date = todayInAlgiers();
   // `organization` is Better Auth's tenant table: no RLS, every tenant is listed.
   const tenants = await db.select({ id: organization.id }).from(organization);
-  for (const { id } of tenants) {
-    await enqueue("reminders.digest", { organizationId: id, date }, onceADay(`digest:${id}`));
-  }
+  await enqueueAll(
+    "reminders.digest",
+    tenants.map(({ id }) => ({ data: { organizationId: id, date }, ...onceADay(`digest:${id}`) })),
+  );
   return tenants.length;
 }
 

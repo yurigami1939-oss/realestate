@@ -15,7 +15,7 @@ import {
   whatsappMessage,
 } from "@/db/schema";
 import { withTenant } from "@/db/tenant";
-import { enqueue } from "@/jobs/enqueue";
+import { enqueueAll } from "@/jobs/enqueue";
 import { type CalendarDate, todayInAlgiers } from "@/lib/dates";
 import {
   ANONYMIZED_NAME,
@@ -175,13 +175,14 @@ export async function queueRetentionJobs(): Promise<number> {
   const date = todayInAlgiers();
   // `organization` is Better Auth's tenant table: no RLS, every tenant is listed.
   const tenants = await db.select({ id: organization.id }).from(organization);
-  for (const { id } of tenants) {
-    await enqueue(
-      "privacy.retention",
-      { organizationId: id, date },
-      { singletonKey: `retention:${id}`, singletonSeconds: 86_400 },
-    );
-  }
+  await enqueueAll(
+    "privacy.retention",
+    tenants.map(({ id }) => ({
+      data: { organizationId: id, date },
+      singletonKey: `retention:${id}`,
+      singletonSeconds: 86_400,
+    })),
+  );
   return tenants.length;
 }
 
