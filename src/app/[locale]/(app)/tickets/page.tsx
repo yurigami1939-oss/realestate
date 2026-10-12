@@ -57,7 +57,7 @@ export default async function TicketsPage({
       {tickets.length === 0 ? (
         <p className="text-sm text-muted-foreground">{t("empty")}</p>
       ) : (
-        <div className="overflow-x-auto rounded-lg border">
+        <div className="overflow-x-auto rounded-xl bg-card shadow-card in-data-[slot=card]:border in-data-[slot=card]:shadow-none">
           <Table data-testid="tickets">
             <TableHeader>
               <TableRow>
@@ -74,7 +74,11 @@ export default async function TicketsPage({
               {tickets.map((ticket) => (
                 <TableRow key={ticket.id}>
                   <TableCell className="whitespace-normal">
-                    <Link href={`/tickets/${ticket.id}`} className="font-medium hover:underline">
+                    <Link
+                      data-row-link
+                      href={`/tickets/${ticket.id}`}
+                      className="font-medium hover:underline"
+                    >
                       {ticket.title}
                     </Link>
                     <div className="text-xs text-muted-foreground">

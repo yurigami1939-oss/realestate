@@ -83,7 +83,7 @@ export function TargetsTable({
 
   return (
     <div className="space-y-4">
-      <div className="overflow-x-auto rounded-lg border">
+      <div className="overflow-x-auto rounded-xl bg-card shadow-card in-data-[slot=card]:border in-data-[slot=card]:shadow-none">
         <Table data-testid="targets">
           <TableHeader>
             <TableRow>

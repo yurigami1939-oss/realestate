@@ -71,21 +71,21 @@ export default async function ResidencePage({
       />
       <ResidenceNav residenceId={residence.id} current="units" roles={accessOf(ctx)} />
       <dl className="grid gap-2 text-sm sm:grid-cols-4" data-testid="residence-settings">
-        <div className="rounded-md border p-2">
+        <div className="rounded-lg bg-muted/50 px-3 py-2">
           <dt className="text-muted-foreground">{t("fields.chargeFrequency")}</dt>
           <dd className="font-medium">{t(`frequency.${residence.chargeFrequency}`)}</dd>
         </div>
-        <div className="rounded-md border p-2">
+        <div className="rounded-lg bg-muted/50 px-3 py-2">
           <dt className="text-muted-foreground">{t("fields.reserveFund")}</dt>
           <dd className="font-medium" dir="ltr">
             {formatShare(residence.reserveFundBp)}
           </dd>
         </div>
-        <div className="rounded-md border p-2">
+        <div className="rounded-lg bg-muted/50 px-3 py-2">
           <dt className="text-muted-foreground">{t("fields.callDueDays")}</dt>
           <dd className="font-medium">{t("days", { days: residence.callDueDays })}</dd>
         </div>
-        <div className="rounded-md border p-2">
+        <div className="rounded-lg bg-muted/50 px-3 py-2">
           <dt className="text-muted-foreground">{t("fields.shareBasis")}</dt>
           <dd className="font-medium tabular-nums" dir="ltr">
             {residence.shareBasis}

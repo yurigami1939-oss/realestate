@@ -49,7 +49,7 @@ export function CategoriesCard({ setup, editable }: { setup: ChargesSetup; edita
         {setup.categories.length === 0 ? (
           <p className="text-sm text-muted-foreground">{t("categories.empty")}</p>
         ) : (
-          <div className="overflow-x-auto rounded-lg border">
+          <div className="overflow-x-auto rounded-xl bg-card shadow-card in-data-[slot=card]:border in-data-[slot=card]:shadow-none">
             <Table data-testid="charge-categories">
               <TableHeader>
                 <TableRow>

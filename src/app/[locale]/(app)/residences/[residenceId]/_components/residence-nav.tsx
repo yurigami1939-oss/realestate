@@ -1,8 +1,7 @@
 import { useTranslations } from "next-intl";
 
-import { Link } from "@/i18n/navigation";
+import { SegmentedNav } from "@/components/app-shell/segmented-nav";
 import { type Access, can, type Permission } from "@/lib/permissions";
-import { cn } from "@/lib/utils";
 
 const sections = [
   { key: "units", path: "", permission: "residence:read" },
@@ -22,7 +21,7 @@ const sections = [
 
 export type ResidenceSection = (typeof sections)[number]["key"];
 
-/** Sections of a residence, as tabs; those the member may not read are hidden. */
+/** Sections of a residence, as a segmented control; those the member may not read are hidden. */
 export function ResidenceNav({
   residenceId,
   current,
@@ -34,24 +33,12 @@ export function ResidenceNav({
 }) {
   const t = useTranslations("residences.tabs");
   return (
-    <nav aria-label={t("label")} className="flex gap-1 overflow-x-auto border-b">
-      {sections
+    <SegmentedNav
+      label={t("label")}
+      current={current}
+      segments={sections
         .filter((s) => can(roles, s.permission))
-        .map((s) => (
-          <Link
-            key={s.key}
-            href={`/residences/${residenceId}${s.path}`}
-            aria-current={s.key === current ? "page" : undefined}
-            className={cn(
-              "border-b-2 px-3 py-2 text-sm whitespace-nowrap",
-              s.key === current
-                ? "border-primary font-medium"
-                : "border-transparent text-muted-foreground hover:text-foreground",
-            )}
-          >
-            {t(s.key)}
-          </Link>
-        ))}
-    </nav>
+        .map((s) => ({ key: s.key, href: `/residences/${residenceId}${s.path}`, label: t(s.key) }))}
+    />
   );
 }

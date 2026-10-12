@@ -40,7 +40,7 @@ export default async function SuppliersPage({ params }: PageProps<"/[locale]/sup
       {suppliers.length === 0 ? (
         <p className="text-sm text-muted-foreground">{t("empty")}</p>
       ) : (
-        <div className="overflow-x-auto rounded-lg border">
+        <div className="overflow-x-auto rounded-xl bg-card shadow-card in-data-[slot=card]:border in-data-[slot=card]:shadow-none">
           <Table data-testid="suppliers">
             <TableHeader>
               <TableRow>
@@ -54,7 +54,11 @@ export default async function SuppliersPage({ params }: PageProps<"/[locale]/sup
               {suppliers.map((s) => (
                 <TableRow key={s.id}>
                   <TableCell>
-                    <Link href={`/suppliers/${s.id}`} className="font-medium hover:underline">
+                    <Link
+                      data-row-link
+                      href={`/suppliers/${s.id}`}
+                      className="font-medium hover:underline"
+                    >
                       {s.name}
                     </Link>
                   </TableCell>

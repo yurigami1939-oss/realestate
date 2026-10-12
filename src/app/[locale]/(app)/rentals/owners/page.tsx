@@ -45,7 +45,7 @@ export default async function OwnersPage({ params }: PageProps<"/[locale]/rental
       {owners.length === 0 ? (
         <p className="text-sm text-muted-foreground">{t("empty")}</p>
       ) : (
-        <div className="overflow-x-auto rounded-lg border">
+        <div className="overflow-x-auto rounded-xl bg-card shadow-card in-data-[slot=card]:border in-data-[slot=card]:shadow-none">
           <Table data-testid="owners">
             <TableHeader>
               <TableRow>
@@ -59,7 +59,11 @@ export default async function OwnersPage({ params }: PageProps<"/[locale]/rental
               {owners.map((o) => (
                 <TableRow key={o.id}>
                   <TableCell>
-                    <Link href={`/rentals/owners/${o.id}`} className="font-medium hover:underline">
+                    <Link
+                      data-row-link
+                      href={`/rentals/owners/${o.id}`}
+                      className="font-medium hover:underline"
+                    >
                       {o.name}
                     </Link>
                   </TableCell>

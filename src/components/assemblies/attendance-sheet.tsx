@@ -66,7 +66,7 @@ export function AttendanceSheet({
   if (sheet.length === 0) return <p className="text-sm text-muted-foreground">{t("noUnits")}</p>;
   return (
     <div className="space-y-3">
-      <div className="overflow-x-auto rounded-lg border">
+      <div className="overflow-x-auto rounded-xl bg-card shadow-card in-data-[slot=card]:border in-data-[slot=card]:shadow-none">
         <Table data-testid="attendance-sheet">
           <TableHeader>
             <TableRow>

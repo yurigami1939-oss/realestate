@@ -117,7 +117,7 @@ export default async function RentalTaxesPage({
       {taxes.rows.length === 0 ? (
         <p className="text-sm text-muted-foreground">{t("taxes.empty")}</p>
       ) : (
-        <div className="overflow-x-auto rounded-lg border">
+        <div className="overflow-x-auto rounded-xl bg-card shadow-card in-data-[slot=card]:border in-data-[slot=card]:shadow-none">
           <Table data-testid="rent-taxes">
             <TableHeader>
               <TableRow>
@@ -134,7 +134,11 @@ export default async function RentalTaxesPage({
               {taxes.rows.map((r) => (
                 <TableRow key={r.id} data-lease={r.number}>
                   <TableCell>
-                    <Link href={`/rentals/${r.id}`} className="font-medium hover:underline">
+                    <Link
+                      data-row-link
+                      href={`/rentals/${r.id}`}
+                      className="font-medium hover:underline"
+                    >
                       <bdi dir="ltr">{r.number}</bdi>
                     </Link>
                     <div className="text-xs text-muted-foreground">

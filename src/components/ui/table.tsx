@@ -51,6 +51,9 @@ function TableRow({ className, ...props }: React.ComponentProps<"tr">) {
       data-slot="table-row"
       className={cn(
         "border-b transition-colors hover:bg-muted/40 has-aria-expanded:bg-muted/50 data-[state=selected]:bg-muted",
+        // A row whose record link carries `data-row-link` opens it from anywhere in the row; its
+        // other buttons and links stay clickable above (CLAUDE.md §14 item 15).
+        "has-[a[data-row-link]]:relative has-[a[data-row-link]]:cursor-pointer [&_:is(button,input,select,textarea,label,a:not([data-row-link]))]:relative [&_:is(button,input,select,textarea,label,a:not([data-row-link]))]:z-10 [&_a[data-row-link]]:after:absolute [&_a[data-row-link]]:after:inset-0 [&_a[data-row-link]]:after:content-['']",
         className,
       )}
       {...props}

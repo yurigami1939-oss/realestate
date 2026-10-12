@@ -63,7 +63,7 @@ export default async function ResidenceAssembliesPage({
           {assemblies.length === 0 ? (
             <p className="text-sm text-muted-foreground">{t("empty")}</p>
           ) : (
-            <div className="overflow-x-auto rounded-lg border">
+            <div className="overflow-x-auto rounded-xl bg-card shadow-card in-data-[slot=card]:border in-data-[slot=card]:shadow-none">
               <Table data-testid="assemblies">
                 <TableHeader>
                   <TableRow>
@@ -79,6 +79,7 @@ export default async function ResidenceAssembliesPage({
                     <TableRow key={a.id}>
                       <TableCell>
                         <Link
+                          data-row-link
                           href={`/residences/${residenceId}/assemblies/${a.id}`}
                           className="font-medium hover:underline"
                         >

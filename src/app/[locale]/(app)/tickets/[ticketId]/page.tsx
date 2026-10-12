@@ -48,21 +48,21 @@ export default async function TicketPage({ params }: PageProps<"/[locale]/ticket
         badge={<TicketStatusBadge status={ticket.status} />}
       />
       <dl className="grid gap-2 text-sm sm:grid-cols-4">
-        <div className="rounded-md border p-2">
+        <div className="rounded-lg bg-muted/50 px-3 py-2">
           <dt className="text-muted-foreground">{t("fields.priority")}</dt>
           <dd>
             <TicketPriorityBadge priority={ticket.priority} />
           </dd>
         </div>
-        <div className="rounded-md border p-2">
+        <div className="rounded-lg bg-muted/50 px-3 py-2">
           <dt className="text-muted-foreground">{t("columns.openedOn")}</dt>
           <dd className="font-medium">{formatDate(ticket.createdAt)}</dd>
         </div>
-        <div className="rounded-md border p-2">
+        <div className="rounded-lg bg-muted/50 px-3 py-2">
           <dt className="text-muted-foreground">{t("fields.reporterName")}</dt>
           <dd className="font-medium">{ticket.reporterName ?? "—"}</dd>
         </div>
-        <div className="rounded-md border p-2">
+        <div className="rounded-lg bg-muted/50 px-3 py-2">
           <dt className="text-muted-foreground">{t("columns.assignee")}</dt>
           <dd className="font-medium">{ticket.assignee ?? t("nobody")}</dd>
         </div>

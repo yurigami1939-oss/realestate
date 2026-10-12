@@ -78,7 +78,10 @@ export function UnitGrid({
           ))}
       </div>
 
-      <div className="overflow-x-auto rounded-lg border" data-testid="unit-grid">
+      <div
+        className="overflow-x-auto rounded-xl bg-card shadow-card in-data-[slot=card]:border in-data-[slot=card]:shadow-none"
+        data-testid="unit-grid"
+      >
         <table className="w-full border-collapse text-sm">
           <tbody>
             {floors.map(({ floor, units: floorUnits }) => (

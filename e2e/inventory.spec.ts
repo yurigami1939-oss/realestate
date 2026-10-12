@@ -55,7 +55,6 @@ test.describe("sales manager", () => {
 
     // Price list: 100 000 DA/m² × 80 m², applied
     await page.getByRole("link", { name: "Résidence du Jardin" }).click();
-    await page.getByRole("button", { name: "Plus d'actions" }).click();
     await page.getByRole("link", { name: "Grilles de prix" }).click();
     await page.getByRole("button", { name: "Nouvelle grille" }).click();
     await page.getByRole("dialog").getByLabel("Nom").fill("Lancement");
@@ -119,7 +118,6 @@ test.describe("commercial", () => {
       "https://visite.example.test/les-oliviers",
     );
 
-    await page.getByRole("button", { name: "Plus d'actions" }).click();
     await page.getByRole("link", { name: "Grilles de prix" }).click();
     await expect(page.getByRole("row")).toHaveCount(3);
     await expect(page.getByRole("row", { name: /Révision 2027/ })).toContainText("Brouillon");

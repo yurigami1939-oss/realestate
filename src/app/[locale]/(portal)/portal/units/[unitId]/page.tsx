@@ -134,7 +134,7 @@ export default async function PortalUnitPage({
           {statement.lines.length === 0 ? (
             <p className="text-sm text-muted-foreground">{t("noCalls")}</p>
           ) : (
-            <div className="overflow-x-auto rounded-lg border">
+            <div className="overflow-x-auto rounded-xl bg-card shadow-card in-data-[slot=card]:border in-data-[slot=card]:shadow-none">
               <Table data-testid="portal-calls">
                 <TableHeader>
                   <TableRow>

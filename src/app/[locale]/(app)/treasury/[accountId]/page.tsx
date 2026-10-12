@@ -159,7 +159,7 @@ export default async function AccountPage({
 
       <LedgerFilters from={ledger.from} to={ledger.to} />
 
-      <div className="overflow-x-auto rounded-lg border">
+      <div className="overflow-x-auto rounded-xl bg-card shadow-card in-data-[slot=card]:border in-data-[slot=card]:shadow-none">
         <Table data-testid="ledger">
           <TableHeader>
             <TableRow>

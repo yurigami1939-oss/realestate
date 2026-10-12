@@ -56,7 +56,7 @@ export default async function PartnersPage({ params }: PageProps<"/[locale]/part
       {partners.length === 0 ? (
         <p className="empty-state">{t("none")}</p>
       ) : (
-        <div className="overflow-x-auto rounded-lg border">
+        <div className="overflow-x-auto rounded-xl bg-card shadow-card in-data-[slot=card]:border in-data-[slot=card]:shadow-none">
           <Table data-testid="partners">
             <TableHeader>
               <TableRow>
@@ -140,7 +140,11 @@ export default async function PartnersPage({ params }: PageProps<"/[locale]/part
                     <TableRow key={c.id}>
                       <TableCell>{c.partnerName}</TableCell>
                       <TableCell>
-                        <Link href={`/sales/${c.reservationId}`} className="hover:underline">
+                        <Link
+                          data-row-link
+                          href={`/sales/${c.reservationId}`}
+                          className="hover:underline"
+                        >
                           {c.saleNumber}
                         </Link>
                         <span className="block text-xs text-muted-foreground">

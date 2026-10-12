@@ -82,7 +82,7 @@ export default async function RentalsPage({
       {items.length === 0 ? (
         <p className="text-sm text-muted-foreground">{t("empty")}</p>
       ) : (
-        <div className="overflow-x-auto rounded-lg border">
+        <div className="overflow-x-auto rounded-xl bg-card shadow-card in-data-[slot=card]:border in-data-[slot=card]:shadow-none">
           <Table data-testid="leases">
             <TableHeader>
               <TableRow>
@@ -99,7 +99,11 @@ export default async function RentalsPage({
               {items.map((l) => (
                 <TableRow key={l.id} data-unit={l.unitCode}>
                   <TableCell>
-                    <Link href={`/rentals/${l.id}`} className="font-medium hover:underline">
+                    <Link
+                      data-row-link
+                      href={`/rentals/${l.id}`}
+                      className="font-medium hover:underline"
+                    >
                       <bdi dir="ltr">{l.number}</bdi>
                     </Link>
                     <div className="text-xs text-muted-foreground">{t(`kind.${l.kind}`)}</div>

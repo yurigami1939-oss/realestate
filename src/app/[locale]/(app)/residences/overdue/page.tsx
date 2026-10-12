@@ -47,7 +47,7 @@ export default async function OverdueChargesPage({
       ) : (
         <>
           <dl className="grid gap-2 text-sm sm:grid-cols-2">
-            <div className="rounded-md border p-2">
+            <div className="rounded-lg bg-muted/50 px-3 py-2">
               <dt className="text-muted-foreground">{t("total")}</dt>
               <dd className="font-medium text-danger tabular-nums">
                 <bdi dir="ltr">{money(sumCentimes(rows.map((r) => r.overdue)))}</bdi>
@@ -57,7 +57,7 @@ export default async function OverdueChargesPage({
               </dd>
             </div>
           </dl>
-          <div className="overflow-x-auto rounded-lg border">
+          <div className="overflow-x-auto rounded-xl bg-card shadow-card in-data-[slot=card]:border in-data-[slot=card]:shadow-none">
             <Table data-testid="overdue-charges">
               <TableHeader>
                 <TableRow>
@@ -80,6 +80,7 @@ export default async function OverdueChargesPage({
                     <TableCell className="whitespace-normal">{r.residenceName}</TableCell>
                     <TableCell>
                       <Link
+                        data-row-link
                         href={`/residences/${r.residenceId}/accounts/${r.unitId}`}
                         className="font-medium hover:underline"
                         dir="ltr"

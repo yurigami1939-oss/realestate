@@ -64,7 +64,7 @@ export default async function ResidenceAccountsPage({
         data-testid="accounts-totals"
       >
         {tiles.map((tile) => (
-          <div key={tile.key} className="rounded-md border p-2">
+          <div key={tile.key} className="rounded-lg bg-muted/50 px-3 py-2">
             <dt className="text-muted-foreground">{t(`totals.${tile.key}`)}</dt>
             <dd
               className={cn(
@@ -80,7 +80,7 @@ export default async function ResidenceAccountsPage({
       <p className="text-sm text-muted-foreground">
         {t("reserveHint", { called: money(totals.reserveCalled) })}
       </p>
-      <div className="overflow-x-auto rounded-lg border">
+      <div className="overflow-x-auto rounded-xl bg-card shadow-card in-data-[slot=card]:border in-data-[slot=card]:shadow-none">
         <Table data-testid="unit-accounts">
           <TableHeader>
             <TableRow>
@@ -98,6 +98,7 @@ export default async function ResidenceAccountsPage({
               <TableRow key={r.unitId} data-unit={r.code}>
                 <TableCell>
                   <Link
+                    data-row-link
                     href={`/residences/${residenceId}/accounts/${r.unitId}`}
                     className="font-medium hover:underline"
                     dir="ltr"

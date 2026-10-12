@@ -77,7 +77,7 @@ export function VotesGrid({
   return (
     <div className="space-y-3">
       {editable ? <p className="text-sm text-muted-foreground">{t("legend")}</p> : null}
-      <div className="overflow-x-auto rounded-lg border">
+      <div className="overflow-x-auto rounded-xl bg-card shadow-card in-data-[slot=card]:border in-data-[slot=card]:shadow-none">
         <table className="w-full border-collapse text-sm" data-testid="votes-grid">
           <thead>
             <tr className="border-b">

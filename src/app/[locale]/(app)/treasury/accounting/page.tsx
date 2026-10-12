@@ -68,7 +68,7 @@ export default async function AccountingPage({
         </CardHeader>
         <CardContent className="space-y-3">
           <p className="text-sm text-muted-foreground">{t("g50.help")}</p>
-          <div className="overflow-x-auto rounded-lg border">
+          <div className="overflow-x-auto rounded-xl bg-card shadow-card in-data-[slot=card]:border in-data-[slot=card]:shadow-none">
             <Table data-testid="g50">
               <TableHeader>
                 <TableRow>

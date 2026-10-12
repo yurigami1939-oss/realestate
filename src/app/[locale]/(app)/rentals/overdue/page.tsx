@@ -49,7 +49,7 @@ export default async function OverdueRentsPage({ params }: PageProps<"/[locale]/
           <p className="text-sm" data-testid="overdue-rents-total">
             {t("overdue.summary", { count: rents.length, total: money(total) })}
           </p>
-          <div className="overflow-x-auto rounded-lg border">
+          <div className="overflow-x-auto rounded-xl bg-card shadow-card in-data-[slot=card]:border in-data-[slot=card]:shadow-none">
             <Table data-testid="overdue-rents">
               <TableHeader>
                 <TableRow>
@@ -64,7 +64,11 @@ export default async function OverdueRentsPage({ params }: PageProps<"/[locale]/
                 {rents.map((r) => (
                   <TableRow key={r.id} data-unit={r.unitCode}>
                     <TableCell>
-                      <Link href={`/rentals/${r.id}`} className="font-medium hover:underline">
+                      <Link
+                        data-row-link
+                        href={`/rentals/${r.id}`}
+                        className="font-medium hover:underline"
+                      >
                         <bdi dir="ltr">{r.number}</bdi>
                       </Link>
                       {r.status === "ended" ? (

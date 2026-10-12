@@ -84,7 +84,7 @@ export default async function PortalCouncilPage({
           <CardTitle>{t("budget")}</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto rounded-lg border">
+          <div className="overflow-x-auto rounded-xl bg-card shadow-card in-data-[slot=card]:border in-data-[slot=card]:shadow-none">
             <Table data-testid="council-budget">
               <TableHeader>
                 <TableRow>
@@ -153,7 +153,7 @@ export default async function PortalCouncilPage({
                 ["reserveBalance", report.reserve.balance],
               ] as const
             ).map(([key, value]) => (
-              <div key={key} className="rounded-md border p-2">
+              <div key={key} className="rounded-lg bg-muted/50 px-3 py-2">
                 <dt className="text-muted-foreground">{t(key)}</dt>
                 <dd className="font-semibold tabular-nums" dir="ltr">
                   {money(value)}

@@ -71,7 +71,7 @@ export function AttendanceGrid({
           </span>
         ))}
       </div>
-      <div className="overflow-x-auto rounded-lg border">
+      <div className="overflow-x-auto rounded-xl bg-card shadow-card in-data-[slot=card]:border in-data-[slot=card]:shadow-none">
         <table className="w-full border-collapse text-xs" data-testid="attendance">
           <thead>
             <tr>

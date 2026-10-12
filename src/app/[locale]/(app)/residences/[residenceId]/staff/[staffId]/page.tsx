@@ -80,13 +80,13 @@ export default async function StaffMemberPage({
         }
       />
       <dl className="grid gap-2 text-sm sm:grid-cols-4">
-        <div className="rounded-md border p-2">
+        <div className="rounded-lg bg-muted/50 px-3 py-2">
           <dt className="text-muted-foreground">{t("fields.monthlySalary")}</dt>
           <dd className="font-medium tabular-nums">
             <bdi dir="ltr">{money(agent.monthlySalary)}</bdi>
           </dd>
         </div>
-        <div className="rounded-md border p-2">
+        <div className="rounded-lg bg-muted/50 px-3 py-2">
           <dt className="text-muted-foreground">{t("fields.hiredOn")}</dt>
           <dd className="font-medium">{formatDate(agent.hiredOn)}</dd>
           {agent.leftOn ? (
@@ -95,11 +95,11 @@ export default async function StaffMemberPage({
             </dd>
           ) : null}
         </div>
-        <div className="rounded-md border p-2">
+        <div className="rounded-lg bg-muted/50 px-3 py-2">
           <dt className="text-muted-foreground">{t("fields.phone")}</dt>
           <dd className="font-medium">{agent.phone ? <PhoneText value={agent.phone} /> : "—"}</dd>
         </div>
-        <div className="rounded-md border p-2">
+        <div className="rounded-lg bg-muted/50 px-3 py-2">
           <dt className="text-muted-foreground">{t("fields.categoryId")}</dt>
           <dd className="font-medium">{agent.categoryName ?? "—"}</dd>
         </div>
@@ -122,7 +122,7 @@ export default async function StaffMemberPage({
           {agent.advances.length === 0 ? (
             <p className="text-sm text-muted-foreground">{t("advances.empty")}</p>
           ) : (
-            <div className="overflow-x-auto rounded-lg border">
+            <div className="overflow-x-auto rounded-xl bg-card shadow-card in-data-[slot=card]:border in-data-[slot=card]:shadow-none">
               <Table data-testid="advances">
                 <TableHeader>
                   <TableRow>
@@ -180,7 +180,7 @@ export default async function StaffMemberPage({
           {pays.length === 0 ? (
             <p className="text-sm text-muted-foreground">{t("payroll.noHistory")}</p>
           ) : (
-            <div className="overflow-x-auto rounded-lg border">
+            <div className="overflow-x-auto rounded-xl bg-card shadow-card in-data-[slot=card]:border in-data-[slot=card]:shadow-none">
               <Table data-testid="pays">
                 <TableHeader>
                   <TableRow>

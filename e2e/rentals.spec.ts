@@ -62,6 +62,7 @@ test.describe("gestionnaire", () => {
       .locator('[data-unit="D-00-01"]')
       .getByRole("link", { name: /^BAL-/ })
       .click();
+    await page.getByRole("button", { name: "Plus d'actions" }).click();
     await page.getByRole("button", { name: "Terminer le bail" }).click();
     let dialog = page.getByRole("dialog");
     await dialog.getByLabel("Motif").fill("Départ anticipé du locataire");
@@ -87,6 +88,7 @@ test.describe("gestionnaire", () => {
     await page.goto("/fr/rentals");
     await leases.locator('[data-unit="D-03-03"]').getByRole("link").first().click();
     await expect(page.getByTestId("lease-guarantor")).toContainText("Hamidi Rachid");
+    await page.getByRole("button", { name: "Plus d'actions" }).click();
     await page.getByRole("button", { name: "Réviser le loyer" }).click();
     const dialog = page.getByRole("dialog");
     await dialog.getByLabel("Indexation (%)").fill("2");

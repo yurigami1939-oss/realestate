@@ -118,7 +118,7 @@ export default async function ResidenceReportPage({
           {report.lines.length === 0 ? (
             <p className="text-sm text-muted-foreground">{t("empty")}</p>
           ) : (
-            <div className="overflow-x-auto rounded-lg border">
+            <div className="overflow-x-auto rounded-xl bg-card shadow-card in-data-[slot=card]:border in-data-[slot=card]:shadow-none">
               <Table data-testid="budget-report">
                 <TableHeader>
                   <TableRow>
@@ -198,7 +198,7 @@ export default async function ResidenceReportPage({
         <CardContent className="space-y-2">
           <dl className="grid gap-2 text-sm sm:grid-cols-4" data-testid="reserve-fund">
             {reserveTiles.map((tile) => (
-              <div key={tile.key} className="rounded-md border p-2">
+              <div key={tile.key} className="rounded-lg bg-muted/50 px-3 py-2">
                 <dt className="text-muted-foreground">{t(`reserve.${tile.key}`)}</dt>
                 <dd
                   className={cn(

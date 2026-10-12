@@ -1,14 +1,4 @@
-import {
-  Building2,
-  CalendarRange,
-  Coins,
-  Grid3x3,
-  HardHat,
-  Pencil,
-  Plus,
-  Tags,
-  Trash2,
-} from "lucide-react";
+import { Building2, Grid3x3, Pencil, Plus, Trash2 } from "lucide-react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -16,6 +6,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { MoreActions } from "@/components/app-shell/more-actions";
 import { PageHeader } from "@/components/app-shell/page-header";
+import { ProjectNav } from "@/components/inventory/project-nav";
 import { ExportButton } from "@/components/exports/export-button";
 import { ConfirmAction } from "@/components/forms/confirm-action";
 import { ProjectStatusBadge, StatsBar } from "@/components/inventory/status";
@@ -27,7 +18,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "@/i18n/navigation";
 import { toLocale } from "@/i18n/locales";
 import { formatDate, todayInAlgiers } from "@/lib/dates";
-import { can } from "@/lib/permissions";
+import { accessOf, can } from "@/lib/permissions";
 import { requirePermission } from "@/server/auth/page-guard";
 import { deleteProjectAction } from "@/server/inventory/actions";
 import { getProject, type ProjectDetail } from "@/server/inventory/queries";
@@ -52,9 +43,6 @@ export default async function ProjectPage({ params }: PageProps<"/[locale]/proje
 
   const t = await getTranslations("inventory");
   const tc = await getTranslations("common");
-  const tp = await getTranslations("paymentPlans");
-  const tw = await getTranslations("construction");
-  const tk = await getTranslations("costs");
   const canEdit = can(ctx, "project:update");
   const documents = await listProjectDocuments(ctx, project.id);
   // A third party's building is only managed: nothing of the sales side (CLAUDE.md §7).
@@ -88,38 +76,6 @@ export default async function ProjectPage({ params }: PageProps<"/[locale]/proje
             ) : null}
             <MoreActions>
               <ExportButton kind="units" params={{ project: project.id }} />
-              {forSale ? (
-                <Button asChild variant="outline">
-                  <Link href={`/projects/${project.id}/price-lists`}>
-                    <Tags data-icon="inline-start" />
-                    {t("priceLists.title")}
-                  </Link>
-                </Button>
-              ) : null}
-              {forSale ? (
-                <Button asChild variant="outline">
-                  <Link href={`/projects/${project.id}/payment-plans`}>
-                    <CalendarRange data-icon="inline-start" />
-                    {tp("title")}
-                  </Link>
-                </Button>
-              ) : null}
-              {forSale && can(ctx, "cost:read") ? (
-                <Button asChild variant="outline">
-                  <Link href={`/projects/${project.id}/costs`}>
-                    <Coins data-icon="inline-start" />
-                    {tk("link")}
-                  </Link>
-                </Button>
-              ) : null}
-              {forSale && can(ctx, "construction:read") ? (
-                <Button asChild variant="outline">
-                  <Link href={`/construction/${project.id}`}>
-                    <HardHat data-icon="inline-start" />
-                    {tw("projectLink")}
-                  </Link>
-                </Button>
-              ) : null}
               {can(ctx, "project:delete") && project.totals.units === 0 ? (
                 <ConfirmAction
                   action={deleteProjectAction}
@@ -137,6 +93,12 @@ export default async function ProjectPage({ params }: PageProps<"/[locale]/proje
             </MoreActions>
           </>
         }
+      />
+      <ProjectNav
+        projectId={project.id}
+        current="overview"
+        access={accessOf(ctx)}
+        forSale={forSale}
       />
 
       <div className="grid gap-6 lg:grid-cols-3">

@@ -75,7 +75,7 @@ export default async function OnlinePaymentsPage({
       {rows.length === 0 ? (
         <p className="text-sm text-muted-foreground">{t("empty")}</p>
       ) : (
-        <div className="overflow-x-auto rounded-lg border">
+        <div className="overflow-x-auto rounded-xl bg-card shadow-card in-data-[slot=card]:border in-data-[slot=card]:shadow-none">
           <Table data-testid="online-payments">
             <TableHeader>
               <TableRow>
@@ -104,7 +104,7 @@ export default async function OnlinePaymentsPage({
                       {formatDateTime(p.createdAt)}
                     </TableCell>
                     <TableCell className="whitespace-normal">
-                      <Link href={href} className="font-medium hover:underline">
+                      <Link data-row-link href={href} className="font-medium hover:underline">
                         {p.purpose === "charges" ? p.residenceName : p.projectName} ·{" "}
                         <bdi dir="ltr">{p.unitCode}</bdi>
                       </Link>

@@ -67,7 +67,7 @@ export default async function OverduePage({
       {result.rows.length === 0 ? (
         <p className="empty-state">{t("empty")}</p>
       ) : (
-        <div className="overflow-x-auto rounded-lg border">
+        <div className="overflow-x-auto rounded-xl bg-card shadow-card in-data-[slot=card]:border in-data-[slot=card]:shadow-none">
           <Table data-testid="overdue-table">
             <TableHeader>
               <TableRow>
@@ -85,6 +85,7 @@ export default async function OverduePage({
                 <TableRow key={row.id} data-sale={row.number}>
                   <TableCell>
                     <Link
+                      data-row-link
                       href={`/sales/${row.id}`}
                       className="font-medium tabular-nums hover:underline"
                       dir="ltr"

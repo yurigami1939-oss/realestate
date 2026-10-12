@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { PageHeader } from "@/components/app-shell/page-header";
+import { ProjectNav } from "@/components/inventory/project-nav";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -15,7 +16,7 @@ import {
 import { Link } from "@/i18n/navigation";
 import { toLocale } from "@/i18n/locales";
 import { formatDateTime } from "@/lib/dates";
-import { can } from "@/lib/permissions";
+import { accessOf, can } from "@/lib/permissions";
 import { requirePermission } from "@/server/auth/page-guard";
 import { getProject, listPriceLists } from "@/server/inventory/queries";
 
@@ -50,10 +51,11 @@ export default async function PriceListsPage({
         ]}
         actions={can(ctx, "price:update") ? <NewPriceListDialog projectId={projectId} /> : null}
       />
+      <ProjectNav projectId={projectId} current="priceLists" access={accessOf(ctx)} forSale />
       {lists.length === 0 ? (
         <p className="empty-state">{t("priceLists.empty")}</p>
       ) : (
-        <div className="overflow-x-auto rounded-lg border">
+        <div className="overflow-x-auto rounded-xl bg-card shadow-card in-data-[slot=card]:border in-data-[slot=card]:shadow-none">
           <Table>
             <TableHeader>
               <TableRow>
@@ -68,6 +70,7 @@ export default async function PriceListsPage({
                 <TableRow key={l.id}>
                   <TableCell className="font-medium">
                     <Link
+                      data-row-link
                       href={`/projects/${projectId}/price-lists/${l.id}`}
                       className="hover:underline"
                     >

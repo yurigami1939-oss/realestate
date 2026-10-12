@@ -46,7 +46,7 @@ export function DataTable<TData extends { id: string }>({
   });
 
   return (
-    <div className="overflow-x-auto rounded-xl bg-card shadow-card">
+    <div className="overflow-x-auto rounded-xl bg-card shadow-card in-data-[slot=card]:border in-data-[slot=card]:shadow-none">
       <Table data-testid={testId}>
         <TableHeader>
           {table.getHeaderGroups().map((group) => (

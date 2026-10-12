@@ -92,7 +92,7 @@ export function MembersTable({
 
   return (
     <>
-      <div className="overflow-x-auto rounded-lg border">
+      <div className="overflow-x-auto rounded-xl bg-card shadow-card in-data-[slot=card]:border in-data-[slot=card]:shadow-none">
         <Table data-testid="members-table">
           <TableHeader>
             <TableRow>

@@ -252,7 +252,7 @@ export function PayrollTable({
     return <p className="text-sm text-muted-foreground">{t("empty")}</p>;
   }
   return (
-    <div className="overflow-x-auto rounded-lg border">
+    <div className="overflow-x-auto rounded-xl bg-card shadow-card in-data-[slot=card]:border in-data-[slot=card]:shadow-none">
       <table className="w-full border-collapse text-sm" data-testid="payroll">
         <thead>
           <tr className="text-xs text-muted-foreground">

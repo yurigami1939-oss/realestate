@@ -85,7 +85,7 @@ export default async function ResidenceCallsPage({
           {setup.periods.length === 0 ? (
             <p className="text-sm text-muted-foreground">{t("empty")}</p>
           ) : (
-            <div className="overflow-x-auto rounded-lg border">
+            <div className="overflow-x-auto rounded-xl bg-card shadow-card in-data-[slot=card]:border in-data-[slot=card]:shadow-none">
               <Table data-testid="charge-periods">
                 <TableHeader>
                   <TableRow>
@@ -102,6 +102,7 @@ export default async function ResidenceCallsPage({
                     <TableRow key={p.id}>
                       <TableCell>
                         <Link
+                          data-row-link
                           href={`/residences/${residenceId}/calls/${p.id}`}
                           className="font-medium hover:underline"
                         >

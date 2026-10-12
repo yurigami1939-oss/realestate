@@ -79,28 +79,28 @@ export default async function ChargePeriodPage({
         </Alert>
       ) : null}
       <dl className="grid gap-2 text-sm sm:grid-cols-4">
-        <div className="rounded-md border p-2">
+        <div className="rounded-lg bg-muted/50 px-3 py-2">
           <dt className="text-muted-foreground">{t("summary.issuedOn")}</dt>
           <dd className="font-medium">{formatDate(period.issuedOn)}</dd>
         </div>
-        <div className="rounded-md border p-2">
+        <div className="rounded-lg bg-muted/50 px-3 py-2">
           <dt className="text-muted-foreground">{t("summary.dueOn")}</dt>
           <dd className="font-medium">{formatDate(period.dueOn)}</dd>
         </div>
-        <div className="rounded-md border p-2">
+        <div className="rounded-lg bg-muted/50 px-3 py-2">
           <dt className="text-muted-foreground">{t("summary.total")}</dt>
           <dd className="font-medium tabular-nums">
             <bdi dir="ltr">{money(period.total)}</bdi>
           </dd>
         </div>
-        <div className="rounded-md border p-2">
+        <div className="rounded-lg bg-muted/50 px-3 py-2">
           <dt className="text-muted-foreground">{t("summary.reserve")}</dt>
           <dd className="font-medium tabular-nums">
             <bdi dir="ltr">{money(period.reserve)}</bdi>
           </dd>
         </div>
       </dl>
-      <div className="overflow-x-auto rounded-lg border">
+      <div className="overflow-x-auto rounded-xl bg-card shadow-card in-data-[slot=card]:border in-data-[slot=card]:shadow-none">
         <Table data-testid="charge-calls">
           <TableHeader>
             <TableRow>

@@ -108,7 +108,7 @@ export default async function AssemblyPage({
       />
 
       <dl className="grid gap-2 text-sm sm:grid-cols-4" data-testid="assembly-details">
-        <div className="rounded-md border p-2">
+        <div className="rounded-lg bg-muted/50 px-3 py-2">
           <dt className="text-muted-foreground">{t("details.when")}</dt>
           <dd className="font-medium">
             {formatDate(assembly.heldOn)}{" "}
@@ -118,11 +118,11 @@ export default async function AssemblyPage({
             </span>
           </dd>
         </div>
-        <div className="rounded-md border p-2">
+        <div className="rounded-lg bg-muted/50 px-3 py-2">
           <dt className="text-muted-foreground">{t("details.place")}</dt>
           <dd className="font-medium">{assembly.place}</dd>
         </div>
-        <div className="rounded-md border p-2">
+        <div className="rounded-lg bg-muted/50 px-3 py-2">
           <dt className="text-muted-foreground">{t("details.convocation")}</dt>
           <dd>
             {assembly.convenedAt ? (
@@ -142,7 +142,7 @@ export default async function AssemblyPage({
             )}
           </dd>
         </div>
-        <div className="rounded-md border p-2">
+        <div className="rounded-lg bg-muted/50 px-3 py-2">
           <dt className="text-muted-foreground">{t("details.minutes")}</dt>
           <dd>
             {assembly.closedAt ? (

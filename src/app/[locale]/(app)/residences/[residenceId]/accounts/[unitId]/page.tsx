@@ -119,7 +119,7 @@ export default async function UnitAccountPage({
       />
       <dl className="grid gap-2 text-sm sm:grid-cols-5" data-testid="account-totals">
         {tiles.map((tile) => (
-          <div key={tile.key} className="rounded-md border p-2">
+          <div key={tile.key} className="rounded-lg bg-muted/50 px-3 py-2">
             <dt className="text-muted-foreground">{t(`totals.${tile.key}`)}</dt>
             <dd
               className={cn(
@@ -243,7 +243,7 @@ export default async function UnitAccountPage({
           {statement.lines.length === 0 ? (
             <p className="text-sm text-muted-foreground">{t("noCalls")}</p>
           ) : (
-            <div className="overflow-x-auto rounded-lg border">
+            <div className="overflow-x-auto rounded-xl bg-card shadow-card in-data-[slot=card]:border in-data-[slot=card]:shadow-none">
               <Table data-testid="account-calls">
                 <TableHeader>
                   <TableRow>
@@ -304,7 +304,7 @@ export default async function UnitAccountPage({
           {account.payments.length === 0 ? (
             <p className="text-sm text-muted-foreground">{tpay("none")}</p>
           ) : (
-            <div className="overflow-x-auto rounded-lg border">
+            <div className="overflow-x-auto rounded-xl bg-card shadow-card in-data-[slot=card]:border in-data-[slot=card]:shadow-none">
               <Table data-testid="account-payments">
                 <TableHeader>
                   <TableRow>

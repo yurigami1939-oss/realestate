@@ -107,6 +107,7 @@ export default async function BuyerPage({ params }: PageProps<"/[locale]/buyers/
                   <TableRow key={sale.id}>
                     <TableCell>
                       <Link
+                        data-row-link
                         href={`/sales/${sale.id}`}
                         className="font-medium tabular-nums hover:underline"
                         dir="ltr"

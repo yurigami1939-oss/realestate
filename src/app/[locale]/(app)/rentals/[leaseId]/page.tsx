@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
+import { MoreActions } from "@/components/app-shell/more-actions";
 import { PageHeader } from "@/components/app-shell/page-header";
 import { PhoneText } from "@/components/crm/phone";
 import { UnitStatusBadge } from "@/components/inventory/status";
@@ -199,29 +200,31 @@ export default async function LeasePage({ params }: PageProps<"/[locale]/rentals
                     {tc("edit")}
                   </Link>
                 </Button>
-                <RenewLeaseDialog
-                  leaseId={lease.id}
-                  startOn={formatDate(addDays(lease.endOn, 1))}
-                  today={today}
-                  defaults={{
-                    durationMonths: String(lease.durationMonths),
-                    monthlyRent: asInput(lease.inForce.monthlyRent),
-                    monthlyCharges: asInput(lease.inForce.monthlyCharges, true),
-                    frequency: lease.frequency,
-                    deposit: asInput(lease.deposit, true),
-                  }}
-                />
-                {revisable.length > 0 ? (
-                  <ReviseRentDialog
+                <MoreActions>
+                  <RenewLeaseDialog
                     leaseId={lease.id}
-                    periods={[
-                      ...revisable.filter((day) => day >= today),
-                      ...revisable.filter((day) => day < today).reverse(),
-                    ]}
-                    current={lease.inForce}
+                    startOn={formatDate(addDays(lease.endOn, 1))}
+                    today={today}
+                    defaults={{
+                      durationMonths: String(lease.durationMonths),
+                      monthlyRent: asInput(lease.inForce.monthlyRent),
+                      monthlyCharges: asInput(lease.inForce.monthlyCharges, true),
+                      frequency: lease.frequency,
+                      deposit: asInput(lease.deposit, true),
+                    }}
                   />
-                ) : null}
-                <EndLeaseDialog leaseId={lease.id} today={today} />
+                  {revisable.length > 0 ? (
+                    <ReviseRentDialog
+                      leaseId={lease.id}
+                      periods={[
+                        ...revisable.filter((day) => day >= today),
+                        ...revisable.filter((day) => day < today).reverse(),
+                      ]}
+                      current={lease.inForce}
+                    />
+                  ) : null}
+                  <EndLeaseDialog leaseId={lease.id} today={today} />
+                </MoreActions>
               </>
             ) : null}
           </>
@@ -274,8 +277,8 @@ export default async function LeasePage({ params }: PageProps<"/[locale]/rentals
                     key={key}
                     className={
                       key === "overdue" && value > 0n
-                        ? "rounded-md border border-danger/25 bg-danger-soft p-2 text-danger"
-                        : "rounded-md border p-2"
+                        ? "rounded-lg bg-danger-soft px-3 py-2 text-danger"
+                        : "rounded-lg bg-muted/50 px-3 py-2"
                     }
                   >
                     <dt className="text-muted-foreground">{t(`totals.${key}`)}</dt>

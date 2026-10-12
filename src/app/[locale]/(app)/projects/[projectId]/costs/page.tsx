@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { PageHeader } from "@/components/app-shell/page-header";
+import { ProjectNav } from "@/components/inventory/project-nav";
 import { BudgetDialog } from "@/components/costs/budget-dialog";
 import { ContractDialog, ContractorDialog } from "@/components/costs/cost-dialogs";
 import { Badge } from "@/components/ui/badge";
@@ -21,7 +22,7 @@ import { toLocale } from "@/i18n/locales";
 import { todayInAlgiers } from "@/lib/dates";
 import { formatDZD, toDecimalString } from "@/lib/money";
 import { formatShare } from "@/lib/payment-plans";
-import { can } from "@/lib/permissions";
+import { accessOf, can } from "@/lib/permissions";
 import { requirePermission } from "@/server/auth/page-guard";
 import { getProjectCosts, listContractorChoices } from "@/server/costs/queries";
 
@@ -117,6 +118,7 @@ export default async function ProjectCostsPage({
           ) : null
         }
       />
+      <ProjectNav projectId={projectId} current="costs" access={accessOf(ctx)} forSale />
 
       <dl
         className="grid gap-4 rounded-lg border p-4 text-sm sm:grid-cols-3 lg:grid-cols-6"
@@ -237,6 +239,7 @@ export default async function ProjectCostsPage({
                   <TableRow key={c.id} data-contract={c.title}>
                     <TableCell className="whitespace-normal">
                       <Link
+                        data-row-link
                         href={`/projects/${costs.project.id}/costs/${c.id}`}
                         className="font-medium hover:underline"
                       >

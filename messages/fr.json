@@ -443,7 +443,11 @@
       "thirdParty": "Immeuble d'un tiers",
       "thirdPartyHint": "Immeuble géré en syndic pour le compte de ses copropriétaires : ses lots sont livrés et ne sont jamais mis en vente (ni prix, ni échéancier, ni suivi de chantier).",
       "residences": "Résidence",
-      "createResidence": "Créer la résidence"
+      "createResidence": "Créer la résidence",
+      "tabs": {
+        "label": "Sections du projet",
+        "overview": "Vue d'ensemble"
+      }
     },
     "buildings": {
       "title": "Bâtiments",

@@ -16,7 +16,11 @@ export function BuyersTable({ rows, empty }: { rows: BuyerListRow[]; empty: stri
     column.accessor("lastName", {
       header: () => t("columns.name"),
       cell: ({ row }) => (
-        <Link href={`/buyers/${row.original.id}`} className="font-medium hover:underline">
+        <Link
+          data-row-link
+          href={`/buyers/${row.original.id}`}
+          className="font-medium hover:underline"
+        >
           {row.original.lastName} {row.original.firstName}
         </Link>
       ),

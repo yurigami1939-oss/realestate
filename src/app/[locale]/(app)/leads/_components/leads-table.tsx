@@ -29,7 +29,11 @@ export function LeadsTable({
       header: () => t("leads.columns.name"),
       cell: ({ row }) => (
         <div className="flex flex-wrap items-center gap-2">
-          <Link href={`/leads/${row.original.id}`} className="font-medium hover:underline">
+          <Link
+            data-row-link
+            href={`/leads/${row.original.id}`}
+            className="font-medium hover:underline"
+          >
             {row.original.fullName}
           </Link>
           {row.original.duplicate ? (

@@ -78,7 +78,7 @@ export default async function SupplierPage({
       />
       <dl className="grid gap-2 text-sm sm:grid-cols-3">
         {details.map((d) => (
-          <div key={d.key} className="rounded-md border p-2">
+          <div key={d.key} className="rounded-lg bg-muted/50 px-3 py-2">
             <dt className="text-muted-foreground">{t(`fields.${d.key}`)}</dt>
             <dd className="font-medium break-words">
               {d.value === null ? (

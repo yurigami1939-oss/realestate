@@ -54,7 +54,7 @@ export default async function DiscountRequestsPage({
       {result.rows.length === 0 ? (
         <p className="empty-state">{t("empty")}</p>
       ) : (
-        <div className="overflow-x-auto rounded-lg border">
+        <div className="overflow-x-auto rounded-xl bg-card shadow-card in-data-[slot=card]:border in-data-[slot=card]:shadow-none">
           <Table data-testid="discount-requests">
             <TableHeader>
               <TableRow>
@@ -76,7 +76,11 @@ export default async function DiscountRequestsPage({
                     <span className="block text-xs text-muted-foreground">{r.requesterName}</span>
                   </TableCell>
                   <TableCell className="whitespace-normal">
-                    <Link href={`/leads/${r.leadId}`} className="font-medium hover:underline">
+                    <Link
+                      data-row-link
+                      href={`/leads/${r.leadId}`}
+                      className="font-medium hover:underline"
+                    >
                       {r.leadName}
                     </Link>
                   </TableCell>

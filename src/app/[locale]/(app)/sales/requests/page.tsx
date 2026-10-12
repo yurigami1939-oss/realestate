@@ -49,7 +49,7 @@ export default async function PortalRequestsPage({
       {result.rows.length === 0 ? (
         <p className="empty-state">{t("empty")}</p>
       ) : (
-        <div className="overflow-x-auto rounded-lg border">
+        <div className="overflow-x-auto rounded-xl bg-card shadow-card in-data-[slot=card]:border in-data-[slot=card]:shadow-none">
           <Table data-testid="portal-requests">
             <TableHeader>
               <TableRow>
@@ -66,6 +66,7 @@ export default async function PortalRequestsPage({
                   <TableCell className="whitespace-nowrap">{formatDateTime(r.createdAt)}</TableCell>
                   <TableCell className="whitespace-normal">
                     <Link
+                      data-row-link
                       href={`/sales/${r.reservationId}`}
                       className="font-medium hover:underline"
                     >

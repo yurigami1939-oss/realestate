@@ -356,8 +356,8 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
                       key={key}
                       className={
                         key === "overdue" && value > 0n
-                          ? "rounded-md border border-danger/25 bg-danger-soft p-2 text-danger"
-                          : "rounded-md border p-2"
+                          ? "rounded-lg bg-danger-soft px-3 py-2 text-danger"
+                          : "rounded-lg bg-muted/50 px-3 py-2"
                       }
                       data-total={key}
                     >

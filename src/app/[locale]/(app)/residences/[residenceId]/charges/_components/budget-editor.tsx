@@ -117,7 +117,7 @@ export function BudgetEditor({
           </span>
         ) : null}
       </div>
-      <div className="overflow-x-auto rounded-lg border">
+      <div className="overflow-x-auto rounded-xl bg-card shadow-card in-data-[slot=card]:border in-data-[slot=card]:shadow-none">
         <Table data-testid="budget-lines">
           <TableHeader>
             <TableRow>

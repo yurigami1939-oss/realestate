@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { PageHeader } from "@/components/app-shell/page-header";
+import { ProjectNav } from "@/components/inventory/project-nav";
 import { ConfirmAction } from "@/components/forms/confirm-action";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,7 +20,7 @@ import {
 import { toLocale } from "@/i18n/locales";
 import { todayInAlgiers } from "@/lib/dates";
 import { formatShare, type PlanStep } from "@/lib/payment-plans";
-import { can } from "@/lib/permissions";
+import { accessOf, can } from "@/lib/permissions";
 import { requirePermission } from "@/server/auth/page-guard";
 import { getSalesSettings } from "@/server/organizations/settings";
 import { getProject } from "@/server/inventory/queries";
@@ -65,6 +66,7 @@ export default async function PaymentPlansPage({
         ]}
         actions={editable ? <PlanDialog projectId={projectId} milestones={milestones} /> : null}
       />
+      <ProjectNav projectId={projectId} current="paymentPlans" access={accessOf(ctx)} forSale />
 
       <Card>
         <CardHeader>

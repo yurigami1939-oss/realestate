@@ -100,7 +100,7 @@ export function MeterReadingsForm({
           </Button>
         </div>
       ) : null}
-      <div className="overflow-x-auto rounded-lg border">
+      <div className="overflow-x-auto rounded-xl bg-card shadow-card in-data-[slot=card]:border in-data-[slot=card]:shadow-none">
         <Table data-testid="meter-readings">
           <TableHeader>
             <TableRow>

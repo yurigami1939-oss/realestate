@@ -48,7 +48,7 @@ export default async function ResidencesPage({ params }: PageProps<"/[locale]/re
       {residences.length === 0 ? (
         <p className="empty-state">{t("empty")}</p>
       ) : (
-        <div className="overflow-x-auto rounded-lg border">
+        <div className="overflow-x-auto rounded-xl bg-card shadow-card in-data-[slot=card]:border in-data-[slot=card]:shadow-none">
           <Table data-testid="residences">
             <TableHeader>
               <TableRow>
@@ -64,7 +64,11 @@ export default async function ResidencesPage({ params }: PageProps<"/[locale]/re
               {residences.map((r) => (
                 <TableRow key={r.id}>
                   <TableCell>
-                    <Link href={`/residences/${r.id}`} className="font-medium hover:underline">
+                    <Link
+                      data-row-link
+                      href={`/residences/${r.id}`}
+                      className="font-medium hover:underline"
+                    >
                       {r.name}
                     </Link>
                   </TableCell>

@@ -80,7 +80,7 @@ export default async function CommissionsPage({
       {result.rows.length === 0 ? (
         <p className="empty-state">{t("commissions.empty")}</p>
       ) : (
-        <div className="overflow-x-auto rounded-lg border">
+        <div className="overflow-x-auto rounded-xl bg-card shadow-card in-data-[slot=card]:border in-data-[slot=card]:shadow-none">
           <Table data-testid="commissions">
             <TableHeader>
               <TableRow>
@@ -103,6 +103,7 @@ export default async function CommissionsPage({
                 <TableRow key={row.id}>
                   <TableCell className="whitespace-normal">
                     <Link
+                      data-row-link
                       href={`/sales/${row.reservationId}`}
                       className="font-medium tabular-nums hover:underline"
                       dir="ltr"

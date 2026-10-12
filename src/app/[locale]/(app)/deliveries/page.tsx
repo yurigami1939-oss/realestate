@@ -64,7 +64,7 @@ export default async function DeliveriesPage({
       {items.length === 0 ? (
         <p className="text-sm text-muted-foreground">{t("empty")}</p>
       ) : (
-        <div className="overflow-x-auto rounded-lg border">
+        <div className="overflow-x-auto rounded-xl bg-card shadow-card in-data-[slot=card]:border in-data-[slot=card]:shadow-none">
           <Table data-testid="deliveries">
             <TableHeader>
               <TableRow>
@@ -81,7 +81,11 @@ export default async function DeliveriesPage({
               {items.map((d) => (
                 <TableRow key={d.saleId} data-unit={d.unitCode}>
                   <TableCell className="whitespace-normal">
-                    <Link href={`/deliveries/${d.saleId}`} className="font-medium hover:underline">
+                    <Link
+                      data-row-link
+                      href={`/deliveries/${d.saleId}`}
+                      className="font-medium hover:underline"
+                    >
                       <bdi dir="ltr">{d.unitCode}</bdi>
                     </Link>
                     <div className="text-xs text-muted-foreground">

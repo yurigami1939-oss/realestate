@@ -20,6 +20,7 @@ export function SalesTable({ rows, empty }: { rows: SaleListRow[]; empty: string
       header: () => t("number"),
       cell: ({ row }) => (
         <Link
+          data-row-link
           href={`/sales/${row.original.id}`}
           className="font-medium tabular-nums hover:underline"
           dir="ltr"
