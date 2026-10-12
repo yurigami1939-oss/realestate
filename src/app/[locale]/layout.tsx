@@ -36,7 +36,7 @@ export default async function LocaleLayout({ children, params }: LayoutProps<"/[
   const dir = localeDirection(locale);
 
   return (
-    <html lang={locale} dir={dir} className={appFont.variable}>
+    <html lang={locale} dir={dir} className={appFont.variable} suppressHydrationWarning>
       <body className="min-h-dvh antialiased">
         <NextIntlClientProvider>
           <Providers dir={dir}>{children}</Providers>

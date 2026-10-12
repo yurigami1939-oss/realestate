@@ -6360,5 +6360,11 @@
     "description": "Cette page n'a pas pu s'afficher. Réessayez ; si le problème continue, prévenez votre administrateur.",
     "retry": "Réessayer",
     "reference": "Référence : {digest}"
+  },
+  "theme": {
+    "label": "Apparence",
+    "light": "Clair",
+    "dark": "Sombre",
+    "system": "Automatique"
   }
 }

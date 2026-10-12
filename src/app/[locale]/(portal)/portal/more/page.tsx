@@ -4,6 +4,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { LocaleSwitcher } from "@/components/i18n/locale-switcher";
 import { PortalRows } from "@/components/portal/portal-rows";
+import { ThemeSwitcher } from "@/components/theme/theme-choice";
 import { toLocale } from "@/i18n/locales";
 import { requirePortalCtx } from "@/server/portal/page-guard";
 import { portalNavSections } from "@/server/portal/sections";
@@ -19,6 +20,7 @@ export default async function PortalMorePage({ params }: PageProps<"/[locale]/po
   const ctx = await requirePortalCtx();
   const sections = await portalNavSections(ctx);
   const t = await getTranslations("portal");
+  const tt = await getTranslations("theme");
   return (
     <div className="mx-auto max-w-2xl space-y-8">
       <div className="space-y-1">
@@ -38,6 +40,10 @@ export default async function PortalMorePage({ params }: PageProps<"/[locale]/po
           <div className="flex items-center justify-between gap-3">
             <span className="text-sm">{t("shell.nav.language")}</span>
             <LocaleSwitcher />
+          </div>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <span className="text-sm">{tt("label")}</span>
+            <ThemeSwitcher />
           </div>
           <SignOutButton />
         </div>

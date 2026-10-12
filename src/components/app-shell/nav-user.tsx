@@ -1,6 +1,7 @@
 "use client";
 
-import { Check, ChevronsUpDown, Languages, LogOut } from "lucide-react";
+import { Check, ChevronsUpDown, Languages, LogOut, Palette } from "lucide-react";
+import { useTheme } from "next-themes";
 import { useLocale, useTranslations } from "next-intl";
 import { useTransition } from "react";
 
@@ -13,6 +14,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { themes } from "@/components/theme/theme-choice";
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
 import { locales } from "@/i18n/locales";
 import { usePathname, useRouter } from "@/i18n/navigation";
@@ -24,6 +26,7 @@ export function NavUser({ user }: { user: { name: string; email: string } }) {
   const pathname = usePathname();
   const [pending, startTransition] = useTransition();
   const { signOut, pending: signingOut } = useSignOut();
+  const { theme, setTheme } = useTheme();
 
   return (
     <SidebarMenu>
@@ -61,6 +64,18 @@ export function NavUser({ user }: { user: { name: string; email: string } }) {
               >
                 <span className="flex-1">{t(`locale.${locale}`)}</span>
                 {locale === current ? <Check className="size-4" /> : null}
+              </DropdownMenuItem>
+            ))}
+            <DropdownMenuSeparator />
+            <DropdownMenuLabel className="flex items-center gap-2 text-xs text-muted-foreground">
+              <Palette className="size-4" />
+              {t("theme.label")}
+            </DropdownMenuLabel>
+            {themes.map(({ value, icon: Icon }) => (
+              <DropdownMenuItem key={value} onSelect={() => setTheme(value)}>
+                <Icon className="size-4" />
+                <span className="flex-1">{t(`theme.${value}`)}</span>
+                {(theme ?? "system") === value ? <Check className="size-4" /> : null}
               </DropdownMenuItem>
             ))}
             <DropdownMenuSeparator />

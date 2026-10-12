@@ -16,7 +16,7 @@ const statusClasses: Record<TicketStatus, string> = {
 
 const priorityClasses: Record<TicketPriority, string> = {
   low: "border-border bg-muted text-muted-foreground",
-  normal: "border-border bg-white text-foreground",
+  normal: "border-border bg-card text-foreground",
   high: "border-orange/25 bg-orange-soft text-orange",
   urgent: "border-danger/25 bg-danger-soft text-danger",
 };

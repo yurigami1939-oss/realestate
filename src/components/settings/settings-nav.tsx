@@ -50,7 +50,7 @@ export function SettingsNav({ access }: { access: Access }) {
                         className={cn(
                           "flex items-center gap-2.5 rounded-lg px-2 py-1.5 text-sm transition-colors",
                           current
-                            ? "bg-card font-medium shadow-card"
+                            ? "bg-raised font-medium shadow-card"
                             : "text-foreground/90 hover:bg-muted/60",
                         )}
                       >
