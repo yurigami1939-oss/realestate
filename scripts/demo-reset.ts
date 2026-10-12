@@ -6,6 +6,7 @@
 import { DeleteObjectsCommand, ListObjectsV2Command } from "@aws-sdk/client-s3";
 
 import { pool } from "@/db/client";
+import { consolePool } from "@/db/console-client";
 import { rebuildDatabase } from "@/db/reset";
 import { assertLocalDatabase, isDemoReset, seedDemo } from "@/db/seed";
 import { stopEnqueue } from "@/jobs/enqueue";
@@ -36,4 +37,5 @@ await rebuildDatabase({ ownerUrl, appUrl });
 await seedDemo();
 await stopEnqueue();
 await pool.end();
+await consolePool.end();
 console.log(`Demo reset: ${removed} files removed, database migrated and seeded.`);

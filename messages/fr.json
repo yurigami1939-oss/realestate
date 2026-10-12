@@ -6381,5 +6381,17 @@
       "description": "Entrez avec l'un des comptes de démonstration : un par rôle, déjà remplis de données fictives.",
       "link": "Voir les comptes de démonstration"
     }
+  },
+  "console": {
+    "errors": {
+      "planUnknown": "Formule inconnue ou archivée.",
+      "planCodeTaken": "Ce code de formule existe déjà.",
+      "addonUnknown": "Option inconnue ou archivée.",
+      "addonCodeTaken": "Cette option est déjà au catalogue.",
+      "accountUnknown": "Compte client introuvable.",
+      "organizationUnknown": "Société introuvable.",
+      "alreadyAttached": "Cette société appartient déjà à un compte client.",
+      "organizationsCap": "La formule permet {cap} société(s) au plus."
+    }
   }
 }

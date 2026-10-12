@@ -17,7 +17,7 @@ export type AuditEntry = {
 };
 
 /** JSON-safe copy: bigint (money) becomes a decimal string of centimes, Date an ISO string. */
-function toJson(value: unknown): unknown {
+export function toJson(value: unknown): unknown {
   if (value === undefined) return null;
   return JSON.parse(
     JSON.stringify(value, (_key, v: unknown) => (typeof v === "bigint" ? v.toString() : v)),

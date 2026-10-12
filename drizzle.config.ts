@@ -9,6 +9,8 @@ try {
 export default defineConfig({
   dialect: "postgresql",
   schema: "./src/db/schema/index.ts",
+  // public (tenants) and console (the operator's layer, CLAUDE.console.md §3); pgboss is pg-boss's.
+  schemaFilter: ["public", "console"],
   out: "./src/db/migrations",
   casing: "snake_case",
   strict: true,

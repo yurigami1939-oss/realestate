@@ -7,6 +7,7 @@ const pg = (user: string, password: string) =>
 export const e2eEnv: Record<string, string> = {
   DATABASE_URL: process.env.E2E_DATABASE_URL ?? pg("realestate_app", "app"),
   DATABASE_OWNER_URL: process.env.E2E_DATABASE_OWNER_URL ?? pg("realestate_owner", "owner"),
+  CONSOLE_DATABASE_URL: process.env.E2E_CONSOLE_DATABASE_URL ?? pg("realestate_console", "console"),
   BETTER_AUTH_URL: `http://localhost:${E2E_PORT}`,
   BETTER_AUTH_SECRET: "e2e-only-secret-e2e-only-secret-000",
   S3_ENDPOINT: process.env.S3_ENDPOINT ?? "http://localhost:8333",

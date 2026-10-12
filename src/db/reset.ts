@@ -13,6 +13,7 @@ export async function rebuildDatabase(urls: { ownerUrl: string; appUrl: string }
     await owner.query(`
       DROP SCHEMA IF EXISTS ${JOBS_SCHEMA} CASCADE;
       DROP SCHEMA IF EXISTS drizzle CASCADE;
+      DROP SCHEMA IF EXISTS console CASCADE;
       DROP SCHEMA IF EXISTS public CASCADE;
       DROP TYPE IF EXISTS document_type;
       CREATE SCHEMA public;

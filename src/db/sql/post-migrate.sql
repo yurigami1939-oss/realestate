@@ -180,3 +180,24 @@ GRANT UPDATE (last_at, count) ON public.data_access TO realestate_app;
 REVOKE DELETE, TRUNCATE ON public.custom_role FROM realestate_app;
 -- SMS messages are kept (sent or failed), never deleted.
 REVOKE DELETE, TRUNCATE ON public.sms_message FROM realestate_app;
+
+-- 5. The operator's console (CLAUDE.console.md §3): schema `console`, written by its own role;
+--    the app role reaches nothing in it. Never deleted: accounts, plans, add-ons, subscriptions
+--    (archived or ended instead); the console's audit trail is append-only.
+REVOKE ALL ON SCHEMA console FROM PUBLIC;
+GRANT USAGE ON SCHEMA console TO realestate_console;
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA console TO realestate_console;
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA console TO realestate_console;
+REVOKE TRUNCATE ON ALL TABLES IN SCHEMA console FROM realestate_console;
+REVOKE UPDATE, DELETE ON console.audit_log FROM realestate_console;
+REVOKE DELETE ON console.billing_account, console.account_organization, console.plan,
+  console.addon, console.subscription, console.subscription_addon, console.document_sequence
+  FROM realestate_console;
+-- On the tenants' side only what the console needs: who the organizations and their members
+-- are, their entitlement (RLS still applies: `withConsoleTenant`), their audit trail.
+GRANT USAGE ON SCHEMA public TO realestate_console;
+GRANT SELECT ON public.organization, public.member, public."user" TO realestate_console;
+GRANT SELECT, INSERT, UPDATE ON public.tenant_entitlement TO realestate_console;
+GRANT INSERT ON public.audit_log TO realestate_console;
+-- The app reads its organization's entitlement, never writes it.
+REVOKE INSERT, UPDATE, DELETE, TRUNCATE ON public.tenant_entitlement FROM realestate_app;

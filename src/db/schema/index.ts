@@ -4,6 +4,7 @@ export * from "./auth";
 export * from "./buyers";
 export * from "./certificates";
 export * from "./charges";
+export * from "./console";
 export * from "./construction";
 export * from "./costs";
 export * from "./crm";

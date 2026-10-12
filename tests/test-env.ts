@@ -6,6 +6,8 @@ export const testEnv = {
   NODE_ENV: "test",
   DATABASE_URL: process.env.TEST_DATABASE_URL ?? pg("realestate_app", "app"),
   DATABASE_OWNER_URL: process.env.TEST_DATABASE_OWNER_URL ?? pg("realestate_owner", "owner"),
+  CONSOLE_DATABASE_URL:
+    process.env.TEST_CONSOLE_DATABASE_URL ?? pg("realestate_console", "console"),
   BETTER_AUTH_SECRET: "test-only-secret-test-only-secret-000",
   BETTER_AUTH_URL: "http://localhost:3000",
   S3_ENDPOINT: process.env.S3_ENDPOINT ?? "http://localhost:8333",

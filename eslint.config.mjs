@@ -14,6 +14,17 @@ const dataLayerOnly = {
   ],
 };
 
+// CLAUDE.console.md §3: the console's connection stays in the console's own code.
+const consoleClientOnly = {
+  patterns: [
+    {
+      group: ["@/db/console-client", "@/db/console-tenant"],
+      message:
+        "The console connection is restricted to src/server/console, src/jobs, scripts, tests.",
+    },
+  ],
+};
+
 export default defineConfig([
   ...nextVitals,
   ...nextTs,
@@ -41,6 +52,11 @@ export default defineConfig([
       "*.config.ts",
     ],
     rules: { "no-restricted-imports": "off" },
+  },
+  {
+    files: ["src/server/**"],
+    ignores: ["src/server/console/**"],
+    rules: { "no-restricted-imports": ["error", consoleClientOnly] },
   },
   {
     // Standalone HTML documents rendered to PDF, not Next.js pages.

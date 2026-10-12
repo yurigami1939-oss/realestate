@@ -6,6 +6,8 @@ const serverEnvSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   DATABASE_URL: z.string().startsWith("postgres"),
   DATABASE_OWNER_URL: z.string().startsWith("postgres").optional(),
+  /** The operator console's role (`realestate_console`, CLAUDE.console.md §3). */
+  CONSOLE_DATABASE_URL: z.string().startsWith("postgres"),
   BETTER_AUTH_SECRET: z.string().min(32),
   BETTER_AUTH_URL: z.url(),
   S3_ENDPOINT: z.url(),

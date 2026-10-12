@@ -42,7 +42,7 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - name: Create database roles and databases
-        run: psql "$PGURL" -v ON_ERROR_STOP=1 -f docker/postgres/init/01-roles-and-databases.sql
+        run: psql "$PGURL" -v ON_ERROR_STOP=1 -f docker/postgres/init/01-roles-and-databases.sql -f docker/postgres/init/02-console-role.sql
       - name: Start S3 storage (SeaweedFS, same config as docker-compose.yml)
         run: >-
           docker run -d --name s3 -p 8333:8333
@@ -81,7 +81,7 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - name: Create database roles and databases
-        run: psql "$PGURL" -v ON_ERROR_STOP=1 -f docker/postgres/init/01-roles-and-databases.sql
+        run: psql "$PGURL" -v ON_ERROR_STOP=1 -f docker/postgres/init/01-roles-and-databases.sql -f docker/postgres/init/02-console-role.sql
       - name: Start S3 storage (SeaweedFS, same config as docker-compose.yml)
         run: >-
           docker run -d --name s3 -p 8333:8333

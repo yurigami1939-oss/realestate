@@ -7,6 +7,12 @@ import { auth } from "@/server/auth/auth";
 import type { TenantCtx } from "@/server/auth/session";
 
 import { seedAcquisitionCosts } from "./acquisition-costs";
+import {
+  assertEveryOrganizationEntitled,
+  attachToDemoAccount,
+  openDemoAccount,
+  seedConsoleCatalog,
+} from "./console";
 import { seedConstruction } from "./construction";
 import { seedCosts } from "./costs";
 import { DEMO_PASSWORD, demoOrganizations, demoUsers } from "./demo";
@@ -66,9 +72,14 @@ export async function seedDemo(): Promise<void> {
   const ownerId = userIds.get(owner.key);
   if (!ownerId) throw new Error("seed: owner missing");
 
+  // The operator's catalog first: each organization is entitled as soon as it exists.
+  await seedConsoleCatalog();
+  let billingAccountId: string | null = null;
   for (const { members, ...org } of demoOrganizations) {
     const created = await auth.api.createOrganization({ body: { ...org, userId: ownerId } });
     if (!created) throw new Error(`seed: organization ${org.slug} not created`);
+    if (billingAccountId) await attachToDemoAccount(billingAccountId, created.id);
+    else billingAccountId = await openDemoAccount(created.id);
     if (members !== "all") continue;
     for (const user of demoUsers.slice(1)) {
       await auth.api.addMember({
@@ -167,4 +178,5 @@ export async function seedDemo(): Promise<void> {
     await seedSms(ctx("owner", ["owner"]));
     await seedPrivacy(ctx("owner", ["owner"]));
   }
+  await assertEveryOrganizationEntitled();
 }
