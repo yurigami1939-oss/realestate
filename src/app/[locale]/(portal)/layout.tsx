@@ -9,6 +9,7 @@ import { redirect } from "@/i18n/navigation";
 import { toLocale } from "@/i18n/locales";
 import { moduleOn } from "@/lib/modules";
 import { AppError } from "@/lib/result";
+import { OPERATOR_ROLE } from "@/server/auth/schema-options";
 import { getSession } from "@/server/auth/session";
 import { listUserOrganizations } from "@/server/organizations/queries";
 import { getPortalCtx } from "@/server/portal/context";
@@ -24,6 +25,9 @@ export default async function PortalLayout({ children, params }: LayoutProps<"/[
   const locale = toLocale((await params).locale);
   const session = await getSession();
   if (!session) return redirect({ href: "/sign-in", locale });
+  if ((session.user as { role?: string | null }).role === OPERATOR_ROLE) {
+    return redirect({ href: "/console", locale });
+  }
   const ctx = await getPortalCtx().catch((error: unknown) => {
     if (error instanceof AppError) return null;
     throw error;

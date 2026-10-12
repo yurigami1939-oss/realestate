@@ -14,6 +14,7 @@ import { loadVisibleBuyer } from "@/server/buyers/access";
 import { sendEmailLater } from "@/server/email/send-later";
 import { portalInvitationEmail } from "@/server/email/templates";
 import { assertModule } from "@/server/entitlements/access";
+import { isOperatorEmail } from "@/server/auth/operators";
 
 /** Same lifetime as the staff invitations. */
 const INVITATION_TTL_MS = 7 * 24 * 60 * 60 * 1000;
@@ -55,6 +56,9 @@ export async function inviteToPortal(ctx: TenantCtx, target: PortalTarget) {
     const record = await loadTarget(tx, ctx, target);
     const email = record.email?.trim().toLowerCase();
     if (!email) throw new AppError("VALIDATION", "portal.errors.noEmail");
+    if (await isOperatorEmail(email, tx)) {
+      throw new AppError("CONFLICT", "portal.errors.operatorEmail");
+    }
     const [live] = await tx
       .select()
       .from(portalLink)

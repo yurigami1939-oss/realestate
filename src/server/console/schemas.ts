@@ -10,11 +10,13 @@ import {
 } from "@/lib/subscriptions";
 import {
   codeText,
+  intText,
   moneyText,
   optionalDateText,
   optionalEmailText,
   optionalIntText,
   optionalMoneyText,
+  optionalPercentText,
   optionalText,
   requiredText,
 } from "@/lib/zod";
@@ -68,3 +70,65 @@ export const openAccountSchema = z.object({
 export type PlanInput = z.output<typeof planSchema>;
 export type AddonInput = z.output<typeof addonSchema>;
 export type OpenAccountInput = z.output<typeof openAccountSchema>;
+
+/** A client's invoicing identity and contact (the operator corrects it). */
+export const accountIdentitySchema = z.object({
+  billingAccountId: z.uuid(),
+  legalName: requiredText(200),
+  address: optionalText(300),
+  wilaya: optionalText(80),
+  rcNumber: optionalText(40),
+  nif: optionalText(40),
+  nis: optionalText(40),
+  aiNumber: optionalText(40),
+  contactName: optionalText(120),
+  email: optionalEmailText(),
+  phone: optionalText(40),
+  notes: optionalText(2_000),
+});
+
+/**
+ * A subscription's terms: plan, period, negotiated price and discount, price lock, pilot end,
+ * grace, cap overrides (blank = the plan's).
+ */
+export const subscriptionTermsSchema = z.object({
+  billingAccountId: z.uuid(),
+  planCode: requiredText(30),
+  billingPeriod: z.enum(billingPeriods),
+  price: moneyText(),
+  discount: optionalPercentText(0, 100),
+  priceLockedUntil: optionalDateText(),
+  pilotEndsOn: optionalDateText(),
+  graceDays: intText(0, 365),
+  activeUnits: optionalIntText(1, 1_000_000),
+  organizations: optionalIntText(1, 1_000),
+  storageGb: optionalIntText(1, 100_000),
+});
+
+/** An add-on taken (with its negotiated price, blank = the catalog's) or dropped. */
+export const subscriptionAddonSchema = z.object({
+  billingAccountId: z.uuid(),
+  code: z.enum(addonCodes),
+  on: z.boolean(),
+  price: optionalMoneyText(),
+});
+
+/** The operator moves a subscription; suspending and terminating need a reason. */
+export const statusChangeSchema = z.object({
+  billingAccountId: z.uuid(),
+  to: z.enum(subscriptionStatuses),
+  reason: optionalText(500),
+});
+
+/** Activation: the first period starts that day (its end follows the billing period). */
+export const activateSchema = z.object({
+  billingAccountId: z.uuid(),
+  startsOn: optionalDateText(),
+});
+
+export const pilotGoalSchema = z.object({ billingAccountId: z.uuid(), label: requiredText(200) });
+export const pilotGoalIdSchema = z.object({ goalId: z.uuid(), done: z.boolean().optional() });
+export const planIdSchema = z.object({ planId: z.uuid() });
+
+export type AccountIdentityInput = z.output<typeof accountIdentitySchema>;
+export type SubscriptionTermsInput = z.output<typeof subscriptionTermsSchema>;

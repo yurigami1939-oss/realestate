@@ -3,6 +3,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { redirect } from "@/i18n/navigation";
 import { toLocale } from "@/i18n/locales";
+import { OPERATOR_ROLE } from "@/server/auth/schema-options";
 import { getSession } from "@/server/auth/session";
 import { listUserOrganizations } from "@/server/organizations/queries";
 
@@ -20,6 +21,9 @@ export default async function OnboardingPage({ params }: PageProps<"/[locale]/on
 
   const session = await getSession();
   if (!session) return redirect({ href: "/sign-in?next=/onboarding", locale });
+  if ((session.user as { role?: string | null }).role === OPERATOR_ROLE) {
+    return redirect({ href: "/console", locale });
+  }
 
   const organizations = await listUserOrganizations(session.user.id);
 

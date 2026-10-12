@@ -4,10 +4,12 @@
  */
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { organization, twoFactor } from "better-auth/plugins";
+import { admin, organization, twoFactor } from "better-auth/plugins";
+import { adminAc, userAc } from "better-auth/plugins/admin/access";
 
 import {
   authIdStrategy,
+  OPERATOR_ROLE,
   organizationAdditionalFields,
   TWO_FACTOR_ISSUER,
   userAdditionalFields,
@@ -21,5 +23,6 @@ export const auth = betterAuth({
   plugins: [
     organization({ schema: { organization: { additionalFields: organizationAdditionalFields } } }),
     twoFactor({ issuer: TWO_FACTOR_ISSUER }),
+    admin({ adminRoles: [OPERATOR_ROLE], roles: { user: userAc, [OPERATOR_ROLE]: adminAc } }),
   ],
 });

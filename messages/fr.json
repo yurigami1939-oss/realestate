@@ -380,7 +380,10 @@
       "cancelled": "Invitation annulée."
     },
     "customRole": "Rôle personnalisé",
-    "noCustomRole": "Aucun (rôles ci-dessus)"
+    "noCustomRole": "Aucun (rôles ci-dessus)",
+    "errors": {
+      "operatorEmail": "Cette adresse appartient à un opérateur de la plateforme : elle ne peut pas rejoindre une société."
+    }
   },
   "inventory": {
     "projectStatus": {
@@ -3793,7 +3796,8 @@
       "noEmail": "Ce dossier n'a pas d'adresse e-mail.",
       "alreadyActive": "Ce dossier est déjà visible depuis un espace client.",
       "staffEmail": "Cette adresse est celle d'un membre de l'équipe.",
-      "revoked": "Cet accès est déjà retiré."
+      "revoked": "Cet accès est déjà retiré.",
+      "operatorEmail": "Cette adresse appartient à un opérateur de la plateforme : elle ne peut pas recevoir d'accès."
     },
     "sale": {
       "title": "Mon acquisition",
@@ -6415,7 +6419,206 @@
       "alreadyAttached": "Cette société appartient déjà à un compte client.",
       "organizationsCap": "La formule permet {cap} société(s) au plus.",
       "transition": "Ce changement d'état de l'abonnement n'est pas possible.",
-      "reasonRequired": "Indiquez la raison."
+      "reasonRequired": "Indiquez la raison.",
+      "priceLocked": "Prix garanti jusqu'au {until} : il ne peut pas augmenter.",
+      "planArchived": "Cette formule est archivée.",
+      "twoFactor": "Activez la double authentification pour agir dans la console."
+    },
+    "brand": "Console opérateur",
+    "nav": {
+      "label": "Console",
+      "overview": "Vue d'ensemble",
+      "accounts": "Comptes clients",
+      "plans": "Formules",
+      "security": "Sécurité"
+    },
+    "programs": {
+      "standard": "Standard",
+      "design_partner": "Partenaire fondateur"
+    },
+    "periods": {
+      "yearly": "Annuelle",
+      "quarterly": "Trimestrielle"
+    },
+    "overview": {
+      "title": "Vue d'ensemble",
+      "description": "Les comptes clients et ce qui attend une décision.",
+      "todo": "À faire",
+      "pilotsEnding": "Pilotes qui se terminent dans la semaine",
+      "beyondGrace": "Pilotes terminés au-delà du délai de grâce",
+      "unentitled": "Sociétés sans compte client (en lecture seule)",
+      "none": "Rien à faire pour le moment.",
+      "endsOn": "Fin le {date}",
+      "createdOn": "Créée le {date}"
+    },
+    "accounts": {
+      "title": "Comptes clients",
+      "description": "Chaque client paie un abonnement pour ses sociétés.",
+      "search": "Rechercher un compte ou une société",
+      "filter": "Filtrer",
+      "allStatuses": "Tous les états",
+      "allPlans": "Toutes les formules",
+      "allPrograms": "Tous les programmes",
+      "empty": "Aucun compte ne correspond.",
+      "columns": {
+        "account": "Compte",
+        "plan": "Formule",
+        "status": "État",
+        "program": "Programme",
+        "until": "Échéance"
+      },
+      "pilotUntil": "Pilote jusqu'au {date}",
+      "periodUntil": "Période jusqu'au {date}"
+    },
+    "account": {
+      "back": "Comptes clients",
+      "subscription": {
+        "title": "Abonnement",
+        "plan": "Formule",
+        "billingPeriod": "Facturation",
+        "price": "Prix HT par période",
+        "discount": "Remise (%)",
+        "priceLockedUntil": "Prix garanti jusqu'au",
+        "pilotEndsOn": "Fin du pilote",
+        "graceDays": "Délai de grâce (jours)",
+        "overrides": "Plafonds propres au compte (vide = ceux de la formule)",
+        "activeUnits": "Lots actifs",
+        "organizations": "Sociétés",
+        "storageGb": "Stockage (Go)",
+        "save": "Enregistrer l'abonnement",
+        "saved": "Abonnement enregistré."
+      },
+      "addons": {
+        "title": "Options",
+        "price": "Prix HT (vide = catalogue)",
+        "perLot": "par lot et par mois",
+        "save": "Enregistrer le prix",
+        "taken": "Option ajoutée.",
+        "dropped": "Option retirée.",
+        "repriced": "Prix de l'option enregistré.",
+        "since": "depuis le {date}"
+      },
+      "organizations": {
+        "title": "Sociétés",
+        "owners": "Gérant",
+        "noOwner": "Aucun gérant",
+        "off": "désactivé par le gérant",
+        "none": "Aucun module."
+      },
+      "pilot": {
+        "title": "Objectifs du pilote",
+        "add": "Ajouter",
+        "label": "Nouvel objectif",
+        "placeholder": "Ex. : émettre les reçus du mois depuis l'application",
+        "empty": "Aucun objectif convenu.",
+        "done": "Atteint le {date}",
+        "remove": "Retirer",
+        "added": "Objectif ajouté."
+      },
+      "identity": {
+        "title": "Identité de facturation",
+        "legalName": "Raison sociale",
+        "address": "Adresse",
+        "wilaya": "Wilaya",
+        "rcNumber": "RC",
+        "nif": "NIF",
+        "nis": "NIS",
+        "aiNumber": "AI",
+        "contactName": "Contact",
+        "email": "E-mail",
+        "phone": "Téléphone",
+        "notes": "Notes (feedback, témoignage, échanges)",
+        "save": "Enregistrer l'identité",
+        "saved": "Identité enregistrée."
+      },
+      "trail": {
+        "title": "Historique",
+        "empty": "Rien pour le moment.",
+        "system": "Système",
+        "actions": {
+          "billing_account": {
+            "open": "Compte ouvert",
+            "attach": "Société ajoutée",
+            "update": "Identité modifiée"
+          },
+          "subscription": {
+            "status_change": "État modifié",
+            "update": "Conditions modifiées",
+            "addon": "Option modifiée"
+          },
+          "pilot_goal": {
+            "create": "Objectif ajouté",
+            "update": "Objectif mis à jour",
+            "delete": "Objectif retiré"
+          }
+        }
+      },
+      "status": {
+        "activate": "Activer",
+        "activateTitle": "Activer l'abonnement",
+        "activateDescription": "Le client a choisi sa formule : la première période commence ce jour-là.",
+        "startsOn": "Début de la période",
+        "suspend": "Suspendre",
+        "suspendTitle": "Suspendre le compte",
+        "suspendDescription": "Toutes ses sociétés passent en lecture seule : consultation et exports restent possibles, rien n'est supprimé.",
+        "reactivate": "Réactiver",
+        "terminate": "Résilier",
+        "terminateTitle": "Résilier l'abonnement",
+        "terminateDescription": "Lecture seule jusqu'à la purge, après la période d'export de ses données.",
+        "backToSuspended": "Remettre en suspension",
+        "backToSuspendedTitle": "Remettre en suspension",
+        "reason": "Raison",
+        "done": "État de l'abonnement modifié."
+      }
+    },
+    "plans": {
+      "title": "Formules et options",
+      "description": "Le catalogue : une formule en service n'est jamais modifiée, une nouvelle la remplace.",
+      "plans": "Formules",
+      "addons": "Options",
+      "create": "Nouvelle formule",
+      "createTitle": "Nouvelle formule",
+      "code": "Code",
+      "nameFr": "Nom (français)",
+      "nameAr": "Nom (arabe)",
+      "yearlyPrice": "Prix HT annuel",
+      "quarterlyPrice": "Prix HT trimestriel",
+      "setupFee": "Frais de mise en place",
+      "modules": "Modules inclus",
+      "activeUnits": "Lots actifs (vide = illimité)",
+      "organizations": "Sociétés (vide = illimité)",
+      "storageGb": "Stockage en Go (vide = illimité)",
+      "onQuote": "Sur devis (prix négocié par compte)",
+      "created": "Formule créée.",
+      "archive": "Archiver",
+      "archived": "Archivée",
+      "archiveConfirm": "Archiver « {name} » ? Les comptes qui l'ont la gardent ; aucun nouveau compte ne la prendra.",
+      "archiveDone": "Formule archivée.",
+      "accounts": "{count, plural, =0 {Aucun compte} one {# compte} other {# comptes}}",
+      "unlimited": "Illimité",
+      "caps": "{units} lots actifs · {organizations} sociétés",
+      "reprice": "Nouveau prix",
+      "repriceTitle": "Nouveau prix de l'option",
+      "repriceDescription": "Les comptes gardent le prix qu'ils ont pris.",
+      "repriced": "Prix de l'option enregistré.",
+      "columns": {
+        "plan": "Formule",
+        "prices": "Prix HT",
+        "modules": "Modules",
+        "caps": "Plafonds",
+        "use": "Comptes"
+      },
+      "basis": {
+        "flat": "Forfait par période",
+        "per_managed_lot": "Par lot géré et par mois"
+      },
+      "perYear": "{amount} / an",
+      "perQuarter": "{amount} / trimestre"
+    },
+    "security": {
+      "title": "Sécurité",
+      "description": "La double authentification est obligatoire pour agir dans la console.",
+      "required": "Activez la double authentification pour accéder à la console."
     }
   },
   "modules": {

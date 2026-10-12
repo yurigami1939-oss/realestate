@@ -197,6 +197,22 @@ export const subscriptionAddon = consoleSchema.table(
   ],
 );
 
+/** The goals agreed with a client for its pilot (CLAUDE.console.md §2), ticked by the operator. */
+export const pilotGoal = consoleSchema.table(
+  "pilot_goal",
+  {
+    id: id(),
+    subscriptionId: uuid()
+      .notNull()
+      .references(() => subscription.id, { onDelete: "restrict" }),
+    position: integer().notNull(),
+    label: text().notNull(),
+    doneOn: date({ mode: "string" }),
+    createdAt: createdAt(),
+  },
+  (t) => [index().on(t.subscriptionId, t.position)],
+);
+
 /** Gapless counters of the operator's invoices (FAC-) and credit notes (AVO-) per year. */
 export const consoleDocumentSequence = consoleSchema.table(
   "document_sequence",

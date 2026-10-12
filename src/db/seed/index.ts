@@ -12,6 +12,7 @@ import {
   attachToDemoAccount,
   openDemoAccount,
   seedConsoleCatalog,
+  seedOperator,
   seedPilotPromoter,
 } from "./console";
 import { seedConstruction } from "./construction";
@@ -180,5 +181,7 @@ export async function seedDemo(): Promise<void> {
     await seedPrivacy(ctx("owner", ["owner"]));
   }
   await seedPilotPromoter();
+  // The console's operator, local databases only: the demo deployment has no console.
+  if (process.env.DEMO_MODE !== "true") await seedOperator();
   await assertEveryOrganizationEntitled();
 }

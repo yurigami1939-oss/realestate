@@ -10,6 +10,7 @@ import { AppError } from "@/lib/result";
 import { recordAudit } from "@/server/audit/record-audit";
 import { auth } from "@/server/auth/auth";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
+import { isOperatorEmail } from "@/server/auth/operators";
 
 import { getMember } from "./queries";
 import type {
@@ -54,6 +55,9 @@ export async function inviteMember(
   input: z.output<typeof inviteMemberSchema>,
 ) {
   assertCan(ctx, "invitation:create");
+  if (await isOperatorEmail(input.email)) {
+    throw new AppError("CONFLICT", "members.errors.operatorEmail");
+  }
   const invitation = await callAuth(() =>
     auth.api.createInvitation({
       headers,

@@ -7,6 +7,7 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { redirect } from "@/i18n/navigation";
 import { localeDirection, toLocale } from "@/i18n/locales";
 import { accessOf, can, isPortalOnly } from "@/lib/permissions";
+import { OPERATOR_ROLE } from "@/server/auth/schema-options";
 import { getSession, getTenantCtx } from "@/server/auth/session";
 import { listUserOrganizations } from "@/server/organizations/queries";
 
@@ -15,6 +16,10 @@ export default async function AppLayout({ children, params }: LayoutProps<"/[loc
   const locale = toLocale((await params).locale);
   const session = await getSession();
   if (!session) return redirect({ href: "/sign-in", locale });
+  // Operators belong to no organization: their place is the console (CLAUDE.console.md §9).
+  if ((session.user as { role?: string | null }).role === OPERATOR_ROLE) {
+    return redirect({ href: "/console", locale });
+  }
 
   const activeOrgId = session.session.activeOrganizationId;
   const organizations = await listUserOrganizations(session.user.id);

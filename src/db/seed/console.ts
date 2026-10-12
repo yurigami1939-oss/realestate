@@ -8,7 +8,11 @@
 import { eq } from "drizzle-orm";
 
 import { addDays, addMonths, todayInAlgiers } from "@/lib/dates";
+import { symmetricEncrypt } from "better-auth/crypto";
+
+import { db } from "@/db/client";
 import { auth } from "@/server/auth/auth";
+import { OPERATOR_ROLE } from "@/server/auth/schema-options";
 import { attachOrganization, openBillingAccount } from "@/server/console/accounts";
 import { systemOperator } from "@/server/console/context";
 import { createAddon, createPlan } from "@/server/console/plans";
@@ -23,9 +27,15 @@ import { createBuilding, createProject, generateUnits } from "@/server/inventory
 
 import { consoleDb } from "../console-client";
 import { withConsoleTenant } from "../console-tenant";
-import { organization, tenantEntitlement } from "../schema";
+import {
+  organization,
+  pilotGoal,
+  tenantEntitlement,
+  twoFactor,
+  user,
+} from "../schema";
 
-import { DEMO_PASSWORD, pilotPromoter } from "./demo";
+import { DEMO_PASSWORD, demoOperator, pilotPromoter } from "./demo";
 
 const corePlus = ["imports"] as const;
 const promoteurModules = [
@@ -148,7 +158,7 @@ export async function seedPilotPromoter(): Promise<void> {
   });
   if (!org) throw new Error("seed: pilot organization not created");
   const today = todayInAlgiers();
-  await openBillingAccount(
+  const { subscriptionId } = await openBillingAccount(
     systemOperator,
     openAccountSchema.parse({
       legalName: "",
@@ -163,6 +173,16 @@ export async function seedPilotPromoter(): Promise<void> {
       addons: [],
     }),
   );
+  // The goals agreed for the pilot (CLAUDE.console.md §2), one already reached.
+  await consoleDb.insert(pilotGoal).values([
+    {
+      subscriptionId,
+      position: 1,
+      label: "Importer les lots de la Résidence Tafna",
+      doneOn: today,
+    },
+    { subscriptionId, position: 2, label: "Émettre les reçus du mois depuis l'application" },
+  ]);
   const owner = {
     userId: user.id,
     orgId: org.id,
@@ -221,4 +241,36 @@ export async function assertEveryOrganizationEntitled(): Promise<void> {
     );
     if (!row) throw new Error(`seed: organization ${org.name} has no entitlement`);
   }
+}
+
+/**
+ * The console's local operator (CLAUDE.console.md §15): an account with role `operator`, its
+ * two-factor authentication on with a fixed secret (enabled through Better Auth, then pinned) so
+ * a local authenticator app or the tests compute its codes. Never on the demo deployment.
+ */
+export async function seedOperator(): Promise<void> {
+  const { user: created } = await auth.api.signUpEmail({
+    body: { name: demoOperator.name, email: demoOperator.email, password: DEMO_PASSWORD },
+  });
+  const { headers } = await auth.api.signInEmail({
+    body: { email: demoOperator.email, password: DEMO_PASSWORD },
+    returnHeaders: true,
+  });
+  const cookie = headers.get("set-cookie")?.split(";")[0] ?? "";
+  await auth.api.enableTwoFactor({
+    body: { password: DEMO_PASSWORD },
+    headers: new Headers({ cookie }),
+  });
+  const context = await auth.$context;
+  await db
+    .update(twoFactor)
+    .set({
+      secret: await symmetricEncrypt({ key: context.secretConfig, data: demoOperator.totpSecret }),
+      verified: true,
+    })
+    .where(eq(twoFactor.userId, created.id));
+  await db
+    .update(user)
+    .set({ role: OPERATOR_ROLE, twoFactorEnabled: true })
+    .where(eq(user.id, created.id));
 }

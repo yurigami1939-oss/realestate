@@ -2,9 +2,10 @@ import "server-only";
 
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { APIError, createAuthMiddleware, isAPIError } from "better-auth/api";
+import { APIError, createAuthMiddleware, getSessionFromCtx, isAPIError } from "better-auth/api";
 import { nextCookies } from "better-auth/next-js";
-import { organization, twoFactor } from "better-auth/plugins";
+import { admin, organization, twoFactor } from "better-auth/plugins";
+import { adminAc, userAc } from "better-auth/plugins/admin/access";
 import { asc, eq } from "drizzle-orm";
 
 import { db } from "@/db/client";
@@ -22,7 +23,9 @@ import { linkPortalAccount } from "@/server/portal/link";
 
 import {
   authIdStrategy,
+  OPERATOR_ROLE,
   organizationAdditionalFields,
+  SUPPORT_SESSION_SECONDS,
   TWO_FACTOR_ISSUER,
   userAdditionalFields,
 } from "./schema-options";
@@ -54,6 +57,29 @@ export const auth = betterAuth({
     before: createAuthMiddleware(async (ctx) => {
       if (ctx.path === "/sign-up/email" && ctx.request && env.DEMO_MODE === true) {
         throw new APIError("FORBIDDEN", { code: "SIGNUP_CLOSED", message: "Sign-up is closed." });
+      }
+      if (!ctx.request) return;
+      // Operators (CLAUDE.console.md §9) act through the console only after enrolling in 2FA, and
+      // are never members of a tenant.
+      // (Leaving a support session is the impersonated member's request: let it through.)
+      const operatorPaths =
+        ctx.path.startsWith("/admin/") && ctx.path !== "/admin/stop-impersonating";
+      const memberPaths =
+        ctx.path === "/organization/create" || ctx.path === "/organization/accept-invitation";
+      if (!operatorPaths && !memberPaths) return;
+      const session = await getSessionFromCtx(ctx);
+      const role = (session?.user as { role?: string | null } | undefined)?.role;
+      if (operatorPaths && !session?.user.twoFactorEnabled) {
+        throw new APIError("FORBIDDEN", {
+          code: "OPERATOR_2FA_REQUIRED",
+          message: "Two-factor first.",
+        });
+      }
+      if (memberPaths && role === OPERATOR_ROLE) {
+        throw new APIError("FORBIDDEN", {
+          code: "OPERATOR_NOT_MEMBER",
+          message: "Operators join no organization.",
+        });
       }
     }),
     // An organization created from the onboarding (a request) gets its client account
@@ -144,6 +170,12 @@ export const auth = betterAuth({
     }),
     // Two-factor authentication (TOTP app + backup codes), opted in by each member.
     twoFactor({ issuer: TWO_FACTOR_ISSUER }),
+    // The operators' console (CLAUDE.console.md §9): role `operator`, granted by `console:grant`.
+    admin({
+      adminRoles: [OPERATOR_ROLE],
+      roles: { user: userAc, [OPERATOR_ROLE]: adminAc },
+      impersonationSessionDuration: SUPPORT_SESSION_SECONDS,
+    }),
     nextCookies(), // must stay last
   ],
 });
