@@ -46,7 +46,13 @@
     "notFoundText": "La page demandée n'existe pas ou a été déplacée.",
     "noActiveOrganization": "Aucune société n'est sélectionnée.",
     "tooManyRequests": "Trop de tentatives. Réessayez dans quelques secondes.",
-    "moduleOff": "Ce module n'est pas actif pour votre société."
+    "moduleOff": "Ce module n'est pas actif pour votre société.",
+    "readOnly": {
+      "suspended": "Compte suspendu : la société est en lecture seule.",
+      "terminated": "Abonnement résilié : la société est en lecture seule.",
+      "support": "Session support : lecture seule.",
+      "noEntitlement": "Aucun abonnement actif : la société est en lecture seule."
+    }
   },
   "files": {
     "errors": {
@@ -265,6 +271,12 @@
         "schedule_amendment": "l'avenant n° {number} à la réservation {reference}",
         "lease_inspection": "{kind, select, check_in {l'état des lieux d'entrée} other {l'état des lieux de sortie}} du bail {reference}"
       }
+    },
+    "pilotEnding": {
+      "subject": "Votre pilote se termine dans {days} jours",
+      "body": "Le pilote de {organization} sur Darna se termine le {endsOn}. Choisissez votre formule pour continuer sans interruption : vos données restent en place.",
+      "notice": "Après cette date, rien n'est supprimé ; l'abonnement attend votre choix.",
+      "cta": "Voir l'abonnement"
     }
   },
   "nav": {
@@ -2361,7 +2373,8 @@
         "import": "Reprise de données (import Excel)",
         "marketing_spend": "Dépense de communication saisie",
         "capture_key": "Clé de capture de prospects créée",
-        "capture_key_revoke": "Clé de capture de prospects révoquée"
+        "capture_key_revoke": "Clé de capture de prospects révoquée",
+        "modules": "Modules activés ou désactivés"
       },
       "member": {
         "join": "Arrivée d'un membre",
@@ -2551,8 +2564,12 @@
         "create": "Partenaire créé",
         "update": "Partenaire modifié",
         "commission_pay": "Commission de partenaire payée"
+      },
+      "subscription": {
+        "status_change": "État de l'abonnement modifié"
       }
-    }
+    },
+    "operator": "Opérateur"
   },
   "dashboard": {
     "asOf": "Situation au {date} · mois en cours : {month}",
@@ -6396,7 +6413,9 @@
       "accountUnknown": "Compte client introuvable.",
       "organizationUnknown": "Société introuvable.",
       "alreadyAttached": "Cette société appartient déjà à un compte client.",
-      "organizationsCap": "La formule permet {cap} société(s) au plus."
+      "organizationsCap": "La formule permet {cap} société(s) au plus.",
+      "transition": "Ce changement d'état de l'abonnement n'est pas possible.",
+      "reasonRequired": "Indiquez la raison."
     }
   },
   "modules": {
@@ -6498,6 +6517,19 @@
       "syndic": "Encore utilisé — résidences gérées : {count}. Supprimez-les d'abord.",
       "rentals": "Encore utilisé — baux en cours : {count}. Terminez-les d'abord.",
       "online_payment": "Encore utilisé — paiements en ligne en cours ou à traiter : {count}. Réglez-les d'abord."
+    },
+    "banner": {
+      "readOnly": {
+        "suspended": "Compte suspendu : lecture seule. Vos données restent consultables et exportables.",
+        "terminated": "Abonnement résilié : lecture seule. Exportez vos données avant leur suppression.",
+        "noEntitlement": "Aucun abonnement actif : la société est en lecture seule."
+      },
+      "portalReadOnly": "L'espace client est en lecture seule pour le moment.",
+      "pilotDays": "Pilote : {days, plural, one {# jour restant} other {# jours restants}}.",
+      "pilotLastDay": "Dernier jour du pilote.",
+      "pilotOver": "Le pilote est terminé : choisissez votre formule pour continuer.",
+      "pastDue": "Une facture de l'abonnement est en retard de paiement.",
+      "link": "Voir l'abonnement"
     }
   }
 }

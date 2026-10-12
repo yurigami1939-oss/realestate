@@ -4,7 +4,7 @@ import { unstable_rethrow } from "next/navigation";
 import { z } from "zod";
 
 import { AppError, err, ok, type Result } from "@/lib/result";
-import { assertModule } from "@/server/entitlements/access";
+import { assertModule, assertWritable } from "@/server/entitlements/access";
 
 import { getPortalCtx, type PortalCtx } from "./context";
 
@@ -30,6 +30,7 @@ export function definePortalAction<S extends z.ZodType, T>(
       const ctx = await getPortalCtx();
       // The organization's portal must be on (CLAUDE.console.md §5).
       assertModule(ctx, "portal");
+      assertWritable(ctx);
       return ok(await handler(parsed.data, ctx));
     } catch (error) {
       unstable_rethrow(error);

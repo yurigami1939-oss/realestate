@@ -13,6 +13,26 @@ export const subscriptionStatuses = [
 ] as const;
 export type SubscriptionStatus = (typeof subscriptionStatuses)[number];
 
+/**
+ * Where a subscription may go (CLAUDE.console.md §6): `past_due` and back to `active` by the
+ * daily job (a pilot over, an invoice overdue, then paid), the rest by the operator — never an
+ * automatic suspension.
+ */
+export const subscriptionTransitions: Record<SubscriptionStatus, readonly SubscriptionStatus[]> = {
+  pilot: ["active", "past_due", "suspended", "terminated"],
+  active: ["past_due", "suspended", "terminated"],
+  past_due: ["active", "suspended", "terminated"],
+  suspended: ["active", "terminated"],
+  terminated: ["suspended"],
+};
+
+export const canTransition = (from: SubscriptionStatus, to: SubscriptionStatus): boolean =>
+  subscriptionTransitions[from].includes(to);
+
+/** A suspended or terminated organization is read-only; so is one without a subscription. */
+export const isWritable = (status: SubscriptionStatus | null): boolean =>
+  status !== null && status !== "suspended" && status !== "terminated";
+
 /** Design partners: the first clients, a long free pilot then a founder price locked. */
 export const subscriptionPrograms = ["standard", "design_partner"] as const;
 export type SubscriptionProgram = (typeof subscriptionPrograms)[number];

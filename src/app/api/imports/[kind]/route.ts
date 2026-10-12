@@ -5,6 +5,7 @@ import { importKinds, importOptionsSchema, MAX_IMPORT_BYTES } from "@/server/imp
 import { runImport } from "@/server/imports/service";
 import { assertSameOrigin, jsonResult, readFormData } from "@/server/route-handler";
 import { AppError } from "@/lib/result";
+import { assertWritable } from "@/server/entitlements/access";
 
 /**
  * Data import (CLAUDE.md §7 Imports): multipart `file` (.xlsx) with `project` / `residence` /
@@ -16,6 +17,7 @@ export async function POST(request: Request, { params }: RouteContext<"/api/impo
     if (!(importKinds as readonly string[]).includes(kind)) throw new AppError("NOT_FOUND");
     assertSameOrigin(request);
     const ctx = await getTenantCtx();
+    assertWritable(ctx);
     const form = await readFormData(request, MAX_IMPORT_BYTES);
     const file = form.get("file");
     if (!(file instanceof File) || file.size === 0) {

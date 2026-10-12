@@ -19,7 +19,7 @@ import { uploadPortalBuyerDocument } from "@/server/portal/documents";
 import { setInvoiceScan } from "@/server/suppliers/invoices";
 import { setContractScan } from "@/server/suppliers/service";
 import { assertSameOrigin, jsonResult, readFormData } from "@/server/route-handler";
-import { assertModule } from "@/server/entitlements/access";
+import { assertModule, assertWritable } from "@/server/entitlements/access";
 
 const uploadFields = z.object({
   purpose: z.enum(uploadPurposeNames),
@@ -59,6 +59,7 @@ export async function POST(request: Request) {
       if (!kind.success) throw new AppError("VALIDATION");
       const portal = await getPortalCtx();
       assertModule(portal, "portal");
+      assertWritable(portal);
       const result = await uploadPortalBuyerDocument(portal, {
         buyerId: fields.data.entityId,
         kind: kind.data,
@@ -70,6 +71,8 @@ export async function POST(request: Request) {
     }
 
     const ctx = await getTenantCtx();
+    // Uploads change the organization: refused while it is read-only (CLAUDE.console.md §6).
+    assertWritable(ctx);
     switch (fields.data.purpose) {
       case "unit.floor_plan": {
         const result = await setUnitFloorPlan(ctx, { unitId: fields.data.entityId, upload });

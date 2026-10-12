@@ -8,7 +8,7 @@ import { withTenant } from "@/db/tenant";
 import type { CalendarDate } from "@/lib/dates";
 import { effectiveModules, type Module } from "@/lib/modules";
 import { AppError } from "@/lib/result";
-import type { PlanLimits, SubscriptionStatus } from "@/lib/subscriptions";
+import { isWritable, type PlanLimits, type SubscriptionStatus } from "@/lib/subscriptions";
 
 /**
  * What the organization's subscription allows, as a request sees it (CLAUDE.console.md §4):
@@ -31,8 +31,6 @@ export type TenantAccess = {
   /** The operator viewing the organization in a support session (read-only). */
   supportBy: string | null;
 };
-
-const readOnlyStatuses: ReadonlySet<SubscriptionStatus> = new Set(["suspended", "terminated"]);
 
 /** The access of the organization the open tenant transaction is set on (one query). */
 export async function readAccess(tx: Tx): Promise<TenantAccess> {
@@ -60,7 +58,7 @@ export async function readAccess(tx: Tx): Promise<TenantAccess> {
     limits: row?.limits ?? null,
     pilotEndsOn: row?.pilotEndsOn ?? null,
     currentPeriodEnd: row?.currentPeriodEnd ?? null,
-    readOnly: status === null || readOnlyStatuses.has(status),
+    readOnly: !isWritable(status),
     supportBy: null,
   };
 }
@@ -88,4 +86,29 @@ export function assertModule(ctx: { access?: TenantAccess | null }, module: Modu
   if (ctx.access && !ctx.access.modules.includes(module)) {
     throw new AppError("FORBIDDEN", "errors.moduleOff", { details: { module } });
   }
+}
+
+/** Why an organization is read-only, as the message key's last part; null when writable. */
+export function readOnlyReason(
+  access: TenantAccess,
+): "support" | "noEntitlement" | "suspended" | "terminated" | null {
+  if (access.supportBy) return "support";
+  if (!access.readOnly) return null;
+  if (access.status === "suspended" || access.status === "terminated") return access.status;
+  return "noEntitlement";
+}
+
+/**
+ * Refuses a change while the organization is read-only (CLAUDE.console.md §6): suspended,
+ * terminated, without a subscription, or seen by an operator in a support session. Reading,
+ * exports and settling online payments go on. Contexts without `access` (the seed, jobs) pass.
+ */
+export function assertWritable(ctx: { access?: TenantAccess | null }): void {
+  const reason = ctx.access ? readOnlyReason(ctx.access) : null;
+  if (reason) throw new AppError("FORBIDDEN", `errors.readOnly.${reason}`);
+}
+
+/** For jobs: whether the organization may still change (digests, WhatsApp and SMS). */
+export async function tenantWritable(orgId: string): Promise<boolean> {
+  return !(await loadTenantAccess(orgId)).readOnly;
 }

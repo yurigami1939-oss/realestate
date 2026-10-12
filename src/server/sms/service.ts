@@ -15,6 +15,7 @@ import { recordAudit } from "@/server/audit/record-audit";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
 import { encryptSecret } from "@/server/secrets";
 import { companyName } from "@/server/whatsapp/account";
+import { tenantWritable } from "@/server/entitlements/access";
 
 import { loadSmsAccount } from "./account";
 import { sendSms } from "./gateway";
@@ -177,6 +178,8 @@ export async function sendSmsMessage(
     );
     return "failed" as const;
   };
+  // A read-only organization sends nothing (CLAUDE.console.md §6).
+  if (!(await tenantWritable(orgId))) return fail("tenant_read_only");
   const gateway = account?.enabled ? account.gateway() : null;
   if (!gateway) return fail("SMS disabled");
   const result = await sendSms(gateway, { to: message.recipient, text: message.text });

@@ -22,6 +22,7 @@ import { assertCan, type TenantCtx } from "@/server/auth/session";
 import { recordConsentChanges } from "@/server/privacy/consents";
 import { loadResidence } from "@/server/residences/service";
 import { encryptSecret } from "@/server/secrets";
+import { tenantWritable } from "@/server/entitlements/access";
 
 import { loadWhatsappAccount } from "./account";
 import { readWebhook, sendTemplate, validWebhookSignature } from "./cloud-api";
@@ -160,6 +161,8 @@ export async function sendWhatsappMessage(
     );
     return "failed" as const;
   };
+  // A read-only organization sends nothing (CLAUDE.console.md §6).
+  if (!(await tenantWritable(orgId))) return fail("tenant_read_only");
   if (!account?.enabled) return fail("WhatsApp disabled");
 
   const result = await sendTemplate(account.cloud(), {

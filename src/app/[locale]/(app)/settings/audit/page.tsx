@@ -94,7 +94,11 @@ export default async function AuditPage({
                   <TableCell className="tabular-nums" dir="ltr">
                     {formatDateTime(row.createdAt)}
                   </TableCell>
-                  <TableCell>{row.actorName ?? t("system")}</TableCell>
+                  <TableCell>
+                    {/^(subscription|support)\./.test(row.action)
+                      ? t("operator")
+                      : (row.actorName ?? t("system"))}
+                  </TableCell>
                   <TableCell className="whitespace-normal">
                     <span className="font-medium">{actionLabel(row.action)}</span>
                     {row.reason ? (

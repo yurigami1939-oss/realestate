@@ -11,7 +11,7 @@ import ar from "../../../messages/ar.json";
 import fr from "../../../messages/fr.json";
 
 const catalogs = { fr, ar } as const;
-type EmailKind = "invitation" | "portalInvitation" | "resetPassword";
+type EmailKind = "invitation" | "portalInvitation" | "resetPassword" | "pilotEnding";
 type Values = Record<string, string>;
 
 const escapeHtml = (value: string) =>
@@ -81,6 +81,26 @@ export function portalInvitationEmail(input: {
 
 export function resetPasswordEmail(input: { to: string; url: string }): EmailMessage {
   return bilingual("resetPassword", input.to, {}, input.url);
+}
+
+/** To the gérants of a piloting client, a week before its pilot ends (CLAUDE.console.md §14). */
+export function pilotEndingEmail(input: {
+  to: string;
+  organization: string;
+  endsOn: string;
+  days: number;
+  url: string;
+}): EmailMessage {
+  return bilingual(
+    "pilotEnding",
+    input.to,
+    {
+      organization: input.organization,
+      endsOn: formatDate(input.endsOn),
+      days: String(input.days),
+    },
+    input.url,
+  );
 }
 
 type DigestSale = {

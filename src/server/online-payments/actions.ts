@@ -25,7 +25,7 @@ export const saveGatewaySettingsAction = defineAction(
   },
 );
 export const recheckOnlinePaymentAction = defineAction(
-  { input: onlinePaymentIdSchema, permission: "payment:create" },
+  { input: onlinePaymentIdSchema, permission: "payment:create", allowWhenReadOnly: true },
   (input, ctx) =>
     mutation(async () => {
       const row = await recheckOnlinePayment(ctx, input.onlinePaymentId);
@@ -33,6 +33,6 @@ export const recheckOnlinePaymentAction = defineAction(
     }),
 );
 export const refundOnlinePaymentAction = defineAction(
-  { input: refundOnlinePaymentSchema, permission: "payment:cancel" },
+  { input: refundOnlinePaymentSchema, permission: "payment:cancel", allowWhenReadOnly: true },
   (input, ctx) => mutation(() => refundOnlinePayment(ctx, input)),
 );

@@ -15,7 +15,7 @@ import { recordAudit } from "@/server/audit/record-audit";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
 import { loadCustomPermissions } from "@/server/organizations/custom-roles";
 import { forSale } from "@/server/inventory/third-party";
-import { assertModule, moduleEnabled } from "@/server/entitlements/access";
+import { assertModule, assertWritable, readAccess } from "@/server/entitlements/access";
 
 import { assertLiveProject } from "./access";
 import { createLead } from "./leads";
@@ -136,9 +136,12 @@ export async function captureLead(
       .for("update");
     if (!key) throw new AppError("UNAUTHENTICATED");
     // Keys are kept while the module is off; the endpoint answers 403 (CLAUDE.console.md §5).
-    if (!(await moduleEnabled(tx, "lead_capture"))) {
+    const access = await readAccess(tx);
+    if (!access.modules.includes("lead_capture")) {
       throw new AppError("FORBIDDEN", "errors.moduleOff", { details: { module: "lead_capture" } });
     }
+    // A read-only organization takes no new leads (CLAUDE.console.md §6).
+    assertWritable({ access });
     const [updated] = await tx
       .update(leadCaptureKey)
       .set({
