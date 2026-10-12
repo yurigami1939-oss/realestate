@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { ChevronRight, ShieldAlert } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { PageHeader } from "@/components/app-shell/page-header";
 import { StatsBar } from "@/components/inventory/status";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "@/i18n/navigation";
 import { toLocale } from "@/i18n/locales";
 import { formatDate, formatDateTime } from "@/lib/dates";
@@ -18,6 +18,9 @@ export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("nav");
   return { title: t("dashboard") };
 }
+
+/** The to-dos' row chevron (a mask, so it takes the row's text color). */
+const TODO_CHEVRON = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m9 18 6-6-6-6'/%3E%3C/svg%3E")`;
 
 /** One figure with its label, an optional comparison line and an optional link. */
 function Kpi({
@@ -37,19 +40,36 @@ function Kpi({
 }) {
   const body = (
     <>
-      <div className={cn("text-sm", tone === "alert" ? "text-danger" : "text-muted-foreground")}>
-        {label}
+      <div
+        className={cn(
+          "flex items-center justify-between gap-2 text-footnote font-medium",
+          tone === "alert" ? "text-danger" : "text-muted-foreground",
+        )}
+      >
+        <span className="flex items-center gap-1.5">
+          {tone === "alert" ? (
+            <span className="size-2 rounded-full bg-danger-vivid" aria-hidden />
+          ) : null}
+          {label}
+        </span>
+        {href ? (
+          <ChevronRight className="size-4 shrink-0 opacity-60 rtl:rotate-180" aria-hidden />
+        ) : null}
       </div>
-      <div className="text-xl font-semibold tabular-nums">
+      <div
+        className={cn(
+          "text-[1.75rem] leading-tight font-semibold tracking-tight tabular-nums",
+          tone === "alert" && "text-danger",
+        )}
+      >
         <bdi dir="ltr">{value}</bdi>
       </div>
-      {hint ? <div className="text-xs text-muted-foreground">{hint}</div> : null}
+      {hint ? <div className="text-footnote text-muted-foreground">{hint}</div> : null}
     </>
   );
   const className = cn(
-    "block space-y-1 rounded-lg border p-3 text-start",
-    tone === "alert" && "border-danger/25 bg-danger-soft text-danger",
-    href && "transition-colors hover:bg-muted/50",
+    "block space-y-1.5 rounded-xl bg-card p-4 text-start shadow-card",
+    href && "transition-shadow duration-200 ease-apple hover:shadow-raised",
   );
   return href ? (
     <Link href={href} className={className} data-testid={testId}>
@@ -72,12 +92,10 @@ function Section({
   testId?: string;
 }) {
   return (
-    <Card data-testid={testId}>
-      <CardHeader>
-        <CardTitle>{title}</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">{children}</CardContent>
-    </Card>
+    <section data-testid={testId} className="space-y-3">
+      <h2 className="text-title">{title}</h2>
+      {children}
+    </section>
   );
 }
 
@@ -121,27 +139,35 @@ export default async function DashboardPage({ params }: PageProps<"/[locale]/das
     (todo.documents?.incomplete ?? 0) > 0;
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6">
+    <div className="mx-auto max-w-7xl space-y-8">
       <PageHeader
         title={t("home.title")}
         description={t("dashboard.asOf", { date: formatDate(data.today), month: monthLabel })}
       />
 
       {secure ? (
-        <p
-          className="rounded-lg border border-warning/25 bg-warning-soft p-3 text-sm text-warning"
+        <div
+          className="flex items-center gap-3 rounded-xl bg-card p-4 text-sm shadow-card"
           data-testid="secure-account"
         >
-          {t("dashboard.secureAccount")}{" "}
-          <Link href="/settings/security" className="font-medium underline">
-            {t("dashboard.secureAccountLink")}
-          </Link>
-        </p>
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-warning-soft text-warning">
+            <ShieldAlert className="size-5" aria-hidden />
+          </span>
+          <p className="min-w-0 flex-1">
+            {t("dashboard.secureAccount")}{" "}
+            <Link href="/settings/security" className="font-medium text-primary">
+              {t("dashboard.secureAccountLink")}
+            </Link>
+          </p>
+        </div>
       ) : null}
 
       {hasTodo ? (
         <Section title={t("dashboard.todo.title")} testId="dashboard-todo">
-          <ul className="divide-y text-sm">
+          <ul
+            className="overflow-hidden rounded-xl bg-card text-sm shadow-card [&_a]:font-medium [&_a]:after:absolute [&_a]:after:inset-0 [&_a:hover]:no-underline [&>li]:relative [&>li]:py-3 [&>li]:ps-4 [&>li]:pe-10 [&>li]:transition-colors [&>li:has(a)]:after:absolute [&>li:has(a)]:after:end-4 [&>li:has(a)]:after:top-1/2 [&>li:has(a)]:after:size-3.5 [&>li:has(a)]:after:-translate-y-1/2 [&>li:has(a)]:after:bg-muted-foreground/60 [&>li:has(a)]:after:[mask:var(--chevron)_center/contain_no-repeat] rtl:[&>li:has(a)]:after:rotate-180 [&>li:has(a):hover]:bg-muted/40 [&>li:not(:last-child)]:border-b"
+            style={{ "--chevron": TODO_CHEVRON } as React.CSSProperties}
+          >
             {todo.withdrawals?.map((w) => (
               <li key={w.reservationId} className="py-2">
                 <Link href={`/sales/${w.reservationId}`} className="font-medium hover:underline">
@@ -429,79 +455,87 @@ export default async function DashboardPage({ params }: PageProps<"/[locale]/das
 
       {data.stock ? (
         <Section title={t("dashboard.stock.title")} testId="dashboard-stock">
-          {data.stock.projects.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              {t("dashboard.stock.empty")}{" "}
-              <Link href="/projects" className="underline">
-                {t("nav.projects")}
-              </Link>
-            </p>
-          ) : (
-            <>
-              <div className="grid gap-3 sm:grid-cols-2">
-                <Kpi
-                  label={t("dashboard.stock.value")}
-                  value={money(data.stock.stockValue)}
-                  hint={t("dashboard.stock.availableOf", {
-                    available: data.stock.totals.available,
-                    units: data.stock.totals.units,
-                  })}
-                />
-                <div className="rounded-lg border p-3">
-                  <StatsBar stats={data.stock.totals} />
+          <div className="space-y-3">
+            {data.stock.projects.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                {t("dashboard.stock.empty")}{" "}
+                <Link href="/projects" className="underline">
+                  {t("nav.projects")}
+                </Link>
+              </p>
+            ) : (
+              <>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <Kpi
+                    label={t("dashboard.stock.value")}
+                    value={money(data.stock.stockValue)}
+                    hint={t("dashboard.stock.availableOf", {
+                      available: data.stock.totals.available,
+                      units: data.stock.totals.units,
+                    })}
+                  />
+                  <div className="flex items-center rounded-xl bg-card p-4 shadow-card">
+                    <div className="w-full">
+                      <StatsBar stats={data.stock.totals} />
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <ul className="space-y-3">
-                {data.stock.projects.map((p) => (
-                  <li key={p.projectId} className="space-y-1.5">
-                    <Link
-                      href={`/projects/${p.projectId}`}
-                      className="text-sm font-medium hover:underline"
-                    >
-                      {p.name}
-                    </Link>
-                    <StatsBar stats={p} />
-                  </li>
-                ))}
-              </ul>
-            </>
-          )}
+                <ul className="divide-y overflow-hidden rounded-xl bg-card shadow-card">
+                  {data.stock.projects.map((p) => (
+                    <li key={p.projectId} className="space-y-2 px-4 py-3">
+                      <Link
+                        href={`/projects/${p.projectId}`}
+                        className="text-sm font-medium hover:underline"
+                      >
+                        {p.name}
+                      </Link>
+                      <StatsBar stats={p} />
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+          </div>
         </Section>
       ) : null}
 
       {data.pipeline ? (
         <Section title={t("dashboard.pipeline.title")} testId="dashboard-pipeline">
-          <div className="grid gap-3 sm:grid-cols-3">
-            <Kpi
-              label={t("dashboard.pipeline.newLeads")}
-              value={data.pipeline.newLeads}
-              href="/leads"
-            />
-            <Kpi
-              label={t("dashboard.pipeline.lateFollowUps")}
-              value={data.pipeline.lateFollowUps}
-              href="/follow-ups"
-              tone={data.pipeline.lateFollowUps > 0 ? "alert" : "default"}
-            />
-            <Kpi
-              label={t("dashboard.pipeline.won")}
-              value={data.pipeline.stages.won ?? 0}
-              hint={t("dashboard.pipeline.lost", { count: data.pipeline.stages.lost ?? 0 })}
-              href="/leads/pipeline"
-            />
+          <div className="space-y-3">
+            <div className="grid gap-3 sm:grid-cols-3">
+              <Kpi
+                label={t("dashboard.pipeline.newLeads")}
+                value={data.pipeline.newLeads}
+                href="/leads"
+              />
+              <Kpi
+                label={t("dashboard.pipeline.lateFollowUps")}
+                value={data.pipeline.lateFollowUps}
+                href="/follow-ups"
+                tone={data.pipeline.lateFollowUps > 0 ? "alert" : "default"}
+              />
+              <Kpi
+                label={t("dashboard.pipeline.won")}
+                value={data.pipeline.stages.won ?? 0}
+                hint={t("dashboard.pipeline.lost", { count: data.pipeline.stages.lost ?? 0 })}
+                href="/leads/pipeline"
+              />
+            </div>
+            <dl className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-5">
+              {(["new", "contacted", "visit_scheduled", "visited", "negotiation"] as const).map(
+                (stage) => (
+                  <div key={stage} className="rounded-xl bg-card px-4 py-3 shadow-card">
+                    <dt className="text-footnote text-muted-foreground">
+                      {t(`crm.stage.${stage}`)}
+                    </dt>
+                    <dd className="text-lg font-semibold tabular-nums">
+                      {data.pipeline?.stages[stage] ?? 0}
+                    </dd>
+                  </div>
+                ),
+              )}
+            </dl>
           </div>
-          <dl className="grid grid-cols-2 gap-2 text-sm sm:grid-cols-5">
-            {(["new", "contacted", "visit_scheduled", "visited", "negotiation"] as const).map(
-              (stage) => (
-                <div key={stage} className="rounded-md border p-2">
-                  <dt className="text-muted-foreground">{t(`crm.stage.${stage}`)}</dt>
-                  <dd className="font-semibold tabular-nums">
-                    {data.pipeline?.stages[stage] ?? 0}
-                  </dd>
-                </div>
-              ),
-            )}
-          </dl>
         </Section>
       ) : null}
     </div>

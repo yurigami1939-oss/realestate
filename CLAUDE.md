@@ -1310,7 +1310,7 @@ Goal (user): a product that feels professional and Apple-like — calm, consiste
 
 ### Priority 4 — key screens
 - [x] **13. Sign-in and account pages**: brand mark, large title, tall fields, calm background (sign-in, sign-up, two-factor, password reset, invitation, onboarding).
-- [ ] **14. Dashboard**: no boxes inside boxes — KPI tiles with large figures, the to-dos as a grouped list with icons and chevrons, stock bars refined.
+- [x] **14. Dashboard**: no boxes inside boxes — KPI tiles with large figures, the to-dos as a grouped list with icons and chevrons, stock bars refined.
 - [ ] **15. Lists**: one toolbar (search, filters, export) above a white table, amounts end-aligned in tabular figures, the whole row opens the record.
 - [ ] **16. Records** (sale, lead, unit, residence, lease): a header with the key facts (status, amounts, people), sections as grouped cards, sub-pages as a segmented control.
 - [ ] **17. Portal (phone first)**: iOS-like — large titles, a bottom tab bar on phones, inset grouped lists with large rows, the home as cards (next installment, balance, latest news).
