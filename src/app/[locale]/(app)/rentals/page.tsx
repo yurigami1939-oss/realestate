@@ -2,6 +2,7 @@ import { Landmark, Plus, Users } from "lucide-react";
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
+import { MoreActions } from "@/components/app-shell/more-actions";
 import { PageHeader } from "@/components/app-shell/page-header";
 import { ExportButton } from "@/components/exports/export-button";
 import { LeaseFilters, LeaseStateBadge, RegistrationBadge } from "@/components/rentals/rentals-ui";
@@ -51,19 +52,6 @@ export default async function RentalsPage({
         description={t("description")}
         actions={
           <>
-            <ExportButton kind="leases" params={{ status, project: projectId }} />
-            <Button asChild variant="outline">
-              <Link href="/rentals/owners">
-                <Users data-icon="inline-start" />
-                {t("ownersLink")}
-              </Link>
-            </Button>
-            <Button asChild variant="outline">
-              <Link href="/rentals/taxes">
-                <Landmark data-icon="inline-start" />
-                {t("taxes.link")}
-              </Link>
-            </Button>
             {can(ctx, "lease:update") ? (
               <Button asChild>
                 <Link href="/rentals/new">
@@ -72,6 +60,21 @@ export default async function RentalsPage({
                 </Link>
               </Button>
             ) : null}
+            <MoreActions>
+              <ExportButton kind="leases" params={{ status, project: projectId }} />
+              <Button asChild variant="outline">
+                <Link href="/rentals/owners">
+                  <Users data-icon="inline-start" />
+                  {t("ownersLink")}
+                </Link>
+              </Button>
+              <Button asChild variant="outline">
+                <Link href="/rentals/taxes">
+                  <Landmark data-icon="inline-start" />
+                  {t("taxes.link")}
+                </Link>
+              </Button>
+            </MoreActions>
           </>
         }
       />

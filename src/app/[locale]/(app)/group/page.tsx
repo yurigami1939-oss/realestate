@@ -66,7 +66,7 @@ export default async function GroupPage({ params }: PageProps<"/[locale]/group">
   });
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
+    <div className="mx-auto max-w-7xl space-y-6">
       <PageHeader title={t("title")} description={t("description", { year: overview.year })} />
       <div className="overflow-x-auto rounded-lg border">
         <Table data-testid="group-companies">

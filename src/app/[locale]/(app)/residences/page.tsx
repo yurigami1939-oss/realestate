@@ -30,7 +30,7 @@ export default async function ResidencesPage({ params }: PageProps<"/[locale]/re
   const t = await getTranslations("residences");
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
+    <div className="mx-auto max-w-7xl space-y-6">
       <PageHeader
         title={t("title")}
         description={t("description")}

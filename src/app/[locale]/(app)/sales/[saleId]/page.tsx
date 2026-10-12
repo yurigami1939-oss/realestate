@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
+import { MoreActions } from "@/components/app-shell/more-actions";
 import { PageHeader } from "@/components/app-shell/page-header";
 import { PhoneText } from "@/components/crm/phone";
 import { DeliveryStateBadge } from "@/components/handovers/badges";
@@ -261,23 +262,25 @@ export default async function SalePage({ params }: PageProps<"/[locale]/sales/[s
                 today={today}
               />
             ) : null}
-            {live && st.overdue > 0n && can(ctx, "sale:remind") ? (
-              <ReminderDialog
-                reservationId={sale.id}
-                overdue={st.overdue}
-                payBy={addDays(today, REMINDER_PAY_WITHIN_DAYS)}
-                today={today}
-              />
-            ) : null}
-            {live && st.overdue > 0n && can(ctx, "sale:withdraw") ? (
-              <ReminderDialog
-                reservationId={sale.id}
-                overdue={st.overdue}
-                payBy={addDays(today, formalNoticeDays)}
-                today={addDays(today, formalNoticeDays)}
-                formalNotice={{ days: formalNoticeDays }}
-              />
-            ) : null}
+            <MoreActions>
+              {live && st.overdue > 0n && can(ctx, "sale:remind") ? (
+                <ReminderDialog
+                  reservationId={sale.id}
+                  overdue={st.overdue}
+                  payBy={addDays(today, REMINDER_PAY_WITHIN_DAYS)}
+                  today={today}
+                />
+              ) : null}
+              {live && st.overdue > 0n && can(ctx, "sale:withdraw") ? (
+                <ReminderDialog
+                  reservationId={sale.id}
+                  overdue={st.overdue}
+                  payBy={addDays(today, formalNoticeDays)}
+                  today={addDays(today, formalNoticeDays)}
+                  formalNotice={{ days: formalNoticeDays }}
+                />
+              ) : null}
+            </MoreActions>
           </>
         }
       />

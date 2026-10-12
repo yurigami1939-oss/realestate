@@ -27,7 +27,7 @@ export default async function PriceListPage({
   const t = await getTranslations("inventory");
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
+    <div className="mx-auto max-w-7xl space-y-6">
       <PageHeader
         title={`${t("priceLists.version", { version: list.version })} · ${list.name}`}
         badge={

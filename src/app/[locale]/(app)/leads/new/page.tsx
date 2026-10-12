@@ -24,7 +24,7 @@ export default async function NewLeadPage({ params }: PageProps<"/[locale]/leads
   const t = await getTranslations("crm.leads");
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
+    <div className="mx-auto max-w-5xl space-y-6">
       <PageHeader title={t("new")} crumbs={[{ label: t("title"), href: "/leads" }]} />
       <LeadForm projects={projects} owners={owners} partners={await listPartnerChoices(ctx)} />
     </div>

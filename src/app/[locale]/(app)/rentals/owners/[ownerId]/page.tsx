@@ -64,7 +64,7 @@ export default async function OwnerPage({
   const text = (v: string | null) => v ?? "";
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
+    <div className="mx-auto max-w-7xl space-y-6">
       <PageHeader
         title={owner.name}
         crumbs={[

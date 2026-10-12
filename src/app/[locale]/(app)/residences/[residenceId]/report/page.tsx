@@ -72,7 +72,7 @@ export default async function ResidenceReportPage({
   ] as const;
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
+    <div className="mx-auto max-w-7xl space-y-6">
       <PageHeader
         title={report.residence.name}
         description={report.residence.projectName}

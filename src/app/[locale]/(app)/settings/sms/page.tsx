@@ -21,7 +21,7 @@ export default async function SmsSettingsPage({ params }: PageProps<"/[locale]/s
   const t = await getTranslations("sms.settings");
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
+    <div className="mx-auto max-w-5xl space-y-6">
       <PageHeader
         title={t("title")}
         description={t("description")}

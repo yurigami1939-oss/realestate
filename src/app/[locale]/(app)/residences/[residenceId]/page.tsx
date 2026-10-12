@@ -53,7 +53,7 @@ export default async function ResidencePage({
   const place = [residence.address, residence.commune, residence.wilaya].filter(Boolean).join(", ");
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
+    <div className="mx-auto max-w-7xl space-y-6">
       <PageHeader
         title={residence.name}
         description={[residence.projectName, place].filter(Boolean).join(" · ")}

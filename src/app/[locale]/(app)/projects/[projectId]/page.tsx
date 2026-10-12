@@ -14,6 +14,7 @@ import { notFound } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
+import { MoreActions } from "@/components/app-shell/more-actions";
 import { PageHeader } from "@/components/app-shell/page-header";
 import { ExportButton } from "@/components/exports/export-button";
 import { ConfirmAction } from "@/components/forms/confirm-action";
@@ -60,7 +61,7 @@ export default async function ProjectPage({ params }: PageProps<"/[locale]/proje
   const forSale = !project.thirdParty;
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
+    <div className="mx-auto max-w-7xl space-y-6">
       <PageHeader
         title={project.name}
         crumbs={[{ label: t("projects.title"), href: "/projects" }]}
@@ -77,39 +78,6 @@ export default async function ProjectPage({ params }: PageProps<"/[locale]/proje
         }
         actions={
           <>
-            <ExportButton kind="units" params={{ project: project.id }} />
-            {forSale ? (
-              <Button asChild variant="outline">
-                <Link href={`/projects/${project.id}/price-lists`}>
-                  <Tags data-icon="inline-start" />
-                  {t("priceLists.title")}
-                </Link>
-              </Button>
-            ) : null}
-            {forSale ? (
-              <Button asChild variant="outline">
-                <Link href={`/projects/${project.id}/payment-plans`}>
-                  <CalendarRange data-icon="inline-start" />
-                  {tp("title")}
-                </Link>
-              </Button>
-            ) : null}
-            {forSale && can(ctx, "cost:read") ? (
-              <Button asChild variant="outline">
-                <Link href={`/projects/${project.id}/costs`}>
-                  <Coins data-icon="inline-start" />
-                  {tk("link")}
-                </Link>
-              </Button>
-            ) : null}
-            {forSale && can(ctx, "construction:read") ? (
-              <Button asChild variant="outline">
-                <Link href={`/construction/${project.id}`}>
-                  <HardHat data-icon="inline-start" />
-                  {tw("projectLink")}
-                </Link>
-              </Button>
-            ) : null}
             {canEdit ? (
               <Button asChild variant="outline">
                 <Link href={`/projects/${project.id}/edit`}>
@@ -118,20 +86,55 @@ export default async function ProjectPage({ params }: PageProps<"/[locale]/proje
                 </Link>
               </Button>
             ) : null}
-            {can(ctx, "project:delete") && project.totals.units === 0 ? (
-              <ConfirmAction
-                action={deleteProjectAction}
-                input={{ projectId: project.id }}
-                label={tc("delete")}
-                icon={<Trash2 data-icon="inline-start" />}
-                title={t("projects.deleteTitle", { name: project.name })}
-                description={t("projects.deleteDescription")}
-                confirmLabel={tc("delete")}
-                successMessage={t("projects.deleted")}
-                redirectTo="/projects"
-                destructive
-              />
-            ) : null}
+            <MoreActions>
+              <ExportButton kind="units" params={{ project: project.id }} />
+              {forSale ? (
+                <Button asChild variant="outline">
+                  <Link href={`/projects/${project.id}/price-lists`}>
+                    <Tags data-icon="inline-start" />
+                    {t("priceLists.title")}
+                  </Link>
+                </Button>
+              ) : null}
+              {forSale ? (
+                <Button asChild variant="outline">
+                  <Link href={`/projects/${project.id}/payment-plans`}>
+                    <CalendarRange data-icon="inline-start" />
+                    {tp("title")}
+                  </Link>
+                </Button>
+              ) : null}
+              {forSale && can(ctx, "cost:read") ? (
+                <Button asChild variant="outline">
+                  <Link href={`/projects/${project.id}/costs`}>
+                    <Coins data-icon="inline-start" />
+                    {tk("link")}
+                  </Link>
+                </Button>
+              ) : null}
+              {forSale && can(ctx, "construction:read") ? (
+                <Button asChild variant="outline">
+                  <Link href={`/construction/${project.id}`}>
+                    <HardHat data-icon="inline-start" />
+                    {tw("projectLink")}
+                  </Link>
+                </Button>
+              ) : null}
+              {can(ctx, "project:delete") && project.totals.units === 0 ? (
+                <ConfirmAction
+                  action={deleteProjectAction}
+                  input={{ projectId: project.id }}
+                  label={tc("delete")}
+                  icon={<Trash2 data-icon="inline-start" />}
+                  title={t("projects.deleteTitle", { name: project.name })}
+                  description={t("projects.deleteDescription")}
+                  confirmLabel={tc("delete")}
+                  successMessage={t("projects.deleted")}
+                  redirectTo="/projects"
+                  destructive
+                />
+              ) : null}
+            </MoreActions>
           </>
         }
       />

@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
+import { MoreActions } from "@/components/app-shell/more-actions";
 import { PageHeader } from "@/components/app-shell/page-header";
 import { ExportButton } from "@/components/exports/export-button";
 import {
@@ -77,7 +78,7 @@ export default async function AccountPage({
   const deposits = banked ? await listChequeDeposits(ctx, account.id) : [];
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
+    <div className="mx-auto max-w-7xl space-y-6">
       <PageHeader
         title={account.name}
         crumbs={[{ label: t("title"), href: "/treasury" }]}
@@ -94,18 +95,6 @@ export default async function AccountPage({
         }
         actions={
           <>
-            <ExportButton
-              kind="ledger"
-              params={{ account: account.id, from: ledger.from, to: ledger.to }}
-            />
-            {banked ? (
-              <Button asChild variant="outline">
-                <Link href={`/treasury/${account.id}/reconciliation`}>
-                  <Landmark data-icon="inline-start" />
-                  {t("reconciliation.link")}
-                </Link>
-              </Button>
-            ) : null}
             {canUpdate ? (
               <MovementDialog
                 accounts={accounts.map((a) => ({ id: a.id, name: a.name, kind: a.kind }))}
@@ -116,8 +105,22 @@ export default async function AccountPage({
             {open && account.kind === "cash" && can(ctx, "treasury:count") ? (
               <CashCountDialog accountId={account.id} balance={ledger.balance} today={today} />
             ) : null}
-            {canUpdate ? <EditAccountDialog account={account} /> : null}
-            {canUpdate ? <CloseAccountDialog accountId={account.id} today={today} /> : null}
+            <MoreActions>
+              <ExportButton
+                kind="ledger"
+                params={{ account: account.id, from: ledger.from, to: ledger.to }}
+              />
+              {banked ? (
+                <Button asChild variant="outline">
+                  <Link href={`/treasury/${account.id}/reconciliation`}>
+                    <Landmark data-icon="inline-start" />
+                    {t("reconciliation.link")}
+                  </Link>
+                </Button>
+              ) : null}
+              {canUpdate ? <EditAccountDialog account={account} /> : null}
+              {canUpdate ? <CloseAccountDialog accountId={account.id} today={today} /> : null}
+            </MoreActions>
           </>
         }
       />

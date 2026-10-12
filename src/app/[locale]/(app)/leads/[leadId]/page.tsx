@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
+import { MoreActions } from "@/components/app-shell/more-actions";
 import { PageHeader } from "@/components/app-shell/page-header";
 import { LeadStageBadge, VisitStatusBadge } from "@/components/crm/badges";
 import { PhoneActions, PhoneText } from "@/components/crm/phone";
@@ -142,37 +143,39 @@ export default async function LeadPage({ params }: PageProps<"/[locale]/leads/[l
             {editable ? (
               <StageDialog leadId={lead.id} name={lead.fullName} stage={lead.stage} />
             ) : null}
-            {owners ? (
-              <AssignDialog
-                leadId={lead.id}
-                name={lead.fullName}
-                assignedTo={lead.assignedTo}
-                owners={owners}
-              />
-            ) : null}
-            {can(ctx, "personal_data:export") ? (
-              <ExportButton kind="person" params={{ lead: lead.id }} label={tp("export")} />
-            ) : null}
-            {can(ctx, "personal_data:erase") &&
-            buyers.length === 0 &&
-            lead.fullName !== ANONYMIZED_NAME ? (
-              <AnonymizeLeadDialog leadId={lead.id} />
-            ) : null}
-            {can(ctx, "lead:delete") ? (
-              <ConfirmAction
-                action={deleteLeadAction}
-                input={{ leadId: lead.id }}
-                label={tc("delete")}
-                icon={<Trash2 data-icon="inline-start" />}
-                title={t("leads.deleteTitle", { name: lead.fullName })}
-                description={t("leads.deleteDescription")}
-                confirmLabel={tc("delete")}
-                successMessage={t("leads.deleted")}
-                redirectTo="/leads"
-                variant="ghost"
-                destructive
-              />
-            ) : null}
+            <MoreActions>
+              {owners ? (
+                <AssignDialog
+                  leadId={lead.id}
+                  name={lead.fullName}
+                  assignedTo={lead.assignedTo}
+                  owners={owners}
+                />
+              ) : null}
+              {can(ctx, "personal_data:export") ? (
+                <ExportButton kind="person" params={{ lead: lead.id }} label={tp("export")} />
+              ) : null}
+              {can(ctx, "personal_data:erase") &&
+              buyers.length === 0 &&
+              lead.fullName !== ANONYMIZED_NAME ? (
+                <AnonymizeLeadDialog leadId={lead.id} />
+              ) : null}
+              {can(ctx, "lead:delete") ? (
+                <ConfirmAction
+                  action={deleteLeadAction}
+                  input={{ leadId: lead.id }}
+                  label={tc("delete")}
+                  icon={<Trash2 data-icon="inline-start" />}
+                  title={t("leads.deleteTitle", { name: lead.fullName })}
+                  description={t("leads.deleteDescription")}
+                  confirmLabel={tc("delete")}
+                  successMessage={t("leads.deleted")}
+                  redirectTo="/leads"
+                  variant="ghost"
+                  destructive
+                />
+              ) : null}
+            </MoreActions>
           </>
         }
       />

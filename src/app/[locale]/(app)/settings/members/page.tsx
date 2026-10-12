@@ -10,6 +10,7 @@ import { listCustomRoles, listMemberCustomRoles } from "@/server/organizations/c
 import { InviteMemberForm } from "./invite-member-form";
 import { MembersTable } from "./members-table";
 import { PendingInvitations } from "./pending-invitations";
+import { PageHeader } from "@/components/app-shell/page-header";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("members");
@@ -32,10 +33,7 @@ export default async function MembersPage({ params }: PageProps<"/[locale]/setti
 
   return (
     <div className="mx-auto max-w-5xl space-y-8">
-      <div className="space-y-1">
-        <h1 className="text-large-title">{t("title")}</h1>
-        <p className="text-muted-foreground">{t("description")}</p>
-      </div>
+      <PageHeader title={t("title")} description={t("description")} />
       <MembersTable
         members={members}
         currentUserId={ctx.userId}

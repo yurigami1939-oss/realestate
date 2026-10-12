@@ -30,7 +30,7 @@ export default async function EditLeasePage({
   if (!lease || lease.status !== "active") notFound();
   const t = await getTranslations("rentals");
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
+    <div className="mx-auto max-w-7xl space-y-6">
       <PageHeader
         title={t("editTitle")}
         description={`${lease.number} · ${lease.unitCode}`}

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import type { ReactNode } from "react";
 
+import { PageHeader } from "@/components/app-shell/page-header";
 import { StatsBar } from "@/components/inventory/status";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "@/i18n/navigation";
@@ -121,12 +122,10 @@ export default async function DashboardPage({ params }: PageProps<"/[locale]/das
 
   return (
     <div className="mx-auto max-w-7xl space-y-6">
-      <div className="space-y-1">
-        <h1 className="text-large-title">{t("home.title")}</h1>
-        <p className="text-muted-foreground">
-          {t("dashboard.asOf", { date: formatDate(data.today), month: monthLabel })}
-        </p>
-      </div>
+      <PageHeader
+        title={t("home.title")}
+        description={t("dashboard.asOf", { date: formatDate(data.today), month: monthLabel })}
+      />
 
       {secure ? (
         <p

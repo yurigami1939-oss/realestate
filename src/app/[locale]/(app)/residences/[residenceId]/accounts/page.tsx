@@ -51,7 +51,7 @@ export default async function ResidenceAccountsPage({
   ] as const;
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
+    <div className="mx-auto max-w-7xl space-y-6">
       <PageHeader
         title={accounts.residence.name}
         description={accounts.residence.projectName}

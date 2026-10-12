@@ -26,7 +26,7 @@ export default async function OnlinePaymentSettingsPage({
   const t = await getTranslations("onlinePayments.settings");
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
+    <div className="mx-auto max-w-5xl space-y-6">
       <PageHeader title={t("title")} description={t("description")} />
       <div className="flex flex-wrap items-center gap-2">
         <CardsMark />

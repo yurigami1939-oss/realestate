@@ -26,7 +26,8 @@
       "previous": "السابق",
       "next": "التالي"
     },
-    "total": "المجموع"
+    "total": "المجموع",
+    "moreActions": "إجراءات أخرى"
   },
   "locale": {
     "fr": "Français",

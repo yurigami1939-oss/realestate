@@ -48,7 +48,7 @@ export default async function NewQuotationPage({
   const t = await getTranslations();
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
+    <div className="mx-auto max-w-7xl space-y-6">
       <PageHeader
         title={t("quotations.newTitle", { name: lead.fullName })}
         crumbs={[

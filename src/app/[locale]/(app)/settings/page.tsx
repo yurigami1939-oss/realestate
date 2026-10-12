@@ -22,7 +22,7 @@ export default async function SettingsPage({ params }: PageProps<"/[locale]/sett
   const access = accessOf(ctx);
   const t = await getTranslations();
   return (
-    <div className="mx-auto max-w-2xl space-y-8">
+    <div className="mx-auto max-w-3xl space-y-8">
       <PageHeader title={t("nav.settings")} description={t("settingsHub.description")} />
       {settingsGroups.map((group) => {
         const items = visibleItems(group.items, access, false);

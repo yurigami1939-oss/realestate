@@ -81,6 +81,7 @@ test.describe("treasury", () => {
       .getByTestId("treasury-accounts")
       .getByRole("link", { name: "BNA compte courant" })
       .click();
+    await page.getByRole("button", { name: "Plus d'actions" }).click();
     await page.getByRole("link", { name: "Rapprochement" }).click();
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("Rapprochement bancaire");
     // This week's statement (src/db/seed/treasury.ts), whatever the day of the month.

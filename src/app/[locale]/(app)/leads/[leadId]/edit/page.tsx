@@ -28,7 +28,7 @@ export default async function EditLeadPage({ params }: PageProps<"/[locale]/lead
   const t = await getTranslations("crm.leads");
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
+    <div className="mx-auto max-w-5xl space-y-6">
       <PageHeader
         title={t("editTitle")}
         crumbs={[

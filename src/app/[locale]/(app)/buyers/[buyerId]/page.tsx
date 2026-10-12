@@ -56,7 +56,7 @@ export default async function BuyerPage({ params }: PageProps<"/[locale]/buyers/
   };
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
+    <div className="mx-auto max-w-7xl space-y-6">
       <PageHeader
         title={`${civility}${buyer.lastName} ${buyer.firstName}`}
         badge={

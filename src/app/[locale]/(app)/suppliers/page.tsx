@@ -31,7 +31,7 @@ export default async function SuppliersPage({ params }: PageProps<"/[locale]/sup
   const t = await getTranslations("suppliers");
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
+    <div className="mx-auto max-w-7xl space-y-6">
       <PageHeader
         title={t("title")}
         description={t("description")}

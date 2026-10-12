@@ -163,6 +163,7 @@ test.describe("gestionnaire", () => {
     await expect(page.getByTestId("leases").locator('[data-unit="M-01-02"]')).toContainText(
       "pour Zerrouki Leila",
     );
+    await page.getByRole("button", { name: "Plus d'actions" }).click();
     await page.getByRole("link", { name: "Propriétaires" }).click();
     await page.getByTestId("owners").getByRole("link", { name: "Zerrouki Leila" }).click();
     await expect(page.getByTestId("owner-mandates")).toContainText("M-01-02");

@@ -48,7 +48,7 @@ export default async function ResidenceCallsPage({
   const works = canIssue ? await getWorksCallChoices(ctx, residenceId) : null;
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
+    <div className="mx-auto max-w-7xl space-y-6">
       <PageHeader
         title={setup.residence.name}
         description={setup.residence.projectName}

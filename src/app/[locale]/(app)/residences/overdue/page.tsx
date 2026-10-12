@@ -40,7 +40,7 @@ export default async function OverdueChargesPage({
   const today = todayInAlgiers();
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
+    <div className="mx-auto max-w-7xl space-y-6">
       <PageHeader title={t("title")} description={t("description")} />
       {rows.length === 0 ? (
         <p className="text-sm text-muted-foreground">{t("empty")}</p>

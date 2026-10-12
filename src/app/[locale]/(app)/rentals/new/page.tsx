@@ -24,7 +24,7 @@ export default async function NewLeasePage({
   const units = await listLeasableUnits(ctx);
   const t = await getTranslations("rentals");
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
+    <div className="mx-auto max-w-7xl space-y-6">
       <PageHeader title={t("newTitle")} crumbs={[{ label: t("title"), href: "/rentals" }]} />
       {units.length === 0 ? (
         <p className="rounded-lg border border-dashed p-8 text-center text-muted-foreground">

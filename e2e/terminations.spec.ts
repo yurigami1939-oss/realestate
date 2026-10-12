@@ -13,6 +13,7 @@ test.describe("directrice commerciale", () => {
     await expect(termination).toContainText("Aucune mise en demeure échue sur 2 requises");
     await expect(termination.getByRole("button")).toHaveCount(0);
 
+    await page.getByRole("button", { name: "Plus d'actions" }).click();
     await page.getByRole("button", { name: "Mise en demeure" }).click();
     const dialog = page.getByRole("dialog");
     await expect(dialog).toContainText("au moins 15 jours");

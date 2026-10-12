@@ -33,7 +33,7 @@ export default async function CompanyPage({ params }: PageProps<"/[locale]/setti
   const limit = (bp: number | undefined) => (bp === undefined ? "" : formatPercentInput(bp));
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
+    <div className="mx-auto max-w-5xl space-y-6">
       <PageHeader title={t("title")} description={t("description")} />
       <CompanyLogo orgId={ctx.orgId} logoFileId={settings.logoFileId} />
       <CompanyForm

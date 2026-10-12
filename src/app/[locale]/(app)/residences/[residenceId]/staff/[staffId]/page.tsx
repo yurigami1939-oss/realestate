@@ -56,7 +56,7 @@ export default async function StaffMemberPage({
   const arabicName = [agent.lastNameAr, agent.firstNameAr].filter(Boolean).join(" ");
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
+    <div className="mx-auto max-w-7xl space-y-6">
       <PageHeader
         title={`${agent.lastName} ${agent.firstName}`}
         description={[t(`role.${agent.role}`), arabicName].filter(Boolean).join(" · ")}

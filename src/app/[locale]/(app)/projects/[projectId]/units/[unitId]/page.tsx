@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
+import { MoreActions } from "@/components/app-shell/more-actions";
 import { PageHeader } from "@/components/app-shell/page-header";
 import { ConfirmAction } from "@/components/forms/confirm-action";
 import { UnitStatusBadge, useFloorLabel } from "@/components/inventory/status";
@@ -76,7 +77,7 @@ export default async function UnitPage({
   const forSale = !unit.thirdParty;
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
+    <div className="mx-auto max-w-7xl space-y-6">
       <PageHeader
         title={unit.code}
         badge={<UnitStatusBadge status={unit.status} />}
@@ -112,28 +113,30 @@ export default async function UnitPage({
                 }
               />
             ) : null}
-            {can(ctx, "unit:block") &&
-            (unit.status === "available" || unit.status === "blocked") ? (
-              <BlockUnitDialog
-                unitId={unit.id}
-                code={unit.code}
-                blocked={unit.status === "blocked"}
-              />
-            ) : null}
-            {can(ctx, "unit:delete") && deletable ? (
-              <ConfirmAction
-                action={deleteUnitAction}
-                input={{ unitId: unit.id }}
-                label={tc("delete")}
-                icon={<Trash2 data-icon="inline-start" />}
-                title={t("units.deleteTitle", { code: unit.code })}
-                description={t("units.deleteDescription")}
-                confirmLabel={tc("delete")}
-                successMessage={t("units.deleted")}
-                redirectTo={`/projects/${projectId}/buildings/${unit.buildingId}`}
-                destructive
-              />
-            ) : null}
+            <MoreActions>
+              {can(ctx, "unit:block") &&
+              (unit.status === "available" || unit.status === "blocked") ? (
+                <BlockUnitDialog
+                  unitId={unit.id}
+                  code={unit.code}
+                  blocked={unit.status === "blocked"}
+                />
+              ) : null}
+              {can(ctx, "unit:delete") && deletable ? (
+                <ConfirmAction
+                  action={deleteUnitAction}
+                  input={{ unitId: unit.id }}
+                  label={tc("delete")}
+                  icon={<Trash2 data-icon="inline-start" />}
+                  title={t("units.deleteTitle", { code: unit.code })}
+                  description={t("units.deleteDescription")}
+                  confirmLabel={tc("delete")}
+                  successMessage={t("units.deleted")}
+                  redirectTo={`/projects/${projectId}/buildings/${unit.buildingId}`}
+                  destructive
+                />
+              ) : null}
+            </MoreActions>
           </>
         }
       />

@@ -26,7 +26,8 @@
       "previous": "Précédent",
       "next": "Suivant"
     },
-    "total": "Total"
+    "total": "Total",
+    "moreActions": "Plus d'actions"
   },
   "locale": {
     "fr": "Français",

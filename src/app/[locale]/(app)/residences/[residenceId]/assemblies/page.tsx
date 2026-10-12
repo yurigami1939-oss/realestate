@@ -42,7 +42,7 @@ export default async function ResidenceAssembliesPage({
   const tr = await getTranslations("residences");
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
+    <div className="mx-auto max-w-7xl space-y-6">
       <PageHeader
         title={home.name}
         description={home.projectName}

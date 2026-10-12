@@ -47,7 +47,7 @@ export default async function ResidenceChargesPage({
   const yearHref = (y: number) => `/residences/${residenceId}/charges?year=${y}`;
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
+    <div className="mx-auto max-w-7xl space-y-6">
       <PageHeader
         title={setup.residence.name}
         description={setup.residence.projectName}

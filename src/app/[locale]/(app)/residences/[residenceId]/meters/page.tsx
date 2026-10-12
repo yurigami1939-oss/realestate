@@ -40,7 +40,7 @@ export default async function ResidenceMetersPage({
   const tr = await getTranslations("residences");
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
+    <div className="mx-auto max-w-7xl space-y-6">
       <PageHeader
         title={board.residence.name}
         description={t("title")}

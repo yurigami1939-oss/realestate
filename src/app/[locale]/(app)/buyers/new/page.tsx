@@ -34,7 +34,7 @@ export default async function NewBuyerPage({
   const t = await getTranslations("buyers");
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
+    <div className="mx-auto max-w-5xl space-y-6">
       <PageHeader title={t("newTitle")} crumbs={[{ label: t("title"), href: "/buyers" }]} />
       <BuyerForm
         defaultValues={

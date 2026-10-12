@@ -45,7 +45,7 @@ export default async function TreasuryPage({ params }: PageProps<"/[locale]/trea
     .filter((k) => k.count > 0);
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
+    <div className="mx-auto max-w-7xl space-y-6">
       <PageHeader
         title={t("title")}
         description={t("description")}

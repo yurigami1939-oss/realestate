@@ -139,6 +139,7 @@ test.describe("directrice commerciale", () => {
     ]);
     expect(download.suggestedFilename()).toMatch(/^donnees-.+-loi-18-07\.xlsx$/);
 
+    await page.getByRole("button", { name: "Plus d'actions" }).click();
     await page.getByRole("button", { name: "Anonymiser" }).click();
     const dialog = page.getByRole("dialog");
     await dialog

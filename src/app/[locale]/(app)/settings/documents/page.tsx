@@ -25,7 +25,7 @@ export default async function DocumentTextsPage({
   const t = await getTranslations("documentTexts");
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
+    <div className="mx-auto max-w-5xl space-y-6">
       <PageHeader title={t("title")} description={t("description")} />
       <DocumentTextsForm current={company.documentTexts} />
     </div>

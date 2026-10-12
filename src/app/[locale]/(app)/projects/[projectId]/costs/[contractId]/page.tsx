@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
+import { MoreActions } from "@/components/app-shell/more-actions";
 import { PageHeader } from "@/components/app-shell/page-header";
 import { CostScan } from "@/components/costs/cost-scan";
 import {
@@ -87,7 +88,7 @@ export default async function WorksContractPage({
   ];
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
+    <div className="mx-auto max-w-7xl space-y-6">
       <PageHeader
         title={contract.title}
         crumbs={[
@@ -122,41 +123,43 @@ export default async function WorksContractPage({
                 accounts={accounts}
               />
             ) : null}
-            {canUpdate && open ? (
-              <ContractDialog
-                contractId={contract.id}
-                contractors={contractors}
-                today={today}
-                values={{
-                  supplierId: contract.supplierId,
-                  category: contract.category,
-                  reference: contract.reference ?? "",
-                  title: contract.title,
-                  amount: asInput(contract.amount),
-                  retention: formatShare(contract.retentionBp).replace(/\s*%$/, ""),
-                  signedOn: contract.signedOn,
-                  plannedEndOn: contract.plannedEndOn ?? "",
-                  notes: contract.notes ?? "",
-                }}
-              />
-            ) : null}
-            {canUpdate && open ? (
-              <TerminateContractDialog contractId={contract.id} today={today} />
-            ) : null}
-            {canUpdate && contract.invoices.length === 0 ? (
-              <ConfirmAction
-                action={deleteContractAction}
-                input={{ contractId: contract.id }}
-                label={tc("delete")}
-                icon={<Trash2 data-icon="inline-start" />}
-                title={t("contracts.deleteTitle")}
-                description={t("contracts.deleteDescription")}
-                confirmLabel={tc("delete")}
-                successMessage={t("contracts.deleted")}
-                redirectTo={`/projects/${projectId}/costs`}
-                destructive
-              />
-            ) : null}
+            <MoreActions>
+              {canUpdate && open ? (
+                <ContractDialog
+                  contractId={contract.id}
+                  contractors={contractors}
+                  today={today}
+                  values={{
+                    supplierId: contract.supplierId,
+                    category: contract.category,
+                    reference: contract.reference ?? "",
+                    title: contract.title,
+                    amount: asInput(contract.amount),
+                    retention: formatShare(contract.retentionBp).replace(/\s*%$/, ""),
+                    signedOn: contract.signedOn,
+                    plannedEndOn: contract.plannedEndOn ?? "",
+                    notes: contract.notes ?? "",
+                  }}
+                />
+              ) : null}
+              {canUpdate && open ? (
+                <TerminateContractDialog contractId={contract.id} today={today} />
+              ) : null}
+              {canUpdate && contract.invoices.length === 0 ? (
+                <ConfirmAction
+                  action={deleteContractAction}
+                  input={{ contractId: contract.id }}
+                  label={tc("delete")}
+                  icon={<Trash2 data-icon="inline-start" />}
+                  title={t("contracts.deleteTitle")}
+                  description={t("contracts.deleteDescription")}
+                  confirmLabel={tc("delete")}
+                  successMessage={t("contracts.deleted")}
+                  redirectTo={`/projects/${projectId}/costs`}
+                  destructive
+                />
+              ) : null}
+            </MoreActions>
           </>
         }
       />

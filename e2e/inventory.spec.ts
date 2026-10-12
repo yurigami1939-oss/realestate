@@ -55,6 +55,7 @@ test.describe("sales manager", () => {
 
     // Price list: 100 000 DA/m² × 80 m², applied
     await page.getByRole("link", { name: "Résidence du Jardin" }).click();
+    await page.getByRole("button", { name: "Plus d'actions" }).click();
     await page.getByRole("link", { name: "Grilles de prix" }).click();
     await page.getByRole("button", { name: "Nouvelle grille" }).click();
     await page.getByRole("dialog").getByLabel("Nom").fill("Lancement");
@@ -76,6 +77,7 @@ test.describe("sales manager", () => {
     await page.getByRole("link", { name: /^A-01-01/ }).click();
     await expect(page.getByTestId("unit-price")).toHaveText(/^8\s000\s000,00\sDA$/);
 
+    await page.getByRole("button", { name: "Plus d'actions" }).click();
     await page.getByRole("button", { name: "Bloquer" }).click();
     await page.getByRole("dialog").getByLabel("Motif").fill("Appartement témoin");
     await page.getByRole("dialog").getByRole("button", { name: "Confirmer" }).click();
@@ -117,6 +119,7 @@ test.describe("commercial", () => {
       "https://visite.example.test/les-oliviers",
     );
 
+    await page.getByRole("button", { name: "Plus d'actions" }).click();
     await page.getByRole("link", { name: "Grilles de prix" }).click();
     await expect(page.getByRole("row")).toHaveCount(3);
     await expect(page.getByRole("row", { name: /Révision 2027/ })).toContainText("Brouillon");

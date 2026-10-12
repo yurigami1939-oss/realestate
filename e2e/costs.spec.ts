@@ -13,6 +13,7 @@ test.describe("construction costs", () => {
     const page = await context.newPage();
     await page.goto("/fr/projects");
     await page.getByRole("link", { name: "Résidence Les Oliviers" }).first().click();
+    await page.getByRole("button", { name: "Plus d'actions" }).click();
     await page.getByRole("link", { name: "Coûts et marge" }).click();
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("Coûts et marge");
     await expect(page.getByTestId("costs-summary")).toContainText("Marge prévue");
@@ -44,6 +45,7 @@ test.describe("construction costs", () => {
     const page = await context.newPage();
     await page.goto("/fr/projects");
     await page.getByRole("link", { name: "Résidence Les Oliviers" }).first().click();
+    await page.getByRole("button", { name: "Plus d'actions" }).click();
     await page.getByRole("link", { name: "Coûts et marge" }).click();
     await expect(page.getByTestId("cash-forecast")).toBeVisible();
     await page

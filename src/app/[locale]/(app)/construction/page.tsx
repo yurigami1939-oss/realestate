@@ -25,7 +25,7 @@ export default async function ConstructionPage({ params }: PageProps<"/[locale]/
   const t = await getTranslations("construction");
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
+    <div className="mx-auto max-w-7xl space-y-6">
       <PageHeader title={t("title")} description={t("description")} />
       {projects.length === 0 ? (
         <p className="rounded-lg border border-dashed p-8 text-center text-muted-foreground">

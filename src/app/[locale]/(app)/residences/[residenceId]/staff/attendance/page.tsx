@@ -50,7 +50,7 @@ export default async function AttendancePage({
   const href = (m: string) => `/residences/${residenceId}/staff/attendance?month=${m.slice(0, 7)}`;
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
+    <div className="mx-auto max-w-7xl space-y-6">
       <PageHeader
         title={home.name}
         description={home.projectName}
