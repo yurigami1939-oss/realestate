@@ -58,7 +58,7 @@ export default async function OverdueChargesPage({
             </div>
           </dl>
           <div className="overflow-x-auto rounded-xl bg-card shadow-card in-data-[slot=card]:border in-data-[slot=card]:shadow-none">
-            <Table data-testid="overdue-charges">
+            <Table stack data-testid="overdue-charges">
               <TableHeader>
                 <TableRow>
                   <TableHead>{t("columns.residence")}</TableHead>

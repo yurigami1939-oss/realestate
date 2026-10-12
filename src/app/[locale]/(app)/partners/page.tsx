@@ -125,7 +125,7 @@ export default async function PartnersPage({ params }: PageProps<"/[locale]/part
             {commissions.length === 0 ? (
               <p className="text-sm text-muted-foreground">{t("noCommissions")}</p>
             ) : (
-              <Table data-testid="partner-commissions">
+              <Table stack data-testid="partner-commissions">
                 <TableHeader>
                   <TableRow>
                     <TableHead>{t("columns.name")}</TableHead>

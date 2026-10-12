@@ -81,7 +81,7 @@ export default async function ResidenceAccountsPage({
         {t("reserveHint", { called: money(totals.reserveCalled) })}
       </p>
       <div className="overflow-x-auto rounded-xl bg-card shadow-card in-data-[slot=card]:border in-data-[slot=card]:shadow-none">
-        <Table data-testid="unit-accounts">
+        <Table stack data-testid="unit-accounts">
           <TableHeader>
             <TableRow>
               <TableHead>{t("columns.unit")}</TableHead>

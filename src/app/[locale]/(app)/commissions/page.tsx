@@ -81,7 +81,7 @@ export default async function CommissionsPage({
         <p className="empty-state">{t("commissions.empty")}</p>
       ) : (
         <div className="overflow-x-auto rounded-xl bg-card shadow-card in-data-[slot=card]:border in-data-[slot=card]:shadow-none">
-          <Table data-testid="commissions">
+          <Table stack data-testid="commissions">
             <TableHeader>
               <TableRow>
                 <TableHead>{t("commissions.columns.sale")}</TableHead>

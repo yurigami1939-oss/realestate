@@ -101,7 +101,7 @@ export default async function BuyerPage({ params }: PageProps<"/[locale]/buyers/
             <CardTitle>{ts("title")}</CardTitle>
           </CardHeader>
           <CardContent>
-            <Table data-testid="buyer-sales">
+            <Table stack data-testid="buyer-sales">
               <TableBody>
                 {sales.map((sale) => (
                   <TableRow key={sale.id}>

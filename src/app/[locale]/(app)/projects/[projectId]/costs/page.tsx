@@ -222,7 +222,7 @@ export default async function ProjectCostsPage({
           {costs.contracts.length === 0 ? (
             <p className="text-sm text-muted-foreground">{t("contracts.empty")}</p>
           ) : (
-            <Table data-testid="contracts">
+            <Table stack data-testid="contracts">
               <TableHeader>
                 <TableRow>
                   <TableHead>{t("fields.title")}</TableHead>

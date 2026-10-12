@@ -83,7 +83,7 @@ export default async function RentalsPage({
         <p className="text-sm text-muted-foreground">{t("empty")}</p>
       ) : (
         <div className="overflow-x-auto rounded-xl bg-card shadow-card in-data-[slot=card]:border in-data-[slot=card]:shadow-none">
-          <Table data-testid="leases">
+          <Table stack data-testid="leases">
             <TableHeader>
               <TableRow>
                 <TableHead>{t("columns.lease")}</TableHead>

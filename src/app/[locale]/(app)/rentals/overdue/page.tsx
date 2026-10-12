@@ -50,7 +50,7 @@ export default async function OverdueRentsPage({ params }: PageProps<"/[locale]/
             {t("overdue.summary", { count: rents.length, total: money(total) })}
           </p>
           <div className="overflow-x-auto rounded-xl bg-card shadow-card in-data-[slot=card]:border in-data-[slot=card]:shadow-none">
-            <Table data-testid="overdue-rents">
+            <Table stack data-testid="overdue-rents">
               <TableHeader>
                 <TableRow>
                   <TableHead>{t("columns.lease")}</TableHead>

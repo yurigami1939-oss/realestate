@@ -49,7 +49,7 @@ export default async function ResidencesPage({ params }: PageProps<"/[locale]/re
         <p className="empty-state">{t("empty")}</p>
       ) : (
         <div className="overflow-x-auto rounded-xl bg-card shadow-card in-data-[slot=card]:border in-data-[slot=card]:shadow-none">
-          <Table data-testid="residences">
+          <Table stack data-testid="residences">
             <TableHeader>
               <TableRow>
                 <TableHead>{t("columns.name")}</TableHead>

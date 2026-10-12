@@ -56,11 +56,15 @@ function DialogContent({
       <DialogPrimitive.Content
         data-slot="dialog-content"
         className={cn(
-          "fixed start-1/2 top-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-5 rounded-2xl bg-popover p-6 text-sm text-popover-foreground shadow-raised duration-200 ease-apple outline-none sm:max-w-sm rtl:translate-x-1/2 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
+          "fixed start-1/2 top-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-5 rounded-2xl bg-popover p-6 text-sm text-popover-foreground shadow-raised duration-200 ease-apple outline-none max-sm:start-0 max-sm:top-auto max-sm:bottom-0 max-sm:max-h-[92dvh] max-sm:max-w-full max-sm:translate-x-0 max-sm:translate-y-0 max-sm:overflow-y-auto max-sm:rounded-b-none max-sm:pb-[calc(1.5rem+env(safe-area-inset-bottom))] sm:max-w-sm rtl:translate-x-1/2 max-sm:rtl:translate-x-0 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 max-sm:data-open:slide-in-from-bottom-10 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95 max-sm:data-closed:slide-out-to-bottom-10",
           className,
         )}
         {...props}
       >
+        <span
+          aria-hidden
+          className="mx-auto -mt-3 -mb-2 h-1 w-9 rounded-full bg-muted-foreground/30 sm:hidden"
+        />
         {children}
         {showCloseButton && (
           <DialogPrimitive.Close data-slot="dialog-close" asChild>

@@ -55,7 +55,7 @@ export default async function DiscountRequestsPage({
         <p className="empty-state">{t("empty")}</p>
       ) : (
         <div className="overflow-x-auto rounded-xl bg-card shadow-card in-data-[slot=card]:border in-data-[slot=card]:shadow-none">
-          <Table data-testid="discount-requests">
+          <Table stack data-testid="discount-requests">
             <TableHeader>
               <TableRow>
                 <TableHead>{t("columns.date")}</TableHead>

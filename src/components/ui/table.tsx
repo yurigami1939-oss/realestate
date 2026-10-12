@@ -3,11 +3,35 @@
 import * as React from "react";
 import { cn } from "cn";
 
-function Table({ className, ...props }: React.ComponentProps<"table">) {
+/**
+ * `stack`: on phones the rows become stacked blocks (CLAUDE.md §14 item 20) — each cell is
+ * labelled with its column's header (`data-label`, copied from the header row after each
+ * render) and shown under the row's first cell; same markup, so nothing renders twice.
+ */
+function Table({
+  className,
+  stack = false,
+  ...props
+}: React.ComponentProps<"table"> & { stack?: boolean }) {
+  const ref = React.useRef<HTMLTableElement>(null);
+  React.useEffect(() => {
+    const table = ref.current;
+    if (!stack || !table) return;
+    const labels = Array.from(table.querySelectorAll("thead th")).map(
+      (th) => th.textContent?.trim() ?? "",
+    );
+    for (const row of Array.from(table.querySelectorAll("tbody tr"))) {
+      Array.from(row.children).forEach((cell, i) => {
+        if (cell instanceof HTMLElement) cell.dataset.label = labels[i] ?? "";
+      });
+    }
+  });
   return (
     <div data-slot="table-container" className="relative w-full overflow-x-auto">
       <table
+        ref={ref}
         data-slot="table"
+        data-stack={stack ? "" : undefined}
         className={cn("w-full caption-bottom text-sm", className)}
         {...props}
       />

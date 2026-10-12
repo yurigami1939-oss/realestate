@@ -50,7 +50,7 @@ export default async function PortalRequestsPage({
         <p className="empty-state">{t("empty")}</p>
       ) : (
         <div className="overflow-x-auto rounded-xl bg-card shadow-card in-data-[slot=card]:border in-data-[slot=card]:shadow-none">
-          <Table data-testid="portal-requests">
+          <Table stack data-testid="portal-requests">
             <TableHeader>
               <TableRow>
                 <TableHead>{t("columns.date")}</TableHead>

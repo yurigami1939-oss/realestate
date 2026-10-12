@@ -90,7 +90,7 @@ export default async function ResidenceStaffPage({
             <p className="text-sm text-muted-foreground">{t("empty")}</p>
           ) : (
             <div className="overflow-x-auto rounded-xl bg-card shadow-card in-data-[slot=card]:border in-data-[slot=card]:shadow-none">
-              <Table data-testid="staff">
+              <Table stack data-testid="staff">
                 <TableHeader>
                   <TableRow>
                     <TableHead>{t("columns.name")}</TableHead>

@@ -49,7 +49,7 @@ export function FormDialog({
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent
         closeLabel={tc("close")}
-        className={cn("max-h-[calc(100dvh-2rem)] overflow-y-auto", className)}
+        className={cn("max-h-[calc(100dvh-2rem)] overflow-y-auto max-sm:max-h-[92dvh]", className)}
       >
         <form className="space-y-4" onSubmit={onSubmit} noValidate>
           <DialogHeader>

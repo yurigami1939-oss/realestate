@@ -76,7 +76,7 @@ export default async function OnlinePaymentsPage({
         <p className="text-sm text-muted-foreground">{t("empty")}</p>
       ) : (
         <div className="overflow-x-auto rounded-xl bg-card shadow-card in-data-[slot=card]:border in-data-[slot=card]:shadow-none">
-          <Table data-testid="online-payments">
+          <Table stack data-testid="online-payments">
             <TableHeader>
               <TableRow>
                 <TableHead>{t("columns.date")}</TableHead>

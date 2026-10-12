@@ -56,7 +56,7 @@ export default async function PriceListsPage({
         <p className="empty-state">{t("priceLists.empty")}</p>
       ) : (
         <div className="overflow-x-auto rounded-xl bg-card shadow-card in-data-[slot=card]:border in-data-[slot=card]:shadow-none">
-          <Table>
+          <Table stack>
             <TableHeader>
               <TableRow>
                 <TableHead>{t("priceLists.name")}</TableHead>

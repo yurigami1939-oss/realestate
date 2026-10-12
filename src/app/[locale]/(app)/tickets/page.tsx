@@ -58,7 +58,7 @@ export default async function TicketsPage({
         <p className="text-sm text-muted-foreground">{t("empty")}</p>
       ) : (
         <div className="overflow-x-auto rounded-xl bg-card shadow-card in-data-[slot=card]:border in-data-[slot=card]:shadow-none">
-          <Table data-testid="tickets">
+          <Table stack data-testid="tickets">
             <TableHeader>
               <TableRow>
                 <TableHead>{t("columns.title")}</TableHead>

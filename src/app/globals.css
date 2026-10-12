@@ -294,6 +294,56 @@
   }
 }
 
+/* Lists on phones (CLAUDE.md §14 item 20): a table marked `stack` shows each row as a block —
+   its first cell as the title, the others as « label … value » lines. */
+@media (max-width: 639px) {
+  table[data-stack] thead {
+    display: none;
+  }
+  table[data-stack],
+  table[data-stack] tbody,
+  table[data-stack] tr {
+    display: block;
+    width: 100%;
+  }
+  table[data-stack] tr {
+    padding: 0.75rem 1rem;
+  }
+  table[data-stack] td {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.125rem 0;
+    white-space: normal;
+    text-align: end;
+  }
+  table[data-stack] td::before {
+    content: attr(data-label);
+    flex-shrink: 0;
+    color: var(--muted-foreground);
+    font-size: 0.8125rem;
+    text-align: start;
+  }
+  table[data-stack] td:first-child {
+    padding-bottom: 0.25rem;
+    font-size: 0.9375rem;
+    text-align: start;
+  }
+  table[data-stack] td:first-child::before,
+  table[data-stack] td[data-label=""]::before,
+  table[data-stack] td[colspan]::before {
+    content: none;
+  }
+  table[data-stack] td:empty {
+    display: none;
+  }
+  table[data-stack] td[colspan] {
+    display: block;
+    text-align: center;
+  }
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

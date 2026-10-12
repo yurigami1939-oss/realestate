@@ -65,7 +65,7 @@ export default async function DeliveriesPage({
         <p className="text-sm text-muted-foreground">{t("empty")}</p>
       ) : (
         <div className="overflow-x-auto rounded-xl bg-card shadow-card in-data-[slot=card]:border in-data-[slot=card]:shadow-none">
-          <Table data-testid="deliveries">
+          <Table stack data-testid="deliveries">
             <TableHeader>
               <TableRow>
                 <TableHead>{t("columns.unit")}</TableHead>
