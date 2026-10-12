@@ -303,6 +303,17 @@
   html {
     @apply font-sans;
   }
+  /* Motion is short and eased; none at all for those who ask the system for less. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
   ::selection {
     background-color: rgb(0 113 227 / 0.22);
   }
