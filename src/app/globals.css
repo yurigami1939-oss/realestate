@@ -126,7 +126,7 @@
   --card-shadow: 0 0 0 1px rgb(0 0 0 / 0.04), 0 1px 3px 0 rgb(0 0 0 / 0.05);
   --raised-shadow: 0 0 0 1px rgb(0 0 0 / 0.05), 0 10px 32px -8px rgb(0 0 0 / 0.18);
 
-  --success: #248a3d;
+  --success: #1b7a33;
   --success-soft: rgb(52 199 89 / 0.14);
   --success-vivid: #34c759;
   --warning: #9a6200;
@@ -153,7 +153,7 @@
   --indigo: #3634a3;
   --indigo-soft: rgb(88 86 214 / 0.14);
   --indigo-vivid: #5856d6;
-  --gray: #6e6e73;
+  --gray: #636366;
   --gray-soft: rgb(118 118 128 / 0.12);
   --gray-vivid: #8e8e93;
 
@@ -210,25 +210,25 @@
   --orange: #ff9f0a;
   --orange-soft: rgb(255 159 10 / 0.18);
   --orange-vivid: #ff9f0a;
-  --danger: #ff453a;
+  --danger: #ff6961;
   --danger-soft: rgb(255 69 58 / 0.18);
   --danger-vivid: #ff453a;
   --info: #409cff;
   --info-soft: rgb(10 132 255 / 0.2);
   --info-vivid: #0a84ff;
-  --purple: #bf5af2;
+  --purple: #da8fff;
   --purple-soft: rgb(191 90 242 / 0.2);
   --purple-vivid: #bf5af2;
-  --pink: #ff375f;
+  --pink: #ff6482;
   --pink-soft: rgb(255 55 95 / 0.2);
   --pink-vivid: #ff375f;
   --teal: #64d2ff;
   --teal-soft: rgb(100 210 255 / 0.18);
   --teal-vivid: #64d2ff;
-  --indigo: #7d7aff;
+  --indigo: #a5a3ff;
   --indigo-soft: rgb(94 92 230 / 0.22);
   --indigo-vivid: #5e5ce6;
-  --gray: #98989d;
+  --gray: #aeaeb2;
   --gray-soft: rgb(118 118 128 / 0.24);
   --gray-vivid: #8e8e93;
 
@@ -317,6 +317,12 @@
       transition-duration: 0.01ms !important;
       scroll-behavior: auto !important;
     }
+  }
+  /* A visible keyboard focus everywhere (controls with their own ring set outline-none). */
+  :where(a, summary, [tabindex]):focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+    border-radius: 4px;
   }
   ::selection {
     background-color: rgb(0 113 227 / 0.22);
