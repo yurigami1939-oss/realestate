@@ -94,7 +94,8 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
     ├── assets/fonts/         # IBM Plex Sans Arabic TTF + OFL (UI and PDFs)
     ├── app/
     │   ├── [locale]/
-    │   │   ├── (auth)/       # sign-in, two-factor (code), sign-up, forgot/reset password, onboarding,
+    │   │   ├── (auth)/       # sign-in, two-factor (code), sign-up, forgot/reset password, onboarding (their look
+    │   │   │                 # set once in layout.tsx: the mark above one centred card, 44 px fields),
     │   │   │                 # accept-invitation; settings/security (2FA) lives in (app)
     │   │   ├── (app)/        # back-office shell (guard + sidebar) · dashboard · settings (the hub « Réglages »: its pages
     │   │   │                 # grouped, its frame beside each of them and beside exports / imports; members,
@@ -1308,7 +1309,7 @@ Goal (user): a product that feels professional and Apple-like — calm, consiste
 - [x] **12. Motion**: short, eased transitions (dialogs, sheets, hover, press), `prefers-reduced-motion` honoured; toasts in the new style.
 
 ### Priority 4 — key screens
-- [ ] **13. Sign-in and account pages**: brand mark, large title, tall fields, calm background (sign-in, sign-up, two-factor, password reset, invitation, onboarding).
+- [x] **13. Sign-in and account pages**: brand mark, large title, tall fields, calm background (sign-in, sign-up, two-factor, password reset, invitation, onboarding).
 - [ ] **14. Dashboard**: no boxes inside boxes — KPI tiles with large figures, the to-dos as a grouped list with icons and chevrons, stock bars refined.
 - [ ] **15. Lists**: one toolbar (search, filters, export) above a white table, amounts end-aligned in tabular figures, the whole row opens the record.
 - [ ] **16. Records** (sale, lead, unit, residence, lease): a header with the key facts (status, amounts, people), sections as grouped cards, sub-pages as a segmented control.
