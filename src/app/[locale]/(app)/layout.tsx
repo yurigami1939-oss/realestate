@@ -1,6 +1,7 @@
 import { AppSidebar } from "@/components/app-shell/app-sidebar";
 import { CommandPalette } from "@/components/app-shell/command-palette";
 import { TopBar } from "@/components/app-shell/top-bar";
+import { DemoBanner } from "@/components/demo/demo-banner";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { redirect } from "@/i18n/navigation";
 import { localeDirection, toLocale } from "@/i18n/locales";
@@ -36,6 +37,7 @@ export default async function AppLayout({ children, params }: LayoutProps<"/[loc
       />
       {/* min-w-0: wide tables scroll inside their own container, not the page. */}
       <SidebarInset className="min-w-0">
+        <DemoBanner />
         <TopBar fallback={active.name}>
           <CommandPalette access={access} group={group} />
         </TopBar>

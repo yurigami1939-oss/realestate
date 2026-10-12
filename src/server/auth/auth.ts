@@ -2,6 +2,7 @@ import "server-only";
 
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { APIError, createAuthMiddleware } from "better-auth/api";
 import { nextCookies } from "better-auth/next-js";
 import { organization, twoFactor } from "better-auth/plugins";
 import { asc, eq } from "drizzle-orm";
@@ -45,6 +46,15 @@ export const auth = betterAuth({
     sendResetPassword: async ({ user, url }) => {
       await sendEmailLater(resetPasswordEmail({ to: user.email, url }));
     },
+  },
+  hooks: {
+    // The demo deployment creates no account (CLAUDE.console.md §13): visitors use the demo
+    // accounts. Only requests are refused, the seed's own calls (no request) still sign up.
+    before: createAuthMiddleware(async (ctx) => {
+      if (ctx.path === "/sign-up/email" && ctx.request && env.DEMO_MODE === true) {
+        throw new APIError("FORBIDDEN", { code: "SIGNUP_CLOSED", message: "Sign-up is closed." });
+      }
+    }),
   },
   databaseHooks: {
     session: {

@@ -66,6 +66,7 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 | `pnpm db:migrate` | Migrations (owner) + `post-migrate.sql` (RLS, grants) + pg-boss schema and queues |
 | `pnpm db:seed` | Wipe local data and seed the demo promoter (refuses non-local DBs) |
 | `pnpm db:reset` | Drop all schemas, migrate, seed (local only) |
+| `pnpm demo:reset` | The demo deployment's nightly reset: empties its bucket, then drops, migrates and seeds its database (needs `DEMO_MODE=true` and `DEMO_RESET=1`; § Config) |
 | `pnpm db:studio` | Drizzle Studio |
 | `pnpm auth:generate` | Regenerate `src/db/schema/auth.ts` after changing `src/server/auth/schema-options.ts` |
 | `pnpm check` | lint + typecheck + test — the CI gate; must be green before a step is "done" |
@@ -81,7 +82,7 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
 ├── playwright.config.ts      # e2e: production build on :3100, realestate_e2e
 ├── vitest.config.ts          # unit + integration, realestate_test, server-only stub
 ├── messages/                 # next-intl catalogs fr.json / ar.json (identical keys, tested)
-├── scripts/                  # db-migrate/seed/reset, storage-init, rtl-lint, check-source-chars,
+├── scripts/                  # db-migrate/seed/reset, demo-reset, storage-init, rtl-lint, check-source-chars,
 │                             # auth schema generation, shims/server-only.mjs, swc-native-cache.ts,
 │                             # generate-icons.ts (the app icons in public/, committed)
 ├── e2e/                      # Playwright specs, helpers, auth.setup (one saved session per role),
@@ -131,6 +132,7 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
     │   ├── ui/               # shadcn/ui primitives (generated; sidebar labels made translatable; Select shows
     │   │                     # its chosen label from the server's HTML)
     │   ├── brand/            # BrandMark, BrandLogo (the app's mark and name)
+    │   ├── demo/             # DemoBanner (the demo deployment's notice above every page)
     │   ├── settings/         # the settings hub (SettingsFrame, SettingsNav, SettingsTile), settings forms
     │   ├── portal/           # PortalNav (sections, wide screens), PortalTabBar (phones), PortalRows (iOS grouped rows)
     │   ├── theme/            # ThemeSwitcher (light / dark / automatic), the themes
@@ -182,7 +184,9 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
     │   │                     # co-owners); grows per module
     │   ├── client.ts         # pg Pool + drizzle (app role)
     │   ├── tenant.ts         # withTenant(scope, fn, tx?)
-    │   └── migrate.ts        # migrateDatabase(): migrations + post-migrate + pg-boss
+    │   ├── migrate.ts        # migrateDatabase(): migrations + post-migrate + pg-boss
+    │   └── reset.ts          # rebuildDatabase(): drop everything, migrate (db:reset, demo:reset);
+    │                         # seed/guard.ts: assertLocalDatabase (local, or the demo's with its flags)
     ├── server/
     │   ├── action.ts         # defineAction()
     │   ├── auth/             # auth.ts (Better Auth), session.ts (getSession, getTenantCtx, assertCan),
@@ -280,6 +284,7 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
     │   ├── accounting/       # accounting export: journal entries of every treasury flow, the chart's codes
     │   ├── secrets.ts        # encryptSecret / decryptSecret (AES-256-GCM, SECRETS_KEY): organization secrets
     │   ├── stand-ins.ts      # devGatewaysEnabled, standInUrl (the /api/dev/* stand-ins)
+    │   ├── demo.ts           # demoModeEnabled (DEMO_MODE), the sign-in page's demo accounts
     │   └── <module>/         # schemas.ts (isomorphic) · queries.ts · service.ts · actions.ts · *.test.ts
     ├── jobs/                 # queues.ts (names, retry policy, payload types), enqueue.ts, worker.ts, handlers/
     ├── pdf/                  # render.ts (Chromium), document.tsx (shell + fonts), receipt.ts, quotation.ts,
@@ -401,9 +406,10 @@ The WhatsApp message log (`notification:read`) is open to the gérant, the direc
 - Tenant data is dynamic by default. Any `use cache` / cached function on tenant data must include `orgId` in its key and be tagged `org:{orgId}:{entity}`.
 
 ### Config
-- `src/env.ts` validates: `DATABASE_URL` (app role), `DATABASE_OWNER_URL`, `BETTER_AUTH_SECRET` (≥32), `BETTER_AUTH_URL`, `S3_*`, `SMTP_*`, `SECRETS_KEY` (optional), `DEV_GATEWAYS`, `SATIM_TEST_URL`, `SATIM_PRODUCTION_URL`, `WHATSAPP_API_URL`, `VAPID_PRIVATE_KEY` (optional: the Web Push key, base64url of 32 bytes; derived from `BETTER_AUTH_SECRET` when absent — set it in production: changing it silences every device until it is turned on again), `VAPID_SUBJECT` (the contact push services get). `.env.example` lists them with local defaults.
+- `src/env.ts` validates: `DATABASE_URL` (app role), `DATABASE_OWNER_URL`, `BETTER_AUTH_SECRET` (≥32), `BETTER_AUTH_URL`, `S3_*`, `SMTP_*`, `SECRETS_KEY` (optional), `DEV_GATEWAYS`, `SATIM_TEST_URL`, `SATIM_PRODUCTION_URL`, `WHATSAPP_API_URL`, `VAPID_PRIVATE_KEY` (optional: the Web Push key, base64url of 32 bytes; derived from `BETTER_AUTH_SECRET` when absent — set it in production: changing it silences every device until it is turned on again), `VAPID_SUBJECT` (the contact push services get), `DEMO_MODE` (the demo deployment, below). `.env.example` lists them with local defaults.
 - **Organization secrets** (a SATIM password, API tokens) are stored encrypted (`encryptSecret`, AES-256-GCM) with `SECRETS_KEY` (base64 of 32 bytes; derived from `BETTER_AUTH_SECRET` when absent — set it in production: changing either key makes saved secrets unreadable, to be typed again). Never sent back to a browser nor written to the audit log.
-- **Stand-ins** (`DEV_GATEWAYS`, default on outside production builds; e2e sets it): `/api/dev/satim/*` answers like SATIM's test platform and the test platform's URL points to it unless `SATIM_TEST_URL` is set; `/api/dev/whatsapp/*` accepts messages like the Cloud API (used unless `WHATSAPP_API_URL` is set); `/api/dev/sms/*` accepts SMS in the gateway protocol (used while the SMS account has no gateway URL; a number ending in 0000 is refused); `/api/dev/push/*` is a Web Push service (checks the VAPID signature, keeps the encrypted messages in memory; an endpoint ending in `-gone` answers 410), the only endpoint accepted besides the browsers' push services. Never enable in production.
+- **Stand-ins** (`DEV_GATEWAYS`, default on outside production builds; e2e sets it): `/api/dev/satim/*` answers like SATIM's test platform and the test platform's URL points to it unless `SATIM_TEST_URL` is set; `/api/dev/whatsapp/*` accepts messages like the Cloud API (used unless `WHATSAPP_API_URL` is set); `/api/dev/sms/*` accepts SMS in the gateway protocol (used while the SMS account has no gateway URL; a number ending in 0000 is refused); `/api/dev/push/*` is a Web Push service (checks the VAPID signature, keeps the encrypted messages in memory; an endpoint ending in `-gone` answers 410), the only endpoint accepted besides the browsers' push services. Never enable in production (but on the demo deployment).
+- **Demo deployment** (`DEMO_MODE=true`, CLAUDE.console.md §13): the same build on its own subdomain, with its **own database and bucket** (never a client's), filled by the seed. A banner above every page (« Démo — données fictives, réinitialisées chaque nuit », `DemoBanner` in the back office, portal and account shells, read per request); the sign-in page lists one demo account per role and the portal's buyer with their shared password (a tap signs in); sign-up is closed (Better Auth `hooks.before` refuses `/sign-up/email` requests with `SIGNUP_CLOSED`; the seed's own calls pass); e-mails are logged and dropped by the transport (`sendEmailNow` → `dropped`), SMTP settings are still required; the stand-ins are on by default (`DEV_GATEWAYS` unset). **Nightly reset** at 03:00 Africa/Algiers by the host's scheduler (cron, systemd timer): stop the worker, run `DEMO_MODE=true DEMO_RESET=1 pnpm demo:reset` with the demo's URLs (it empties the bucket, drops, migrates and seeds; the seed's dates are relative to today, keep them so), start the worker again. `db:seed`, `db:reset` and `demo:reset` refuse a non-local database unless both flags are set (`assertLocalDatabase`).
 
 ## 6. Domain glossary
 
@@ -801,6 +807,7 @@ The WhatsApp message log (`notification:read`) is open to the gérant, the direc
 | Works calls | Vitest | rights, a resolution not adopted refused then accepted once its assembly is closed, no future issue, the amount split by tantièmes (no reserve part), the title printed, in the unit's account, counted as called in its category |
 | Common rooms | Vitest | the gestionnaire's rooms (hours in order, a time's format), a booking in the past, too far, outside the hours, too long or by a stranger refused, requested then an overlap refused, the slots taken shown without names, confirmed and refused (a note required, once), a refused slot free again, a resident cancelling only its own, staff booking for the council, a room booked ahead kept, instant booking once no approval, three upcoming at most, bookings never deleted, audit |
 | Visitors | Vitest | a past day, too far or another account's unit refused, a code per pass, the register for the gestionnaire or a guard's custom role (never a commercial), searched by code in any case, an arrival on its day only and once, pushed to the host, an unannounced visitor at a unit of the residence or the common areas, a resident cancelling its own, never deleted, names erased after the retention period, audit without the name |
+| Demo | Vitest | the reset guard (a non-local database refused without both demo flags, accepted with them), e-mails dropped and logged under `DEMO_MODE` (nothing reaches Mailpit) |
 | Checks | Vitest | states and next deadlines; rights, late first, dashboard to-do (keepers only), a visit refused before its deadline or in the future, the deadline moved, supplier and cost kept, the certificate filed (readers), visits never deleted, correction, archive, audit |
 | Imports | Vitest | templates (sheets per language, help), leads from a CSV export (BOM, `;`, quoted separators, known phone left aside, a manager's assignment, a commercial's own), units (issues, warnings, all or nothing, prices and blocks, rights), buyers then sales (a refused file writes nothing, RES/VSP numbers, statement, imported payments without receipts, audit), co-owners and shares |
 | Obligations | Vitest | validity, delay, indemnity (rate, half-up, cap, off), warranties; regulatory file (rights, validation, scan, audit, dashboard alerts); delivery date snapshot and contract correction (audit), guarantee scan, late deliveries in the list and the dashboard |
@@ -885,7 +892,7 @@ The WhatsApp message log (`notification:read`) is open to the gérant, the direc
 
 ## 11. Roadmap
 
-**Current: Phases 1 and 2 done (sales; residence management; buyer / resident portal) and modules 4 (construction follow-up & deliveries) and 5 (rentals) of Phase 3, each module with its seed and e2e; online payment by card (SATIM) and WhatsApp notifications, both working against local stand-ins until the promoter's accounts exist (SATIM merchant account, Meta WhatsApp Business). Phase 4 (adoption, from the functional audit): first group done (exports, data import, certificates) and the promoter's obligations (delivery date and indemnity, FGCMPI guarantee, regulatory file, warranties); the treasury (cash desks and accounts) and the construction costs; next the rest of the audit backlog (§13). Then plug in the SATIM and Meta accounts. Steps are committed straight to `main` (§12, 2026-10-04).**
+**Current: Phases 1 and 2 done (sales; residence management; buyer / resident portal) and modules 4 (construction follow-up & deliveries) and 5 (rentals) of Phase 3, each module with its seed and e2e; online payment by card (SATIM) and WhatsApp notifications, both working against local stand-ins until the promoter's accounts exist (SATIM merchant account, Meta WhatsApp Business). Phase 4 (adoption, from the functional audit): first group done (exports, data import, certificates) and the promoter's obligations (delivery date and indemnity, FGCMPI guarantee, regulatory file, warranties); then every item of the audit backlog (§13), and the Apple-like UI/UX audit (§14). Now Phase 5, the SaaS console (CLAUDE.console.md): the demo environment done. Then plug in the SATIM and Meta accounts. Steps are committed straight to `main` (§12, 2026-10-04).**
 
 ### Phase 0 — Foundations ✅
 - [x] `CLAUDE.md` approved (2026-09-30)
@@ -1016,6 +1023,10 @@ The WhatsApp message log (`notification:read`) is open to the gérant, the direc
 - [x] Estimated acquisition costs on quotations: the notary's scale by tranches, VAT on the fees, registration and land registry duties, fixed costs (the organization's figures), previewed, frozen at issue and printed; seed and e2e
 - [x] Push notifications for staff and residents: devices turned on from the settings or the portal (service worker, Web Push encrypted and signed without a dependency), the residents' notifications and the staff's to-dos (leads, discounts, portal requests, tickets, defects); e2e
 - [x] Leases registered at the tax office (deadline, duties at the organization's rate, dashboard to-dos) and the rental taxes of a year (HT / VAT by lease kind, collected, duties; Excel); seed and e2e
+
+### Phase 5 — SaaS console (spec: `CLAUDE.console.md`, kept beside the repository, not committed while the repository is public)
+- [x] 1. Demo environment: `DEMO_MODE` (banner, demo accounts on the sign-in page, e-mails dropped, sign-up closed, stand-ins on), `pnpm demo:reset` (bucket emptied, database rebuilt and seeded) behind both demo flags, deployment notes (§5 Config)
+- [ ] 2–10: foundations (schema and role `console`, plans, subscriptions, entitlements), modules, lifecycle, operators and console shell, provisioning, caps and usage, support sessions, billing, termination — CLAUDE.console.md §17
 
 ### UI/UX — Apple-like (audit 2026-10-11, §14)
 - [x] Brand (« Darna », mark, icons); tokens, type scale, primitives and status tones; app shell, settings hub « Réglages », command palette (⌘K); one page layout with « … » menus; loading skeletons, error boundaries, empty states; motion; account pages; dashboard; lists (white tables, whole-row links); records (segmented sub-pages, soft figures); portal (iOS tab bar, grouped rows, home of cards); dark mode; accessibility (AA tones, focus, 44 px targets); phones (stacked lists, bottom sheets)
@@ -1183,6 +1194,7 @@ The WhatsApp message log (`notification:read`) is open to the gérant, the direc
 | 2026-10-11 | **Management mandates (recommended, user delegated; fees and VAT to confirm with the accountant)**: owners entrust units the company does not own (delivered to their buyer or in a third party's building) through a mandate per unit with a fee rate; their units are let through the ordinary leases (the lease names its mandate, the unit status never moves), so every rentals feature applies. Owners are paid on numbered statements of the rents actually collected (not the rents due), less fees and typed deductions, paid out from an account — a bounced cheque already reported is taken back on the next statement, never billed to the owner (a statement is never negative). The rents are booked to the owners' account, only the fees are revenue (VAT at a tax setting, 0 % by default); deposits stay with the company (it refunds the tenant). No owner portal and no IRG computation for the owners yet. |
 | 2026-10-11 | **Lease registration and rental taxes (recommended, user delegated; rates and delay to confirm with the accountant)**: the app tracks each lease's registration at the inspection de l'enregistrement (day, office, reference, duties paid) against a deadline after the signature, and estimates the duties at a rate of the term's rents — both tax settings beside the VAT rates, nothing hard-coded (30 days and 0 % by default). Paying the duties stays an expense movement of the accountant. « Rental taxes » are the yearly figures the accountant declares for the organization's own leases (rents due HT / VAT by lease kind, collected, duties); income tax (IBS) and the owners' IRG on rental income (mandates, next) are not computed. |
 | 2026-10-11 | **Third parties' buildings (recommended, user delegated)**: a building the company did not build is a project flagged « immeuble d'un tiers » rather than a residence without units of the inventory — so tantièmes, charge calls, meters, assemblies and the portal keep working on the same units; it is delivered and its units start delivered (never stock, never priced), the sales side refuses it and leaves it out of its pickers and figures. The gérant or the directeur commercial creates it (with the inventory tools), the gestionnaire runs its residence; a syndic mandate's term and fees stay outside the app for now (fees are a charge category of its budget). |
+| 2026-10-12 | **Demo environment (CLAUDE.console.md step 1; recommended, user delegated)**: the demo is the same build on its own deployment (database and bucket of its own) under `DEMO_MODE`, reset every night by `pnpm demo:reset` run by the host's scheduler — not a pg-boss job, since the reset drops the jobs schema the worker runs on — which also empties the bucket so yesterday's files do not pile up. `DEV_GATEWAYS` stays an explicit opt-in rather than being refused in production builds without `DEMO_MODE` (the spec's wording): the e2e suite runs a production build with the stand-ins. Sign-up is closed on the demo for requests only; the demo accounts and their password are shown on its sign-in page (fictitious data, published test password). |
 | 2026-10-07 | **Residents' council (recommended, user delegated)**: council members are current co-owners marked by the gestionnaire, not a role of their own: they keep their portal account and gain a read-only view of their residence's accounts (budget and actual, reserve fund, invoices and their scans) — what the conseil syndical checks between assemblies; no staff permission is granted. |
 
 ### Open items

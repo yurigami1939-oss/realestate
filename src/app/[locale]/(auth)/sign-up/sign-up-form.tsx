@@ -45,9 +45,11 @@ export function SignUpForm({ next }: { next: string }) {
       setError(
         authError.code?.startsWith("USER_ALREADY_EXISTS")
           ? t("signUp.emailTaken")
-          : authError.status === 429
-            ? tErrors("tooManyRequests")
-            : tErrors("UNEXPECTED"),
+          : authError.code === "SIGNUP_CLOSED"
+            ? t("signUp.closed")
+            : authError.status === 429
+              ? tErrors("tooManyRequests")
+              : tErrors("UNEXPECTED"),
       );
       return;
     }

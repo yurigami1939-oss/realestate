@@ -1,4 +1,5 @@
 import { BrandMark } from "@/components/brand/brand-mark";
+import { DemoBanner } from "@/components/demo/demo-banner";
 import { LocaleSwitcher } from "@/components/i18n/locale-switcher";
 import { BRAND_NAME } from "@/lib/brand";
 
@@ -11,6 +12,7 @@ import { BRAND_NAME } from "@/lib/brand";
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-dvh flex-col bg-background">
+      <DemoBanner />
       <header className="flex items-center justify-end p-4">
         <LocaleSwitcher />
       </header>

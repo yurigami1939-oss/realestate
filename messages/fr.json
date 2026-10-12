@@ -104,7 +104,8 @@
       "submit": "Créer mon compte",
       "haveAccount": "Déjà un compte ?",
       "signInLink": "Se connecter",
-      "emailTaken": "Un compte existe déjà avec cet e-mail."
+      "emailTaken": "Un compte existe déjà avec cet e-mail.",
+      "closed": "Les inscriptions sont fermées."
     },
     "forgotPassword": {
       "title": "Mot de passe oublié",
@@ -6366,5 +6367,19 @@
     "light": "Clair",
     "dark": "Sombre",
     "system": "Automatique"
+  },
+  "demo": {
+    "banner": "Démo — données fictives, réinitialisées chaque nuit",
+    "accounts": {
+      "title": "Comptes de démonstration",
+      "description": "Un compte par rôle : touchez-en un pour entrer.",
+      "password": "Mot de passe de chaque compte :",
+      "signInAs": "Se connecter en tant que {role}"
+    },
+    "signUpClosed": {
+      "title": "Pas d'inscription sur la démo",
+      "description": "Entrez avec l'un des comptes de démonstration : un par rôle, déjà remplis de données fictives.",
+      "link": "Voir les comptes de démonstration"
+    }
   }
 }

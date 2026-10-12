@@ -30,13 +30,7 @@ import { seedSms } from "./sms";
 import { seedThirdPartyBuilding } from "./third-party";
 import { seedVisitors } from "./visitors";
 
-/** Refuses anything but a local database: seeding wipes data. */
-export function assertLocalDatabase(url: string): void {
-  const host = new URL(url).hostname;
-  if (!["localhost", "127.0.0.1", "::1", "postgres"].includes(host)) {
-    throw new Error(`Refusing to seed/reset a non-local database (${host}).`);
-  }
-}
+export { assertLocalDatabase, isDemoReset } from "./guard";
 
 /** Empties every table of the public schema (owner connection; migrations table lives elsewhere). */
 export async function wipeData(ownerUrl: string): Promise<void> {

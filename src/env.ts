@@ -34,6 +34,15 @@ const serverEnvSchema = z.object({
     .enum(["true", "false"])
     .transform((v) => v === "true")
     .optional(),
+  /**
+   * The public demo deployment (CLAUDE.console.md §13): a banner on every page, the demo
+   * accounts on the sign-in page, e-mails dropped, sign-up closed, the stand-ins on by default.
+   * Never on a deployment holding client data.
+   */
+  DEMO_MODE: z
+    .enum(["true", "false"])
+    .transform((v) => v === "true")
+    .optional(),
   /** SATIM REST base URLs; the test one defaults to the stand-in when DEV_GATEWAYS is on. */
   SATIM_TEST_URL: z.url().optional(),
   SATIM_PRODUCTION_URL: z.url().default("https://cib.satim.dz/payment/rest"),

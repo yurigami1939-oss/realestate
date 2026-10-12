@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
-import { redirect } from "@/i18n/navigation";
+import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Link, redirect } from "@/i18n/navigation";
 import { toLocale } from "@/i18n/locales";
 import { safeNext } from "@/lib/safe-next";
 import { getSession } from "@/server/auth/session";
+import { demoModeEnabled } from "@/server/demo";
 
 import { SignUpForm } from "./sign-up-form";
 
@@ -19,6 +21,24 @@ export default async function SignUpPage({ params, searchParams }: PageProps<"/[
   const next = safeNext((await searchParams).next, "/onboarding");
 
   if (await getSession()) redirect({ href: next, locale });
+
+  if (demoModeEnabled()) {
+    // The demo creates no account (CLAUDE.console.md §13): its accounts are on the sign-in page.
+    const t = await getTranslations("demo.signUpClosed");
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            <h1>{t("title")}</h1>
+          </CardTitle>
+          <CardDescription>{t("description")}</CardDescription>
+        </CardHeader>
+        <CardFooter className="text-sm">
+          <Link href="/sign-in#demo-accounts">{t("link")}</Link>
+        </CardFooter>
+      </Card>
+    );
+  }
 
   return <SignUpForm next={next} />;
 }

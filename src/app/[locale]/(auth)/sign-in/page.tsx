@@ -5,6 +5,7 @@ import { redirect } from "@/i18n/navigation";
 import { toLocale } from "@/i18n/locales";
 import { safeNext } from "@/lib/safe-next";
 import { getSession } from "@/server/auth/session";
+import { demoSignIn } from "@/server/demo";
 
 import { SignInForm } from "./sign-in-form";
 
@@ -20,5 +21,5 @@ export default async function SignInPage({ params, searchParams }: PageProps<"/[
 
   if (await getSession()) redirect({ href: next, locale });
 
-  return <SignInForm next={next} />;
+  return <SignInForm next={next} demo={demoSignIn()} />;
 }

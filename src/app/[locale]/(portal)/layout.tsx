@@ -1,6 +1,7 @@
 import { getTranslations } from "next-intl/server";
 
 import { SignOutButton } from "@/components/auth/sign-out-button";
+import { DemoBanner } from "@/components/demo/demo-banner";
 import { LocaleSwitcher } from "@/components/i18n/locale-switcher";
 import { PortalNav, PortalTabBar } from "@/components/portal/portal-nav";
 import { redirect } from "@/i18n/navigation";
@@ -34,6 +35,7 @@ export default async function PortalLayout({ children, params }: LayoutProps<"/[
 
   return (
     <div className="flex min-h-dvh flex-col bg-background">
+      <DemoBanner />
       <header className="sticky top-0 z-20 border-b bg-background/80 backdrop-blur-xl backdrop-saturate-150">
         <div className="mx-auto flex h-13 max-w-5xl items-center justify-between gap-3 px-4">
           <div className="min-w-0">

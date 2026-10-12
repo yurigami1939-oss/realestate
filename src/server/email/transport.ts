@@ -13,8 +13,15 @@ const transport = nodemailer.createTransport({
   auth: env.SMTP_USER ? { user: env.SMTP_USER, pass: env.SMTP_PASSWORD } : undefined,
 });
 
-/** Sends immediately. Request handlers must use `sendEmailLater` (queued, retried) instead. */
-export async function sendEmailNow(message: EmailMessage): Promise<void> {
+/**
+ * Sends immediately. Request handlers must use `sendEmailLater` (queued, retried) instead. On
+ * the demo deployment (DEMO_MODE) nothing leaves: the message is logged and dropped.
+ */
+export async function sendEmailNow(message: EmailMessage): Promise<"sent" | "dropped"> {
+  if (env.DEMO_MODE === true) {
+    console.info(`[demo] e-mail dropped: ${message.subject}`);
+    return "dropped";
+  }
   const { attachments = [], ...rest } = message;
   const files = [];
   for (const attachment of attachments) {
@@ -25,4 +32,5 @@ export async function sendEmailNow(message: EmailMessage): Promise<void> {
     });
   }
   await transport.sendMail({ from: env.SMTP_FROM, ...rest, attachments: files });
+  return "sent";
 }
