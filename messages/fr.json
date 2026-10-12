@@ -3736,7 +3736,10 @@
         "documents": "Mon dossier",
         "notifications": "Notifications",
         "rooms": "Salles",
-        "visitors": "Visiteurs"
+        "visitors": "Visiteurs",
+        "more": "Plus",
+        "account": "Compte",
+        "language": "Langue"
       }
     },
     "home": {
@@ -3755,7 +3758,15 @@
         "active": "En cours",
         "ended": "Terminé"
       },
-      "council": "Comptes de la résidence (conseil syndical)"
+      "council": "Comptes de la résidence (conseil syndical)",
+      "paid": "Payé",
+      "remaining": "Reste à payer",
+      "next": "Prochaine échéance",
+      "nextOn": "le {date}",
+      "upToDate": "Rien à payer pour le moment",
+      "overdue": "En retard : {amount}",
+      "news": "Dernière annonce",
+      "allNews": "Toutes les annonces"
     },
     "errors": {
       "noEmail": "Ce dossier n'a pas d'adresse e-mail.",
@@ -3975,6 +3986,10 @@
       "noMine": "Aucune réservation.",
       "requested": "Demande envoyée : le gestionnaire vous répondra.",
       "approved": "Réservation confirmée."
+    },
+    "more": {
+      "title": "Plus",
+      "description": "Toutes les rubriques de votre espace."
     }
   },
   "onlinePayments": {

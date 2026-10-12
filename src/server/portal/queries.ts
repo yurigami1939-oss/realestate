@@ -3,6 +3,7 @@ import "server-only";
 import { and, asc, desc, eq, inArray } from "drizzle-orm";
 
 import {
+  installment,
   onlinePayment,
   paymentGateway,
   project,
@@ -12,6 +13,9 @@ import {
   unit,
 } from "@/db/schema";
 import { withTenant } from "@/db/tenant";
+import { todayInAlgiers } from "@/lib/dates";
+import { computeStatement } from "@/lib/statement";
+import { paidTotals } from "@/server/sales/sale-queries";
 
 import { type PortalCtx, portalScope } from "./context";
 import { portalLeases } from "./leases";
@@ -61,8 +65,41 @@ export async function getPortalOverview(ctx: PortalCtx) {
               ),
             )
             .orderBy(asc(residence.name), asc(unit.code));
+    // Each sale's balance and next installment, as its portal page counts them (no penalties).
+    const paid = await paidTotals(
+      tx,
+      sales.map((s) => s.id),
+    );
+    const today = todayInAlgiers();
+    const withBalance = [];
+    for (const sale of sales) {
+      const installments = await tx
+        .select({
+          position: installment.position,
+          label: installment.label,
+          amount: installment.amount,
+          dueOn: installment.dueOn,
+        })
+        .from(installment)
+        .where(eq(installment.reservationId, sale.id))
+        .orderBy(asc(installment.position));
+      const statement = computeStatement(installments, paid.get(sale.id) ?? 0n, today, {
+        monthlyRateBp: 0,
+        graceDays: 0,
+        capBp: 0,
+      });
+      const next = statement.lines.find((line) => line.remaining > 0n && line.dueOn !== null);
+      withBalance.push({
+        ...sale,
+        price: statement.price,
+        paid: statement.paid,
+        remaining: statement.remaining,
+        overdue: statement.overdue,
+        next: next ? { amount: next.remaining, dueOn: next.dueOn } : null,
+      });
+    }
     const leases = await portalLeases(tx, scope);
-    return { sales, units, leases };
+    return { sales: withBalance, units, leases };
   });
 }
 

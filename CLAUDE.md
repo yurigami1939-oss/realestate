@@ -114,7 +114,8 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
     │   │   │                 # · group (a gérant's companies side by side)
     │   │   └── (portal)/     # portal of buyers, co-owners and occupants (module 7): own shell, /portal,
     │   │                     # /portal/payments (online payment results), /portal/payment-terms,
-    │   │                     # /portal/leases/[leaseId] (a tenant's rent account), /portal/notifications
+    │   │                     # /portal/leases/[leaseId] (a tenant's rent account), /portal/notifications, /portal/more (every
+    │   │                     # section, language, sign-out: « Plus » of the phone tab bar)
     │   ├── api/auth/[...all] # Better Auth handler (Route Handlers: auth, files, webhooks, /api/v1)
     │   ├── api/files/        # upload (POST) · [fileId] download (GET → presigned redirect)
     │   ├── api/online-payments/return # where SATIM sends the payer back (confirm, then result page)
@@ -131,6 +132,7 @@ First run: `pnpm install` · `cp .env.example .env` · `pnpm docker:up` · `pnpm
     │   │                     # its chosen label from the server's HTML)
     │   ├── brand/            # BrandMark, BrandLogo (the app's mark and name)
     │   ├── settings/         # the settings hub (SettingsFrame, SettingsNav, SettingsTile), settings forms
+    │   ├── portal/           # PortalNav (sections, wide screens), PortalTabBar (phones), PortalRows (iOS grouped rows)
     │   ├── app-shell/        # nav-items.ts (the back office's pages and sections: sidebar, top bar,
     │   │                     # palette), sidebar (folding groups), top bar, command-palette.tsx (⌘K / Ctrl K:
     │   │                     # pages and records), more-actions.tsx (a header's « … » menu), page-skeleton.tsx
@@ -1313,7 +1315,7 @@ Goal (user): a product that feels professional and Apple-like — calm, consiste
 - [x] **14. Dashboard**: no boxes inside boxes — KPI tiles with large figures, the to-dos as a grouped list with icons and chevrons, stock bars refined.
 - [x] **15. Lists**: one toolbar (search, filters, export) above a white table, amounts end-aligned in tabular figures, the whole row opens the record.
 - [x] **16. Records** (sale, lead, unit, residence, lease): a header with the key facts (status, amounts, people), sections as grouped cards, sub-pages as a segmented control.
-- [ ] **17. Portal (phone first)**: iOS-like — large titles, a bottom tab bar on phones, inset grouped lists with large rows, the home as cards (next installment, balance, latest news).
+- [x] **17. Portal (phone first)**: iOS-like — large titles, a bottom tab bar on phones, inset grouped lists with large rows, the home as cards (next installment, balance, latest news).
 
 ### Priority 5 — platform
 - [ ] **18. Dark mode**: follows the system, with a light / dark / automatic choice in the user menu.
