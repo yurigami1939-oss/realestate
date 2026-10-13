@@ -25,6 +25,7 @@ import {
   organization,
   pilotGoal,
   plan,
+  provision,
   subscription,
   subscriptionAddon,
   user,
@@ -89,7 +90,19 @@ export async function getConsoleOverview(_ctx: OperatorCtx) {
     .where(notInArray(organization.id, held))
     .orderBy(desc(organization.createdAt))
     .limit(50);
-  return { counts, pilotsEnding, beyondGrace, unentitled };
+  const provisionsWaiting = await consoleDb
+    .select({ id: provision.id, legalName: provision.legalName, createdAt: provision.createdAt })
+    .from(provision)
+    .where(
+      and(
+        isNull(provision.usedAt),
+        isNull(provision.revokedAt),
+        sql`${provision.expiresAt} > now()`,
+        sql`${provision.createdAt} < now() - interval '7 days'`,
+      ),
+    )
+    .orderBy(asc(provision.createdAt));
+  return { counts, pilotsEnding, beyondGrace, unentitled, provisionsWaiting };
 }
 
 export type AccountFilters = {

@@ -61,7 +61,8 @@ function TodoList({
 export default async function ConsoleHomePage({ params }: PageProps<"/[locale]/console">) {
   setRequestLocale(toLocale((await params).locale));
   const operator = await requireOperator();
-  const { counts, pilotsEnding, beyondGrace, unentitled } = await getConsoleOverview(operator);
+  const { counts, pilotsEnding, beyondGrace, unentitled, provisionsWaiting } =
+    await getConsoleOverview(operator);
   const t = await getTranslations("console.overview");
   const ts = await getTranslations("subscription.status");
   const ending = (rows: typeof pilotsEnding) =>
@@ -71,7 +72,8 @@ export default async function ConsoleHomePage({ params }: PageProps<"/[locale]/c
       label: r.legalName,
       detail: r.pilotEndsOn ? t("endsOn", { date: formatDate(r.pilotEndsOn) }) : "",
     }));
-  const nothing = pilotsEnding.length + beyondGrace.length + unentitled.length === 0;
+  const nothing =
+    pilotsEnding.length + beyondGrace.length + unentitled.length + provisionsWaiting.length === 0;
 
   return (
     <div className="mx-auto max-w-5xl space-y-8">
@@ -97,6 +99,15 @@ export default async function ConsoleHomePage({ params }: PageProps<"/[locale]/c
         {nothing ? <p className="empty-state">{t("none")}</p> : null}
         <TodoList title={t("pilotsEnding")} rows={ending(pilotsEnding)} />
         <TodoList title={t("beyondGrace")} rows={ending(beyondGrace)} />
+        <TodoList
+          title={t("provisionsWaiting")}
+          rows={provisionsWaiting.map((p) => ({
+            key: p.id,
+            href: "/console/provisions",
+            label: p.legalName,
+            detail: t("sentOn", { date: formatDate(toCalendarDate(p.createdAt)) }),
+          }))}
+        />
         <TodoList
           title={t("unentitled")}
           rows={unentitled.map((o) => ({

@@ -191,7 +191,8 @@ GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA console TO realestate_console;
 REVOKE TRUNCATE ON ALL TABLES IN SCHEMA console FROM realestate_console;
 REVOKE UPDATE, DELETE ON console.audit_log FROM realestate_console;
 REVOKE DELETE ON console.billing_account, console.account_organization, console.plan,
-  console.addon, console.subscription, console.subscription_addon, console.document_sequence
+  console.addon, console.subscription, console.subscription_addon, console.document_sequence,
+  console.provision
   FROM realestate_console;
 -- On the tenants' side only what the console needs: who the organizations and their members
 -- are, their entitlement (RLS still applies: `withConsoleTenant`), their audit trail.

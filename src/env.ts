@@ -45,6 +45,14 @@ const serverEnvSchema = z.object({
     .enum(["true", "false"])
     .transform((v) => v === "true")
     .optional(),
+  /**
+   * Opens sign-up and organization creation to anyone (local work only, never in production):
+   * otherwise accounts come from an invitation or a provision link (CLAUDE.console.md §8).
+   */
+  OPEN_SIGNUP: z
+    .enum(["true", "false"])
+    .transform((v) => v === "true")
+    .optional(),
   /** SATIM REST base URLs; the test one defaults to the stand-in when DEV_GATEWAYS is on. */
   SATIM_TEST_URL: z.url().optional(),
   SATIM_PRODUCTION_URL: z.url().default("https://cib.satim.dz/payment/rest"),

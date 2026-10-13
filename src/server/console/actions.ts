@@ -9,6 +9,7 @@ import { addonCodes } from "@/lib/subscriptions";
 import { defineConsoleAction } from "./action";
 import { changeSubscriptionStatus } from "./lifecycle";
 import { createPlan } from "./plans";
+import { createProvision, resendProvision, revokeProvision } from "./provisions";
 import {
   accountIdentitySchema,
   activateSchema,
@@ -16,6 +17,8 @@ import {
   pilotGoalSchema,
   planIdSchema,
   planSchema,
+  provisionIdSchema,
+  provisionSchema,
   statusChangeSchema,
   subscriptionAddonSchema,
   subscriptionTermsSchema,
@@ -124,6 +127,33 @@ export const repriceAddonAction = defineConsoleAction(
   },
   async (input, ctx) => {
     await repriceAddon(ctx, input);
+    refresh();
+  },
+);
+
+/** Prepares a promoter's access; returns the link once (to pass on by message too). */
+export const createProvisionAction = defineConsoleAction(
+  { input: provisionSchema },
+  async (input, ctx) => {
+    const { url } = await createProvision(ctx, input);
+    refresh();
+    return { url };
+  },
+);
+
+export const resendProvisionAction = defineConsoleAction(
+  { input: provisionIdSchema },
+  async (input, ctx) => {
+    const { url } = await resendProvision(ctx, input.provisionId);
+    refresh();
+    return { url };
+  },
+);
+
+export const revokeProvisionAction = defineConsoleAction(
+  { input: provisionIdSchema },
+  async (input, ctx) => {
+    await revokeProvision(ctx, input.provisionId);
     refresh();
   },
 );

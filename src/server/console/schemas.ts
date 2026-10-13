@@ -132,3 +132,17 @@ export const planIdSchema = z.object({ planId: z.uuid() });
 
 export type AccountIdentityInput = z.output<typeof accountIdentitySchema>;
 export type SubscriptionTermsInput = z.output<typeof subscriptionTermsSchema>;
+
+/**
+ * A provision (CLAUDE.console.md §8): a new client (its plan, program, pilot length) or, with
+ * `billingAccountId`, another SARL of an existing client.
+ */
+export const provisionSchema = z.object({
+  email: z.email("validation.email").trim().toLowerCase(),
+  legalName: requiredText(200),
+  billingAccountId: z.uuid().nullable(),
+  planCode: optionalText(30),
+  program: z.enum(subscriptionPrograms),
+  pilotDays: optionalIntText(1, 365),
+});
+export const provisionIdSchema = z.object({ provisionId: z.uuid() });

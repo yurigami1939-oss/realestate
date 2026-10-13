@@ -20,4 +20,6 @@ export const e2eEnv: Record<string, string> = {
   SMTP_FROM: "Darna <no-reply@example.test>",
   // Production build: the SATIM and WhatsApp stand-ins must be asked for.
   DEV_GATEWAYS: "true",
+  // The smoke test signs a new gérant up and creates its company from the onboarding form.
+  OPEN_SIGNUP: "true",
 };

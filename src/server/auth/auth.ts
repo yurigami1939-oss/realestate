@@ -6,7 +6,7 @@ import { APIError, createAuthMiddleware, getSessionFromCtx, isAPIError } from "b
 import { nextCookies } from "better-auth/next-js";
 import { admin, organization, twoFactor } from "better-auth/plugins";
 import { adminAc, userAc } from "better-auth/plugins/admin/access";
-import { asc, eq } from "drizzle-orm";
+import { and, asc, eq, gt, sql } from "drizzle-orm";
 
 import { db } from "@/db/client";
 import * as schema from "@/db/schema";
@@ -17,6 +17,7 @@ import { BRAND_NAME } from "@/lib/brand";
 import { ac, parseRoles, roles } from "@/lib/permissions";
 import { recordAudit } from "@/server/audit/record-audit";
 import { startPilotForNewOrganization } from "@/server/console/accounts";
+import { hasLiveProvisionFor } from "@/server/console/provisions";
 import { sendEmailLater } from "@/server/email/send-later";
 import { invitationEmail, resetPasswordEmail } from "@/server/email/templates";
 import { linkPortalAccount } from "@/server/portal/link";
@@ -31,6 +32,22 @@ import {
 } from "./schema-options";
 
 const INVITATION_TTL_SECONDS = 7 * 24 * 60 * 60;
+
+/** Whether an invitation (staff or portal) waits for this e-mail: it may then sign up. */
+async function hasPendingInvitation(email: string): Promise<boolean> {
+  const [row] = await db
+    .select({ id: schema.invitation.id })
+    .from(schema.invitation)
+    .where(
+      and(
+        sql`lower(${schema.invitation.email}) = ${email.trim().toLowerCase()}`,
+        eq(schema.invitation.status, "pending"),
+        gt(schema.invitation.expiresAt, new Date()),
+      ),
+    )
+    .limit(1);
+  return Boolean(row);
+}
 
 export const auth = betterAuth({
   appName: BRAND_NAME,
@@ -55,10 +72,29 @@ export const auth = betterAuth({
     // The demo deployment creates no account (CLAUDE.console.md §13): visitors use the demo
     // accounts. Only requests are refused, the seed's own calls (no request) still sign up.
     before: createAuthMiddleware(async (ctx) => {
-      if (ctx.path === "/sign-up/email" && ctx.request && env.DEMO_MODE === true) {
-        throw new APIError("FORBIDDEN", { code: "SIGNUP_CLOSED", message: "Sign-up is closed." });
-      }
+      // Only requests are checked: the seed's and the services' own calls (no request) pass.
       if (!ctx.request) return;
+      // Sign-up is closed (CLAUDE.console.md §8): an invitation or a provision opens it for its
+      // e-mail; the demo creates no account at all; OPEN_SIGNUP reopens it for local work.
+      if (ctx.path === "/sign-up/email") {
+        const email = String((ctx.body as { email?: unknown } | undefined)?.email ?? "");
+        const allowed =
+          env.DEMO_MODE !== true &&
+          (env.OPEN_SIGNUP === true ||
+            (await hasPendingInvitation(email)) ||
+            (await hasLiveProvisionFor(email)));
+        if (!allowed) {
+          throw new APIError("FORBIDDEN", { code: "SIGNUP_CLOSED", message: "Sign-up is closed." });
+        }
+        return;
+      }
+      // Organizations come from a provision (created by the onboarding's own server call).
+      if (ctx.path === "/organization/create" && env.OPEN_SIGNUP !== true) {
+        throw new APIError("FORBIDDEN", {
+          code: "ORGANIZATION_CREATION_CLOSED",
+          message: "Organizations are created from a provision link.",
+        });
+      }
       // Operators (CLAUDE.console.md §9) act through the console only after enrolling in 2FA, and
       // are never members of a tenant.
       // (Leaving a support session is the impersonated member's request: let it through.)
@@ -82,10 +118,10 @@ export const auth = betterAuth({
         });
       }
     }),
-    // An organization created from the onboarding (a request) gets its client account
-    // (CLAUDE.console.md §8); the seed's own calls open theirs.
+    // With OPEN_SIGNUP (local work), an organization created from the onboarding form pilots the
+    // default plan; otherwise organizations come from a provision (CLAUDE.console.md §8).
     after: createAuthMiddleware(async (ctx) => {
-      if (ctx.path !== "/organization/create" || !ctx.request) return;
+      if (ctx.path !== "/organization/create" || !ctx.request || env.OPEN_SIGNUP !== true) return;
       const created: unknown = ctx.context.returned;
       if (!created || isAPIError(created) || typeof created !== "object" || !("id" in created)) {
         return;

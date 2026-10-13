@@ -44,3 +44,10 @@ export function slugify(value: string): string {
     .replace(/^-+|-+$/g, "")
     .slice(0, 60);
 }
+
+/** The onboarding with a provision link (CLAUDE.console.md §8): the legal name is the link's. */
+export const provisionedOrganizationSchema = z.object({
+  token: z.string().startsWith("prv_"),
+  name: z.string().trim().min(1, "validation.required").max(120, "validation.tooLong"),
+  slug: organizationSlugSchema,
+});

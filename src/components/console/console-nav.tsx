@@ -1,6 +1,13 @@
 "use client";
 
-import { Building2, LayoutDashboard, type LucideIcon, Package, ShieldCheck } from "lucide-react";
+import {
+  Building2,
+  LayoutDashboard,
+  type LucideIcon,
+  MailPlus,
+  Package,
+  ShieldCheck,
+} from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { Link, usePathname } from "@/i18n/navigation";
@@ -8,11 +15,12 @@ import { cn } from "@/lib/utils";
 
 const items: {
   href: string;
-  key: "overview" | "accounts" | "plans" | "security";
+  key: "overview" | "accounts" | "provisions" | "plans" | "security";
   icon: LucideIcon;
 }[] = [
   { href: "/console", key: "overview", icon: LayoutDashboard },
   { href: "/console/accounts", key: "accounts", icon: Building2 },
+  { href: "/console/provisions", key: "provisions", icon: MailPlus },
   { href: "/console/plans", key: "plans", icon: Package },
   { href: "/console/security", key: "security", icon: ShieldCheck },
 ];

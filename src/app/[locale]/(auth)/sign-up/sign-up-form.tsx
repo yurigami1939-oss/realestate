@@ -24,7 +24,17 @@ import { signUpSchema } from "@/server/auth/schemas";
 
 type Values = z.input<typeof signUpSchema>;
 
-export function SignUpForm({ next }: { next: string }) {
+/**
+ * `provision`: the operator prepared this account (CLAUDE.console.md §8) — its e-mail is
+ * prefilled and the company named; afterwards the onboarding creates the company.
+ */
+export function SignUpForm({
+  next,
+  provision,
+}: {
+  next: string;
+  provision?: { email: string; organization: string };
+}) {
   const t = useTranslations("auth");
   const tErrors = useTranslations("errors");
   const locale = useLocale();
@@ -32,7 +42,7 @@ export function SignUpForm({ next }: { next: string }) {
   const [error, setError] = useState<string | null>(null);
   const form = useForm<Values>({
     resolver: zodResolver(signUpSchema),
-    defaultValues: { name: "", email: "", password: "" },
+    defaultValues: { name: "", email: provision?.email ?? "", password: "" },
   });
 
   async function onSubmit(values: Values) {
@@ -65,7 +75,11 @@ export function SignUpForm({ next }: { next: string }) {
         <CardTitle>
           <h1>{t("signUp.title")}</h1>
         </CardTitle>
-        <CardDescription>{t("signUp.description")}</CardDescription>
+        <CardDescription>
+          {provision
+            ? t("signUp.provisionDescription", { organization: provision.organization })
+            : t("signUp.description")}
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <form id="sign-up" onSubmit={form.handleSubmit(onSubmit)} noValidate>

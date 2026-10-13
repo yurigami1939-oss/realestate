@@ -213,6 +213,39 @@ export const pilotGoal = consoleSchema.table(
   (t) => [index().on(t.subscriptionId, t.position)],
 );
 
+/**
+ * A single-use link with which a promoter signs up and creates an organization (CLAUDE.console.md
+ * §8): a new client, or another SARL of an existing account. Only the token's SHA-256 is kept;
+ * revoked, never deleted.
+ */
+export const provision = consoleSchema.table(
+  "provision",
+  {
+    id: id(),
+    tokenHash: text().notNull().unique(),
+    email: text().notNull(),
+    legalName: text().notNull(),
+    /** Null: a new client; else the account the new organization joins. */
+    billingAccountId: uuid().references(() => billingAccount.id, { onDelete: "restrict" }),
+    planId: uuid()
+      .notNull()
+      .references(() => plan.id, { onDelete: "restrict" }),
+    program: subscriptionProgram().notNull().default("standard"),
+    pilotDays: integer().notNull().default(30),
+    expiresAt: instant().notNull(),
+    usedAt: instant(),
+    /** The organization created with it (no foreign key: kept after a purge). */
+    organizationId: uuid(),
+    revokedAt: instant(),
+    createdBy: uuid().references(() => user.id, { onDelete: "restrict" }),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    index().on(t.email),
+    check("provision_pilot_days", sql`${t.pilotDays} between 1 and 365`),
+  ],
+);
+
 /** Gapless counters of the operator's invoices (FAC-) and credit notes (AVO-) per year. */
 export const consoleDocumentSequence = consoleSchema.table(
   "document_sequence",

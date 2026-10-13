@@ -112,7 +112,12 @@
       "haveAccount": "Déjà un compte ?",
       "signInLink": "Se connecter",
       "emailTaken": "Un compte existe déjà avec cet e-mail.",
-      "closed": "Les inscriptions sont fermées."
+      "closed": "Les inscriptions sont fermées.",
+      "closedTitle": "Inscription sur invitation",
+      "closedText": "Les comptes se créent depuis une invitation ou le lien reçu de Darna. Demandez-le à votre contact.",
+      "provisionDescription": "Créez votre compte pour {organization}.",
+      "existingAccount": "Vous avez déjà un compte avec cette adresse ?",
+      "existingLink": "Se connecter"
     },
     "forgotPassword": {
       "title": "Mot de passe oublié",
@@ -154,7 +159,14 @@
     "slugTaken": "Cet identifiant est déjà utilisé.",
     "existing": "Vos sociétés",
     "open": "Ouvrir",
-    "createNew": "Ou créez une nouvelle société"
+    "createNew": "Ou créez une nouvelle société",
+    "provision": {
+      "description": "Votre espace Darna a été préparé pour {organization}.",
+      "invalid": "Ce lien n'est plus valable : demandez-en un nouveau à votre contact Darna.",
+      "wrongEmail": "Ce lien a été envoyé à {email} : connectez-vous avec cette adresse."
+    },
+    "closedTitle": "Création sur invitation",
+    "closedText": "Les sociétés se créent depuis le lien reçu de Darna. Demandez-le à votre contact pour ajouter une société."
   },
   "invitation": {
     "title": "Invitation",
@@ -277,6 +289,12 @@
       "body": "Le pilote de {organization} sur Darna se termine le {endsOn}. Choisissez votre formule pour continuer sans interruption : vos données restent en place.",
       "notice": "Après cette date, rien n'est supprimé ; l'abonnement attend votre choix.",
       "cta": "Voir l'abonnement"
+    },
+    "provision": {
+      "subject": "Votre espace Darna pour {organization}",
+      "body": "Un espace a été préparé pour {organization} sur Darna. Créez votre compte avec cette adresse, puis votre société, avant le {expiresOn}.",
+      "notice": "Ce lien est personnel et ne sert qu'une fois.",
+      "cta": "Créer mon espace"
     }
   },
   "nav": {
@@ -6422,7 +6440,9 @@
       "reasonRequired": "Indiquez la raison.",
       "priceLocked": "Prix garanti jusqu'au {until} : il ne peut pas augmenter.",
       "planArchived": "Cette formule est archivée.",
-      "twoFactor": "Activez la double authentification pour agir dans la console."
+      "twoFactor": "Activez la double authentification pour agir dans la console.",
+      "provisionClosed": "Ce lien n'est plus valable : demandez-en un nouveau.",
+      "provisionEmail": "Ce lien a été envoyé à une autre adresse : connectez-vous avec celle-ci."
     },
     "brand": "Console opérateur",
     "nav": {
@@ -6430,7 +6450,8 @@
       "overview": "Vue d'ensemble",
       "accounts": "Comptes clients",
       "plans": "Formules",
-      "security": "Sécurité"
+      "security": "Sécurité",
+      "provisions": "Invitations clients"
     },
     "programs": {
       "standard": "Standard",
@@ -6449,7 +6470,9 @@
       "unentitled": "Sociétés sans compte client (en lecture seule)",
       "none": "Rien à faire pour le moment.",
       "endsOn": "Fin le {date}",
-      "createdOn": "Créée le {date}"
+      "createdOn": "Créée le {date}",
+      "provisionsWaiting": "Invitations non utilisées depuis 7 jours",
+      "sentOn": "Envoyée le {date}"
     },
     "accounts": {
       "title": "Comptes clients",
@@ -6619,6 +6642,45 @@
       "title": "Sécurité",
       "description": "La double authentification est obligatoire pour agir dans la console.",
       "required": "Activez la double authentification pour accéder à la console."
+    },
+    "provisions": {
+      "title": "Invitations clients",
+      "description": "Un lien personnel, valable 14 jours et utilisable une fois, pour créer le compte et la société d'un promoteur.",
+      "create": "Nouveau client",
+      "createTitle": "Inviter un nouveau client",
+      "createDescription": "Le promoteur reçoit un lien par e-mail pour créer son compte et sa société, puis commence son pilote.",
+      "addOrganization": "Ajouter une société",
+      "addOrganizationTitle": "Ajouter une société au compte",
+      "addOrganizationDescription": "Le gérant reçoit un lien pour créer la nouvelle société : elle rejoint ce compte et sa formule.",
+      "email": "E-mail du gérant",
+      "legalName": "Raison sociale",
+      "plan": "Formule du pilote",
+      "program": "Programme",
+      "pilotDays": "Durée du pilote en jours (vide = 30, 90 pour un partenaire fondateur)",
+      "created": "Invitation envoyée.",
+      "link": "Lien envoyé, à transmettre aussi par message si besoin :",
+      "copy": "Copier le lien",
+      "copied": "Lien copié.",
+      "empty": "Aucune invitation.",
+      "columns": {
+        "client": "Client",
+        "account": "Compte",
+        "plan": "Formule",
+        "state": "État",
+        "expires": "Expire le"
+      },
+      "states": {
+        "live": "En attente",
+        "used": "Utilisée",
+        "revoked": "Retirée",
+        "expired": "Expirée"
+      },
+      "newClient": "Nouveau client",
+      "resend": "Renvoyer",
+      "resent": "Nouveau lien envoyé.",
+      "revoke": "Retirer",
+      "revokeConfirm": "Retirer l'invitation de {email} ? Le lien ne servira plus.",
+      "revoked": "Invitation retirée."
     }
   },
   "modules": {

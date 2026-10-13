@@ -10,6 +10,7 @@ import {
   StatusActions,
   SubscriptionTermsForm,
 } from "@/components/console/account-forms";
+import { ProvisionDialog } from "@/components/console/provision-forms";
 import { SubscriptionStatusBadge } from "@/components/subscription/subscription-status-badge";
 import { toLocale } from "@/i18n/locales";
 import { formatDateTime, todayInAlgiers } from "@/lib/dates";
@@ -140,6 +141,9 @@ export default async function ConsoleAccountPage({
       </Section>
 
       <Section title={t("account.organizations.title")}>
+        <div className="flex justify-end">
+          <ProvisionDialog plans={[]} billingAccountId={account.id} />
+        </div>
         <ul
           className="divide-y overflow-hidden rounded-xl bg-card shadow-card"
           data-testid="account-organizations"

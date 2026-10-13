@@ -3,7 +3,7 @@ import "server-only";
 import { createTranslator } from "next-intl";
 
 import type { EmailMessage } from "@/jobs/queues";
-import { formatDate } from "@/lib/dates";
+import { formatDate, toCalendarDate } from "@/lib/dates";
 import { formatDZD } from "@/lib/money";
 import type { SignableDocument } from "@/lib/signatures";
 
@@ -11,7 +11,7 @@ import ar from "../../../messages/ar.json";
 import fr from "../../../messages/fr.json";
 
 const catalogs = { fr, ar } as const;
-type EmailKind = "invitation" | "portalInvitation" | "resetPassword" | "pilotEnding";
+type EmailKind = "invitation" | "portalInvitation" | "resetPassword" | "pilotEnding" | "provision";
 type Values = Record<string, string>;
 
 const escapeHtml = (value: string) =>
@@ -81,6 +81,24 @@ export function portalInvitationEmail(input: {
 
 export function resetPasswordEmail(input: { to: string; url: string }): EmailMessage {
   return bilingual("resetPassword", input.to, {}, input.url);
+}
+
+/**
+ * A promoter's access prepared by the operator (CLAUDE.console.md §8): the single-use link to
+ * create its account and its organization before the link expires.
+ */
+export function provisionEmail(input: {
+  to: string;
+  organization: string;
+  url: string;
+  expiresAt: Date;
+}): EmailMessage {
+  return bilingual(
+    "provision",
+    input.to,
+    { organization: input.organization, expiresOn: formatDate(toCalendarDate(input.expiresAt)) },
+    input.url,
+  );
 }
 
 /** To the gérants of a piloting client, a week before its pilot ends (CLAUDE.console.md §14). */

@@ -6,7 +6,9 @@ import { Link, redirect } from "@/i18n/navigation";
 import { toLocale } from "@/i18n/locales";
 import { safeNext } from "@/lib/safe-next";
 import { getSession } from "@/server/auth/session";
+import { findLiveProvision } from "@/server/console/provisions";
 import { demoModeEnabled } from "@/server/demo";
+import { env } from "@/env";
 
 import { SignUpForm } from "./sign-up-form";
 
@@ -18,7 +20,12 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function SignUpPage({ params, searchParams }: PageProps<"/[locale]/sign-up">) {
   const locale = toLocale((await params).locale);
   setRequestLocale(locale);
-  const next = safeNext((await searchParams).next, "/onboarding");
+  const query = await searchParams;
+  const token = typeof query.provision === "string" ? query.provision : null;
+  const provision = demoModeEnabled() ? null : await findLiveProvision(token);
+  const next = provision
+    ? `/onboarding?provision=${encodeURIComponent(token ?? "")}`
+    : safeNext(query.next, "/onboarding");
 
   if (await getSession()) redirect({ href: next, locale });
 
@@ -40,5 +47,31 @@ export default async function SignUpPage({ params, searchParams }: PageProps<"/[
     );
   }
 
-  return <SignUpForm next={next} />;
+  // Accounts come from an invitation or a provision (CLAUDE.console.md §8), unless OPEN_SIGNUP.
+  const invited = next.startsWith("/accept-invitation/");
+  if (!provision && !invited && env.OPEN_SIGNUP !== true) {
+    const t = await getTranslations("auth.signUp");
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            <h1>{t("closedTitle")}</h1>
+          </CardTitle>
+          <CardDescription>{t("closedText")}</CardDescription>
+        </CardHeader>
+        <CardFooter className="text-sm">
+          <Link href="/sign-in">{t("signInLink")}</Link>
+        </CardFooter>
+      </Card>
+    );
+  }
+
+  return (
+    <SignUpForm
+      next={next}
+      provision={
+        provision ? { email: provision.email, organization: provision.legalName } : undefined
+      }
+    />
+  );
 }
