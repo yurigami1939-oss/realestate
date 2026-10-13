@@ -5,6 +5,7 @@ import { Pool } from "pg";
 import type { Role } from "@/lib/permissions";
 import { auth } from "@/server/auth/auth";
 import type { TenantCtx } from "@/server/auth/session";
+import { runUsageSnapshot } from "@/server/console/usage";
 
 import { seedAcquisitionCosts } from "./acquisition-costs";
 import {
@@ -184,4 +185,6 @@ export async function seedDemo(): Promise<void> {
   // The console's operator, local databases only: the demo deployment has no console.
   if (process.env.DEMO_MODE !== "true") await seedOperator();
   await assertEveryOrganizationEntitled();
+  // Last night's measure (CLAUDE.console.md §7): usage shows on the console and the subscription page.
+  await runUsageSnapshot();
 }

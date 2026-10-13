@@ -92,7 +92,7 @@ export async function measureOrganization(organizationId: string): Promise<Usage
         tx.select({ n: count() }).from(chargeReminder).where(gte(chargeReminder.issuedAt, since)),
       ));
     const activity = await tx
-      .select({ n: countDistinct(auditLog.actorUserId), last: max(auditLog.createdAt) })
+      .select({ n: countDistinct(auditLog.actorUserId) })
       .from(auditLog)
       .where(and(eq(auditLog.organizationId, organizationId), gte(auditLog.createdAt, since)));
     const [lastEver] = await tx

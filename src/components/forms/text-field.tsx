@@ -63,8 +63,8 @@ export function TextField<T extends FieldValues>({
 /** Translates a key coming from data (zod messages, AppError.messageKey); unknown keys pass through. */
 export function useTranslateKey() {
   const t = useTranslations();
-  return (key: string): string => {
+  return (key: string, values?: Record<string, string | number>): string => {
     const typedKey = key as Parameters<typeof t>[0];
-    return t.has(typedKey) ? t(typedKey) : key;
+    return t.has(typedKey) ? t(typedKey, values) : key;
   };
 }

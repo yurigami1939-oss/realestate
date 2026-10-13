@@ -28,6 +28,7 @@ import {
   provision,
   subscription,
   subscriptionAddon,
+  tenantUsage,
   user,
 } from "@/db/schema";
 import { addDays, todayInAlgiers } from "@/lib/dates";
@@ -142,22 +143,7 @@ export async function getConsoleOverview(_ctx: OperatorCtx) {
 }
 
 /** An organization's last usage snapshot (CLAUDE.console.md §7). */
-export type UsageRow = {
-  organizationId: string;
-  measuredOn: string;
-  activeUnits: number;
-  managedLots: number;
-  storageBytes: number;
-  units: number;
-  projects: number;
-  staffMembers: number;
-  portalAccounts: number;
-  receipts30d: number;
-  reminders30d: number;
-  activeMembers30d: number;
-  leads30d: number;
-  lastActivityAt: Date | null;
-};
+export type UsageRow = typeof tenantUsage.$inferSelect;
 
 export type AccountFilters = {
   q?: string;
@@ -270,26 +256,15 @@ export async function getAccount(_ctx: OperatorCtx, billingAccountId: string) {
     .where(eq(consoleAuditLog.billingAccountId, billingAccountId))
     .orderBy(desc(consoleAuditLog.createdAt))
     .limit(50);
-  const usage =
+  // Each organization's latest snapshot (CLAUDE.console.md §7).
+  const usage: UsageRow[] =
     ids.length === 0
       ? []
       : await consoleDb
-          .execute<UsageRow>(
-            sql`
-          select distinct on (organization_id) organization_id as "organizationId",
-            measured_on as "measuredOn", active_units as "activeUnits", managed_lots as "managedLots",
-            storage_bytes::float8 as "storageBytes", units, projects, staff_members as "staffMembers",
-            portal_accounts as "portalAccounts", receipts_30d as "receipts30d",
-            reminders_30d as "reminders30d", active_members_30d as "activeMembers30d",
-            leads_30d as "leads30d", last_activity_at as "lastActivityAt"
-          from console.tenant_usage
-          where organization_id in (${sql.join(
-            ids.map((id) => sql`${id}::uuid`),
-            sql`, `,
-          )})
-          order by organization_id, measured_on desc`,
-          )
-          .then((r) => r.rows);
+          .selectDistinctOn([tenantUsage.organizationId])
+          .from(tenantUsage)
+          .where(inArray(tenantUsage.organizationId, ids))
+          .orderBy(tenantUsage.organizationId, desc(tenantUsage.measuredOn));
   return { ...row, addons, organizations: withAccess, goals, trail, usage };
 }
 
