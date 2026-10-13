@@ -7,7 +7,9 @@ import { SubscriptionStatusBadge } from "@/components/subscription/subscription-
 import { Link } from "@/i18n/navigation";
 import { toLocale } from "@/i18n/locales";
 import { formatDate, toCalendarDate } from "@/lib/dates";
+import { formatDZD } from "@/lib/money";
 import { subscriptionStatuses } from "@/lib/subscriptions";
+import { getBillingOverview } from "@/server/console/billing";
 import { requireOperator } from "@/server/console/guard";
 import { getConsoleOverview } from "@/server/console/queries";
 
@@ -59,7 +61,8 @@ function TodoList({
 
 /** The console's home (CLAUDE.console.md §10): accounts by state and the to-dos. */
 export default async function ConsoleHomePage({ params }: PageProps<"/[locale]/console">) {
-  setRequestLocale(toLocale((await params).locale));
+  const locale = toLocale((await params).locale);
+  setRequestLocale(locale);
   const operator = await requireOperator();
   const {
     counts,
@@ -70,6 +73,7 @@ export default async function ConsoleHomePage({ params }: PageProps<"/[locale]/c
     overUnits,
     overStorage,
   } = await getConsoleOverview(operator);
+  const billing = await getBillingOverview();
   const t = await getTranslations("console.overview");
   const ts = await getTranslations("subscription.status");
   const ending = (rows: typeof pilotsEnding) =>
@@ -85,7 +89,9 @@ export default async function ConsoleHomePage({ params }: PageProps<"/[locale]/c
       unentitled.length +
       provisionsWaiting.length +
       overUnits.length +
-      overStorage.length ===
+      overStorage.length +
+      billing.toInvoice.length +
+      billing.invoicesBeyondGrace.length ===
     0;
 
   return (
@@ -107,11 +113,45 @@ export default async function ConsoleHomePage({ params }: PageProps<"/[locale]/c
         ))}
       </div>
 
+      <div className="grid gap-3 sm:grid-cols-2" data-testid="billing-figures">
+        <div className="space-y-1 rounded-2xl bg-card p-4 shadow-card">
+          <div className="text-footnote text-muted-foreground">{t("mrr")}</div>
+          <div className="text-title tabular-nums">{formatDZD(billing.mrr, locale)}</div>
+        </div>
+        <Link
+          href="/console/invoices"
+          className="space-y-1 rounded-2xl bg-card p-4 shadow-card transition-shadow hover:shadow-raised"
+        >
+          <div className="text-footnote text-muted-foreground">{t("unpaid")}</div>
+          <div className="text-title tabular-nums">{formatDZD(billing.unpaid, locale)}</div>
+        </Link>
+      </div>
+
       <div className="space-y-6">
         <h2 className="text-title">{t("todo")}</h2>
         {nothing ? <p className="empty-state">{t("none")}</p> : null}
         <TodoList title={t("pilotsEnding")} rows={ending(pilotsEnding)} />
         <TodoList title={t("beyondGrace")} rows={ending(beyondGrace)} />
+        <TodoList
+          title={t("invoicesBeyondGrace")}
+          rows={billing.invoicesBeyondGrace.map((a) => ({
+            key: a.id,
+            href: `/console/accounts/${a.id}`,
+            label: a.legalName,
+            detail: t("invoiceDue", { number: a.number, date: formatDate(a.dueOn) }),
+          }))}
+        />
+        <TodoList
+          title={t("toInvoice")}
+          rows={billing.toInvoice.map((a) => ({
+            key: a.id,
+            href: `/console/accounts/${a.id}`,
+            label: a.legalName,
+            detail: a.invoicedUntil
+              ? t("invoicedUntil", { date: formatDate(a.invoicedUntil) })
+              : t("notInvoiced"),
+          }))}
+        />
         <TodoList
           title={t("overUnits")}
           rows={overUnits.map((a) => ({

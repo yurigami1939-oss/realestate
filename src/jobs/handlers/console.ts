@@ -1,5 +1,6 @@
 import type { Job } from "pg-boss";
 
+import { renderConsoleDocument } from "@/server/console/billing-documents";
 import { runConsoleDaily } from "@/server/console/lifecycle";
 import { runUsageSnapshot } from "@/server/console/usage";
 
@@ -20,5 +21,13 @@ export async function handleConsoleUsage(jobs: Job<JobPayloads["console.usage"]>
   for (const job of jobs) {
     const organizations = await runUsageSnapshot();
     console.log(`[worker] console.usage ${job.id}: ${organizations} organizations measured`);
+  }
+}
+
+/** `console.document`: an operator invoice or credit note rendered once, stored, e-mailed. */
+export async function handleConsoleDocument(jobs: Job<JobPayloads["console.document"]>[]) {
+  for (const job of jobs) {
+    const outcome = await renderConsoleDocument(job.data.kind, job.data.id);
+    console.log(`[worker] console.document ${job.data.kind} ${job.data.id}: ${outcome}`);
   }
 }

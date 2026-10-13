@@ -11,7 +11,15 @@ import ar from "../../../messages/ar.json";
 import fr from "../../../messages/fr.json";
 
 const catalogs = { fr, ar } as const;
-type EmailKind = "invitation" | "portalInvitation" | "resetPassword" | "pilotEnding" | "provision";
+type EmailKind =
+  | "invitation"
+  | "portalInvitation"
+  | "resetPassword"
+  | "pilotEnding"
+  | "provision"
+  | "consoleInvoice"
+  | "consoleCreditNote"
+  | "invoiceOverdue";
 type Values = Record<string, string>;
 
 const escapeHtml = (value: string) =>
@@ -20,7 +28,13 @@ const escapeHtml = (value: string) =>
     (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c] ?? c,
   );
 
-function section(locale: "fr" | "ar", kind: EmailKind, values: Values, url: string) {
+function section(
+  locale: "fr" | "ar",
+  kind: EmailKind,
+  given: Values | ((locale: "fr" | "ar") => Values),
+  url: string,
+) {
+  const values = typeof given === "function" ? given(locale) : given;
   const t = createTranslator({ locale, messages: catalogs[locale], namespace: `emails.${kind}` });
   const lines = [t("body", values), t("notice")];
   const dir = locale === "ar" ? "rtl" : "ltr";
@@ -46,7 +60,12 @@ function combine(to: string, frPart: Part, arPart: Part): EmailMessage {
 }
 
 /** One email, French then Arabic: the recipient's language is not known yet. */
-function bilingual(kind: EmailKind, to: string, values: Values, url: string): EmailMessage {
+function bilingual(
+  kind: EmailKind,
+  to: string,
+  values: Values | ((locale: "fr" | "ar") => Values),
+  url: string,
+): EmailMessage {
   return combine(to, section("fr", kind, values, url), section("ar", kind, values, url));
 }
 
@@ -117,6 +136,56 @@ export function pilotEndingEmail(input: {
       endsOn: formatDate(input.endsOn),
       days: String(input.days),
     },
+    input.url,
+  );
+}
+
+/**
+ * An operator invoice or credit note to the gérants of the client's companies (CLAUDE.console.md
+ * §11): bilingual, the PDF attached, a link to the subscription page.
+ */
+export function consoleDocumentEmail(input: {
+  to: string;
+  kind: "invoice" | "credit_note";
+  number: string;
+  organization: string;
+  amount: bigint;
+  dueOn: string | null;
+  url: string;
+  attachment: NonNullable<EmailMessage["attachments"]>[number];
+}): EmailMessage {
+  const message = bilingual(
+    input.kind === "invoice" ? "consoleInvoice" : "consoleCreditNote",
+    input.to,
+    (locale) => ({
+      number: input.number,
+      organization: input.organization,
+      amount: formatDZD(input.amount, locale),
+      dueOn: input.dueOn ? formatDate(input.dueOn) : "",
+    }),
+    input.url,
+  );
+  return { ...message, attachments: [input.attachment] };
+}
+
+/** An operator invoice left unpaid, the day after its due day and a week later (§14). */
+export function invoiceOverdueEmail(input: {
+  to: string;
+  number: string;
+  organization: string;
+  remaining: bigint;
+  dueOn: string;
+  url: string;
+}): EmailMessage {
+  return bilingual(
+    "invoiceOverdue",
+    input.to,
+    (locale) => ({
+      number: input.number,
+      organization: input.organization,
+      amount: formatDZD(input.remaining, locale),
+      dueOn: formatDate(input.dueOn),
+    }),
     input.url,
   );
 }

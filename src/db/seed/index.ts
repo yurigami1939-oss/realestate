@@ -13,6 +13,7 @@ import {
   attachToDemoAccount,
   openDemoAccount,
   seedConsoleCatalog,
+  seedDemoBilling,
   seedOperator,
   seedPilotPromoter,
 } from "./console";
@@ -187,4 +188,6 @@ export async function seedDemo(): Promise<void> {
   await assertEveryOrganizationEntitled();
   // Last night's measure (CLAUDE.console.md §7): usage shows on the console and the subscription page.
   await runUsageSnapshot();
+  // Then the demo client's invoices: its syndic lots are known.
+  if (billingAccountId) await seedDemoBilling(billingAccountId);
 }

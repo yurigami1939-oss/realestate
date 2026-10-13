@@ -617,6 +617,13 @@
       "when": 1791850657230,
       "tag": "0087_tenant_usage",
       "breakpoints": true
+    },
+    {
+      "idx": 88,
+      "version": "7",
+      "when": 1791856230377,
+      "tag": "0088_console_billing",
+      "breakpoints": true
     }
   ]
 }

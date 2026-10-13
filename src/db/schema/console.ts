@@ -17,6 +17,12 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 
+import {
+  consolePaymentMethods,
+  type InvoiceParty,
+  invoiceLineKinds,
+  vatRegimes,
+} from "../../lib/billing";
 import type { Module } from "../../lib/modules";
 import {
   addonBases,
@@ -44,6 +50,9 @@ export const billingPeriod = consoleSchema.enum("billing_period", billingPeriods
 export const addonCode = consoleSchema.enum("addon_code", addonCodes);
 export const addonBasis = consoleSchema.enum("addon_basis", addonBases);
 export const consoleDocumentType = consoleSchema.enum("document_type", ["invoice", "credit_note"]);
+export const vatRegime = consoleSchema.enum("vat_regime", vatRegimes);
+export const invoiceLineKind = consoleSchema.enum("invoice_line_kind", invoiceLineKinds);
+export const consolePaymentMethod = consoleSchema.enum("payment_method", consolePaymentMethods);
 
 /** A client: one or more organizations (a gérant's SARLs) paying one subscription. */
 export const billingAccount = consoleSchema.table("billing_account", {
@@ -273,6 +282,168 @@ export const tenantUsage = consoleSchema.table(
     lastActivityAt: instant(),
   },
   (t) => [primaryKey({ columns: [t.organizationId, t.measuredOn] })],
+);
+
+/**
+ * The operator itself (CLAUDE.console.md §3, §11): one row, snapshotted on each invoice — legal
+ * identity, bank and RIB, VAT regime and rate, payment terms, the invoices' footer and logo.
+ */
+export const operatorProfile = consoleSchema.table(
+  "operator_profile",
+  {
+    id: smallint().primaryKey().default(1),
+    legalName: text().notNull(),
+    brand: text(),
+    legalForm: text(),
+    address: text(),
+    wilaya: text(),
+    phone: text(),
+    email: text(),
+    rcNumber: text(),
+    nif: text(),
+    nis: text(),
+    aiNumber: text(),
+    bank: text(),
+    rib: text(),
+    vatRegime: vatRegime().notNull().default("vat"),
+    vatRateBp: integer().notNull().default(1900),
+    paymentTermsDays: integer().notNull().default(15),
+    footerFr: text(),
+    footerAr: text(),
+    logoKey: text(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [
+    check("operator_profile_single", sql`${t.id} = 1`),
+    check("operator_profile_vat", sql`${t.vatRateBp} between 0 and 10000`),
+    check("operator_profile_terms", sql`${t.paymentTermsDays} between 0 and 365`),
+  ],
+);
+
+/**
+ * An operator invoice (CLAUDE.console.md §11): numbered `FAC-`, the seller and the buyer
+ * snapshotted, totals HT / VAT / TTC. Immutable but for its PDF (grants); never edited nor
+ * cancelled — a credit note corrects it. Its state (due, overdue, paid, credited) is derived.
+ */
+export const invoice = consoleSchema.table(
+  "invoice",
+  {
+    id: id(),
+    billingAccountId: uuid()
+      .notNull()
+      .references(() => billingAccount.id, { onDelete: "restrict" }),
+    number: text().notNull().unique(),
+    issuedOn: date({ mode: "string" }).notNull(),
+    dueOn: date({ mode: "string" }).notNull(),
+    /** The subscription period it invoices (null: no subscription line). */
+    periodStart: date({ mode: "string" }),
+    periodEnd: date({ mode: "string" }),
+    seller: jsonb().$type<InvoiceParty>().notNull(),
+    buyer: jsonb().$type<InvoiceParty>().notNull(),
+    /** Null: no VAT (the operator's regime). */
+    vatRateBp: integer(),
+    totalHt: money().notNull(),
+    totalVat: money().notNull(),
+    totalTtc: money().notNull(),
+    pdfKey: text(),
+    issuedBy: uuid().references(() => user.id, { onDelete: "restrict" }),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    index().on(t.billingAccountId, t.issuedOn),
+    check(
+      "invoice_totals",
+      sql`${t.totalHt} >= 0 and ${t.totalVat} >= 0 and ${t.totalTtc} = ${t.totalHt} + ${t.totalVat}`,
+    ),
+    check("invoice_due", sql`${t.dueOn} >= ${t.issuedOn}`),
+  ],
+);
+
+/** A line of an invoice: quantity × unit price (HT); syndic lines count lot-months. */
+export const invoiceLine = consoleSchema.table(
+  "invoice_line",
+  {
+    id: id(),
+    invoiceId: uuid()
+      .notNull()
+      .references(() => invoice.id, { onDelete: "restrict" }),
+    position: integer().notNull(),
+    kind: invoiceLineKind().notNull(),
+    /** The add-on a line bills (an add-on or its true-up). */
+    addonCode: addonCode(),
+    labelFr: text().notNull(),
+    labelAr: text().notNull(),
+    periodStart: date({ mode: "string" }),
+    periodEnd: date({ mode: "string" }),
+    quantity: integer().notNull(),
+    unitPrice: money().notNull(),
+    amount: money().notNull(),
+  },
+  (t) => [
+    index().on(t.invoiceId, t.position),
+    check(
+      "invoice_line_amount",
+      sql`${t.quantity} > 0 and ${t.unitPrice} >= 0 and ${t.amount} = ${t.quantity} * ${t.unitPrice}`,
+    ),
+  ],
+);
+
+/** A credit note `AVO-` on an invoice: at most what remains unpaid, split at the invoice's rate. */
+export const creditNote = consoleSchema.table(
+  "credit_note",
+  {
+    id: id(),
+    invoiceId: uuid()
+      .notNull()
+      .references(() => invoice.id, { onDelete: "restrict" }),
+    billingAccountId: uuid()
+      .notNull()
+      .references(() => billingAccount.id, { onDelete: "restrict" }),
+    number: text().notNull().unique(),
+    issuedOn: date({ mode: "string" }).notNull(),
+    amountHt: money().notNull(),
+    amountVat: money().notNull(),
+    amountTtc: money().notNull(),
+    reason: text().notNull(),
+    pdfKey: text(),
+    issuedBy: uuid().references(() => user.id, { onDelete: "restrict" }),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    index().on(t.invoiceId),
+    check(
+      "credit_note_amounts",
+      sql`${t.amountTtc} > 0 and ${t.amountHt} >= 0 and ${t.amountVat} >= 0 and ${t.amountTtc} = ${t.amountHt} + ${t.amountVat}`,
+    ),
+  ],
+);
+
+/** A client's payment of an invoice (never cash); cancelled with a reason only (a bounced cheque). */
+export const consolePayment = consoleSchema.table(
+  "payment",
+  {
+    id: id(),
+    invoiceId: uuid()
+      .notNull()
+      .references(() => invoice.id, { onDelete: "restrict" }),
+    billingAccountId: uuid()
+      .notNull()
+      .references(() => billingAccount.id, { onDelete: "restrict" }),
+    paidOn: date({ mode: "string" }).notNull(),
+    amount: money().notNull(),
+    method: consolePaymentMethod().notNull(),
+    reference: text(),
+    recordedBy: uuid().references(() => user.id, { onDelete: "restrict" }),
+    cancelledAt: instant(),
+    cancelReason: text(),
+    cancelledBy: uuid().references(() => user.id, { onDelete: "restrict" }),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    index().on(t.invoiceId),
+    check("console_payment_amount", sql`${t.amount} > 0`),
+    check("console_payment_cancel", sql`(${t.cancelledAt} is null) = (${t.cancelReason} is null)`),
+  ],
 );
 
 /** Gapless counters of the operator's invoices (FAC-) and credit notes (AVO-) per year. */

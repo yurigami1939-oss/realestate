@@ -2,10 +2,12 @@
 
 import {
   Building2,
+  FileText,
   LayoutDashboard,
   type LucideIcon,
   MailPlus,
   Package,
+  Settings,
   ShieldCheck,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -15,13 +17,15 @@ import { cn } from "@/lib/utils";
 
 const items: {
   href: string;
-  key: "overview" | "accounts" | "provisions" | "plans" | "security";
+  key: "overview" | "accounts" | "invoices" | "provisions" | "plans" | "settings" | "security";
   icon: LucideIcon;
 }[] = [
   { href: "/console", key: "overview", icon: LayoutDashboard },
   { href: "/console/accounts", key: "accounts", icon: Building2 },
+  { href: "/console/invoices", key: "invoices", icon: FileText },
   { href: "/console/provisions", key: "provisions", icon: MailPlus },
   { href: "/console/plans", key: "plans", icon: Package },
+  { href: "/console/settings", key: "settings", icon: Settings },
   { href: "/console/security", key: "security", icon: ShieldCheck },
 ];
 

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { PageHeader } from "@/components/app-shell/page-header";
+import { InvoiceStateBadge } from "@/components/subscription/invoice-state-badge";
 import { ModuleList } from "@/components/subscription/module-list";
 import { SubscriptionStatusBadge } from "@/components/subscription/subscription-status-badge";
 import { UsageMeter } from "@/components/subscription/usage-meter";
@@ -12,6 +13,7 @@ import { can } from "@/lib/permissions";
 import { addonModules } from "@/lib/subscriptions";
 import { requirePermission } from "@/server/auth/page-guard";
 import { getUsage } from "@/server/entitlements/capacity";
+import { getTenantInvoices } from "@/server/entitlements/invoices";
 import { getTenantSubscription } from "@/server/entitlements/subscription";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -50,6 +52,8 @@ export default async function SubscriptionPage({
   const ctx = await requirePermission("subscription:read");
   const { subscription, modules, access } = await getTenantSubscription(ctx);
   const usage = await getUsage(ctx);
+  const { invoices, payTo } = await getTenantInvoices(ctx);
+  const ti = await getTranslations("subscription.invoices");
   const tu = await getTranslations("subscription.usage");
   const limits = access.limits;
   const figure = (used: string, cap: string | null) =>
@@ -188,6 +192,98 @@ export default async function SubscriptionPage({
                 ))}
               </ul>
             )}
+          </Group>
+
+          <Group title={ti("title")}>
+            {invoices.length === 0 ? (
+              <p className="rounded-xl bg-card px-4 py-3 text-sm text-muted-foreground shadow-card">
+                {ti("empty")}
+              </p>
+            ) : (
+              <ul
+                className="divide-y overflow-hidden rounded-xl bg-card shadow-card"
+                data-testid="invoices"
+              >
+                {invoices.map((inv) => (
+                  <li key={inv.id} className="space-y-1.5 px-4 py-3" data-invoice={inv.number}>
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <span className="flex flex-wrap items-center gap-2">
+                        <span className="text-sm font-medium tabular-nums" dir="ltr">
+                          {inv.number}
+                        </span>
+                        <InvoiceStateBadge state={inv.state} />
+                      </span>
+                      {inv.hasPdf ? (
+                        <a
+                          href={`/api/subscription/invoices/${inv.id}`}
+                          target="_blank"
+                          rel="noopener"
+                          className="text-sm text-primary hover:underline"
+                        >
+                          {ti("download")}
+                        </a>
+                      ) : null}
+                    </div>
+                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-footnote text-muted-foreground tabular-nums">
+                      <span>
+                        {ti("issuedOn")} {formatDate(inv.issuedOn)}
+                      </span>
+                      <span>
+                        {ti("dueOn")} {formatDate(inv.dueOn)}
+                      </span>
+                      <span>
+                        {ti("total")} {money(inv.totalTtc)}
+                      </span>
+                      {inv.remaining > 0n ? (
+                        <span className="font-medium text-foreground">
+                          {ti("remaining")} {money(inv.remaining)}
+                        </span>
+                      ) : null}
+                    </div>
+                    {inv.creditNotes.map((note) => (
+                      <div key={note.id} className="text-footnote text-muted-foreground">
+                        {note.hasPdf ? (
+                          <a
+                            href={`/api/subscription/invoices/${note.id}`}
+                            target="_blank"
+                            rel="noopener"
+                            className="text-primary hover:underline"
+                          >
+                            {ti("creditNote", {
+                              number: note.number,
+                              amount: money(note.amountTtc),
+                            })}
+                          </a>
+                        ) : (
+                          ti("creditNote", { number: note.number, amount: money(note.amountTtc) })
+                        )}
+                      </div>
+                    ))}
+                  </li>
+                ))}
+              </ul>
+            )}
+            {payTo && (payTo.rib || payTo.bank) ? (
+              <div
+                className="rounded-xl bg-card px-4 py-3 text-sm shadow-card"
+                data-testid="pay-to"
+              >
+                <div className="font-medium">{ti("payTo")}</div>
+                <div className="text-muted-foreground">
+                  {ti("payToName", { name: payTo.legalName })}
+                </div>
+                {payTo.bank ? (
+                  <div>
+                    {ti("bank")} : {payTo.bank}
+                  </div>
+                ) : null}
+                {payTo.rib ? (
+                  <div>
+                    {ti("rib")} : <bdi dir="ltr">{payTo.rib}</bdi>
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
           </Group>
 
           <Group title={t("organizations.title")}>

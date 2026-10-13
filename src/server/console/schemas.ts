@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { consolePaymentMethods, invoiceLineKinds, invoiceStates, vatRegimes } from "@/lib/billing";
 import { modules } from "@/lib/modules";
 import {
   addonBases,
@@ -10,14 +11,17 @@ import {
 } from "@/lib/subscriptions";
 import {
   codeText,
+  dateText,
   intText,
   moneyText,
   optionalDateText,
   optionalEmailText,
+  optionalEnum,
   optionalIntText,
   optionalMoneyText,
   optionalPercentText,
   optionalText,
+  percentText,
   requiredText,
 } from "@/lib/zod";
 
@@ -152,4 +156,73 @@ export const supportStartSchema = z.object({
   organizationId: z.uuid(),
   userId: z.uuid(),
   reason: requiredText(500),
+});
+
+// ── Billing (CLAUDE.console.md §11) ─────────────────────────────────────────────────────────
+
+/** The operator's profile, printed on the invoices issued afterwards. */
+export const operatorProfileSchema = z.object({
+  legalName: requiredText(160),
+  brand: optionalText(80),
+  legalForm: optionalText(40),
+  address: optionalText(300),
+  wilaya: optionalText(80),
+  phone: optionalText(40),
+  email: optionalEmailText(),
+  rcNumber: optionalText(40),
+  nif: optionalText(40),
+  nis: optionalText(40),
+  aiNumber: optionalText(40),
+  bank: optionalText(120),
+  rib: optionalText(40),
+  vatRegime: z.enum(vatRegimes),
+  vatRate: percentText(0, 100),
+  paymentTermsDays: intText(0, 365),
+  footerFr: optionalText(1000),
+  footerAr: optionalText(1000),
+});
+
+/** A line of an invoice as issued (prefilled, then edited). */
+export const invoiceLineInputSchema = z.object({
+  kind: z.enum(invoiceLineKinds),
+  addonCode: optionalEnum(addonCodes),
+  labelFr: requiredText(300),
+  labelAr: requiredText(300),
+  periodStart: optionalDateText(),
+  periodEnd: optionalDateText(),
+  quantity: intText(1, 1_000_000),
+  unitPrice: moneyText(),
+});
+
+export const issueInvoiceSchema = z.object({
+  billingAccountId: z.uuid(),
+  issuedOn: dateText(),
+  lines: z.array(invoiceLineInputSchema).min(1, "console.errors.invoiceEmpty").max(30),
+});
+
+export const creditNoteSchema = z.object({
+  invoiceId: z.uuid(),
+  issuedOn: dateText(),
+  amount: moneyText(),
+  reason: requiredText(500),
+});
+
+/** A client's payment of an invoice: never cash. */
+export const consolePaymentSchema = z.object({
+  invoiceId: z.uuid(),
+  paidOn: dateText(),
+  amount: moneyText(),
+  method: z.enum(consolePaymentMethods),
+  reference: optionalText(120),
+});
+
+export const cancelConsolePaymentSchema = z.object({
+  paymentId: z.uuid(),
+  reason: requiredText(500),
+});
+
+/** The invoices page's filters (from the URL). */
+export const invoiceFiltersSchema = z.object({
+  q: z.string().trim().max(80).optional(),
+  state: z.enum(invoiceStates).optional().catch(undefined),
 });

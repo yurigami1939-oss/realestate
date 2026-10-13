@@ -14,6 +14,12 @@ import { db } from "@/db/client";
 import { auth } from "@/server/auth/auth";
 import { OPERATOR_ROLE } from "@/server/auth/schema-options";
 import { attachOrganization, openBillingAccount } from "@/server/console/accounts";
+import {
+  draftInvoice,
+  issueInvoice,
+  recordConsolePayment,
+  saveOperatorProfile,
+} from "@/server/console/billing";
 import { systemOperator } from "@/server/console/context";
 import { createAddon, createPlan } from "@/server/console/plans";
 import { addonSchema, openAccountSchema, planSchema } from "@/server/console/schemas";
@@ -28,6 +34,7 @@ import { createBuilding, createProject, generateUnits } from "@/server/inventory
 import { consoleDb } from "../console-client";
 import { withConsoleTenant } from "../console-tenant";
 import {
+  invoice,
   organization,
   pilotGoal,
   tenantEntitlement,
@@ -103,6 +110,70 @@ export async function seedConsoleCatalog(): Promise<void> {
   await consoleDb.transaction(async (tx) => {
     for (const p of plans) await createPlan(systemOperator, planSchema.parse(p), tx);
     for (const a of addons) await createAddon(systemOperator, addonSchema.parse(a), tx);
+  });
+  // A placeholder profile (CLAUDE.console.md §15): the operator's real identity, bank and VAT
+  // regime are to be set with its accountant (§18).
+  await saveOperatorProfile(systemOperator, {
+    legalName: "Darna SARL (profil fictif)",
+    brand: "Darna",
+    legalForm: "SARL",
+    address: "Rue fictive, Hydra",
+    wilaya: "16 - Alger",
+    phone: "+213 23 00 00 00",
+    email: "facturation@darna.test",
+    rcNumber: "16/00-0000000B26",
+    nif: "000016000000000",
+    nis: "000016000000000",
+    aiNumber: "16000000000",
+    bank: "Banque fictive, agence Hydra",
+    rib: "000 00000 0000000000 00",
+    vatRegime: "vat",
+    vatRateBp: 1900,
+    paymentTermsDays: 15,
+    footerFr: "Profil de démonstration : coordonnées et RIB fictifs.",
+    footerAr: "ملف تجريبي: معلومات ورقم حساب وهمية.",
+  });
+}
+
+/**
+ * The demo client's invoices (CLAUDE.console.md §15), once its usage is measured: the current
+ * year issued when it started (without the setup fee: a yearly commitment) and paid by transfer
+ * ten days later, and a training invoice issued five days ago, still due.
+ */
+export async function seedDemoBilling(billingAccountId: string): Promise<void> {
+  const start = addMonths(todayInAlgiers(), -3);
+  const draft = await draftInvoice(systemOperator, billingAccountId);
+  const yearly = await issueInvoice(systemOperator, {
+    billingAccountId,
+    issuedOn: start,
+    lines: draft.lines.filter((line) => line.kind !== "setup"),
+  });
+  const [issued] = await consoleDb
+    .select({ total: invoice.totalTtc })
+    .from(invoice)
+    .where(eq(invoice.id, yearly.invoiceId));
+  await recordConsolePayment(systemOperator, {
+    invoiceId: yearly.invoiceId,
+    paidOn: addDays(start, 10),
+    amount: issued?.total ?? 0n,
+    method: "bank_transfer",
+    reference: "VIR BNA 2026/0417",
+  });
+  await issueInvoice(systemOperator, {
+    billingAccountId,
+    issuedOn: addDays(todayInAlgiers(), -5),
+    lines: [
+      {
+        kind: "other",
+        addonCode: null,
+        labelFr: "Formation de deux nouveaux collaborateurs (une journée)",
+        labelAr: "تكوين موظفَين جديدَين (يوم واحد)",
+        periodStart: null,
+        periodEnd: null,
+        quantity: 1,
+        unitPrice: 60_000_00n,
+      },
+    ],
   });
 }
 

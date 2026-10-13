@@ -30,7 +30,12 @@ describe("console catalog (CLAUDE.console.md §3)", () => {
       where n.nspname = 'console' and has_function_privilege(${APP}, p.oid, 'EXECUTE')
       order by 1
     `);
-    expect(rows.map((r) => r.name)).toEqual(["tenant_capacity", "tenant_subscription"]);
+    expect(rows.map((r) => r.name)).toEqual([
+      "tenant_capacity",
+      "tenant_invoices",
+      "tenant_payment_details",
+      "tenant_subscription",
+    ]);
   });
 
   it("lets the app read its entitlement, never write it", async () => {

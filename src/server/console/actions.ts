@@ -11,6 +11,13 @@ import { moneyText } from "@/lib/zod";
 import { addonCodes } from "@/lib/subscriptions";
 
 import { defineConsoleAction } from "./action";
+import {
+  cancelConsolePayment,
+  issueCreditNote,
+  issueInvoice,
+  recordConsolePayment,
+  saveOperatorProfile,
+} from "./billing";
 import { changeSubscriptionStatus } from "./lifecycle";
 import { createPlan } from "./plans";
 import { createProvision, resendProvision, revokeProvision } from "./provisions";
@@ -27,6 +34,11 @@ import {
   subscriptionAddonSchema,
   subscriptionTermsSchema,
   supportStartSchema,
+  cancelConsolePaymentSchema,
+  consolePaymentSchema,
+  creditNoteSchema,
+  issueInvoiceSchema,
+  operatorProfileSchema,
 } from "./schemas";
 import {
   activateSubscription,
@@ -190,3 +202,47 @@ export async function stopSupportSessionAction(): Promise<Result<null>> {
     return err(new AppError("UNEXPECTED"));
   }
 }
+
+// ── Billing (CLAUDE.console.md §11) ─────────────────────────────────────────────────────────
+
+export const saveOperatorProfileAction = defineConsoleAction(
+  { input: operatorProfileSchema },
+  async ({ vatRate, ...input }, ctx) => {
+    await saveOperatorProfile(ctx, { ...input, vatRateBp: vatRate });
+    refresh();
+  },
+);
+
+export const issueInvoiceAction = defineConsoleAction(
+  { input: issueInvoiceSchema },
+  async (input, ctx) => {
+    const issued = await issueInvoice(ctx, input);
+    refresh();
+    return { number: issued.number };
+  },
+);
+
+export const issueCreditNoteAction = defineConsoleAction(
+  { input: creditNoteSchema },
+  async (input, ctx) => {
+    const issued = await issueCreditNote(ctx, input);
+    refresh();
+    return { number: issued.number };
+  },
+);
+
+export const recordConsolePaymentAction = defineConsoleAction(
+  { input: consolePaymentSchema },
+  async (input, ctx) => {
+    await recordConsolePayment(ctx, input);
+    refresh();
+  },
+);
+
+export const cancelConsolePaymentAction = defineConsoleAction(
+  { input: cancelConsolePaymentSchema },
+  async (input, ctx) => {
+    await cancelConsolePayment(ctx, input);
+    refresh();
+  },
+);

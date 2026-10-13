@@ -44,6 +44,11 @@ export const queues = {
    * and the pilots ending in a week (CLAUDE.console.md §14).
    */
   "console.daily": { retryLimit: 3, retryDelay: 60, retryBackoff: true, expireInSeconds: 300 },
+  /**
+   * Renders an operator invoice or credit note once, stores it and e-mails it to the account's
+   * gérants (CLAUDE.console.md §11; idempotent per document).
+   */
+  "console.document": { retryLimit: 3, retryDelay: 15, retryBackoff: true, expireInSeconds: 180 },
   /** Cron (02:00 Algiers): every organization's usage snapshot (CLAUDE.console.md §7). */
   "console.usage": { retryLimit: 3, retryDelay: 300, retryBackoff: true, expireInSeconds: 3600 },
   /**
@@ -128,4 +133,5 @@ export type JobPayloads = {
   "privacy.retention": { organizationId: string; date: string };
   "console.daily": Record<string, never>;
   "console.usage": Record<string, never>;
+  "console.document": { kind: "invoice" | "credit_note"; id: string };
 };

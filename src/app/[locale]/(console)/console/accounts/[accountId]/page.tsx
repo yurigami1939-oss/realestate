@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { PageHeader } from "@/components/app-shell/page-header";
+import { AccountBilling } from "@/components/console/account-billing";
 import {
   AccountIdentityForm,
   AddonsEditor,
@@ -157,6 +158,10 @@ export default async function ConsoleAccountPage({
             };
           })}
         />
+      </Section>
+
+      <Section title={t("billing.title")}>
+        <AccountBilling operator={operator} billingAccountId={account.id} locale={locale} />
       </Section>
 
       <Section title={t("account.organizations.title")}>

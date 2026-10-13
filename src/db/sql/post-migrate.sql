@@ -192,8 +192,14 @@ REVOKE TRUNCATE ON ALL TABLES IN SCHEMA console FROM realestate_console;
 REVOKE UPDATE, DELETE ON console.audit_log FROM realestate_console;
 REVOKE DELETE ON console.billing_account, console.account_organization, console.plan,
   console.addon, console.subscription, console.subscription_addon, console.document_sequence,
-  console.provision
+  console.provision, console.operator_profile
   FROM realestate_console;
+-- Billing (CLAUDE.console.md §11): invoices and credit notes are immutable but for their PDF,
+-- their lines append-only; a payment only gets cancelled (a bounced cheque).
+REVOKE UPDATE, DELETE ON console.invoice, console.invoice_line, console.credit_note,
+  console.payment FROM realestate_console;
+GRANT UPDATE (pdf_key) ON console.invoice, console.credit_note TO realestate_console;
+GRANT UPDATE (cancelled_at, cancel_reason, cancelled_by) ON console.payment TO realestate_console;
 -- On the tenants' side only what the console needs: who the organizations and their members
 -- are, their entitlement (RLS still applies: `withConsoleTenant`), their audit trail.
 GRANT USAGE ON SCHEMA public TO realestate_console;
@@ -276,3 +282,53 @@ $$;
 REVOKE ALL ON FUNCTION console.tenant_capacity() FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION console.tenant_capacity() TO realestate_app;
 
+-- The account's invoices with their credit notes and what was paid (CLAUDE.console.md §11): the
+-- state is derived by the app (`invoiceState`), the PDFs' keys served by its own route.
+CREATE OR REPLACE FUNCTION console.tenant_invoices()
+RETURNS jsonb
+LANGUAGE sql STABLE SECURITY DEFINER
+SET search_path = console, pg_temp
+AS $$
+  SELECT coalesce(jsonb_agg(jsonb_build_object(
+    'id', i.id,
+    'number', i.number,
+    'issuedOn', i.issued_on,
+    'dueOn', i.due_on,
+    'periodStart', i.period_start,
+    'periodEnd', i.period_end,
+    'totalTtc', i.total_ttc::text,
+    'credited', coalesce((SELECT sum(c.amount_ttc) FROM credit_note c WHERE c.invoice_id = i.id), 0)::text,
+    'paid', coalesce((SELECT sum(p.amount) FROM payment p
+                      WHERE p.invoice_id = i.id AND p.cancelled_at IS NULL), 0)::text,
+    'pdfKey', i.pdf_key,
+    'creditNotes', coalesce((
+      SELECT jsonb_agg(jsonb_build_object('id', c.id, 'number', c.number, 'issuedOn', c.issued_on,
+                                          'amountTtc', c.amount_ttc::text, 'pdfKey', c.pdf_key)
+                       ORDER BY c.issued_on, c.number)
+      FROM credit_note c WHERE c.invoice_id = i.id
+    ), '[]'::jsonb)
+  ) ORDER BY i.issued_on DESC, i.number DESC), '[]'::jsonb)
+  FROM account_organization me
+  JOIN invoice i ON i.billing_account_id = me.billing_account_id
+  WHERE me.organization_id = nullif(current_setting('app.current_org', true), '')::uuid
+$$;
+REVOKE ALL ON FUNCTION console.tenant_invoices() FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION console.tenant_invoices() TO realestate_app;
+
+-- Where to pay the operator (CLAUDE.console.md §11): its legal name, bank and RIB, for the
+-- organizations of a client account only.
+CREATE OR REPLACE FUNCTION console.tenant_payment_details()
+RETURNS jsonb
+LANGUAGE sql STABLE SECURITY DEFINER
+SET search_path = console, pg_temp
+AS $$
+  SELECT jsonb_build_object('legalName', o.legal_name, 'bank', o.bank, 'rib', o.rib)
+  FROM operator_profile o
+  WHERE o.id = 1
+    AND EXISTS (
+      SELECT 1 FROM account_organization me
+      WHERE me.organization_id = nullif(current_setting('app.current_org', true), '')::uuid
+    )
+$$;
+REVOKE ALL ON FUNCTION console.tenant_payment_details() FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION console.tenant_payment_details() TO realestate_app;

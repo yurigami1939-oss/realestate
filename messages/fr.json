@@ -296,6 +296,24 @@
       "body": "Un espace a été préparé pour {organization} sur Darna. Créez votre compte avec cette adresse, puis votre société, avant le {expiresOn}.",
       "notice": "Ce lien est personnel et ne sert qu'une fois.",
       "cta": "Créer mon espace"
+    },
+    "consoleInvoice": {
+      "subject": "Facture {number}",
+      "body": "Veuillez trouver ci-joint la facture {number} de l'abonnement de {organization} : {amount} TTC, à régler avant le {dueOn}.",
+      "notice": "Elle est aussi disponible, avec les autres factures, sur la page de l'abonnement.",
+      "cta": "Voir l'abonnement"
+    },
+    "consoleCreditNote": {
+      "subject": "Avoir {number}",
+      "body": "Veuillez trouver ci-joint l'avoir {number} de {amount} TTC en faveur de {organization}.",
+      "notice": "Il réduit ce qui reste à payer sur la facture concernée.",
+      "cta": "Voir l'abonnement"
+    },
+    "invoiceOverdue": {
+      "subject": "Facture {number} échue",
+      "body": "La facture {number} de {organization} était à régler le {dueOn} : il reste {amount} à payer.",
+      "notice": "Si le virement est déjà parti, ignorez ce message. Sinon, le RIB figure sur la facture.",
+      "cta": "Voir l'abonnement"
     }
   },
   "nav": {
@@ -6449,7 +6467,18 @@
       "twoFactor": "Activez la double authentification pour agir dans la console.",
       "provisionClosed": "Ce lien n'est plus valable : demandez-en un nouveau.",
       "provisionEmail": "Ce lien a été envoyé à une autre adresse : connectez-vous avec celle-ci.",
-      "supportMember": "Ce membre ne peut pas être consulté : il n'appartient pas à la société, ou c'est un compte de l'espace client."
+      "supportMember": "Ce membre ne peut pas être consulté : il n'appartient pas à la société, ou c'est un compte de l'espace client.",
+      "invoicePilot": "Un pilote n'est pas facturé : activez d'abord l'abonnement.",
+      "futureDate": "La date ne peut pas être dans le futur.",
+      "invoiceEmpty": "La facture doit porter un montant.",
+      "noOperatorProfile": "Renseignez d'abord le profil de l'opérateur (Réglages).",
+      "invoiceUnknown": "Facture introuvable.",
+      "beforeInvoice": "La date ne peut pas précéder celle de la facture.",
+      "aboveRemaining": "C'est plus que ce qui reste à payer sur la facture.",
+      "paidOn": "La date du paiement va du jour de la facture à aujourd'hui.",
+      "paymentUnknown": "Paiement introuvable.",
+      "paymentCancelled": "Ce paiement est déjà annulé.",
+      "logo": "Le logo doit être une image PNG ou JPEG de 2 Mo au plus."
     },
     "brand": "Console opérateur",
     "nav": {
@@ -6458,7 +6487,9 @@
       "accounts": "Comptes clients",
       "plans": "Formules",
       "security": "Sécurité",
-      "provisions": "Invitations clients"
+      "provisions": "Invitations clients",
+      "invoices": "Factures",
+      "settings": "Réglages"
     },
     "programs": {
       "standard": "Standard",
@@ -6483,7 +6514,14 @@
       "overUnits": "Comptes au-delà de leur plafond de lots actifs (proposer la formule supérieure)",
       "overStorage": "Comptes au-delà de leur stockage",
       "unitsDetail": "{used} lots actifs pour {cap}",
-      "storageDetail": "{used} Go pour {cap} Go"
+      "storageDetail": "{used} Go pour {cap} Go",
+      "mrr": "Revenu mensuel récurrent",
+      "unpaid": "Reste à encaisser",
+      "toInvoice": "Périodes à facturer (dans les 30 jours)",
+      "invoicedUntil": "Facturé jusqu'au {date}",
+      "notInvoiced": "Aucune facture encore",
+      "invoicesBeyondGrace": "Factures impayées au-delà du délai de grâce (suspension à décider)",
+      "invoiceDue": "{number} échue le {date}"
     },
     "accounts": {
       "title": "Comptes clients",
@@ -6588,6 +6626,16 @@
           "support": {
             "start": "Session support ouverte",
             "stop": "Session support terminée"
+          },
+          "invoice": {
+            "issue": "Facture émise"
+          },
+          "credit_note": {
+            "issue": "Avoir émis"
+          },
+          "payment": {
+            "record": "Paiement enregistré",
+            "cancel": "Paiement annulé"
           }
         }
       },
@@ -6720,6 +6768,119 @@
       "revoke": "Retirer",
       "revokeConfirm": "Retirer l'invitation de {email} ? Le lien ne servira plus.",
       "revoked": "Invitation retirée."
+    },
+    "billing": {
+      "title": "Facturation",
+      "issue": "Émettre une facture",
+      "issueTitle": "Nouvelle facture",
+      "issueDescription": "Lignes préremplies pour la période suivante : corrigez, retirez ou ajoutez-en avant d'émettre. Une facture émise ne change plus (un avoir la corrige).",
+      "issuedOn": "Date de la facture",
+      "labelFr": "Désignation",
+      "labelAr": "Désignation en arabe",
+      "quantity": "Quantité",
+      "unitPrice": "Prix unitaire HT (DA)",
+      "addLine": "Ajouter une ligne",
+      "removeLine": "Retirer la ligne",
+      "kinds": {
+        "subscription": "Abonnement",
+        "addon": "Option",
+        "setup": "Mise en service",
+        "adjustment": "Régularisation",
+        "other": "Autre"
+      },
+      "totalHt": "Total HT : {amount}",
+      "issued": "Facture {number} émise.",
+      "empty": "Aucune facture pour le moment.",
+      "pilot": "Le pilote n'est pas facturé : activez l'abonnement pour émettre une facture.",
+      "noProfile": "Renseignez le profil de l'opérateur avant la première facture.",
+      "settingsLink": "Réglages",
+      "number": "N°",
+      "issuedOnShort": "Date",
+      "dueOn": "Échéance",
+      "total": "TTC",
+      "remaining": "Reste",
+      "state": "État",
+      "states": {
+        "due": "À payer",
+        "overdue": "En retard",
+        "paid": "Payée",
+        "credited": "Annulée par avoir"
+      },
+      "pdf": "PDF",
+      "pdfPending": "PDF en cours",
+      "pay": "Encaisser",
+      "payTitle": "Enregistrer un paiement",
+      "payDescription": "Facture {number} · reste {amount}.",
+      "paidOn": "Payé le",
+      "amount": "Montant (DA)",
+      "method": "Mode de paiement",
+      "methods": {
+        "bank_transfer": "Virement",
+        "cheque": "Chèque",
+        "ccp": "CCP",
+        "card": "Carte"
+      },
+      "reference": "Référence",
+      "paid": "Paiement enregistré.",
+      "credit": "Avoir",
+      "creditTitle": "Émettre un avoir",
+      "creditDescription": "Sur la facture {number}, au plus {amount} TTC.",
+      "creditAmount": "Montant TTC (DA)",
+      "reason": "Motif",
+      "credited": "Avoir {number} émis.",
+      "payments": "Paiements",
+      "creditNotes": "Avoirs",
+      "onInvoice": "sur {number}",
+      "cancelPayment": "Annuler",
+      "cancelTitle": "Annuler ce paiement ?",
+      "cancelDescription": "Un chèque revenu impayé, par exemple : le paiement reste visible, annulé avec son motif.",
+      "cancelled": "Annulé : {reason}"
+    },
+    "invoices": {
+      "title": "Factures",
+      "description": "Les factures émises, avec ce qui reste à payer sur chacune.",
+      "search": "N° ou client",
+      "allStates": "Tous les états",
+      "account": "Client",
+      "unpaid": "Reste à encaisser : {amount}",
+      "filter": "Filtrer",
+      "empty": "Aucune facture ne correspond."
+    },
+    "settings": {
+      "title": "Réglages de l'opérateur",
+      "description": "L'identité imprimée sur les factures, la banque, la TVA et le délai de paiement.",
+      "legalName": "Raison sociale",
+      "brand": "Marque",
+      "legalForm": "Forme juridique",
+      "address": "Adresse",
+      "wilaya": "Wilaya",
+      "phone": "Téléphone",
+      "email": "E-mail",
+      "rcNumber": "RC",
+      "nif": "NIF",
+      "nis": "NIS",
+      "aiNumber": "AI",
+      "bank": "Banque",
+      "rib": "RIB",
+      "vatRegime": "Régime de TVA",
+      "vatRegimes": {
+        "vat": "Assujetti à la TVA",
+        "none": "Non assujetti (TVA non applicable)"
+      },
+      "vatRate": "Taux de TVA (%)",
+      "paymentTermsDays": "Délai de paiement (jours)",
+      "footerFr": "Pied de facture en français",
+      "footerAr": "Pied de facture en arabe",
+      "save": "Enregistrer",
+      "saved": "Profil enregistré.",
+      "identity": "Identité",
+      "invoicing": "Facturation",
+      "logo": "Logo",
+      "logoHint": "PNG ou JPEG, 2 Mo au plus, imprimé sur les factures émises ensuite.",
+      "logoUpload": "Choisir un logo",
+      "logoRemove": "Retirer le logo",
+      "logoSaved": "Logo enregistré.",
+      "logoNone": "Aucun logo."
     }
   },
   "modules": {
@@ -6849,6 +7010,28 @@
       "measuredOn": "Lots gérés et stockage mesurés le {date}.",
       "notMeasured": "Lots gérés et stockage : première mesure cette nuit.",
       "gb": "{value} Go"
+    },
+    "invoices": {
+      "title": "Factures",
+      "empty": "Aucune facture pour le moment.",
+      "number": "N°",
+      "issuedOn": "Date",
+      "dueOn": "Échéance",
+      "total": "Montant TTC",
+      "remaining": "Reste à payer",
+      "state": "État",
+      "states": {
+        "due": "À payer",
+        "overdue": "En retard",
+        "paid": "Payée",
+        "credited": "Annulée par avoir"
+      },
+      "download": "PDF",
+      "creditNote": "Avoir {number} : {amount}",
+      "payTo": "Règlement par virement",
+      "payToName": "À l'ordre de {name}",
+      "bank": "Banque",
+      "rib": "RIB"
     }
   }
 }
