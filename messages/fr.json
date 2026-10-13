@@ -2414,7 +2414,8 @@
         "marketing_spend": "Dépense de communication saisie",
         "capture_key": "Clé de capture de prospects créée",
         "capture_key_revoke": "Clé de capture de prospects révoquée",
-        "modules": "Modules activés ou désactivés"
+        "modules": "Modules activés ou désactivés",
+        "export_bundle": "Export de toutes les données"
       },
       "member": {
         "join": "Arrivée d'un membre",
@@ -6636,6 +6637,9 @@
           "payment": {
             "record": "Paiement enregistré",
             "cancel": "Paiement annulé"
+          },
+          "organization": {
+            "purge": "Données d'une société supprimées"
           }
         }
       },
@@ -7032,6 +7036,11 @@
       "payToName": "À l'ordre de {name}",
       "bank": "Banque",
       "rib": "RIB"
+    },
+    "dataExport": {
+      "title": "Vos données",
+      "description": "Toutes vos listes et tous vos journaux en Excel, avec l'index de vos documents, dans un seul fichier. Disponible à tout moment, même en lecture seule.",
+      "action": "Télécharger toutes les données (.zip)"
     }
   }
 }

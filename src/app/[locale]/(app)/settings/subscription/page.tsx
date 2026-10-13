@@ -310,6 +310,23 @@ export default async function SubscriptionPage({
         </p>
       )}
 
+      {can(ctx, "organization:update") ? (
+        <Group title={t("dataExport.title")}>
+          <div
+            className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-card px-4 py-3 shadow-card"
+            data-testid="data-export"
+          >
+            <p className="max-w-xl text-sm text-muted-foreground">{t("dataExport.description")}</p>
+            <a
+              href={`/api/exports/bundle?locale=${locale}`}
+              className="inline-flex h-9 items-center rounded-md bg-primary px-3.5 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+            >
+              {t("dataExport.action")}
+            </a>
+          </div>
+        </Group>
+      ) : null}
+
       <Group title={t("modules.title")}>
         <ModuleList rows={modules} canSwitch={can(ctx, "organization:update")} />
         <p className="px-4 text-footnote text-muted-foreground">{t("modules.description")}</p>
