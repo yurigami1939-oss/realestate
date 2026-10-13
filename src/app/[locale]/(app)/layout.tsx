@@ -9,6 +9,7 @@ import { localeDirection, toLocale } from "@/i18n/locales";
 import { accessOf, can, isPortalOnly } from "@/lib/permissions";
 import { OPERATOR_ROLE } from "@/server/auth/schema-options";
 import { getSession, getTenantCtx } from "@/server/auth/session";
+import { getUsage } from "@/server/entitlements/capacity";
 import { listUserOrganizations } from "@/server/organizations/queries";
 
 /** Back-office shell. Every page below requires a session and an active organization. */
@@ -30,6 +31,11 @@ export default async function AppLayout({ children, params }: LayoutProps<"/[loc
   if (isPortalOnly(ctx.roles)) return redirect({ href: "/portal", locale });
 
   const access = accessOf(ctx);
+  // The storage of the plan (soft cap): only those who read the subscription are told.
+  const billing = can(ctx, "subscription:read");
+  const storageGb = ctx.access?.limits?.storageGb ?? null;
+  const storageShare =
+    billing && storageGb ? ((await getUsage(ctx)).storageBytes / (storageGb * 1e9)) * 100 : null;
   const group = organizations.filter((o) => o.roles.includes("owner")).length > 1;
   return (
     <SidebarProvider>
@@ -44,7 +50,7 @@ export default async function AppLayout({ children, params }: LayoutProps<"/[loc
       {/* min-w-0: wide tables scroll inside their own container, not the page. */}
       <SidebarInset className="min-w-0">
         <DemoBanner />
-        <SubscriptionBanner access={ctx.access} billing={can(ctx, "subscription:read")} />
+        <SubscriptionBanner access={ctx.access} billing={billing} storageShare={storageShare} />
         <TopBar fallback={active.name}>
           <CommandPalette access={access} group={group} />
         </TopBar>

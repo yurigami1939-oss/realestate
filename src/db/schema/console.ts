@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import {
+  bigint,
   boolean,
   check,
   date,
@@ -244,6 +245,34 @@ export const provision = consoleSchema.table(
     index().on(t.email),
     check("provision_pilot_days", sql`${t.pilotDays} between 1 and 365`),
   ],
+);
+
+/**
+ * What each organization uses, measured every night (`console.usage`, CLAUDE.console.md §7): the
+ * caps' figures, the storage, and the pilot's indicators. An account's usage is the sum of its
+ * organizations'. Kept 400 days; no foreign key (kept after a purge).
+ */
+export const tenantUsage = consoleSchema.table(
+  "tenant_usage",
+  {
+    organizationId: uuid().notNull(),
+    measuredOn: date({ mode: "string" }).notNull(),
+    projects: integer().notNull(),
+    units: integer().notNull(),
+    /** Live units not handed over, in projects not delivered: the pricing metric. */
+    activeUnits: integer().notNull(),
+    /** Units enrolled in live residences: the syndic add-on's metric. */
+    managedLots: integer().notNull(),
+    staffMembers: integer().notNull(),
+    portalAccounts: integer().notNull(),
+    storageBytes: bigint({ mode: "number" }).notNull(),
+    receipts30d: integer().notNull(),
+    reminders30d: integer().notNull(),
+    activeMembers30d: integer().notNull(),
+    leads30d: integer().notNull(),
+    lastActivityAt: instant(),
+  },
+  (t) => [primaryKey({ columns: [t.organizationId, t.measuredOn] })],
 );
 
 /** Gapless counters of the operator's invoices (FAC-) and credit notes (AVO-) per year. */

@@ -19,6 +19,7 @@ import { defaultUnitCode } from "@/lib/inventory";
 import { AppError } from "@/lib/result";
 import { recordAudit } from "@/server/audit/record-audit";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
+import { assertActiveUnitsRoom } from "@/server/entitlements/capacity";
 
 import type {
   createBuildingSchema,
@@ -247,6 +248,8 @@ export async function createUnit(ctx: TenantCtx, input: In<typeof createUnitSche
       assertFloorInBuilding(input.floor, parent);
       // A third party's units are delivered from the start: never for sale.
       const status = parent.thirdParty ? ("delivered" as const) : ("available" as const);
+      // The plan's cap of active units, pooled over the account (CLAUDE.console.md §7).
+      if (!parent.thirdParty) await assertActiveUnitsRoom(tx, 1);
       const created = await uniqueCode(async () => {
         const [row] = await tx
           .insert(unit)
@@ -350,6 +353,7 @@ export async function generateUnits(ctx: TenantCtx, input: In<typeof generateUni
       );
     const taken = new Set(existing.map((e) => e.code));
     const toCreate = planned.filter((p) => !taken.has(p.code));
+    if (!parent.thirdParty) await assertActiveUnitsRoom(tx, toCreate.length);
 
     if (toCreate.length > 0) {
       const rows = await tx

@@ -11,6 +11,7 @@ import { moneyText } from "@/lib/zod";
 import { assertCan, type TenantCtx } from "@/server/auth/session";
 import { createUnitSchema } from "@/server/inventory/schemas";
 import { blockUnit, createUnit, updateUnitPrice } from "@/server/inventory/service";
+import { activeUnitsRoom } from "@/server/entitlements/capacity";
 
 import { IMPORT_REASON, type ImportPlan, issuesOf, type TemplateSheet } from "./plan";
 import {
@@ -179,7 +180,7 @@ export async function prepareUnits(
   const report = issuesOf(unitsSheet, issues);
   const warn = issuesOf(unitsSheet, warnings);
   const rows = sheetRows(workbook, unitsSheet.name, unitsSheet.columns, issues);
-  const { thirdParty, buildings, existing } = await withTenant(ctx, async (tx) => {
+  const { thirdParty, buildings, existing, room } = await withTenant(ctx, async (tx) => {
     const [owner] = await tx
       .select({ id: project.id, thirdParty: project.thirdParty })
       .from(project)
@@ -195,6 +196,7 @@ export async function prepareUnits(
         .select({ code: unit.code })
         .from(unit)
         .where(and(eq(unit.projectId, options.projectId), isNull(unit.deletedAt))),
+      room: await activeUnitsRoom(tx),
     };
   });
   const taken = new Set(existing.map((u) => normalize(u.code)));
@@ -284,6 +286,10 @@ export async function prepareUnits(
   }
   if (thirdParty && ready.some((r) => r.blocked !== "")) {
     report.at(null, "blocked", "inventory.errors.thirdParty");
+  }
+  // The plan's cap of active units, pooled over the account (CLAUDE.console.md §7).
+  if (!thirdParty && room && ready.length > room.room) {
+    report.at(null, null, "errors.planLimit", { cap: room.cap });
   }
   if (ready.some((r) => r.price !== null) && !can(ctx, "price:update")) {
     report.at(null, "price", "errors.FORBIDDEN");

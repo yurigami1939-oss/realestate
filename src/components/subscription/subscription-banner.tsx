@@ -22,10 +22,13 @@ export async function SubscriptionBanner({
   access,
   billing,
   portal = false,
+  storageShare = null,
 }: {
   access: TenantAccess | undefined;
   billing: boolean;
   portal?: boolean;
+  /** Storage used against the plan's, in percent (soft cap: a warning from 80 %, §7). */
+  storageShare?: number | null;
 }) {
   if (!access) return null;
   const t = await getTranslations("subscription.banner");
@@ -40,6 +43,9 @@ export async function SubscriptionBanner({
   } else if (access.status === "past_due") {
     tone = "warning";
     text = access.pilotEndsOn && !access.currentPeriodEnd ? t("pilotOver") : t("pastDue");
+  } else if (storageShare !== null && storageShare >= 80) {
+    tone = "warning";
+    text = t("storage", { pct: Math.round(storageShare) });
   } else if (access.status === "pilot" && access.pilotEndsOn) {
     const days = Math.max(
       0,

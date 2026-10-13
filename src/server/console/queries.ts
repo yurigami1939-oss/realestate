@@ -102,8 +102,62 @@ export async function getConsoleOverview(_ctx: OperatorCtx) {
       ),
     )
     .orderBy(asc(provision.createdAt));
-  return { counts, pilotsEnding, beyondGrace, unentitled, provisionsWaiting };
+  // Accounts beyond their caps, as last measured: active units (propose the next plan) and storage.
+  const { rows: overCap } = await consoleDb.execute<{
+    id: string;
+    legalName: string;
+    activeUnits: number;
+    unitsCap: number | null;
+    storageBytes: number;
+    storageGb: number | null;
+  }>(sql`
+    select b.id, b.legal_name as "legalName",
+      coalesce(sum(u.active_units), 0)::int as "activeUnits",
+      ((p.limits || coalesce(s.limit_overrides, '{}'::jsonb)) ->> 'activeUnits')::int as "unitsCap",
+      coalesce(sum(u.storage_bytes), 0)::float8 as "storageBytes",
+      ((p.limits || coalesce(s.limit_overrides, '{}'::jsonb)) ->> 'storageGb')::int as "storageGb"
+    from console.billing_account b
+    join console.subscription s on s.billing_account_id = b.id
+    join console.plan p on p.id = s.plan_id
+    join console.account_organization ao on ao.billing_account_id = b.id
+    left join lateral (
+      select t.active_units, t.storage_bytes from console.tenant_usage t
+      where t.organization_id = ao.organization_id order by t.measured_on desc limit 1
+    ) u on true
+    where s.status <> 'terminated'
+    group by b.id, b.legal_name, s.limit_overrides, p.limits`);
+  const overUnits = overCap.filter((a) => a.unitsCap !== null && a.activeUnits > a.unitsCap);
+  const overStorage = overCap.filter(
+    (a) => a.storageGb !== null && a.storageBytes > a.storageGb * 1e9,
+  );
+  return {
+    counts,
+    pilotsEnding,
+    beyondGrace,
+    unentitled,
+    provisionsWaiting,
+    overUnits,
+    overStorage,
+  };
 }
+
+/** An organization's last usage snapshot (CLAUDE.console.md §7). */
+export type UsageRow = {
+  organizationId: string;
+  measuredOn: string;
+  activeUnits: number;
+  managedLots: number;
+  storageBytes: number;
+  units: number;
+  projects: number;
+  staffMembers: number;
+  portalAccounts: number;
+  receipts30d: number;
+  reminders30d: number;
+  activeMembers30d: number;
+  leads30d: number;
+  lastActivityAt: Date | null;
+};
 
 export type AccountFilters = {
   q?: string;
@@ -216,7 +270,27 @@ export async function getAccount(_ctx: OperatorCtx, billingAccountId: string) {
     .where(eq(consoleAuditLog.billingAccountId, billingAccountId))
     .orderBy(desc(consoleAuditLog.createdAt))
     .limit(50);
-  return { ...row, addons, organizations: withAccess, goals, trail };
+  const usage =
+    ids.length === 0
+      ? []
+      : await consoleDb
+          .execute<UsageRow>(
+            sql`
+          select distinct on (organization_id) organization_id as "organizationId",
+            measured_on as "measuredOn", active_units as "activeUnits", managed_lots as "managedLots",
+            storage_bytes::float8 as "storageBytes", units, projects, staff_members as "staffMembers",
+            portal_accounts as "portalAccounts", receipts_30d as "receipts30d",
+            reminders_30d as "reminders30d", active_members_30d as "activeMembers30d",
+            leads_30d as "leads30d", last_activity_at as "lastActivityAt"
+          from console.tenant_usage
+          where organization_id in (${sql.join(
+            ids.map((id) => sql`${id}::uuid`),
+            sql`, `,
+          )})
+          order by organization_id, measured_on desc`,
+          )
+          .then((r) => r.rows);
+  return { ...row, addons, organizations: withAccess, goals, trail, usage };
 }
 
 /** The catalog: plans (with how many subscriptions use each) and the add-ons, live first. */

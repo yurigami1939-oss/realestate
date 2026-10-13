@@ -61,8 +61,15 @@ function TodoList({
 export default async function ConsoleHomePage({ params }: PageProps<"/[locale]/console">) {
   setRequestLocale(toLocale((await params).locale));
   const operator = await requireOperator();
-  const { counts, pilotsEnding, beyondGrace, unentitled, provisionsWaiting } =
-    await getConsoleOverview(operator);
+  const {
+    counts,
+    pilotsEnding,
+    beyondGrace,
+    unentitled,
+    provisionsWaiting,
+    overUnits,
+    overStorage,
+  } = await getConsoleOverview(operator);
   const t = await getTranslations("console.overview");
   const ts = await getTranslations("subscription.status");
   const ending = (rows: typeof pilotsEnding) =>
@@ -73,7 +80,13 @@ export default async function ConsoleHomePage({ params }: PageProps<"/[locale]/c
       detail: r.pilotEndsOn ? t("endsOn", { date: formatDate(r.pilotEndsOn) }) : "",
     }));
   const nothing =
-    pilotsEnding.length + beyondGrace.length + unentitled.length + provisionsWaiting.length === 0;
+    pilotsEnding.length +
+      beyondGrace.length +
+      unentitled.length +
+      provisionsWaiting.length +
+      overUnits.length +
+      overStorage.length ===
+    0;
 
   return (
     <div className="mx-auto max-w-5xl space-y-8">
@@ -99,6 +112,27 @@ export default async function ConsoleHomePage({ params }: PageProps<"/[locale]/c
         {nothing ? <p className="empty-state">{t("none")}</p> : null}
         <TodoList title={t("pilotsEnding")} rows={ending(pilotsEnding)} />
         <TodoList title={t("beyondGrace")} rows={ending(beyondGrace)} />
+        <TodoList
+          title={t("overUnits")}
+          rows={overUnits.map((a) => ({
+            key: a.id,
+            href: `/console/accounts/${a.id}`,
+            label: a.legalName,
+            detail: t("unitsDetail", { used: a.activeUnits, cap: a.unitsCap ?? 0 }),
+          }))}
+        />
+        <TodoList
+          title={t("overStorage")}
+          rows={overStorage.map((a) => ({
+            key: a.id,
+            href: `/console/accounts/${a.id}`,
+            label: a.legalName,
+            detail: t("storageDetail", {
+              used: Math.round(a.storageBytes / 1e9),
+              cap: a.storageGb ?? 0,
+            }),
+          }))}
+        />
         <TodoList
           title={t("provisionsWaiting")}
           rows={provisionsWaiting.map((p) => ({

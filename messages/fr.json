@@ -52,7 +52,8 @@
       "terminated": "Abonnement résilié : la société est en lecture seule.",
       "support": "Session support : lecture seule.",
       "noEntitlement": "Aucun abonnement actif : la société est en lecture seule."
-    }
+    },
+    "planLimit": "Votre formule permet {cap} lots actifs pour l'ensemble de vos sociétés : passez à la formule supérieure pour en ajouter."
   },
   "files": {
     "errors": {
@@ -6472,7 +6473,11 @@
       "endsOn": "Fin le {date}",
       "createdOn": "Créée le {date}",
       "provisionsWaiting": "Invitations non utilisées depuis 7 jours",
-      "sentOn": "Envoyée le {date}"
+      "sentOn": "Envoyée le {date}",
+      "overUnits": "Comptes au-delà de leur plafond de lots actifs (proposer la formule supérieure)",
+      "overStorage": "Comptes au-delà de leur stockage",
+      "unitsDetail": "{used} lots actifs pour {cap}",
+      "storageDetail": "{used} Go pour {cap} Go"
     },
     "accounts": {
       "title": "Comptes clients",
@@ -6592,6 +6597,22 @@
         "backToSuspendedTitle": "Remettre en suspension",
         "reason": "Raison",
         "done": "État de l'abonnement modifié."
+      },
+      "usage": {
+        "title": "Utilisation",
+        "total": "Total du compte",
+        "notMeasured": "Pas encore mesuré : première mesure cette nuit.",
+        "measuredOn": "Mesuré le {date}",
+        "activeUnits": "Lots actifs",
+        "managedLots": "Lots gérés",
+        "storage": "Stockage",
+        "members": "Membres",
+        "portal": "Comptes de l'espace client",
+        "receipts": "Reçus émis (30 jours)",
+        "reminders": "Relances (30 jours)",
+        "activeMembers": "Membres actifs (30 jours)",
+        "leads": "Prospects (30 jours)",
+        "lastActivity": "Dernière activité"
       }
     },
     "plans": {
@@ -6794,7 +6815,20 @@
       "pilotLastDay": "Dernier jour du pilote.",
       "pilotOver": "Le pilote est terminé : choisissez votre formule pour continuer.",
       "pastDue": "Une facture de l'abonnement est en retard de paiement.",
-      "link": "Voir l'abonnement"
+      "link": "Voir l'abonnement",
+      "storage": "Stockage utilisé à {pct} % de votre formule."
+    },
+    "usage": {
+      "title": "Utilisation",
+      "activeUnits": "Lots actifs",
+      "activeUnitsHint": "Lots non livrés des projets en cours, toutes sociétés du compte.",
+      "managedLots": "Lots gérés (syndic)",
+      "storage": "Stockage",
+      "of": "{used} sur {cap}",
+      "unlimited": "{used} · illimité",
+      "measuredOn": "Lots gérés et stockage mesurés le {date}.",
+      "notMeasured": "Lots gérés et stockage : première mesure cette nuit.",
+      "gb": "{value} Go"
     }
   }
 }

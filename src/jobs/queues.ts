@@ -44,6 +44,8 @@ export const queues = {
    * and the pilots ending in a week (CLAUDE.console.md §14).
    */
   "console.daily": { retryLimit: 3, retryDelay: 60, retryBackoff: true, expireInSeconds: 300 },
+  /** Cron (02:00 Algiers): every organization's usage snapshot (CLAUDE.console.md §7). */
+  "console.usage": { retryLimit: 3, retryDelay: 300, retryBackoff: true, expireInSeconds: 3600 },
   /**
    * Settles an online payment the payer left on the gateway's page (scheduled after its
    * session); retried every 10 minutes while the gateway still has it in progress.
@@ -61,6 +63,7 @@ export const schedules = [
   { queue: "reminders.daily", cron: "0 8 * * *", tz: "Africa/Algiers" },
   { queue: "privacy.daily", cron: "0 3 * * *", tz: "Africa/Algiers" },
   { queue: "console.daily", cron: "30 6 * * *", tz: "Africa/Algiers" },
+  { queue: "console.usage", cron: "0 2 * * *", tz: "Africa/Algiers" },
 ] as const satisfies readonly { queue: QueueName; cron: string; tz: string }[];
 
 export type QueueName = keyof typeof queues;
@@ -124,4 +127,5 @@ export type JobPayloads = {
   "privacy.daily": Record<string, never>;
   "privacy.retention": { organizationId: string; date: string };
   "console.daily": Record<string, never>;
+  "console.usage": Record<string, never>;
 };

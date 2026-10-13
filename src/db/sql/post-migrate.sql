@@ -248,3 +248,31 @@ REVOKE ALL ON FUNCTION console.tenant_subscription() FROM PUBLIC;
 GRANT USAGE ON SCHEMA console TO realestate_app;
 GRANT EXECUTE ON FUNCTION console.tenant_subscription() TO realestate_app;
 
+-- The account's caps and its usage as last measured (CLAUDE.console.md §7): the other
+-- organizations' active units for the pooled cap, and the account's managed lots and storage.
+CREATE OR REPLACE FUNCTION console.tenant_capacity()
+RETURNS jsonb
+LANGUAGE sql STABLE SECURITY DEFINER
+SET search_path = console, pg_temp
+AS $$
+  SELECT jsonb_build_object(
+    'othersActiveUnits', coalesce(sum(u.active_units) FILTER (WHERE ao.organization_id <> me.organization_id), 0),
+    'activeUnits', coalesce(sum(u.active_units), 0),
+    'managedLots', coalesce(sum(u.managed_lots), 0),
+    'storageBytes', coalesce(sum(u.storage_bytes), 0),
+    'measuredOn', max(u.measured_on)
+  )
+  FROM account_organization me
+  JOIN account_organization ao ON ao.billing_account_id = me.billing_account_id
+  LEFT JOIN LATERAL (
+    SELECT t.active_units, t.managed_lots, t.storage_bytes, t.measured_on
+    FROM tenant_usage t
+    WHERE t.organization_id = ao.organization_id
+    ORDER BY t.measured_on DESC
+    LIMIT 1
+  ) u ON true
+  WHERE me.organization_id = nullif(current_setting('app.current_org', true), '')::uuid
+$$;
+REVOKE ALL ON FUNCTION console.tenant_capacity() FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION console.tenant_capacity() TO realestate_app;
+

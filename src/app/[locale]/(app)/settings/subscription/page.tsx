@@ -4,12 +4,14 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { PageHeader } from "@/components/app-shell/page-header";
 import { ModuleList } from "@/components/subscription/module-list";
 import { SubscriptionStatusBadge } from "@/components/subscription/subscription-status-badge";
+import { UsageMeter } from "@/components/subscription/usage-meter";
 import { toLocale } from "@/i18n/locales";
 import { formatDate } from "@/lib/dates";
 import { formatDZD } from "@/lib/money";
 import { can } from "@/lib/permissions";
 import { addonModules } from "@/lib/subscriptions";
 import { requirePermission } from "@/server/auth/page-guard";
+import { getUsage } from "@/server/entitlements/capacity";
 import { getTenantSubscription } from "@/server/entitlements/subscription";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -46,7 +48,14 @@ export default async function SubscriptionPage({
   const locale = toLocale((await params).locale);
   setRequestLocale(locale);
   const ctx = await requirePermission("subscription:read");
-  const { subscription, modules } = await getTenantSubscription(ctx);
+  const { subscription, modules, access } = await getTenantSubscription(ctx);
+  const usage = await getUsage(ctx);
+  const tu = await getTranslations("subscription.usage");
+  const limits = access.limits;
+  const figure = (used: string, cap: string | null) =>
+    cap === null ? tu("unlimited", { used }) : tu("of", { used, cap });
+  const gb = (value: number) => tu("gb", { value: value.toLocaleString(locale) });
+  const storageGb = Math.round((usage.storageBytes / 1e9) * 10) / 10;
   const t = await getTranslations("subscription");
   const tm = await getTranslations("modules");
   const money = (v: bigint) => formatDZD(v, locale);
@@ -109,6 +118,46 @@ export default async function SubscriptionPage({
               ) : null}
             </div>
           </section>
+
+          <Group title={tu("title")}>
+            <div
+              className="divide-y overflow-hidden rounded-xl bg-card shadow-card"
+              data-testid="usage"
+            >
+              <UsageMeter
+                label={tu("activeUnits")}
+                hint={tu("activeUnitsHint")}
+                value={figure(
+                  usage.activeUnits.toLocaleString(locale),
+                  limits?.activeUnits == null ? null : limits.activeUnits.toLocaleString(locale),
+                )}
+                used={usage.activeUnits}
+                cap={limits?.activeUnits ?? null}
+              />
+              {access.modules.includes("syndic") ? (
+                <UsageMeter
+                  label={tu("managedLots")}
+                  value={usage.managedLots.toLocaleString(locale)}
+                  used={usage.managedLots}
+                  cap={null}
+                />
+              ) : null}
+              <UsageMeter
+                label={tu("storage")}
+                value={figure(
+                  gb(storageGb),
+                  limits?.storageGb == null ? null : gb(limits.storageGb),
+                )}
+                used={storageGb}
+                cap={limits?.storageGb ?? null}
+              />
+            </div>
+            <p className="px-4 text-footnote text-muted-foreground">
+              {usage.measuredOn
+                ? tu("measuredOn", { date: formatDate(usage.measuredOn) })
+                : tu("notMeasured")}
+            </p>
+          </Group>
 
           <Group title={t("addons.title")}>
             {subscription.addons.length === 0 ? (

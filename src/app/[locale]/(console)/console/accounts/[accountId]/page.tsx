@@ -13,7 +13,7 @@ import {
 import { ProvisionDialog } from "@/components/console/provision-forms";
 import { SubscriptionStatusBadge } from "@/components/subscription/subscription-status-badge";
 import { toLocale } from "@/i18n/locales";
-import { formatDateTime, todayInAlgiers } from "@/lib/dates";
+import { formatDate, formatDateTime, todayInAlgiers } from "@/lib/dates";
 import { formatDZD, formatPercentInput, toDecimalString } from "@/lib/money";
 import { isUuid } from "@/lib/ids";
 import { modules as allModules } from "@/lib/modules";
@@ -51,7 +51,25 @@ export default async function ConsoleAccountPage({
   if (!isUuid(accountId)) notFound();
   const found = await getAccount(operator, accountId);
   if (!found) notFound();
-  const { account, subscription, plan, addons, organizations, goals, trail } = found;
+  const { account, subscription, plan, addons, organizations, goals, trail, usage } = found;
+  const tu = await getTranslations("console.account.usage");
+  const sumOf = (
+    key:
+      | "activeUnits"
+      | "managedLots"
+      | "storageBytes"
+      | "receipts30d"
+      | "reminders30d"
+      | "activeMembers30d"
+      | "leads30d",
+  ) => usage.reduce((total, row) => total + Number(row[key]), 0);
+  const tg = await getTranslations("subscription.usage");
+  const gb = (bytes: number) =>
+    tg("gb", { value: (Math.round((bytes / 1e9) * 10) / 10).toLocaleString(locale) });
+  const measuredOn = usage
+    .map((u) => u.measuredOn)
+    .sort()
+    .at(-1);
   const { plans, addons: catalog } = await listCatalog(operator);
   const t = await getTranslations("console");
   const tm = await getTranslations("modules");
@@ -184,8 +202,79 @@ export default async function ConsoleAccountPage({
         </ul>
       </Section>
 
+      <Section title={tu("title")}>
+        {usage.length === 0 ? (
+          <p className="empty-state">{tu("notMeasured")}</p>
+        ) : (
+          <div
+            className="overflow-x-auto rounded-xl bg-card shadow-card"
+            data-testid="account-usage"
+          >
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-footnote text-muted-foreground">
+                  <th className="px-4 py-2 text-start font-medium" />
+                  <th className="px-4 py-2 text-end font-medium">{tu("activeUnits")}</th>
+                  <th className="px-4 py-2 text-end font-medium">{tu("managedLots")}</th>
+                  <th className="px-4 py-2 text-end font-medium">{tu("storage")}</th>
+                  <th className="px-4 py-2 text-end font-medium">{tu("members")}</th>
+                  <th className="px-4 py-2 text-end font-medium">{tu("portal")}</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y">
+                {organizations.map((org) => {
+                  const row = usage.find((u) => u.organizationId === org.id);
+                  return (
+                    <tr key={org.id} className="tabular-nums">
+                      <td className="px-4 py-2 font-medium">{org.name}</td>
+                      <td className="px-4 py-2 text-end">{row?.activeUnits ?? "—"}</td>
+                      <td className="px-4 py-2 text-end">{row?.managedLots ?? "—"}</td>
+                      <td className="px-4 py-2 text-end">{row ? gb(row.storageBytes) : "—"}</td>
+                      <td className="px-4 py-2 text-end">{row?.staffMembers ?? "—"}</td>
+                      <td className="px-4 py-2 text-end">{row?.portalAccounts ?? "—"}</td>
+                    </tr>
+                  );
+                })}
+                {organizations.length > 1 ? (
+                  <tr className="font-semibold tabular-nums">
+                    <td className="px-4 py-2">{tu("total")}</td>
+                    <td className="px-4 py-2 text-end">{sumOf("activeUnits")}</td>
+                    <td className="px-4 py-2 text-end">{sumOf("managedLots")}</td>
+                    <td className="px-4 py-2 text-end">{gb(sumOf("storageBytes"))}</td>
+                    <td className="px-4 py-2 text-end" />
+                    <td className="px-4 py-2 text-end" />
+                  </tr>
+                ) : null}
+              </tbody>
+            </table>
+            {measuredOn ? (
+              <p className="border-t px-4 py-2 text-footnote text-muted-foreground">
+                {tu("measuredOn", { date: formatDate(measuredOn) })}
+              </p>
+            ) : null}
+          </div>
+        )}
+      </Section>
+
       {subscription.activatedAt === null || goals.length > 0 ? (
         <Section title={t("account.pilot.title")}>
+          {usage.length > 0 ? (
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4" data-testid="pilot-indicators">
+              {(
+                [
+                  ["receipts", "receipts30d"],
+                  ["reminders", "reminders30d"],
+                  ["activeMembers", "activeMembers30d"],
+                  ["leads", "leads30d"],
+                ] as const
+              ).map(([label, key]) => (
+                <div key={key} className="rounded-lg bg-card px-4 py-3 shadow-card">
+                  <div className="text-footnote text-muted-foreground">{tu(label)}</div>
+                  <div className="text-title tabular-nums">{sumOf(key)}</div>
+                </div>
+              ))}
+            </div>
+          ) : null}
           <PilotGoals
             billingAccountId={account.id}
             goals={goals.map((g) => ({ id: g.id, label: g.label, doneOn: g.doneOn }))}
