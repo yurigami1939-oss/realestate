@@ -34,6 +34,7 @@ import {
   getBillingOverview,
   issueCreditNote,
   issueInvoice,
+  listInvoices,
   recordConsolePayment,
   saveOperatorProfile,
 } from "./billing";
@@ -43,6 +44,7 @@ import {
   renderConsoleDocument,
 } from "./billing-documents";
 import { systemOperator } from "./context";
+import { invoiceFiltersSchema } from "./schemas";
 import { runConsoleDaily } from "./lifecycle";
 
 const today = todayInAlgiers();
@@ -273,7 +275,26 @@ describe("operator invoices (CLAUDE.console.md §11)", () => {
     const again = await draftInvoice(systemOperator, billingAccountId);
     expect(again.period).toEqual({ start: "2025-01-01", end: "2025-12-31" });
     expect(again.lines.map((l) => l.kind)).toContain("setup");
+    // A period to invoice on the overview again; the credited invoice listed as credited.
+    expect(
+      (await getBillingOverview(today)).toInvoice.find((a) => a.id === billingAccountId),
+    ).toMatchObject({ invoicedUntil: null });
+    expect(
+      (await listInvoices({ billingAccountId, state: "credited" })).map((r) => r.id),
+    ).toEqual([invoiceId]);
+    expect(await listInvoices({ billingAccountId, state: "paid" })).toEqual([]);
     await issueInvoice(systemOperator, { billingAccountId, issuedOn: today, lines: again.lines });
+  });
+
+  it("reads the invoices page's filters without failing on a long search", () => {
+    expect(invoiceFiltersSchema.parse({ q: "x".repeat(300), state: "nope" })).toEqual({
+      q: undefined,
+      state: undefined,
+    });
+    expect(invoiceFiltersSchema.parse({ q: " FAC-2026 ", state: "paid" })).toEqual({
+      q: "FAC-2026",
+      state: "paid",
+    });
   });
 
   it("refuses to invoice a pilot, a future day or nothing", async () => {

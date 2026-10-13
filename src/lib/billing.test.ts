@@ -6,10 +6,30 @@ import {
   invoiceTotals,
   lineAmount,
   monthlyEquivalent,
+  recurringRevenue,
   syndicTrueUp,
 } from "./billing";
 
 describe("operator billing rules (CLAUDE.console.md §11)", () => {
+  it("counts the clients only in the monthly recurring revenue", () => {
+    const yearly = { price: 120_000_00n, discountBp: 0, billingPeriod: "yearly" as const };
+    const account = (status: "active" | "past_due" | "pilot", activatedAt: Date | null) => ({
+      subscription: { ...yearly, status, activatedAt },
+      addons: [],
+      managedLots: 0,
+    });
+    const activated = new Date("2026-01-01T00:00:00Z");
+    expect(
+      recurringRevenue([
+        account("active", activated),
+        account("past_due", activated),
+        // A pilot over, never activated, and a pilot running: nothing yet.
+        account("past_due", null),
+        account("pilot", null),
+      ]),
+    ).toBe(20_000_00n);
+  });
+
   it("totals lines with VAT half-up on the total, none without a rate", () => {
     const lines = [{ amount: lineAmount(1, 333_33n) }, { amount: lineAmount(3, 111_11n) }];
     expect(invoiceTotals(lines, 1900)).toEqual({ ht: 666_66n, vat: 126_67n, ttc: 793_33n });

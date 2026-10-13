@@ -31,15 +31,17 @@ const cell = (value: string | number | null) => {
 
 /**
  * The calendar years a journal is cut into, each under the export's row cap: from the year of the
- * organization's first money flow (the first file also takes anything earlier) to this year.
+ * organization's first money flow (never before SINCE's; the first file also takes anything
+ * earlier) to `lastDay`'s year.
  */
-function yearsOf(firstYear: number, today: string): { from: string; to: string }[] {
-  const current = Number(today.slice(0, 4));
+export function yearsOf(firstYear: number, lastDay: string): { from: string; to: string }[] {
+  const last = Number(lastDay.slice(0, 4));
+  const first = Math.min(Math.max(firstYear, Number(SINCE.slice(0, 4))), last);
   const years: { from: string; to: string }[] = [];
-  for (let year = Math.min(firstYear, current); year <= current; year += 1) {
+  for (let year = first; year <= last; year += 1) {
     years.push({
-      from: year === Math.min(firstYear, current) ? SINCE : `${year}-01-01`,
-      to: year === current ? today : `${year}-12-31`,
+      from: year === first ? SINCE : `${year}-01-01`,
+      to: year === last ? lastDay : `${year}-12-31`,
     });
   }
   return years;
@@ -86,7 +88,11 @@ export async function buildExportBundle(
         .where(isNull(residence.deletedAt))
         .orderBy(asc(residence.createdAt)),
       accounts: await tx
-        .select({ id: treasuryAccount.id })
+        .select({
+          id: treasuryAccount.id,
+          openingOn: treasuryAccount.openingOn,
+          closedOn: treasuryAccount.closedOn,
+        })
         .from(treasuryAccount)
         .orderBy(asc(treasuryAccount.createdAt)),
       files: await tx
@@ -119,8 +125,12 @@ export async function buildExportBundle(
     ...years.map((period) => ({ kind: "accounting" as const, query: period })),
     { kind: "rent_taxes", query: { year: today.slice(0, 4) } },
     ...residences.map((r) => ({ kind: "charges" as const, query: { residence: r.id } })),
+    // Each account's ledger over the years it was open.
     ...accounts.flatMap((a) =>
-      years.map((period) => ({ kind: "ledger" as const, query: { account: a.id, ...period } })),
+      yearsOf(Number(a.openingOn.slice(0, 4)), a.closedOn ?? today).map((period) => ({
+        kind: "ledger" as const,
+        query: { account: a.id, ...period },
+      })),
     ),
   ];
   // What the organization is entitled to, including the modules its gérant switched off: its

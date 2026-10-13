@@ -29,8 +29,9 @@ export function SupportBanner({ text, endLabel }: { text: string; endLabel: stri
         disabled={stop.pending}
         onClick={() =>
           stop.run(undefined, {
-            onSuccess: () => {
-              router.replace("/console");
+            // Without the admin cookie the member's session is ended: the operator signs in again.
+            onSuccess: ({ restored }) => {
+              router.replace(restored ? "/console" : "/sign-in");
               router.refresh();
             },
           })

@@ -1,6 +1,6 @@
 import type { CalendarDate } from "./dates";
 import { applyRate, type Centimes, sumCentimes } from "./money";
-import type { AddonBasis, AddonCode, BillingPeriod } from "./subscriptions";
+import type { AddonBasis, AddonCode, BillingPeriod, SubscriptionStatus } from "./subscriptions";
 
 /**
  * The operator's invoicing (CLAUDE.console.md §11): invoices `FAC-` issued by hand for a
@@ -112,6 +112,31 @@ export function monthlyEquivalent(
         : perMonth(addon.price, months);
   }
   return total;
+}
+
+/**
+ * The monthly recurring revenue of the console's overview (CLAUDE.console.md §10): the clients'
+ * subscriptions — active, or past due once activated (a pilot over and never activated pays
+ * nothing yet) — each at its monthly equivalent.
+ */
+export function recurringRevenue(
+  accounts: readonly {
+    subscription: Parameters<typeof monthlyEquivalent>[0] & {
+      status: SubscriptionStatus;
+      activatedAt: Date | null;
+    };
+    addons: readonly { basis: AddonBasis; price: Centimes }[];
+    managedLots: number;
+  }[],
+): Centimes {
+  return sumCentimes(
+    accounts
+      .filter(
+        ({ subscription: s }) =>
+          s.activatedAt !== null && (s.status === "active" || s.status === "past_due"),
+      )
+      .map((a) => monthlyEquivalent(a.subscription, a.addons, a.managedLots)),
+  );
 }
 
 /**

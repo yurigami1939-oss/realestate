@@ -197,6 +197,7 @@ export function IssueInvoiceDialog({
   const t = useTranslations("console.billing");
   const locale = useLocale() === "ar" ? "ar" : "fr";
   const translate = useTranslateKey();
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const issue = useAction(issueInvoiceAction);
   const defaults = { billingAccountId, issuedOn: today, lines };
@@ -239,7 +240,14 @@ export function IssueInvoiceDialog({
             toast.success(t("issued", { number }));
             setOpen(false);
           },
-          onError: (error) => applyFieldErrors(form, error),
+          onError: (error) => {
+            applyFieldErrors(form, error);
+            // A stale draft (another tab issued it): the page drafts the next period again.
+            if (error.messageKey === "console.errors.periodInvoiced") {
+              setOpen(false);
+              router.refresh();
+            }
+          },
         }),
       )}
     >

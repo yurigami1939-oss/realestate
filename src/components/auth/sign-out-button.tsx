@@ -34,9 +34,12 @@ export function useSignOut({ support = false }: { support?: boolean } = {}) {
     startTransition(async () => {
       if (support) {
         const ended = await stopSupportSessionAction();
-        router.replace(ended.ok && ended.data.restored ? "/console" : "/sign-in");
-        router.refresh();
-        return;
+        if (ended.ok) {
+          router.replace(ended.data.restored ? "/console" : "/sign-in");
+          router.refresh();
+          return;
+        }
+        // Already ended elsewhere (another tab): an ordinary sign-out.
       }
       await forgetPushSubscription();
       await authClient.signOut();

@@ -6483,7 +6483,7 @@
       "paymentUnknown": "Paiement introuvable.",
       "paymentCancelled": "Ce paiement est déjà annulé.",
       "logo": "Le logo doit être une image PNG ou JPEG de 2 Mo au plus.",
-      "periodInvoiced": "Cette période est déjà facturée ({number}) : établissez d'abord un avoir sur cette facture.",
+      "periodInvoiced": "Cette période est déjà facturée ({number}) : la page est rechargée pour préparer la suivante. Pour remplacer cette facture, établissez d'abord un avoir de son montant total.",
       "tooManyLines": "Une facture compte 30 lignes au plus."
     },
     "brand": "Console opérateur",

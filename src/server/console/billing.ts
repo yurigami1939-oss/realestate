@@ -29,8 +29,8 @@ import {
   invoiceState,
   invoiceTotals,
   lineAmount,
-  monthlyEquivalent,
   periodMonths,
+  recurringRevenue,
   syndicTrueUp,
   type VatRegime,
 } from "@/lib/billing";
@@ -166,8 +166,9 @@ async function managedLotsByMonth(
 }
 
 /**
- * An invoice not wholly cancelled by credit notes: what still invoices its period (a period whose
- * invoice was credited in full is invoiced again). In WHERE clauses only (columns qualified).
+ * An invoice not wholly cancelled by credit notes: what still invoices its period. The latest
+ * period, credited in full, is drafted again; an earlier one is, once the later invoices are
+ * credited too (drafts follow the last period invoiced). In WHERE clauses only (columns qualified).
  */
 const notFullyCredited = sql`${invoice.totalTtc} > coalesce(
   (select sum(c.amount_ttc) from console.credit_note c where c.invoice_id = ${invoice.id}), 0)`;
@@ -866,17 +867,15 @@ export async function getBillingOverview(today: CalendarDate = todayInAlgiers())
     ) u on true
     group by ao.billing_account_id`);
   const lotsOf = new Map(lots.map((r) => [r.billingAccountId, r.lots]));
-  let mrr = 0n;
-  // Clients only: a pilot over and never activated (past due) pays nothing yet.
-  for (const sub of subscriptions.filter((s) => s.activatedAt !== null)) {
-    mrr += monthlyEquivalent(
-      sub,
-      addons
+  const mrr = recurringRevenue(
+    subscriptions.map((sub) => ({
+      subscription: sub,
+      addons: addons
         .filter((a) => a.subscriptionId === sub.id)
         .map((a) => ({ basis: a.basis ?? "flat", price: a.price })),
-      lotsOf.get(sub.billingAccountId) ?? 0,
-    );
-  }
+      managedLots: lotsOf.get(sub.billingAccountId) ?? 0,
+    })),
+  );
 
   const { rows: unpaidRows } = await consoleDb.execute<{ total: string }>(sql`
     select coalesce(sum(greatest(remaining, 0)), 0)::text as total from (
