@@ -7,6 +7,7 @@ import { useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "@/i18n/navigation";
 import { authClient } from "@/lib/auth-client";
+import { stopSupportSessionAction } from "@/server/console/actions";
 
 /**
  * Stops this browser's push notifications (a shared device must not keep receiving the account's
@@ -22,11 +23,21 @@ async function forgetPushSubscription() {
   }
 }
 
-export function useSignOut() {
+/**
+ * Signs out — or, in an operator's support session (CLAUDE.console.md §12), ends it (recorded in
+ * both trails), giving the operator their own session back in the console.
+ */
+export function useSignOut({ support = false }: { support?: boolean } = {}) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const signOut = () =>
     startTransition(async () => {
+      if (support) {
+        const ended = await stopSupportSessionAction();
+        router.replace(ended.ok && ended.data.restored ? "/console" : "/sign-in");
+        router.refresh();
+        return;
+      }
       await forgetPushSubscription();
       await authClient.signOut();
       router.replace("/sign-in");

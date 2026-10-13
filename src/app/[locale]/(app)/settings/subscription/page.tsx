@@ -6,6 +6,7 @@ import { InvoiceStateBadge } from "@/components/subscription/invoice-state-badge
 import { ModuleList } from "@/components/subscription/module-list";
 import { SubscriptionStatusBadge } from "@/components/subscription/subscription-status-badge";
 import { UsageMeter } from "@/components/subscription/usage-meter";
+import { Button } from "@/components/ui/button";
 import { toLocale } from "@/i18n/locales";
 import { formatDate } from "@/lib/dates";
 import { formatDZD } from "@/lib/money";
@@ -317,12 +318,9 @@ export default async function SubscriptionPage({
             data-testid="data-export"
           >
             <p className="max-w-xl text-sm text-muted-foreground">{t("dataExport.description")}</p>
-            <a
-              href={`/api/exports/bundle?locale=${locale}`}
-              className="inline-flex h-9 items-center rounded-md bg-primary px-3.5 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-            >
-              {t("dataExport.action")}
-            </a>
+            <Button asChild>
+              <a href={`/api/exports/bundle?locale=${locale}`}>{t("dataExport.action")}</a>
+            </Button>
           </div>
         </Group>
       ) : null}

@@ -23,6 +23,9 @@ import { listInvoices } from "@/server/console/billing";
 import { requireOperator } from "@/server/console/guard";
 import { invoiceFiltersSchema } from "@/server/console/schemas";
 
+/** The latest invoices shown; what remains to collect counts every one that matches. */
+const SHOWN = 500;
+
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("console.invoices");
   return { title: t("title") };
@@ -41,7 +44,8 @@ export default async function ConsoleInvoicesPage({
     q: typeof query.q === "string" ? query.q : undefined,
     state: typeof query.state === "string" ? query.state : undefined,
   });
-  const rows = await listInvoices(filters);
+  const matching = await listInvoices(filters);
+  const rows = matching.slice(0, SHOWN);
   const t = await getTranslations("console");
   const ts = await getTranslations("subscription.invoices.states");
   const money = (v: bigint) => formatDZD(v, locale);
@@ -55,7 +59,9 @@ export default async function ConsoleInvoicesPage({
         description={t("invoices.description")}
         actions={
           <span className="text-sm font-medium tabular-nums" data-testid="invoices-unpaid">
-            {t("invoices.unpaid", { amount: money(sumCentimes(rows.map((r) => r.remaining))) })}
+            {t("invoices.unpaid", {
+              amount: money(sumCentimes(matching.map((r) => r.remaining))),
+            })}
           </span>
         }
       />
@@ -150,6 +156,11 @@ export default async function ConsoleInvoicesPage({
           </Table>
         </div>
       )}
+      {matching.length > rows.length ? (
+        <p className="text-footnote text-muted-foreground">
+          {t("invoices.truncated", { shown: rows.length, total: matching.length })}
+        </p>
+      ) : null}
     </div>
   );
 }

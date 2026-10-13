@@ -194,10 +194,16 @@ export const invoiceLineInputSchema = z.object({
   unitPrice: moneyText(),
 });
 
+/** The lines an invoice holds at most. */
+export const MAX_INVOICE_LINES = 30;
+
 export const issueInvoiceSchema = z.object({
   billingAccountId: z.uuid(),
   issuedOn: dateText(),
-  lines: z.array(invoiceLineInputSchema).min(1, "console.errors.invoiceEmpty").max(30),
+  lines: z
+    .array(invoiceLineInputSchema)
+    .min(1, "console.errors.invoiceEmpty")
+    .max(MAX_INVOICE_LINES, "console.errors.tooManyLines"),
 });
 
 export const creditNoteSchema = z.object({
@@ -223,6 +229,6 @@ export const cancelConsolePaymentSchema = z.object({
 
 /** The invoices page's filters (from the URL). */
 export const invoiceFiltersSchema = z.object({
-  q: z.string().trim().max(80).optional(),
+  q: z.string().trim().max(200).optional().catch(undefined),
   state: z.enum(invoiceStates).optional().catch(undefined),
 });

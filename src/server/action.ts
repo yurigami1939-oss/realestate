@@ -15,7 +15,8 @@ type ActionConfig<S extends z.ZodType> = {
   permission?: Permission;
   /**
    * Runs even while the organization is read-only (CLAUDE.console.md §6) — only to settle money
-   * already taken (online payments' re-check and refund). A test lists them.
+   * already taken (online payments' re-check and refund). A test lists them. Never during a
+   * support session (§12): nothing is written then.
    */
   allowWhenReadOnly?: boolean;
 };
@@ -48,7 +49,7 @@ export function defineAction<S extends z.ZodType, T>(
       }
       const ctx = await getTenantCtx();
       if (config.permission) assertCan(ctx, config.permission);
-      if (!config.allowWhenReadOnly) assertWritable(ctx);
+      if (!config.allowWhenReadOnly || ctx.access?.supportBy) assertWritable(ctx);
       return ok(await handler(parsed.data, ctx));
     } catch (error) {
       unstable_rethrow(error);

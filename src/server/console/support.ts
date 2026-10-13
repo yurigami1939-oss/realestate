@@ -131,13 +131,22 @@ export async function startSupportSession(
 
 /**
  * Ends the support session of this request (`headers`: the member's session the operator holds):
- * recorded in both trails (`support.stop`, `support.end`), then Better Auth gives the operator
- * their own session back. FORBIDDEN outside a support session.
+ * Better Auth gives the operator their own session back (`restored`), then the end is recorded in
+ * both trails (`support.stop`, `support.end`). FORBIDDEN outside a support session.
  */
-export async function stopSupportSession(headers: Headers): Promise<void> {
+export async function stopSupportSession(headers: Headers): Promise<{ restored: boolean }> {
   const session = await auth.api.getSession({ headers });
   const operatorId = session?.session.impersonatedBy;
   if (!session || !operatorId) throw new AppError("FORBIDDEN");
+  // The operator's session comes back from the admin cookie; without it (dropped), the member's
+  // session is ended all the same and the operator signs in again. Recorded once it is over.
+  let restored = true;
+  try {
+    await auth.api.stopImpersonating({ headers });
+  } catch {
+    restored = false;
+    await auth.api.signOut({ headers });
+  }
   const organizationId = session.session.activeOrganizationId;
   if (organizationId) {
     const [operator] = await consoleDb
@@ -155,5 +164,5 @@ export async function stopSupportSession(headers: Headers): Promise<void> {
       },
     );
   }
-  await auth.api.stopImpersonating({ headers });
+  return { restored };
 }

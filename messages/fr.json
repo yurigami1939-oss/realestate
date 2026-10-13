@@ -4399,6 +4399,9 @@
         "title": "Écritures comptables",
         "description": "Les flux de toutes vos caisses et comptes sur la période, en écritures équilibrées (journal, pièce, compte, débit, crédit) pour votre expert-comptable."
       }
+    },
+    "bundle": {
+      "tooLarge": "Ces exports dépassent {max} lignes : téléchargez-les par période depuis leur liste ou la page Exports."
     }
   },
   "imports": {
@@ -6479,7 +6482,9 @@
       "paidOn": "La date du paiement va du jour de la facture à aujourd'hui.",
       "paymentUnknown": "Paiement introuvable.",
       "paymentCancelled": "Ce paiement est déjà annulé.",
-      "logo": "Le logo doit être une image PNG ou JPEG de 2 Mo au plus."
+      "logo": "Le logo doit être une image PNG ou JPEG de 2 Mo au plus.",
+      "periodInvoiced": "Cette période est déjà facturée ({number}) : établissez d'abord un avoir sur cette facture.",
+      "tooManyLines": "Une facture compte 30 lignes au plus."
     },
     "brand": "Console opérateur",
     "nav": {
@@ -6848,7 +6853,8 @@
       "account": "Client",
       "unpaid": "Reste à encaisser : {amount}",
       "filter": "Filtrer",
-      "empty": "Aucune facture ne correspond."
+      "empty": "Aucune facture ne correspond.",
+      "truncated": "Les {shown} plus récentes sur {total} : affinez la recherche."
     },
     "settings": {
       "title": "Réglages de l'opérateur",

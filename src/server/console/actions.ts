@@ -191,10 +191,9 @@ export const startSupportSessionAction = defineConsoleAction(
  * Ends the support session the request runs in (the member's session, read-only: not a console
  * action nor a tenant one) and gives the operator their session back.
  */
-export async function stopSupportSessionAction(): Promise<Result<null>> {
+export async function stopSupportSessionAction(): Promise<Result<{ restored: boolean }>> {
   try {
-    await stopSupportSession(await headers());
-    return ok(null);
+    return ok(await stopSupportSession(await headers()));
   } catch (error) {
     unstable_rethrow(error);
     if (error instanceof AppError) return err(error);

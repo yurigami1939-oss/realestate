@@ -97,10 +97,11 @@ export const auth = betterAuth({
         });
       }
       // A support session is read-only (CLAUDE.console.md §12): nothing but leaving it changes
-      // the member's account or switches organization (the admin cookie marks one).
-      const supportCookie = ctx.request.headers.get("cookie")?.includes("admin_session") ?? false;
+      // the member's account or switches organization. The session itself says so (never a
+      // cookie the browser could drop): any request carrying a session is checked.
+      const hasSession = ctx.request.headers.get("cookie")?.includes("session_token") ?? false;
       if (
-        supportCookie &&
+        hasSession &&
         ctx.request.method !== "GET" &&
         ctx.path !== "/admin/stop-impersonating" &&
         ctx.path !== "/sign-out"

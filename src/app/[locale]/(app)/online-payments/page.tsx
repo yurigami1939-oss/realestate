@@ -55,8 +55,10 @@ export default async function OnlinePaymentsPage({
   const t = await getTranslations("onlinePayments");
   const ti = await getTranslations();
   const money = (v: bigint) => formatDZD(v, locale);
-  const mayRecheck = can(ctx, "payment:create");
-  const mayRefund = can(ctx, "payment:cancel");
+  // Settling money taken stays possible while read-only, never during a support session (§12).
+  const support = Boolean(ctx.access?.supportBy);
+  const mayRecheck = can(ctx, "payment:create") && !support;
+  const mayRefund = can(ctx, "payment:cancel") && !support;
 
   return (
     <div className="mx-auto max-w-7xl space-y-6">

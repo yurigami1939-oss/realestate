@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { FilePlus2, Plus, Trash2 } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useRef, useState } from "react";
 import { useFieldArray, useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
@@ -30,6 +30,7 @@ import {
   consolePaymentSchema,
   creditNoteSchema,
   issueInvoiceSchema,
+  MAX_INVOICE_LINES,
   operatorProfileSchema,
 } from "@/server/console/schemas";
 
@@ -194,6 +195,8 @@ export function IssueInvoiceDialog({
   today: string;
 }) {
   const t = useTranslations("console.billing");
+  const locale = useLocale() === "ar" ? "ar" : "fr";
+  const translate = useTranslateKey();
   const [open, setOpen] = useState(false);
   const issue = useAction(issueInvoiceAction);
   const defaults = { billingAccountId, issuedOn: today, lines };
@@ -204,6 +207,9 @@ export function IssueInvoiceDialog({
   >({ resolver: zodResolver(issueInvoiceSchema), defaultValues: defaults });
   const { fields, append, remove } = useFieldArray({ control: form.control, name: "lines" });
   const typed = useWatch({ control: form.control, name: "lines" });
+  // The list's own errors (none, more than 30), not any one line's.
+  const linesError =
+    form.formState.errors.lines?.message ?? form.formState.errors.lines?.root?.message;
   const total = (typed ?? []).reduce((sum, line) => {
     const price = parseDZD(line.unitPrice ?? "") ?? 0n;
     const quantity = Number.parseInt(line.quantity ?? "", 10);
@@ -257,6 +263,7 @@ export function IssueInvoiceDialog({
                 variant="ghost"
                 size="icon-sm"
                 aria-label={t("removeLine")}
+                disabled={fields.length === 1}
                 onClick={() => remove(index)}
               >
                 <Trash2 />
@@ -292,10 +299,16 @@ export function IssueInvoiceDialog({
           </li>
         ))}
       </ol>
+      {linesError ? (
+        <p role="alert" className="text-sm text-danger">
+          {translate(linesError)}
+        </p>
+      ) : null}
       <div className="flex flex-wrap items-center justify-between gap-2">
         <Button
           type="button"
           variant="outline"
+          disabled={fields.length >= MAX_INVOICE_LINES}
           onClick={() =>
             append({
               kind: "other",
@@ -313,7 +326,7 @@ export function IssueInvoiceDialog({
           {t("addLine")}
         </Button>
         <span className="text-sm font-medium tabular-nums" data-testid="invoice-total">
-          {t("totalHt", { amount: formatDZD(total, "fr") })}
+          {t("totalHt", { amount: formatDZD(total, locale) })}
         </span>
       </div>
     </FormDialog>

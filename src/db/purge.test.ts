@@ -1,4 +1,4 @@
-import { HeadObjectCommand } from "@aws-sdk/client-s3";
+import { HeadObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import { eq } from "drizzle-orm";
 import { Pool } from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -141,7 +141,13 @@ describe("purging a terminated organization (CLAUDE.console.md §17 step 10)", (
     expect(dry.users).toBe(3); // the gérant and the two commercials
     expect(await rowsLeft(team.orgId)).toBeGreaterThan(0);
 
-    const done = await purge({ retentionDays: 0, confirm: dry.legalName });
+    // The id as typed in upper case: the same organization, its files included.
+    const done = await purgeOrganization({
+      ownerUrl,
+      organizationId: team.orgId.toUpperCase(),
+      retentionDays: 0,
+      confirm: dry.legalName,
+    });
     expect(done).toMatchObject({ executed: true, users: 3, objects: 1 });
     expect(await rowsLeft(team.orgId)).toBe(0);
     const { rows: orgs } = await owner.query(`select id from organization where id = $1`, [
@@ -156,6 +162,16 @@ describe("purging a terminated organization (CLAUDE.console.md §17 step 10)", (
         }),
       ),
     ).rejects.toThrow();
+    // A file left behind (a storage failure): a second run deletes it, once confirmed.
+    const leftKey = `org/${team.orgId}/unit/${setup.unitIds[0]}/left.pdf`;
+    await s3.send(new PutObjectCommand({ Bucket: bucket, Key: leftKey, Body: "%PDF-1.7" }));
+    const again = await purge();
+    expect(again).toMatchObject({ executed: false, objects: 1, tables: [] });
+    expect(await purge({ confirm: dry.legalName })).toMatchObject({ executed: true, objects: 1 });
+    await expect(s3.send(new HeadObjectCommand({ Bucket: bucket, Key: leftKey }))).rejects.toThrow();
+    await expect(
+      purgeOrganization({ ownerUrl, organizationId: "not-an-id" }),
+    ).rejects.toThrow(/not an organization id/);
     // Accounts: the shared one stays, the others are gone.
     const people = await db
       .select({ id: user.id })

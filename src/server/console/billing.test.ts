@@ -9,6 +9,7 @@ import {
   invoice,
   invoiceLine,
   subscription,
+  subscriptionAddon,
   tenantEntitlement,
   tenantUsage,
 } from "@/db/schema";
@@ -217,6 +218,62 @@ describe("operator invoices (CLAUDE.console.md §11)", () => {
         .where(eq(tenantEntitlement.organizationId, a.id)),
     );
     expect(entitled?.end).toBe("2026-12-31");
+  });
+
+  it("trues up lots billed as none, invoices a period once, and again once credited in full", async () => {
+    const { billingAccountId, subscriptionId, orgs } = await account({
+      price: "600000",
+      currentPeriodStart: "2025-01-01",
+      currentPeriodEnd: "2025-12-31",
+      addons: [{ code: "syndic", price: "300" }],
+    });
+    const org = orgs[0];
+    if (!org) throw new Error("organization missing");
+    // The syndic was taken before the period, but no lots were measured yet: none billed.
+    await consoleDb
+      .update(subscriptionAddon)
+      .set({ addedOn: "2024-12-01" })
+      .where(eq(subscriptionAddon.subscriptionId, subscriptionId));
+    const first = await draftInvoice(systemOperator, billingAccountId);
+    expect(first.lines.map((l) => l.kind)).toEqual(["subscription", "setup"]);
+    const { invoiceId } = await issueInvoice(systemOperator, {
+      billingAccountId,
+      issuedOn: today,
+      lines: first.lines,
+    });
+    // 2025 then ran on 30 lots: the next invoice bills them all as a true-up.
+    for (let month = 1; month <= 12; month += 1) {
+      await measured(org.id, `2025-${String(month).padStart(2, "0")}-15`, 30);
+    }
+    await measured(org.id, today, 30);
+    const next = await draftInvoice(systemOperator, billingAccountId);
+    expect(next.period.start).toBe("2026-01-01");
+    expect(next.lines.map((l) => [l.kind, l.quantity])).toEqual([
+      ["subscription", 1],
+      ["addon", 360],
+      ["adjustment", 360],
+    ]);
+
+    // A stale draft of 2025 (another tab) is refused: the period is invoiced.
+    await expect(
+      issueInvoice(systemOperator, { billingAccountId, issuedOn: today, lines: first.lines }),
+    ).rejects.toMatchObject({ code: "CONFLICT", messageKey: "console.errors.periodInvoiced" });
+
+    // Credited in full, 2025 is to invoice again — setup fee included.
+    const [issued] = await consoleDb
+      .select({ totalTtc: invoice.totalTtc })
+      .from(invoice)
+      .where(eq(invoice.id, invoiceId));
+    await issueCreditNote(systemOperator, {
+      invoiceId,
+      amount: issued?.totalTtc ?? 0n,
+      reason: "Facture émise par erreur",
+      issuedOn: today,
+    });
+    const again = await draftInvoice(systemOperator, billingAccountId);
+    expect(again.period).toEqual({ start: "2025-01-01", end: "2025-12-31" });
+    expect(again.lines.map((l) => l.kind)).toContain("setup");
+    await issueInvoice(systemOperator, { billingAccountId, issuedOn: today, lines: again.lines });
   });
 
   it("refuses to invoice a pilot, a future day or nothing", async () => {

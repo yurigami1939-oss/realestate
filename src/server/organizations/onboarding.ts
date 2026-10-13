@@ -26,6 +26,8 @@ export async function createProvisionedOrganizationAction(
     const { token, name, slug } = parsed.data;
     const session = await getSession();
     if (!session) throw new AppError("UNAUTHENTICATED");
+    // Nothing is created during a support session (CLAUDE.console.md §12).
+    if (session.session.impersonatedBy) throw new AppError("FORBIDDEN", "errors.readOnly.support");
     const provision = await findLiveProvision(token);
     if (!provision) throw new AppError("CONFLICT", "console.errors.provisionClosed");
     if (provision.email !== session.user.email.trim().toLowerCase()) {

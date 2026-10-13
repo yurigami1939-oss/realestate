@@ -50,7 +50,7 @@ export default async function AppLayout({ children, params }: LayoutProps<"/[loc
         side={localeDirection(locale) === "rtl" ? "right" : "left"}
         organizations={shown.map(({ id, name }) => ({ id, name }))}
         activeOrgId={activeOrgId}
-        user={{ name: session.user.name, email: session.user.email }}
+        user={{ name: session.user.name, email: session.user.email, support: Boolean(support) }}
         roles={access}
         group={group}
       />

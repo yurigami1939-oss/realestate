@@ -1,17 +1,23 @@
+import { useId } from "react";
+
 import { BRAND_NAME, BRAND_TAGLINE } from "@/lib/brand";
 import { cn } from "@/lib/utils";
 
 /**
  * The app's mark, after Sayroura's logo: a white tower and a lighter one beside a gold one, under
  * a white roof with a gold window, on a navy rounded square — the same drawing as the favicon
- * (src/app/icon.svg) and the installed app's icons (scripts/generate-icons.ts).
+ * (src/app/icon.svg) and the installed app's icons (scripts/generate-icons.ts). Its gradients
+ * and clip carry ids of their own: two marks on a page never borrow each other's (a hidden one's
+ * paint would not render).
  */
 export function BrandMark({ className }: { className?: string }) {
+  const uid = useId();
+  const id = { bg: `${uid}bg`, gold: `${uid}gold`, clip: `${uid}clip` };
   return (
     <svg viewBox="0 0 100 100" aria-hidden className={cn("size-8 shrink-0", className)}>
       <defs>
         <linearGradient
-          id="sayroura-bg"
+          id={id.bg}
           gradientUnits="userSpaceOnUse"
           x1="0"
           y1="0"
@@ -22,7 +28,7 @@ export function BrandMark({ className }: { className?: string }) {
           <stop offset="1" stopColor="#101c42" />
         </linearGradient>
         <linearGradient
-          id="sayroura-gold"
+          id={id.gold}
           gradientUnits="userSpaceOnUse"
           x1="0"
           y1="20"
@@ -32,16 +38,16 @@ export function BrandMark({ className }: { className?: string }) {
           <stop offset="0" stopColor="#ecc77f" />
           <stop offset="1" stopColor="#bd8729" />
         </linearGradient>
-        <clipPath id="sayroura-clip">
+        <clipPath id={id.clip}>
           <rect width="100" height="100" rx="22.5" />
         </clipPath>
       </defs>
-      <g clipPath="url(#sayroura-clip)">
-        <rect width="100" height="100" fill="url(#sayroura-bg)" />
-        <rect x="25" y="31" width="11" height="40" fill="url(#sayroura-gold)" />
+      <g clipPath={`url(#${id.clip})`}>
+        <rect width="100" height="100" fill={`url(#${id.bg})`} />
+        <rect x="25" y="31" width="11" height="40" fill={`url(#${id.gold})`} />
         <rect x="39" y="18" width="17" height="53" fill="#ffffff" />
         <rect x="59" y="37" width="11" height="34" fill="#ffffff" fillOpacity="0.82" />
-        <path d="M14 79 50 55 86 79V100H14Z" fill="url(#sayroura-bg)" />
+        <path d="M14 79 50 55 86 79V100H14Z" fill={`url(#${id.bg})`} />
         <path
           d="M18 78.5 50 57 82 78.5"
           fill="none"
@@ -50,7 +56,7 @@ export function BrandMark({ className }: { className?: string }) {
           strokeLinecap="round"
           strokeLinejoin="round"
         />
-        <g fill="url(#sayroura-gold)">
+        <g fill={`url(#${id.gold})`}>
           <rect x="46" y="66" width="3.6" height="3.6" rx="0.4" />
           <rect x="50.4" y="66" width="3.6" height="3.6" rx="0.4" />
           <rect x="46" y="70.4" width="3.6" height="3.6" rx="0.4" />

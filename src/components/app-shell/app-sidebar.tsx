@@ -70,7 +70,8 @@ export function AppSidebar({
   group?: boolean;
   organizations: OrgOption[];
   activeOrgId: string;
-  user: { name: string; email: string };
+  /** `support`: an operator's support session, which signing out ends (CLAUDE.console.md §12). */
+  user: { name: string; email: string; support?: boolean };
 }) {
   const t = useTranslations();
   const pathname = usePathname();

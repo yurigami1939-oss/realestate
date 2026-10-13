@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, asc, desc, eq, ilike, isNull, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gte, ilike, isNull, lte, or, sql } from "drizzle-orm";
 
 import { consoleDb, type ConsoleTx } from "@/db/console-client";
 import {
@@ -166,6 +166,13 @@ async function managedLotsByMonth(
 }
 
 /**
+ * An invoice not wholly cancelled by credit notes: what still invoices its period (a period whose
+ * invoice was credited in full is invoiced again). In WHERE clauses only (columns qualified).
+ */
+const notFullyCredited = sql`${invoice.totalTtc} > coalesce(
+  (select sum(c.amount_ttc) from console.credit_note c where c.invoice_id = ${invoice.id}), 0)`;
+
+/**
  * The lines prefilled for an account's next invoice (CLAUDE.console.md §11), for the period after
  * the last one invoiced (the current period on a first invoice): the plan at the subscription's
  * price after discount, each live add-on at its price — the syndic in lot-months of the managed
@@ -197,7 +204,11 @@ export async function draftInvoice(
       .from(invoiceLine)
       .innerJoin(invoice, eq(invoice.id, invoiceLine.invoiceId))
       .where(
-        and(eq(invoice.billingAccountId, billingAccountId), eq(invoiceLine.kind, "subscription")),
+        and(
+          eq(invoice.billingAccountId, billingAccountId),
+          eq(invoiceLine.kind, "subscription"),
+          notFullyCredited,
+        ),
       )
       .orderBy(desc(invoiceLine.periodEnd))
       .limit(1);
@@ -235,6 +246,7 @@ export async function draftInvoice(
       .select({
         code: subscriptionAddon.addonCode,
         price: subscriptionAddon.price,
+        addedOn: subscriptionAddon.addedOn,
         basis: addon.basis,
       })
       .from(subscriptionAddon)
@@ -267,7 +279,8 @@ export async function draftInvoice(
           unitPrice: taken.price,
         });
       }
-      // The true-up of the period invoiced before, when its lots were billed.
+      // The true-up of the period invoiced before: the lots managed beyond those billed — all of
+      // them when none were (no lots measured then), unless the add-on came during that period.
       if (!last?.start || !last.end) continue;
       const [billed] = await tx
         .select({ quantity: invoiceLine.quantity })
@@ -279,9 +292,9 @@ export async function draftInvoice(
             eq(invoiceLine.addonCode, taken.code),
           ),
         );
-      if (!billed) continue;
+      if (!billed && taken.addedOn > last.start) continue;
       const lastMonths = monthsBetween(last.start, last.end);
-      const billedLots = Math.round(billed.quantity / lastMonths);
+      const billedLots = billed ? Math.round(billed.quantity / lastMonths) : 0;
       const average = averageLots(
         await managedLotsByMonth(tx, billingAccountId, last.start, last.end),
       );
@@ -304,7 +317,7 @@ export async function draftInvoice(
     const [earlier] = await tx
       .select({ id: invoice.id })
       .from(invoice)
-      .where(eq(invoice.billingAccountId, billingAccountId))
+      .where(and(eq(invoice.billingAccountId, billingAccountId), notFullyCredited))
       .limit(1);
     if (!earlier && row.plan.setupFee > 0n) {
       lines.push({
@@ -395,6 +408,29 @@ export async function issueInvoice(
     const totals = invoiceTotals(lines, vatRateBp);
     if (totals.ttc <= 0n) throw new AppError("VALIDATION", "console.errors.invoiceEmpty");
     const covered = lines.find((l) => l.kind === "subscription" && l.periodStart && l.periodEnd);
+    // A period is invoiced once (a stale draft, a second tab): credit the earlier invoice first.
+    for (const line of lines) {
+      if (line.kind !== "subscription" || !line.periodStart || !line.periodEnd) continue;
+      const [already] = await tx
+        .select({ number: invoice.number })
+        .from(invoiceLine)
+        .innerJoin(invoice, eq(invoice.id, invoiceLine.invoiceId))
+        .where(
+          and(
+            eq(invoice.billingAccountId, input.billingAccountId),
+            eq(invoiceLine.kind, "subscription"),
+            lte(invoiceLine.periodStart, line.periodEnd),
+            gte(invoiceLine.periodEnd, line.periodStart),
+            notFullyCredited,
+          ),
+        )
+        .limit(1);
+      if (already) {
+        throw new AppError("CONFLICT", "console.errors.periodInvoiced", {
+          details: { number: already.number },
+        });
+      }
+    }
 
     const { number } = await nextConsoleNumber(tx, "invoice", input.issuedOn);
     const seller: InvoiceParty = {
@@ -715,8 +751,7 @@ export async function listInvoices(filters: {
           : undefined,
       ),
     )
-    .orderBy(desc(invoice.issuedOn), desc(invoice.number))
-    .limit(500);
+    .orderBy(desc(invoice.issuedOn), desc(invoice.number));
   const today = todayInAlgiers();
   return rows
     .map(({ pdfKey, ...row }) => {
@@ -832,7 +867,8 @@ export async function getBillingOverview(today: CalendarDate = todayInAlgiers())
     group by ao.billing_account_id`);
   const lotsOf = new Map(lots.map((r) => [r.billingAccountId, r.lots]));
   let mrr = 0n;
-  for (const sub of subscriptions) {
+  // Clients only: a pilot over and never activated (past due) pays nothing yet.
+  for (const sub of subscriptions.filter((s) => s.activatedAt !== null)) {
     mrr += monthlyEquivalent(
       sub,
       addons
@@ -859,6 +895,8 @@ export async function getBillingOverview(today: CalendarDate = todayInAlgiers())
     select i.billing_account_id as "billingAccountId", max(l.period_end)::text as until
     from console.invoice_line l join console.invoice i on i.id = l.invoice_id
     where l.kind = 'subscription'
+      and i.total_ttc > coalesce(
+        (select sum(c.amount_ttc) from console.credit_note c where c.invoice_id = i.id), 0)
     group by i.billing_account_id`);
   const untilOf = new Map(invoicedUntil.map((r) => [r.billingAccountId, r.until]));
   const horizon = addDays(today, 30);

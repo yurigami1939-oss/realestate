@@ -57,6 +57,12 @@ async function scenario() {
     operator: { userId: op.userId, name: "Opératrice Sayroura", headers: opHeaders },
   };
 }
+/** The support session's cookies without Better Auth's admin cookie (dropped by the browser). */
+const withoutAdminCookie = (headers: Headers) =>
+  (headers.get("cookie") ?? "")
+    .split("; ")
+    .filter((c) => !c.includes("admin_session"))
+    .join("; ");
 
 const tenantAudit = (orgId: string, action: string) =>
   withTenant({ orgId }, (tx) =>
@@ -149,9 +155,23 @@ describe("support sessions (CLAUDE.console.md §12)", () => {
     );
     expect(switched.status).toBe(403);
     expect(await switched.json()).toMatchObject({ code: "SUPPORT_READ_ONLY" });
+    // Dropping the admin cookie changes nothing: the session itself is the support session.
+    const switchedAgain = await auth.handler(
+      new Request("http://localhost:3000/api/auth/organization/set-active", {
+        method: "POST",
+        headers: {
+          cookie: withoutAdminCookie(support),
+          "content-type": "application/json",
+          origin: "http://localhost:3000",
+        },
+        body: JSON.stringify({ organizationId: second.id }),
+      }),
+    );
+    expect(switchedAgain.status).toBe(403);
+    expect(await switchedAgain.json()).toMatchObject({ code: "SUPPORT_READ_ONLY" });
 
     // Ending it: both trails, the member's session gone, the operator's back.
-    await stopSupportSession(support);
+    expect(await stopSupportSession(support)).toEqual({ restored: true });
     expect(await tenantAudit(second.id, "support.end")).toHaveLength(1);
     const stops = await consoleDb
       .select({ id: consoleAuditLog.id })
@@ -171,6 +191,26 @@ describe("support sessions (CLAUDE.console.md §12)", () => {
     ).toEqual([]);
     // Outside a support session there is nothing to end.
     await expect(stopSupportSession(operator.headers)).rejects.toMatchObject({ code: "FORBIDDEN" });
+  });
+
+  it("ends a support session whose admin cookie was dropped: recorded, the member's session gone", async () => {
+    const { gerant, first, operator } = await scenario();
+    const { headers } = await startSupportSession(
+      operator,
+      { organizationId: first.id, userId: gerant.userId, reason: "Appel du gérant" },
+      operator.headers,
+    );
+    const support = new Headers({
+      cookie: withoutAdminCookie(browserCookies(operator.headers, headers)),
+    });
+    expect(await stopSupportSession(support)).toEqual({ restored: false });
+    expect(await tenantAudit(first.id, "support.end")).toHaveLength(1);
+    expect(
+      await db
+        .select({ id: session.id })
+        .from(session)
+        .where(and(eq(session.userId, gerant.userId), eq(session.impersonatedBy, operator.userId))),
+    ).toEqual([]);
   });
 
   it("opens no organization for an impersonation nobody recorded a reason for", async () => {

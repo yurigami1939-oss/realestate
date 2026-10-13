@@ -19,13 +19,17 @@ import { SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@/components/ui
 import { locales } from "@/i18n/locales";
 import { usePathname, useRouter } from "@/i18n/navigation";
 
-export function NavUser({ user }: { user: { name: string; email: string } }) {
+export function NavUser({
+  user,
+}: {
+  user: { name: string; email: string; support?: boolean };
+}) {
   const t = useTranslations();
   const current = useLocale();
   const router = useRouter();
   const pathname = usePathname();
   const [pending, startTransition] = useTransition();
-  const { signOut, pending: signingOut } = useSignOut();
+  const { signOut, pending: signingOut } = useSignOut({ support: user.support });
   const { theme, setTheme } = useTheme();
 
   return (
