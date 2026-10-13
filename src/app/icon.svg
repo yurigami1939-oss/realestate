@@ -1,10 +1,27 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
   <defs>
-    <linearGradient id="fill" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#3b9bff"/>
-      <stop offset="1" stop-color="#0062e0"/>
+    <linearGradient id="s-bg" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="100" y2="100">
+      <stop offset="0" stop-color="#253f80"/>
+      <stop offset="1" stop-color="#101c42"/>
     </linearGradient>
+    <linearGradient id="s-gold" gradientUnits="userSpaceOnUse" x1="0" y1="20" x2="0" y2="80">
+      <stop offset="0" stop-color="#ecc77f"/>
+      <stop offset="1" stop-color="#bd8729"/>
+    </linearGradient>
+    <clipPath id="s-clip"><rect width="100" height="100" rx="22.5"/></clipPath>
   </defs>
-  <rect width="100" height="100" rx="22.5" fill="url(#fill)"/>
-  <path fill="#fff" fill-rule="evenodd" d="M50 23 78 47h-5v31H27V47h-5ZM43 78V63a7 7 0 0 1 14 0v15Z"/>
+  <g clip-path="url(#s-clip)">
+    <rect width="100" height="100" fill="url(#s-bg)"/>
+    <rect x="25" y="31" width="11" height="40" fill="url(#s-gold)"/>
+    <rect x="39" y="18" width="17" height="53" fill="#ffffff"/>
+    <rect x="59" y="37" width="11" height="34" fill="#ffffff" fill-opacity="0.82"/>
+    <path d="M14 79 50 55 86 79V100H14Z" fill="url(#s-bg)"/>
+    <path d="M18 78.5 50 57 82 78.5" fill="none" stroke="#ffffff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+    <g fill="url(#s-gold)">
+      <rect x="46" y="66" width="3.6" height="3.6" rx="0.4"/>
+      <rect x="50.4" y="66" width="3.6" height="3.6" rx="0.4"/>
+      <rect x="46" y="70.4" width="3.6" height="3.6" rx="0.4"/>
+      <rect x="50.4" y="70.4" width="3.6" height="3.6" rx="0.4"/>
+    </g>
+  </g>
 </svg>

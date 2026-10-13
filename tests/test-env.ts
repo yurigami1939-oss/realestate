@@ -17,6 +17,6 @@ export const testEnv = {
   S3_SECRET_ACCESS_KEY: process.env.S3_SECRET_ACCESS_KEY ?? "devsecretkey",
   SMTP_HOST: process.env.SMTP_HOST ?? "localhost",
   SMTP_PORT: process.env.SMTP_PORT ?? "1025",
-  SMTP_FROM: "Darna <no-reply@example.test>",
+  SMTP_FROM: "Sayroura <no-reply@example.test>",
   TZ: "UTC",
 } as const;

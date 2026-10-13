@@ -1,17 +1,16 @@
-import { BrandMark } from "@/components/brand/brand-mark";
+import { BrandMark, BrandWordmark } from "@/components/brand/brand-mark";
 import { DemoBanner } from "@/components/demo/demo-banner";
 import { LocaleSwitcher } from "@/components/i18n/locale-switcher";
-import { BRAND_NAME } from "@/lib/brand";
 
 /**
  * Account pages (sign-in, sign-up, two-factor, password reset, invitation, onboarding), like an
- * Apple ID page (CLAUDE.md §14 item 13): the mark above one centred card, a large title, 44 px
- * fields and button, links in the accent. The pages keep their own Card markup; the look is
+ * Apple ID page (CLAUDE.md §14 item 13): the mark and the wordmark above one centred card on a
+ * faint gold light, a large title, 44 px fields and button, links in the accent. The pages keep their own Card markup; the look is
  * set here once.
  */
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex min-h-dvh flex-col bg-background">
+    <div className="flex min-h-dvh flex-col bg-background bg-[radial-gradient(ellipse_80%_50%_at_50%_0%,var(--gold-soft),transparent_70%)]">
       <DemoBanner />
       <header className="flex items-center justify-end p-4">
         <LocaleSwitcher />
@@ -34,11 +33,9 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
             "[&_[data-slot=card-footer]_a]:font-medium [&_[data-slot=card-footer]_a]:text-primary",
           ].join(" ")}
         >
-          <div className="flex flex-col items-center gap-3">
-            <BrandMark className="size-14 drop-shadow-sm" />
-            <span className="text-sm font-semibold tracking-tight text-muted-foreground">
-              {BRAND_NAME}
-            </span>
+          <div className="flex flex-col items-center gap-3.5">
+            <BrandMark className="size-14 drop-shadow-md" />
+            <BrandWordmark />
           </div>
           {children}
         </div>

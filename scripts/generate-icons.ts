@@ -1,129 +1,72 @@
 /**
- * Draws the installable app's icons into public/ (CLAUDE.md §3): the brand mark — a white house
- * with an arched door on a blue gradient (src/components/brand/brand-mark.tsx,
- * src/app/icon.svg) — on a rounded square for « any » (transparent corners) and full bleed for
- * « maskable » and iOS, the house inside the central 80 %. PNG encoded with node:zlib (no image library), edges smoothed by
- * 4 × 4 supersampling. Run: pnpm exec tsx scripts/generate-icons.ts — the files are committed.
+ * Draws the app's icons (CLAUDE.md §3): the brand mark after Sayroura's logo — white and gold
+ * towers under a white roof with a gold window, on a navy square (the same drawing as
+ * src/components/brand/brand-mark.tsx) — written as the favicon (src/app/icon.svg) and rendered
+ * by Chromium (playwright-core, already used for the PDFs) into public/: rounded with transparent
+ * corners for « any », full bleed for iOS, full bleed with the drawing inside the central 80 % for
+ * « maskable ». Run: pnpm exec tsx scripts/generate-icons.ts — the files are committed.
  */
 import { writeFileSync } from "node:fs";
-import { deflateSync } from "node:zlib";
 
-type Rgb = readonly [number, number, number];
+import { chromium } from "playwright-core";
 
-const TOP: Rgb = [59, 155, 255];
-const BOTTOM: Rgb = [0, 98, 224];
-const WHITE: Rgb = [255, 255, 255];
-
-const CRC_TABLE = Array.from({ length: 256 }, (_, n) => {
-  let c = n;
-  for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
-  return c >>> 0;
-});
-
-function crc32(bytes: Uint8Array): number {
-  let crc = 0xffffffff;
-  for (const byte of bytes) crc = (CRC_TABLE[(crc ^ byte) & 0xff] ?? 0) ^ (crc >>> 8);
-  return (crc ^ 0xffffffff) >>> 0;
+/** The mark in a 100 × 100 space: `radius` of the square's corners, `scale` of the drawing. */
+export function markSvg({ radius = 22.5, scale = 1 } = {}): string {
+  const drawing = `
+    <rect x="25" y="31" width="11" height="40" fill="url(#s-gold)"/>
+    <rect x="39" y="18" width="17" height="53" fill="#ffffff"/>
+    <rect x="59" y="37" width="11" height="34" fill="#ffffff" fill-opacity="0.82"/>
+    <path d="M14 79 50 55 86 79V100H14Z" fill="url(#s-bg)"/>
+    <path d="M18 78.5 50 57 82 78.5" fill="none" stroke="#ffffff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+    <g fill="url(#s-gold)">
+      <rect x="46" y="66" width="3.6" height="3.6" rx="0.4"/>
+      <rect x="50.4" y="66" width="3.6" height="3.6" rx="0.4"/>
+      <rect x="46" y="70.4" width="3.6" height="3.6" rx="0.4"/>
+      <rect x="50.4" y="70.4" width="3.6" height="3.6" rx="0.4"/>
+    </g>`;
+  const placed =
+    scale === 1
+      ? drawing
+      : `<g transform="translate(50 50) scale(${scale}) translate(-50 -50)">${drawing}</g>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="s-bg" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="100" y2="100">
+      <stop offset="0" stop-color="#253f80"/>
+      <stop offset="1" stop-color="#101c42"/>
+    </linearGradient>
+    <linearGradient id="s-gold" gradientUnits="userSpaceOnUse" x1="0" y1="20" x2="0" y2="80">
+      <stop offset="0" stop-color="#ecc77f"/>
+      <stop offset="1" stop-color="#bd8729"/>
+    </linearGradient>
+    <clipPath id="s-clip"><rect width="100" height="100" rx="${radius}"/></clipPath>
+  </defs>
+  <g clip-path="url(#s-clip)">
+    <rect width="100" height="100" fill="url(#s-bg)"/>${placed}
+  </g>
+</svg>
+`;
 }
 
-function chunk(type: string, data: Uint8Array): Buffer {
-  const length = Buffer.alloc(4);
-  length.writeUInt32BE(data.length);
-  const body = Buffer.concat([Buffer.from(type, "ascii"), data]);
-  const crc = Buffer.alloc(4);
-  crc.writeUInt32BE(crc32(body));
-  return Buffer.concat([length, body, crc]);
-}
+const icons = [
+  { file: "public/icon-192.png", size: 192, svg: markSvg() },
+  { file: "public/icon-512.png", size: 512, svg: markSvg() },
+  { file: "public/icon-maskable-512.png", size: 512, svg: markSvg({ radius: 0, scale: 0.8 }) },
+  { file: "public/apple-icon.png", size: 180, svg: markSvg({ radius: 0 }) },
+];
 
-/** RGBA pixels → PNG (color type 6). */
-function encodePng(size: number, pixels: Uint8Array): Buffer {
-  const stride = size * 4;
-  const raw = Buffer.alloc((stride + 1) * size);
-  for (let y = 0; y < size; y++) {
-    raw.set(pixels.subarray(y * stride, (y + 1) * stride), y * (stride + 1) + 1);
+writeFileSync("src/app/icon.svg", markSvg());
+const browser = await chromium.launch();
+try {
+  for (const icon of icons) {
+    const page = await browser.newPage({ viewport: { width: icon.size, height: icon.size } });
+    const src = `data:image/svg+xml;base64,${Buffer.from(icon.svg).toString("base64")}`;
+    await page.setContent(
+      `<body style="margin:0;background:transparent"><img src="${src}" width="${icon.size}" height="${icon.size}" style="display:block"></body>`,
+    );
+    await page.screenshot({ path: icon.file, omitBackground: true });
+    await page.close();
   }
-  const header = Buffer.alloc(13);
-  header.writeUInt32BE(size, 0);
-  header.writeUInt32BE(size, 4);
-  header.set([8, 6, 0, 0, 0], 8);
-  return Buffer.concat([
-    Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
-    chunk("IHDR", header),
-    chunk("IDAT", deflateSync(raw)),
-    chunk("IEND", new Uint8Array(0)),
-  ]);
+} finally {
+  await browser.close();
 }
-
-/** Inside the rounded square of the background (100 × 100 space). */
-function inBackground(u: number, v: number, radius: number): boolean {
-  const cx = Math.min(Math.max(u, radius), 100 - radius);
-  const cy = Math.min(Math.max(v, radius), 100 - radius);
-  return (u - cx) ** 2 + (v - cy) ** 2 <= radius ** 2;
-}
-
-/** An arch: straight sides from `bottom` up to its semicircle of center (50, `cy`). */
-function inArch(u: number, v: number, halfWidth: number, cy: number, bottom: number): boolean {
-  if (v > bottom || Math.abs(u - 50) > halfWidth) return false;
-  return v >= cy || (u - 50) ** 2 + (v - cy) ** 2 <= halfWidth ** 2;
-}
-
-/** Even-odd test of a point against a polygon. */
-function inPolygon(u: number, v: number, points: readonly (readonly [number, number])[]): boolean {
-  let inside = false;
-  for (let i = 0, j = points.length - 1; i < points.length; j = i++) {
-    const [xi, yi] = points[i] ?? [0, 0];
-    const [xj, yj] = points[j] ?? [0, 0];
-    if (yi > v !== yj > v && u < ((xj - xi) * (v - yi)) / (yj - yi) + xi) inside = !inside;
-  }
-  return inside;
-}
-
-/** The house of the mark: its roof overhanging the walls, and its arched door cut out. */
-const HOUSE = [
-  [50, 23],
-  [78, 47],
-  [73, 47],
-  [73, 78],
-  [27, 78],
-  [27, 47],
-  [22, 47],
-] as const;
-
-function inMark(u: number, v: number): boolean {
-  return inPolygon(u, v, HOUSE) && !inArch(u, v, 7, 63, 78);
-}
-
-function draw(size: number, rounded: boolean): Buffer {
-  const pixels = new Uint8Array(size * size * 4);
-  const unit = size / 100;
-  const samples = 4;
-  const radius = rounded ? 22.5 : 0;
-  for (let y = 0; y < size; y++) {
-    const t = y / (size - 1);
-    const fill = TOP.map((c, i) => Math.round(c + ((BOTTOM[i] ?? c) - c) * t));
-    for (let x = 0; x < size; x++) {
-      let background = 0;
-      let mark = 0;
-      for (let sy = 0; sy < samples; sy++) {
-        for (let sx = 0; sx < samples; sx++) {
-          const u = (x + (sx + 0.5) / samples) / unit;
-          const v = (y + (sy + 0.5) / samples) / unit;
-          if (!inBackground(u, v, radius)) continue;
-          background++;
-          if (inMark(u, v)) mark++;
-        }
-      }
-      const total = samples * samples;
-      const share = background === 0 ? 0 : mark / background;
-      const color = fill.map((c, i) => Math.round(c + ((WHITE[i] ?? c) - c) * share));
-      pixels.set([...color, Math.round((background / total) * 255)], (y * size + x) * 4);
-    }
-  }
-  return encodePng(size, pixels);
-}
-
-writeFileSync("public/icon-192.png", draw(192, true));
-writeFileSync("public/icon-512.png", draw(512, true));
-writeFileSync("public/icon-maskable-512.png", draw(512, false));
-writeFileSync("public/apple-icon.png", draw(180, false));
-console.log("icons written to public/");
+console.log("icons written to public/ and src/app/icon.svg");

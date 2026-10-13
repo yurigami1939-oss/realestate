@@ -54,7 +54,7 @@ async function scenario() {
     gerant,
     first,
     second,
-    operator: { userId: op.userId, name: "Opératrice Darna", headers: opHeaders },
+    operator: { userId: op.userId, name: "Opératrice Sayroura", headers: opHeaders },
   };
 }
 
@@ -122,7 +122,7 @@ describe("support sessions (CLAUDE.console.md §12)", () => {
     expect(access).toMatchObject({
       actorUserId: operator.userId,
       reason: "Ticket 42 : reçus en double",
-      after: { operator: "Opératrice Darna" },
+      after: { operator: "Opératrice Sayroura" },
     });
 
     // The member's session, on the organization chosen (not the gérant's first one), 60 minutes.

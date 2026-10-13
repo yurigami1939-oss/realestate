@@ -27,7 +27,7 @@ export async function generateMetadata({ params }: LayoutProps<"/[locale]">): Pr
   };
 }
 
-export const viewport: Viewport = { themeColor: "#171717" };
+export const viewport: Viewport = { themeColor: "#13224a" };
 
 export default async function LocaleLayout({ children, params }: LayoutProps<"/[locale]">) {
   const { locale } = await params;

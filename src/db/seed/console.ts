@@ -114,13 +114,13 @@ export async function seedConsoleCatalog(): Promise<void> {
   // A placeholder profile (CLAUDE.console.md §15): the operator's real identity, bank and VAT
   // regime are to be set with its accountant (§18).
   await saveOperatorProfile(systemOperator, {
-    legalName: "Darna SARL (profil fictif)",
-    brand: "Darna",
+    legalName: "Sayroura SARL (profil fictif)",
+    brand: "Sayroura",
     legalForm: "SARL",
     address: "Rue fictive, Hydra",
     wilaya: "16 - Alger",
     phone: "+213 23 00 00 00",
-    email: "facturation@darna.test",
+    email: "facturation@sayroura.test",
     rcNumber: "16/00-0000000B26",
     nif: "000016000000000",
     nis: "000016000000000",

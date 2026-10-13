@@ -17,7 +17,10 @@ export default async function ConsoleLayout({ children }: { children: React.Reac
   const t = await getTranslations("console");
   return (
     <div className="flex min-h-dvh bg-background">
-      <aside className="sticky top-0 hidden h-dvh w-60 shrink-0 flex-col gap-6 border-e px-3 py-4 lg:flex">
+      <aside
+        data-sidebar="sidebar"
+        className="sticky top-0 hidden h-dvh w-60 shrink-0 flex-col gap-6 bg-sidebar px-3 py-4 text-sidebar-foreground lg:flex"
+      >
         <div className="flex items-center gap-2.5 px-2">
           <BrandMark className="size-7" />
           <div className="min-w-0">

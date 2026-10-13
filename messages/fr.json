@@ -1,7 +1,7 @@
 {
   "metadata": {
-    "title": "Darna",
-    "description": "Gestion des promotions immobilières et des résidences"
+    "title": "Sayroura",
+    "description": "Gérer vos promotions immobilières n'a jamais été aussi simple."
   },
   "common": {
     "language": "Langue",
@@ -115,7 +115,7 @@
       "emailTaken": "Un compte existe déjà avec cet e-mail.",
       "closed": "Les inscriptions sont fermées.",
       "closedTitle": "Inscription sur invitation",
-      "closedText": "Les comptes se créent depuis une invitation ou le lien reçu de Darna. Demandez-le à votre contact.",
+      "closedText": "Les comptes se créent depuis une invitation ou le lien reçu de Sayroura. Demandez-le à votre contact.",
       "provisionDescription": "Créez votre compte pour {organization}.",
       "existingAccount": "Vous avez déjà un compte avec cette adresse ?",
       "existingLink": "Se connecter"
@@ -162,12 +162,12 @@
     "open": "Ouvrir",
     "createNew": "Ou créez une nouvelle société",
     "provision": {
-      "description": "Votre espace Darna a été préparé pour {organization}.",
-      "invalid": "Ce lien n'est plus valable : demandez-en un nouveau à votre contact Darna.",
+      "description": "Votre espace Sayroura a été préparé pour {organization}.",
+      "invalid": "Ce lien n'est plus valable : demandez-en un nouveau à votre contact Sayroura.",
       "wrongEmail": "Ce lien a été envoyé à {email} : connectez-vous avec cette adresse."
     },
     "closedTitle": "Création sur invitation",
-    "closedText": "Les sociétés se créent depuis le lien reçu de Darna. Demandez-le à votre contact pour ajouter une société."
+    "closedText": "Les sociétés se créent depuis le lien reçu de Sayroura. Demandez-le à votre contact pour ajouter une société."
   },
   "invitation": {
     "title": "Invitation",
@@ -192,13 +192,13 @@
   "emails": {
     "invitation": {
       "subject": "Invitation à rejoindre {organization}",
-      "body": "{inviter} vous invite à rejoindre {organization} sur Darna.",
+      "body": "{inviter} vous invite à rejoindre {organization} sur Sayroura.",
       "notice": "Ce lien est valable 7 jours.",
       "cta": "Accepter l'invitation"
     },
     "resetPassword": {
       "subject": "Réinitialisation du mot de passe",
-      "body": "Une réinitialisation du mot de passe a été demandée pour votre compte Darna.",
+      "body": "Une réinitialisation du mot de passe a été demandée pour votre compte Sayroura.",
       "notice": "Si vous n'êtes pas à l'origine de cette demande, ignorez cet e-mail.",
       "cta": "Choisir un nouveau mot de passe"
     },
@@ -248,7 +248,7 @@
     },
     "portalInvitation": {
       "subject": "Votre espace client {organization}",
-      "body": "{inviter} vous invite à votre espace client {organization} sur Darna : vos acquisitions, paiements, documents et la vie de votre résidence.",
+      "body": "{inviter} vous invite à votre espace client {organization} sur Sayroura : vos acquisitions, paiements, documents et la vie de votre résidence.",
       "notice": "Ce lien est valable 7 jours. Créez votre compte avec cette adresse e-mail.",
       "cta": "Accéder à mon espace"
     },
@@ -287,13 +287,13 @@
     },
     "pilotEnding": {
       "subject": "Votre pilote se termine dans {days} jours",
-      "body": "Le pilote de {organization} sur Darna se termine le {endsOn}. Choisissez votre formule pour continuer sans interruption : vos données restent en place.",
+      "body": "Le pilote de {organization} sur Sayroura se termine le {endsOn}. Choisissez votre formule pour continuer sans interruption : vos données restent en place.",
       "notice": "Après cette date, rien n'est supprimé ; l'abonnement attend votre choix.",
       "cta": "Voir l'abonnement"
     },
     "provision": {
-      "subject": "Votre espace Darna pour {organization}",
-      "body": "Un espace a été préparé pour {organization} sur Darna. Créez votre compte avec cette adresse, puis votre société, avant le {expiresOn}.",
+      "subject": "Votre espace Sayroura pour {organization}",
+      "body": "Un espace a été préparé pour {organization} sur Sayroura. Créez votre compte avec cette adresse, puis votre société, avant le {expiresOn}.",
       "notice": "Ce lien est personnel et ne sert qu'une fois.",
       "cta": "Créer mon espace"
     },

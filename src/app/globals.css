@@ -5,11 +5,13 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * Design tokens (CLAUDE.md §8 UI): Apple's look — a grouped gray canvas with white surfaces,
- * hairline separators, one accent (system blue) for actions, links, focus and the current page,
- * and semantic tones for statuses. Each tone has three values: `<tone>` (text and icons,
- * accessible on white), `<tone>-soft` (a tinted background), `<tone>-vivid` (dots, bars,
- * charts). Never use Tailwind's raw palette (`text-red-700`…) in the app: use the tones.
+ * Design tokens (CLAUDE.md §8 UI): Sayroura's look, from its logo — a porcelain canvas with white
+ * surfaces and navy ink, deep navy (the logo's buildings) for actions, links, focus and the
+ * current page, gold (the logo's ring and tower) for the brand's accents; a navy sidebar with
+ * gold icons; in the dark, navy surfaces and gold actions. Semantic tones for statuses: each
+ * has three values: `<tone>` (text and icons, accessible on white), `<tone>-soft` (a tinted
+ * background), `<tone>-vivid` (dots, bars, charts). Never use Tailwind's raw palette
+ * (`text-red-700`…) in the app: use the tones.
  */
 @theme inline {
   --color-background: var(--background);
@@ -78,6 +80,9 @@
   --color-gray: var(--gray);
   --color-gray-soft: var(--gray-soft);
   --color-gray-vivid: var(--gray-vivid);
+  --color-gold: var(--gold);
+  --color-gold-soft: var(--gold-soft);
+  --color-gold-vivid: var(--gold-vivid);
 
   --shadow-card: var(--card-shadow);
   --shadow-raised: var(--raised-shadow);
@@ -102,29 +107,29 @@
   --title-tracking: -0.021em;
   --headline-tracking: -0.012em;
 
-  --background: #f5f5f7;
-  --foreground: #1d1d1f;
+  --background: #f4f5f9;
+  --foreground: #101a33;
   --card: #ffffff;
-  --card-foreground: #1d1d1f;
-  /* The selected segment, sidebar item or settings row: white on the gray, gray in the dark. */
+  --card-foreground: #101a33;
+  /* The selected segment, sidebar item or settings row: white on the canvas, navy in the dark. */
   --raised-fill: #ffffff;
   --popover: #ffffff;
-  --popover-foreground: #1d1d1f;
-  --primary: #0071e3;
+  --popover-foreground: #101a33;
+  --primary: #1f3a73;
   --primary-foreground: #ffffff;
-  --secondary: rgb(118 118 128 / 0.12);
-  --secondary-foreground: #1d1d1f;
-  --muted: rgb(118 118 128 / 0.12);
-  --muted-foreground: #6e6e73;
-  --accent: rgb(118 118 128 / 0.12);
-  --accent-foreground: #1d1d1f;
+  --secondary: rgb(31 58 115 / 0.07);
+  --secondary-foreground: #101a33;
+  --muted: rgb(31 58 115 / 0.07);
+  --muted-foreground: #5b6378;
+  --accent: rgb(31 58 115 / 0.07);
+  --accent-foreground: #101a33;
   --destructive: var(--danger);
-  --border: rgb(0 0 0 / 0.09);
-  --input: rgb(0 0 0 / 0.15);
-  --ring: #0071e3;
+  --border: rgb(16 26 51 / 0.09);
+  --input: rgb(16 26 51 / 0.16);
+  --ring: #3a5ba3;
   --radius: 0.625rem;
-  --card-shadow: 0 0 0 1px rgb(0 0 0 / 0.04), 0 1px 3px 0 rgb(0 0 0 / 0.05);
-  --raised-shadow: 0 0 0 1px rgb(0 0 0 / 0.05), 0 10px 32px -8px rgb(0 0 0 / 0.18);
+  --card-shadow: 0 0 0 1px rgb(16 26 51 / 0.05), 0 1px 3px 0 rgb(16 26 51 / 0.06);
+  --raised-shadow: 0 0 0 1px rgb(16 26 51 / 0.06), 0 12px 32px -8px rgb(16 26 51 / 0.24);
 
   --success: #1b7a33;
   --success-soft: rgb(52 199 89 / 0.14);
@@ -138,9 +143,9 @@
   --danger: #d70015;
   --danger-soft: rgb(255 59 48 / 0.12);
   --danger-vivid: #ff3b30;
-  --info: #0066cc;
-  --info-soft: rgb(0 122 255 / 0.12);
-  --info-vivid: #007aff;
+  --info: #1f5aa6;
+  --info-soft: rgb(31 90 166 / 0.1);
+  --info-vivid: #2f6fd0;
   --purple: #8944ab;
   --purple-soft: rgb(175 82 222 / 0.14);
   --purple-vivid: #af52de;
@@ -153,24 +158,28 @@
   --indigo: #3634a3;
   --indigo-soft: rgb(88 86 214 / 0.14);
   --indigo-vivid: #5856d6;
-  --gray: #636366;
-  --gray-soft: rgb(118 118 128 / 0.12);
-  --gray-vivid: #8e8e93;
+  --gray: #5f6578;
+  --gray-soft: rgb(31 58 115 / 0.07);
+  --gray-vivid: #8b91a3;
+  --gold: #85601a;
+  --gold-soft: rgb(201 151 58 / 0.16);
+  --gold-vivid: #c9973a;
 
-  --chart-1: #007aff;
-  --chart-2: #34c759;
-  --chart-3: #ff9500;
-  --chart-4: #af52de;
-  --chart-5: #ff2d55;
+  --chart-1: #1f3a73;
+  --chart-2: #c9973a;
+  --chart-3: #2e8b6e;
+  --chart-4: #6b7fb8;
+  --chart-5: #c25b4e;
 
-  --sidebar: #efeff2;
-  --sidebar-foreground: #1d1d1f;
-  --sidebar-primary: #0071e3;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: rgb(0 0 0 / 0.05);
-  --sidebar-accent-foreground: #1d1d1f;
-  --sidebar-border: rgb(0 0 0 / 0.08);
-  --sidebar-ring: #0071e3;
+  /* The navy sidebar (its inner tokens below). */
+  --sidebar: #13224a;
+  --sidebar-foreground: #dfe5f2;
+  --sidebar-primary: #c9973a;
+  --sidebar-primary-foreground: #13224a;
+  --sidebar-accent: rgb(255 255 255 / 0.07);
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: rgb(255 255 255 / 0.08);
+  --sidebar-ring: #dcb162;
 }
 
 /* Arabic is never letter-spaced (it breaks the joining of letters). */
@@ -180,26 +189,26 @@
 }
 
 .dark {
-  --background: #000000;
-  --foreground: #f5f5f7;
-  --card: #1c1c1e;
-  --card-foreground: #f5f5f7;
-  --raised-fill: #3a3a3c;
-  --popover: #2c2c2e;
-  --popover-foreground: #f5f5f7;
-  --primary: #0a84ff;
-  --primary-foreground: #ffffff;
-  --secondary: rgb(118 118 128 / 0.24);
-  --secondary-foreground: #f5f5f7;
-  --muted: rgb(118 118 128 / 0.24);
-  --muted-foreground: #98989d;
-  --accent: rgb(118 118 128 / 0.24);
-  --accent-foreground: #f5f5f7;
-  --border: rgb(255 255 255 / 0.1);
-  --input: rgb(255 255 255 / 0.16);
-  --ring: #0a84ff;
+  --background: #0a0f1e;
+  --foreground: #eef1f8;
+  --card: #121a2e;
+  --card-foreground: #eef1f8;
+  --raised-fill: #24304d;
+  --popover: #172140;
+  --popover-foreground: #eef1f8;
+  --primary: #d9ad55;
+  --primary-foreground: #0a0f1e;
+  --secondary: rgb(160 175 215 / 0.12);
+  --secondary-foreground: #eef1f8;
+  --muted: rgb(160 175 215 / 0.12);
+  --muted-foreground: #9aa4bf;
+  --accent: rgb(160 175 215 / 0.12);
+  --accent-foreground: #eef1f8;
+  --border: rgb(255 255 255 / 0.09);
+  --input: rgb(255 255 255 / 0.15);
+  --ring: #d9ad55;
   --card-shadow: 0 0 0 1px rgb(255 255 255 / 0.07);
-  --raised-shadow: 0 0 0 1px rgb(255 255 255 / 0.1), 0 10px 32px -8px rgb(0 0 0 / 0.6);
+  --raised-shadow: 0 0 0 1px rgb(255 255 255 / 0.1), 0 12px 32px -8px rgb(0 0 0 / 0.65);
 
   --success: #30d158;
   --success-soft: rgb(48 209 88 / 0.18);
@@ -213,9 +222,9 @@
   --danger: #ff6961;
   --danger-soft: rgb(255 69 58 / 0.18);
   --danger-vivid: #ff453a;
-  --info: #409cff;
-  --info-soft: rgb(10 132 255 / 0.2);
-  --info-vivid: #0a84ff;
+  --info: #7aa7f0;
+  --info-soft: rgb(80 130 230 / 0.2);
+  --info-vivid: #4f86e8;
   --purple: #da8fff;
   --purple-soft: rgb(191 90 242 / 0.2);
   --purple-vivid: #bf5af2;
@@ -228,24 +237,48 @@
   --indigo: #a5a3ff;
   --indigo-soft: rgb(94 92 230 / 0.22);
   --indigo-vivid: #5e5ce6;
-  --gray: #aeaeb2;
-  --gray-soft: rgb(118 118 128 / 0.24);
-  --gray-vivid: #8e8e93;
+  --gray: #a7aec2;
+  --gray-soft: rgb(160 175 215 / 0.12);
+  --gray-vivid: #8b91a3;
+  --gold: #e2bb6a;
+  --gold-soft: rgb(217 173 85 / 0.16);
+  --gold-vivid: #d9ad55;
 
-  --chart-1: #0a84ff;
-  --chart-2: #30d158;
-  --chart-3: #ff9f0a;
-  --chart-4: #bf5af2;
-  --chart-5: #ff375f;
+  --chart-1: #7f9be0;
+  --chart-2: #d9ad55;
+  --chart-3: #4fbf98;
+  --chart-4: #a3b1dc;
+  --chart-5: #e58a7e;
 
-  --sidebar: #1c1c1e;
-  --sidebar-foreground: #f5f5f7;
-  --sidebar-primary: #0a84ff;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: rgb(255 255 255 / 0.08);
-  --sidebar-accent-foreground: #f5f5f7;
+  --sidebar: #0e1630;
+  --sidebar-foreground: #dfe5f2;
+  --sidebar-primary: #d9ad55;
+  --sidebar-primary-foreground: #0e1630;
+  --sidebar-accent: rgb(255 255 255 / 0.07);
+  --sidebar-accent-foreground: #ffffff;
   --sidebar-border: rgb(255 255 255 / 0.08);
-  --sidebar-ring: #0a84ff;
+  --sidebar-ring: #dcb162;
+}
+
+/* Inside the navy sidebar (desktop and the phone's sheet): light text, gold icons, a translucent
+   white for the current page outlined in gold. Its menus open outside it, on the light popover. */
+[data-sidebar="sidebar"] {
+  --foreground: #ffffff;
+  --muted-foreground: #9eabca;
+  --muted: rgb(255 255 255 / 0.1);
+  --primary: #dcb162;
+  --primary-foreground: #13224a;
+  --raised-fill: rgb(255 255 255 / 0.12);
+  --card: rgb(255 255 255 / 0.06);
+  --card-foreground: #ffffff;
+  --secondary: rgb(255 255 255 / 0.12);
+  --secondary-foreground: #ffffff;
+  --accent: rgb(255 255 255 / 0.1);
+  --accent-foreground: #ffffff;
+  --card-shadow: inset 0 0 0 1px rgb(220 177 98 / 0.3);
+  --border: rgb(255 255 255 / 0.08);
+  --ring: #dcb162;
+  --input: rgb(255 255 255 / 0.16);
 }
 
 /* Type scale (Apple's: large title, title, headline, footnote); body text stays text-sm. */
@@ -375,6 +408,9 @@
     border-radius: 4px;
   }
   ::selection {
-    background-color: rgb(0 113 227 / 0.22);
+    background-color: rgb(31 58 115 / 0.18);
+  }
+  .dark ::selection {
+    background-color: rgb(217 173 85 / 0.3);
   }
 }

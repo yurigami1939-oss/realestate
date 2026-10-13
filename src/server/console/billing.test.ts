@@ -47,13 +47,13 @@ import { runConsoleDaily } from "./lifecycle";
 const today = todayInAlgiers();
 
 const profile = {
-  legalName: "Darna SARL",
-  brand: "Darna",
+  legalName: "Sayroura SARL",
+  brand: "Sayroura",
   legalForm: "SARL",
   address: "12 rue Didouche Mourad",
   wilaya: "16 - Alger",
   phone: "023 00 00 00",
-  email: "factures@darna.test",
+  email: "factures@sayroura.test",
   rcNumber: "16/00-1234567B26",
   nif: "002616123456789",
   nis: "0026160123456",
@@ -175,7 +175,7 @@ describe("operator invoices (CLAUDE.console.md §11)", () => {
       totalHt: 1_276_000_00n,
       totalVat: 242_440_00n,
       totalTtc: 1_518_440_00n,
-      seller: { legalName: "Darna SARL", rib: profile.rib },
+      seller: { legalName: "Sayroura SARL", rib: profile.rib },
       buyer: { legalName: expect.any(String) },
     });
     const audit = await consoleDb
@@ -327,7 +327,7 @@ describe("operator invoices (CLAUDE.console.md §11)", () => {
         creditNotes: [{ number, amountTtc: 119_00n }],
       },
     ]);
-    expect(payTo).toEqual({ legalName: "Darna SARL", bank: profile.bank, rib: profile.rib });
+    expect(payTo).toEqual({ legalName: "Sayroura SARL", bank: profile.bank, rib: profile.rib });
 
     // A bounced cheque: cancelled with its reason, once; the invoice is due again.
     await cancelConsolePayment(systemOperator, { paymentId, reason: "Chèque impayé" });

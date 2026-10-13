@@ -41,7 +41,7 @@ function section(
   const html = `
     <div dir="${dir}" lang="${locale}" style="text-align:${dir === "rtl" ? "right" : "left"};margin:0 0 32px">
       ${lines.map((line) => `<p style="margin:0 0 12px">${escapeHtml(line)}</p>`).join("")}
-      <p style="margin:20px 0"><a href="${escapeHtml(url)}" style="background:#171717;color:#fff;padding:10px 16px;border-radius:8px;text-decoration:none">${escapeHtml(t("cta"))}</a></p>
+      <p style="margin:20px 0"><a href="${escapeHtml(url)}" style="background:#1f3a73;color:#fff;padding:10px 16px;border-radius:8px;text-decoration:none">${escapeHtml(t("cta"))}</a></p>
     </div>`;
   const text = `${lines.join("\n")}\n${t("cta")}: ${url}`;
   return { subject: t("subject", values), html, text };
@@ -54,7 +54,7 @@ function combine(to: string, frPart: Part, arPart: Part): EmailMessage {
   return {
     to,
     subject: `${frPart.subject} · ${arPart.subject}`,
-    html: `<!doctype html><html><body style="font-family:Arial,Helvetica,sans-serif;font-size:15px;color:#171717;max-width:560px;margin:0 auto;padding:24px">${frPart.html}<hr style="border:none;border-top:1px solid #e5e5e5;margin:0 0 32px">${arPart.html}</body></html>`,
+    html: `<!doctype html><html><body style="font-family:Arial,Helvetica,sans-serif;font-size:15px;color:#101a33;max-width:560px;margin:0 auto;padding:24px">${frPart.html}<hr style="border:none;border-top:1px solid #e5e5e5;margin:0 0 32px">${arPart.html}</body></html>`,
     text: `${frPart.text}\n\n---\n\n${arPart.text}`,
   };
 }
@@ -248,7 +248,7 @@ export function overdueDigestEmail(input: {
       <p style="margin:0 0 12px">${escapeHtml(t("intro", values))}</p>
       <table style="border-collapse:collapse;width:100%;font-size:13px"><thead><tr>${head}</tr></thead><tbody>${rows}</tbody></table>
       ${more}
-      <p style="margin:20px 0"><a href="${escapeHtml(input.url)}" style="background:#171717;color:#fff;padding:10px 16px;border-radius:8px;text-decoration:none">${escapeHtml(t("cta"))}</a></p>
+      <p style="margin:20px 0"><a href="${escapeHtml(input.url)}" style="background:#1f3a73;color:#fff;padding:10px 16px;border-radius:8px;text-decoration:none">${escapeHtml(t("cta"))}</a></p>
     </div>`;
     const text = [
       t("intro", values),
@@ -265,7 +265,7 @@ export function overdueDigestEmail(input: {
   return {
     to: input.to,
     subject: `${frPart.subject} · ${arPart.subject}`,
-    html: `<!doctype html><html><body style="font-family:Arial,Helvetica,sans-serif;font-size:15px;color:#171717;max-width:680px;margin:0 auto;padding:24px">${frPart.html}<hr style="border:none;border-top:1px solid #e5e5e5;margin:0 0 32px">${arPart.html}</body></html>`,
+    html: `<!doctype html><html><body style="font-family:Arial,Helvetica,sans-serif;font-size:15px;color:#101a33;max-width:680px;margin:0 auto;padding:24px">${frPart.html}<hr style="border:none;border-top:1px solid #e5e5e5;margin:0 0 32px">${arPart.html}</body></html>`,
     text: `${frPart.text}\n\n---\n\n${arPart.text}`,
   };
 }
@@ -326,7 +326,7 @@ export function chargesDigestEmail(input: {
       <p style="margin:0 0 12px">${escapeHtml(t("intro", values))}</p>
       <table style="border-collapse:collapse;width:100%;font-size:13px"><thead><tr>${head}</tr></thead><tbody>${rows}</tbody></table>
       ${more}
-      <p style="margin:20px 0"><a href="${escapeHtml(input.url)}" style="background:#171717;color:#fff;padding:10px 16px;border-radius:8px;text-decoration:none">${escapeHtml(t("cta"))}</a></p>
+      <p style="margin:20px 0"><a href="${escapeHtml(input.url)}" style="background:#1f3a73;color:#fff;padding:10px 16px;border-radius:8px;text-decoration:none">${escapeHtml(t("cta"))}</a></p>
     </div>`;
     const text = [
       t("intro", values),
@@ -343,7 +343,7 @@ export function chargesDigestEmail(input: {
   return {
     to: input.to,
     subject: `${frPart.subject} · ${arPart.subject}`,
-    html: `<!doctype html><html><body style="font-family:Arial,Helvetica,sans-serif;font-size:15px;color:#171717;max-width:680px;margin:0 auto;padding:24px">${frPart.html}<hr style="border:none;border-top:1px solid #e5e5e5;margin:0 0 32px">${arPart.html}</body></html>`,
+    html: `<!doctype html><html><body style="font-family:Arial,Helvetica,sans-serif;font-size:15px;color:#101a33;max-width:680px;margin:0 auto;padding:24px">${frPart.html}<hr style="border:none;border-top:1px solid #e5e5e5;margin:0 0 32px">${arPart.html}</body></html>`,
     text: `${frPart.text}\n\n---\n\n${arPart.text}`,
   };
 }
@@ -428,7 +428,7 @@ export function rentsDigestEmail(input: {
     const html = `
     <div dir="${dir}" lang="${locale}" style="text-align:${align};margin:0 0 32px">
       ${sections}
-      <p style="margin:20px 0"><a href="${escapeHtml(input.url)}" style="background:#171717;color:#fff;padding:10px 16px;border-radius:8px;text-decoration:none">${escapeHtml(t("cta"))}</a></p>
+      <p style="margin:20px 0"><a href="${escapeHtml(input.url)}" style="background:#1f3a73;color:#fff;padding:10px 16px;border-radius:8px;text-decoration:none">${escapeHtml(t("cta"))}</a></p>
     </div>`;
     const text = [
       ...(overdue.length > 0
@@ -457,7 +457,7 @@ export function rentsDigestEmail(input: {
   return {
     to: input.to,
     subject: `${frPart.subject} · ${arPart.subject}`,
-    html: `<!doctype html><html><body style="font-family:Arial,Helvetica,sans-serif;font-size:15px;color:#171717;max-width:680px;margin:0 auto;padding:24px">${frPart.html}<hr style="border:none;border-top:1px solid #e5e5e5;margin:0 0 32px">${arPart.html}</body></html>`,
+    html: `<!doctype html><html><body style="font-family:Arial,Helvetica,sans-serif;font-size:15px;color:#101a33;max-width:680px;margin:0 auto;padding:24px">${frPart.html}<hr style="border:none;border-top:1px solid #e5e5e5;margin:0 0 32px">${arPart.html}</body></html>`,
     text: `${frPart.text}\n\n---\n\n${arPart.text}`,
   };
 }
@@ -525,7 +525,7 @@ export function clientDocumentEmail(input: {
     to: input.to,
     // The number and the company once: the French subject, then the Arabic title.
     subject: `${frPart.subject} · ${arPart.title}`,
-    html: `<!doctype html><html><body style="font-family:Arial,Helvetica,sans-serif;font-size:15px;color:#171717;max-width:560px;margin:0 auto;padding:24px">${frPart.html}<hr style="border:none;border-top:1px solid #e5e5e5;margin:0 0 32px">${arPart.html}</body></html>`,
+    html: `<!doctype html><html><body style="font-family:Arial,Helvetica,sans-serif;font-size:15px;color:#101a33;max-width:560px;margin:0 auto;padding:24px">${frPart.html}<hr style="border:none;border-top:1px solid #e5e5e5;margin:0 0 32px">${arPart.html}</body></html>`,
     text: `${frPart.text}\n\n---\n\n${arPart.text}`,
     attachments: [input.attachment],
   };

@@ -67,10 +67,10 @@ export const pilotPromoter = {
  * authenticator app takes `totpKey` (base32 of `totpSecret`).
  */
 export const demoOperator = {
-  name: "Opératrice Darna",
-  email: "operateur@darna.test",
-  totpSecret: "DarnaOperatorLocalTotpSecret0001",
-  totpKey: "IRQXE3TBJ5YGK4TBORXXETDPMNQWYVDPORYFGZLDOJSXIMBQGAYQ",
+  name: "Opératrice Sayroura",
+  email: "operateur@sayroura.test",
+  totpSecret: "SayrouraOperatorLocalTotpSecret1",
+  totpKey: "KNQXS4TPOVZGCT3QMVZGC5DPOJGG6Y3BNRKG65DQKNSWG4TFOQYQ",
 } as const;
 
 export const demoOrganizations = [
