@@ -1094,7 +1094,7 @@ The WhatsApp message log (`notification:read`) is open to the gérant, the direc
 - [x] 10. Termination: the organization's data in one zip for the gérant (every export and the files' index), `pnpm console:purge` (owner connection, dry run, after 90 days of termination, the legal name confirmed: tenant rows in foreign-key order, its own accounts, its files; the console's records kept)
 
 ### UI/UX — Apple-like (audit 2026-10-11, §14)
-- [x] Brand (« Darna », mark, icons); tokens, type scale, primitives and status tones; app shell, settings hub « Réglages », command palette (⌘K); one page layout with « … » menus; loading skeletons, error boundaries, empty states; motion; account pages; dashboard; lists (white tables, whole-row links); records (segmented sub-pages, soft figures); portal (iOS tab bar, grouped rows, home of cards); dark mode; accessibility (AA tones, focus, 44 px targets); phones (stacked lists, bottom sheets)
+- [x] Brand (« Darna », then « Sayroura » in navy and gold: mark, icons); tokens, type scale, primitives and status tones; app shell, settings hub « Réglages », command palette (⌘K); one page layout with « … » menus; loading skeletons, error boundaries, empty states; motion; account pages; dashboard; lists (white tables, whole-row links); records (segmented sub-pages, soft figures); portal (iOS tab bar, grouped rows, home of cards); dark mode; accessibility (AA tones, focus, 44 px targets); phones (stacked lists, bottom sheets)
 
 ## 12. Decisions log
 
