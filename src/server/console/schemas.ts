@@ -146,3 +146,10 @@ export const provisionSchema = z.object({
   pilotDays: optionalIntText(1, 365),
 });
 export const provisionIdSchema = z.object({ provisionId: z.uuid() });
+
+/** A support session (CLAUDE.console.md §12): an organization, one of its staff, a reason. */
+export const supportStartSchema = z.object({
+  organizationId: z.uuid(),
+  userId: z.uuid(),
+  reason: requiredText(500),
+});

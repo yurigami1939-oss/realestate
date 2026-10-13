@@ -1,8 +1,11 @@
+import { getTranslations } from "next-intl/server";
+
 import { AppSidebar } from "@/components/app-shell/app-sidebar";
 import { CommandPalette } from "@/components/app-shell/command-palette";
 import { TopBar } from "@/components/app-shell/top-bar";
 import { DemoBanner } from "@/components/demo/demo-banner";
 import { SubscriptionBanner } from "@/components/subscription/subscription-banner";
+import { SupportBanner } from "@/components/subscription/support-banner";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { redirect } from "@/i18n/navigation";
 import { localeDirection, toLocale } from "@/i18n/locales";
@@ -36,12 +39,16 @@ export default async function AppLayout({ children, params }: LayoutProps<"/[loc
   const storageGb = ctx.access?.limits?.storageGb ?? null;
   const storageShare =
     billing && storageGb ? ((await getUsage(ctx)).storageBytes / (storageGb * 1e9)) * 100 : null;
-  const group = organizations.filter((o) => o.roles.includes("owner")).length > 1;
+  // An operator's support session (CLAUDE.console.md §12) stays in its one organization.
+  const support = ctx.access?.supportBy ?? null;
+  const shown = support ? [active] : organizations;
+  const group = shown.filter((o) => o.roles.includes("owner")).length > 1;
+  const tb = await getTranslations("subscription.banner");
   return (
     <SidebarProvider>
       <AppSidebar
         side={localeDirection(locale) === "rtl" ? "right" : "left"}
-        organizations={organizations.map(({ id, name }) => ({ id, name }))}
+        organizations={shown.map(({ id, name }) => ({ id, name }))}
         activeOrgId={activeOrgId}
         user={{ name: session.user.name, email: session.user.email }}
         roles={access}
@@ -50,6 +57,12 @@ export default async function AppLayout({ children, params }: LayoutProps<"/[loc
       {/* min-w-0: wide tables scroll inside their own container, not the page. */}
       <SidebarInset className="min-w-0">
         <DemoBanner />
+        {support ? (
+          <SupportBanner
+            text={tb("support", { operator: support.name, member: session.user.name })}
+            endLabel={tb("supportEnd")}
+          />
+        ) : null}
         <SubscriptionBanner access={ctx.access} billing={billing} storageShare={storageShare} />
         <TopBar fallback={active.name}>
           <CommandPalette access={access} group={group} />

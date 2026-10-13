@@ -18,6 +18,7 @@ import { ac, parseRoles, roles } from "@/lib/permissions";
 import { recordAudit } from "@/server/audit/record-audit";
 import { startPilotForNewOrganization } from "@/server/console/accounts";
 import { hasLiveProvisionFor } from "@/server/console/provisions";
+import { pendingSupportOrganization } from "@/server/console/support-sessions";
 import { sendEmailLater } from "@/server/email/send-later";
 import { invitationEmail, resetPasswordEmail } from "@/server/email/templates";
 import { linkPortalAccount } from "@/server/portal/link";
@@ -95,6 +96,23 @@ export const auth = betterAuth({
           message: "Organizations are created from a provision link.",
         });
       }
+      // A support session is read-only (CLAUDE.console.md §12): nothing but leaving it changes
+      // the member's account or switches organization (the admin cookie marks one).
+      const supportCookie = ctx.request.headers.get("cookie")?.includes("admin_session") ?? false;
+      if (
+        supportCookie &&
+        ctx.request.method !== "GET" &&
+        ctx.path !== "/admin/stop-impersonating" &&
+        ctx.path !== "/sign-out"
+      ) {
+        const current = await getSessionFromCtx(ctx);
+        if (current?.session.impersonatedBy) {
+          throw new APIError("FORBIDDEN", {
+            code: "SUPPORT_READ_ONLY",
+            message: "Support sessions are read-only.",
+          });
+        }
+      }
       // Operators (CLAUDE.console.md §9) act through the console only after enrolling in 2FA, and
       // are never members of a tenant.
       // (Leaving a support session is the impersonated member's request: let it through.)
@@ -117,6 +135,16 @@ export const auth = betterAuth({
           message: "Operators join no organization.",
         });
       }
+      // A member is viewed only through the console, with a reason recorded first (§12).
+      if (ctx.path === "/admin/impersonate-user") {
+        const target = String((ctx.body as { userId?: unknown } | undefined)?.userId ?? "");
+        if (!session || !(await pendingSupportOrganization(session.user.id, target))) {
+          throw new APIError("FORBIDDEN", {
+            code: "SUPPORT_REASON_REQUIRED",
+            message: "Start support sessions from the console.",
+          });
+        }
+      }
     }),
     // With OPEN_SIGNUP (local work), an organization created from the onboarding form pilots the
     // default plan; otherwise organizations come from a provision (CLAUDE.console.md §8).
@@ -132,8 +160,17 @@ export const auth = betterAuth({
   databaseHooks: {
     session: {
       create: {
-        // Land every new session in the user's first organization.
+        // Land every new session in the user's first organization; a support session in the
+        // organization its operator recorded it for (CLAUDE.console.md §12).
         before: async (session) => {
+          const operatorId = (session as { impersonatedBy?: string | null }).impersonatedBy;
+          if (operatorId) {
+            const activeOrganizationId = await pendingSupportOrganization(
+              operatorId,
+              session.userId,
+            );
+            return { data: { ...session, activeOrganizationId } };
+          }
           const [first] = await db
             .select({ organizationId: schema.member.organizationId })
             .from(schema.member)

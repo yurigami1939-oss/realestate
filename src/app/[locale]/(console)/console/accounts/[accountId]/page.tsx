@@ -11,6 +11,7 @@ import {
   SubscriptionTermsForm,
 } from "@/components/console/account-forms";
 import { ProvisionDialog } from "@/components/console/provision-forms";
+import { SupportDialog } from "@/components/console/support-dialog";
 import { SubscriptionStatusBadge } from "@/components/subscription/subscription-status-badge";
 import { toLocale } from "@/i18n/locales";
 import { formatDate, formatDateTime, todayInAlgiers } from "@/lib/dates";
@@ -168,13 +169,19 @@ export default async function ConsoleAccountPage({
         >
           {organizations.map((org) => (
             <li key={org.id} className="space-y-2 px-4 py-3">
-              <div className="flex flex-wrap items-baseline justify-between gap-2">
-                <span className="text-sm font-medium">{org.name}</span>
-                <span className="text-footnote text-muted-foreground">
-                  {org.owners.length > 0
-                    ? org.owners.map((o) => `${o.name} · ${o.email}`).join(", ")
-                    : t("account.organizations.noOwner")}
-                </span>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="min-w-0 space-y-0.5">
+                  <div className="text-sm font-medium">{org.name}</div>
+                  <div className="text-footnote text-muted-foreground">
+                    {org.owners.length > 0
+                      ? org.owners.map((o) => `${o.name} · ${o.email}`).join(", ")
+                      : t("account.organizations.noOwner")}
+                  </div>
+                </div>
+                <SupportDialog
+                  organization={{ id: org.id, name: org.name }}
+                  members={org.members.map(({ userId, name, email }) => ({ userId, name, email }))}
+                />
               </div>
               <div className="flex flex-wrap gap-1.5">
                 {allModules

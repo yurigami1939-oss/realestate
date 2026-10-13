@@ -21,7 +21,6 @@ import {
   addon,
   billingAccount,
   consoleAuditLog,
-  member,
   organization,
   pilotGoal,
   plan,
@@ -38,6 +37,8 @@ import {
   subscriptionStatuses,
 } from "@/lib/subscriptions";
 import { loadTenantAccess } from "@/server/entitlements/access";
+
+import { listSupportMembers } from "./support";
 
 import type { OperatorCtx } from "./context";
 
@@ -220,20 +221,15 @@ export async function getAccount(_ctx: OperatorCtx, billingAccountId: string) {
     .where(eq(accountOrganization.billingAccountId, billingAccountId))
     .orderBy(asc(accountOrganization.addedAt));
   const ids = organizations.map((o) => o.id);
-  const owners =
-    ids.length === 0
-      ? []
-      : await consoleDb
-          .select({ organizationId: member.organizationId, name: user.name, email: user.email })
-          .from(member)
-          .innerJoin(user, eq(user.id, member.userId))
-          .where(and(inArray(member.organizationId, ids), eq(member.role, "owner")));
+  // Staff only (support sessions never view a portal account), the gérants first.
+  const staff = await listSupportMembers(ids);
   const withAccess = [];
   for (const org of organizations) {
     const access = await loadTenantAccess(org.id);
     withAccess.push({
       ...org,
-      owners: owners.filter((o) => o.organizationId === org.id),
+      owners: staff.filter((m) => m.organizationId === org.id && m.roles.includes("owner")),
+      members: staff.filter((m) => m.organizationId === org.id),
       modules: access.modules,
       disabled: access.disabled,
     });

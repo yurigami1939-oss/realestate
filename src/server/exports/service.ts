@@ -37,8 +37,9 @@ export async function buildExport(
   const bytes = await buildWorkbook(result.sheets, { rightToLeft: locale === "ar" });
   await withTenant(ctx, (tx) =>
     recordAudit(tx, ctx, {
-      actorUserId: ctx.userId,
-      action: "organization.export",
+      // In a support session, the operator downloads it (CLAUDE.console.md §12).
+      actorUserId: ctx.access?.supportBy?.id ?? ctx.userId,
+      action: ctx.access?.supportBy ? "support.download" : "organization.export",
       entityType: "organization",
       entityId: ctx.orgId,
       after: { kind, filters: parsed.data, rows: result.rows },

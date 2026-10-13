@@ -55,7 +55,8 @@ export async function recordAccess(
     .insert(dataAccess)
     .values({
       organizationId: ctx.orgId,
-      userId: ctx.userId,
+      // In a support session, the operator reads (CLAUDE.console.md §12).
+      userId: ctx.access?.supportBy?.id ?? ctx.userId,
       subjectType,
       subjectId,
       day: todayInAlgiers(),

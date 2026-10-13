@@ -1,7 +1,11 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
+import { unstable_rethrow } from "next/navigation";
 import { z } from "zod";
+
+import { AppError, err, ok, type Result } from "@/lib/result";
 
 import { moneyText } from "@/lib/zod";
 import { addonCodes } from "@/lib/subscriptions";
@@ -22,6 +26,7 @@ import {
   statusChangeSchema,
   subscriptionAddonSchema,
   subscriptionTermsSchema,
+  supportStartSchema,
 } from "./schemas";
 import {
   activateSubscription,
@@ -33,6 +38,7 @@ import {
   updatePilotGoal,
   updateSubscriptionTerms,
 } from "./service";
+import { startSupportSession, stopSupportSession } from "./support";
 
 const refresh = () => revalidatePath("/[locale]/console", "layout");
 
@@ -157,3 +163,30 @@ export const revokeProvisionAction = defineConsoleAction(
     refresh();
   },
 );
+
+/**
+ * Opens a support session (CLAUDE.console.md §12): the operator's session is set aside and the
+ * member's opens on the organization; the browser then goes to its dashboard.
+ */
+export const startSupportSessionAction = defineConsoleAction(
+  { input: supportStartSchema },
+  async (input, ctx) => {
+    await startSupportSession(ctx, input, await headers());
+  },
+);
+
+/**
+ * Ends the support session the request runs in (the member's session, read-only: not a console
+ * action nor a tenant one) and gives the operator their session back.
+ */
+export async function stopSupportSessionAction(): Promise<Result<null>> {
+  try {
+    await stopSupportSession(await headers());
+    return ok(null);
+  } catch (error) {
+    unstable_rethrow(error);
+    if (error instanceof AppError) return err(error);
+    console.error("[support] unexpected error", error);
+    return err(new AppError("UNEXPECTED"));
+  }
+}

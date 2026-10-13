@@ -36,6 +36,8 @@ export async function getGroupOverview(ctx: TenantCtx): Promise<{
   companies: GroupCompany[];
   total: Omit<GroupCompany, "id" | "name" | "active">;
 } | null> {
+  // A support session sees its one organization (CLAUDE.console.md §12).
+  if (ctx.access?.supportBy) return null;
   const owned = (await listUserOrganizations(ctx.userId)).filter((o) => o.roles.includes("owner"));
   if (owned.length < 2 || !owned.some((o) => o.id === ctx.orgId)) return null;
   const today = todayInAlgiers();

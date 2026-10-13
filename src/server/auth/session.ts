@@ -5,12 +5,12 @@ import { headers } from "next/headers";
 import { cache } from "react";
 
 import { db } from "@/db/client";
-import { member } from "@/db/schema";
+import { member, user } from "@/db/schema";
 import { defaultLocale, isLocale, type Locale } from "@/i18n/locales";
 import { resourceAllowed } from "@/lib/modules";
 import { can, parseRoles, type Permission, type Role } from "@/lib/permissions";
 import { AppError } from "@/lib/result";
-import { loadTenantAccess, type TenantAccess } from "@/server/entitlements/access";
+import { loadTenantAccess, supportAccess, type TenantAccess } from "@/server/entitlements/access";
 
 import { loadCustomPermissions } from "@/server/organizations/custom-roles";
 
@@ -58,6 +58,18 @@ export const getTenantCtx = cache(async (): Promise<TenantCtx> => {
   if (!membership) throw new AppError("FORBIDDEN", "errors.noActiveOrganization");
 
   const locale = session.user.locale;
+  const access = await loadTenantAccess(orgId);
+  // An operator's support session (CLAUDE.console.md §12): the member's view, read-only.
+  const operatorId = session.session.impersonatedBy;
+  const operator = operatorId
+    ? (
+        await db
+          .select({ id: user.id, name: user.name })
+          .from(user)
+          .where(eq(user.id, operatorId))
+          .limit(1)
+      )[0]
+    : undefined;
   return {
     userId: session.user.id,
     orgId,
@@ -65,7 +77,9 @@ export const getTenantCtx = cache(async (): Promise<TenantCtx> => {
     // A custom role, when the organization gave one, decides the member's permissions.
     permissions: await loadCustomPermissions(orgId, session.user.id),
     locale: isLocale(locale) ? locale : defaultLocale,
-    access: await loadTenantAccess(orgId),
+    access: operatorId
+      ? supportAccess(access, operator ?? { id: operatorId, name: "" })
+      : access,
   };
 });
 

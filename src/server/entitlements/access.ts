@@ -10,6 +10,9 @@ import { effectiveModules, type Module } from "@/lib/modules";
 import { AppError } from "@/lib/result";
 import { isWritable, type PlanLimits, type SubscriptionStatus } from "@/lib/subscriptions";
 
+/** The operator behind a support session: audited as the actor of what is read. */
+export type SupportOperator = { id: string; name: string };
+
 /**
  * What the organization's subscription allows, as a request sees it (CLAUDE.console.md §4):
  * read once per request into the tenant context (`ctx.access`).
@@ -28,8 +31,8 @@ export type TenantAccess = {
   currentPeriodEnd: CalendarDate | null;
   /** Suspended, terminated, no entitlement, or an operator's support session. */
   readOnly: boolean;
-  /** The operator viewing the organization in a support session (read-only). */
-  supportBy: string | null;
+  /** The operator viewing the organization in a support session (read-only, CLAUDE.console.md §12). */
+  supportBy: SupportOperator | null;
 };
 
 /** The access of the organization the open tenant transaction is set on (one query). */
@@ -66,6 +69,11 @@ export async function readAccess(tx: Tx): Promise<TenantAccess> {
 /** The organization's access, for its tenant context. */
 export function loadTenantAccess(orgId: string): Promise<TenantAccess> {
   return withTenant({ orgId }, (tx) => readAccess(tx));
+}
+
+/** The access an operator gets in a support session: the organization's, read-only. */
+export function supportAccess(access: TenantAccess, operator: SupportOperator): TenantAccess {
+  return { ...access, readOnly: true, supportBy: operator };
 }
 
 /**

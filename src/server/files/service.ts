@@ -19,6 +19,7 @@ import { visibleBuyers } from "@/server/buyers/access";
 import { visibleLeads } from "@/server/crm/access";
 import { portalCanRead } from "@/server/portal/files";
 import { visibleSales } from "@/server/sales/access";
+import { recordAudit } from "@/server/audit/record-audit";
 import { recordAccess } from "@/server/privacy/consents";
 import { assertModule } from "@/server/entitlements/access";
 
@@ -185,6 +186,17 @@ export async function getFileDownloadUrl(
     if (!reader || !(await reader(tx, ctx, found.entityId))) throw new AppError("FORBIDDEN");
     // A buyer's documents are personal data: who downloads them is logged (Loi 18-07).
     if (found.entityType === "buyer") await recordAccess(tx, ctx, "buyer", found.entityId);
+    // What an operator downloads in a support session is in the organization's trail (§12).
+    const operator = ctx.access?.supportBy;
+    if (operator) {
+      await recordAudit(tx, ctx, {
+        actorUserId: operator.id,
+        action: "support.download",
+        entityType: found.entityType,
+        entityId: found.entityId,
+        after: { fileId, fileName: found.fileName },
+      });
+    }
     return found;
   });
   return presignDownload({ ...row, disposition });

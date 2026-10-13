@@ -2589,6 +2589,11 @@
       },
       "subscription": {
         "status_change": "État de l'abonnement modifié"
+      },
+      "support": {
+        "access": "Session support ouverte",
+        "end": "Session support terminée",
+        "download": "Téléchargement en session support"
       }
     },
     "operator": "Opérateur"
@@ -6443,7 +6448,8 @@
       "planArchived": "Cette formule est archivée.",
       "twoFactor": "Activez la double authentification pour agir dans la console.",
       "provisionClosed": "Ce lien n'est plus valable : demandez-en un nouveau.",
-      "provisionEmail": "Ce lien a été envoyé à une autre adresse : connectez-vous avec celle-ci."
+      "provisionEmail": "Ce lien a été envoyé à une autre adresse : connectez-vous avec celle-ci.",
+      "supportMember": "Ce membre ne peut pas être consulté : il n'appartient pas à la société, ou c'est un compte de l'espace client."
     },
     "brand": "Console opérateur",
     "nav": {
@@ -6578,6 +6584,10 @@
             "create": "Objectif ajouté",
             "update": "Objectif mis à jour",
             "delete": "Objectif retiré"
+          },
+          "support": {
+            "start": "Session support ouverte",
+            "stop": "Session support terminée"
           }
         }
       },
@@ -6613,6 +6623,14 @@
         "activeMembers": "Membres actifs (30 jours)",
         "leads": "Prospects (30 jours)",
         "lastActivity": "Dernière activité"
+      },
+      "support": {
+        "open": "Session support",
+        "title": "Ouvrir une session support",
+        "description": "Vous verrez {organization} comme ce membre, en lecture seule, pendant 60 minutes. La raison figure dans le journal de la société.",
+        "member": "Membre",
+        "reason": "Raison",
+        "submit": "Ouvrir la session"
       }
     },
     "plans": {
@@ -6816,7 +6834,9 @@
       "pilotOver": "Le pilote est terminé : choisissez votre formule pour continuer.",
       "pastDue": "Une facture de l'abonnement est en retard de paiement.",
       "link": "Voir l'abonnement",
-      "storage": "Stockage utilisé à {pct} % de votre formule."
+      "storage": "Stockage utilisé à {pct} % de votre formule.",
+      "support": "Session support : {operator} consulte en tant que {member}, en lecture seule.",
+      "supportEnd": "Terminer"
     },
     "usage": {
       "title": "Utilisation",
